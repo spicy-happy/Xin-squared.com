@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800">
+  <defs>
+    <linearGradient id="bg1984" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="eyeGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e94560;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6b6b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#bg1984)"/>
+  <!-- Surveillance eye -->
+  <ellipse cx="300" cy="320" rx="180" ry="100" fill="none" stroke="#e94560" stroke-width="4"/>
+  <circle cx="300" cy="320" r="60" fill="url(#eyeGlow)"/>
+  <circle cx="300" cy="320" r="25" fill="#1a1a2e"/>
+  <circle cx="315" cy="305" r="8" fill="rgba(255,255,255,0.4)"/>
+  <!-- Radiating lines -->
+  <line x1="300" y1="180" x2="300" y2="100" stroke="#e94560" stroke-width="1.5" opacity="0.5"/>
+  <line x1="200" y1="240" x2="140" y2="180" stroke="#e94560" stroke-width="1.5" opacity="0.5"/>
+  <line x1="400" y1="240" x2="460" y2="180" stroke="#e94560" stroke-width="1.5" opacity="0.5"/>
+  <line x1="200" y1="400" x2="140" y2="460" stroke="#e94560" stroke-width="1.5" opacity="0.5"/>
+  <line x1="400" y1="400" x2="460" y2="460" stroke="#e94560" stroke-width="1.5" opacity="0.5"/>
+  <line x1="300" y1="460" x2="300" y2="520" stroke="#e94560" stroke-width="1.5" opacity="0.5"/>
+  <!-- Title text -->
+  <text x="300" y="600" font-family="Georgia, serif" font-size="96" font-weight="bold" fill="#e94560" text-anchor="middle">1984</text>
+  <text x="300" y="660" font-family="Georgia, serif" font-size="24" fill="#a0a0b0" text-anchor="middle" letter-spacing="8">GEORGE ORWELL</text>
+  <!-- Grid pattern overlay -->
+  <g opacity="0.08">
+    <line x1="0" y1="0" x2="600" y2="800" stroke="#e94560" stroke-width="1"/>
+    <line x1="100" y1="0" x2="600" y2="667" stroke="#e94560" stroke-width="1"/>
+    <line x1="200" y1="0" x2="600" y2="533" stroke="#e94560" stroke-width="1"/>
+    <line x1="0" y1="200" x2="600" y2="800" stroke="#e94560" stroke-width="1"/>
+    <line x1="600" y1="0" x2="0" y2="800" stroke="#e94560" stroke-width="1"/>
+    <line x1="500" y1="0" x2="0" y2="667" stroke="#e94560" stroke-width="1"/>
+  </g>
+  <!-- Border -->
+  <rect x="15" y="15" width="570" height="770" fill="none" stroke="#e94560" stroke-width="1" opacity="0.3"/>
+</svg>

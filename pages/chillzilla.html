@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chillzilla - Digital illustration by Xin Xin">
+  <title>Chillzilla | Xin Xin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+  <header class="header" id="header">
+    <div class="container">
+      <a href="../index.html" class="logo">Xin<span>&sup2;</span></a>
+      <nav>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="../index.html" class="active">Work</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <section class="project-detail">
+    <div class="container">
+      <a href="../index.html" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to Work
+      </a>
+
+      <div class="project-hero">
+        <h1>Chillzilla</h1>
+        <div class="project-meta">
+          <span><strong>Medium:</strong> Digital</span>
+          <span><strong>Category:</strong> Character Design</span>
+          <span><strong>Year:</strong> 2023</span>
+        </div>
+      </div>
+
+      <div class="project-image">
+        <img src="../images/chillzilla.svg" alt="Chillzilla - Digital illustration by Xin Xin">
+      </div>
+
+      <div class="project-description">
+        <p>Chillzilla reimagines the classic kaiju as a laid-back, easygoing creature who'd rather sip a tropical drink than destroy a city. Wearing oversized sunglasses and sporting a relaxed grin, this gentle giant sits peacefully against a pastel city skyline.</p>
+        <p>The soft gradient background of pinks, purples, and teals creates a dreamy, vaporwave-inspired atmosphere that contrasts with the traditional destructive imagery associated with giant monsters. The character design emphasizes round, friendly shapes over sharp, threatening angles.</p>
+        <p>Chillzilla was created as a character design exercise exploring how changing a character's attitude and context can completely transform their narrative, turning terror into tranquility.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <a href="../index.html" class="logo">Xin<span>&sup2;</span></a>
+      <div class="footer-links">
+        <a href="../index.html">Work</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <p class="copyright">&copy; 2024 Xin Xin. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    const header = document.getElementById('header');
+    window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 50));
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    menuToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => navLinks.classList.remove('open')));
+  </script>
+
+</body>
+</html>

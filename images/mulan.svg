@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800">
+  <defs>
+    <linearGradient id="mulanBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d1b3d;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f3460;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="armorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#c9a96e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B6914;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#fffbe6;stop-opacity:0.9" />
+      <stop offset="70%" style="stop-color:#f0d060;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#f0d060;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  <rect width="600" height="800" fill="url(#mulanBg)"/>
+  <!-- Moon -->
+  <circle cx="460" cy="120" r="80" fill="url(#moonGlow)"/>
+  <circle cx="460" cy="120" r="45" fill="#fffbe6" opacity="0.9"/>
+  <!-- Cherry blossoms scattered -->
+  <g opacity="0.6">
+    <circle cx="100" cy="100" r="4" fill="#ffb6c1"/>
+    <circle cx="95" cy="108" r="3" fill="#ffb6c1"/>
+    <circle cx="107" cy="105" r="3.5" fill="#ffb6c1"/>
+    <circle cx="520" cy="300" r="4" fill="#ffb6c1"/>
+    <circle cx="515" cy="308" r="3" fill="#ffb6c1"/>
+    <circle cx="527" cy="305" r="3.5" fill="#ffb6c1"/>
+    <circle cx="80" cy="500" r="3" fill="#ffb6c1"/>
+    <circle cx="550" cy="600" r="3.5" fill="#ffb6c1"/>
+    <circle cx="150" cy="700" r="4" fill="#ffb6c1"/>
+  </g>
+  <!-- Warrior figure silhouette -->
+  <g transform="translate(300, 350)">
+    <!-- Body/armor -->
+    <path d="M-40,-150 Q-50,-170 -30,-190 Q0,-210 30,-190 Q50,-170 40,-150 Z" fill="url(#armorGrad)"/>
+    <!-- Head -->
+    <circle cx="0" cy="-220" r="45" fill="#d4a574"/>
+    <!-- Hair -->
+    <path d="M-45,-220 Q-50,-280 -20,-290 Q0,-295 20,-290 Q50,-280 45,-220" fill="#1a1a1a"/>
+    <path d="M-30,-270 Q-35,-300 0,-310 Q35,-300 30,-270" fill="#1a1a1a"/>
+    <!-- Hair tie/bun -->
+    <circle cx="0" cy="-300" r="15" fill="#1a1a1a"/>
+    <rect x="-2" y="-315" width="4" height="20" fill="#c9a96e"/>
+    <!-- Eyes -->
+    <path d="M-18,-225 Q-12,-232 -6,-225" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+    <path d="M6,-225 Q12,-232 18,-225" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+    <!-- Mouth -->
+    <path d="M-8,-205 Q0,-200 8,-205" fill="none" stroke="#c94040" stroke-width="1.5"/>
+    <!-- Armor body -->
+    <rect x="-50" y="-150" width="100" height="120" rx="5" fill="url(#armorGrad)"/>
+    <line x1="-30" y1="-130" x2="-30" y2="-40" stroke="#8B6914" stroke-width="1"/>
+    <line x1="0" y1="-130" x2="0" y2="-40" stroke="#8B6914" stroke-width="1"/>
+    <line x1="30" y1="-130" x2="30" y2="-40" stroke="#8B6914" stroke-width="1"/>
+    <!-- Sword -->
+    <rect x="70" y="-250" width="6" height="200" rx="2" fill="#b0b0b0"/>
+    <rect x="60" y="-55" width="26" height="8" rx="2" fill="#c9a96e"/>
+    <rect x="67" y="-47" width="12" height="30" rx="3" fill="#8B6914"/>
+    <!-- Arms -->
+    <path d="M-50,-130 Q-80,-100 -70,-60" fill="none" stroke="#d4a574" stroke-width="12" stroke-linecap="round"/>
+    <path d="M50,-130 Q80,-100 73,-80" fill="none" stroke="#d4a574" stroke-width="12" stroke-linecap="round"/>
+    <!-- Skirt/lower armor -->
+    <path d="M-60,-30 Q-70,60 -50,120 Q0,140 50,120 Q70,60 60,-30 Z" fill="#8B2252"/>
+  </g>
+  <!-- Mountain silhouettes -->
+  <polygon points="0,700 100,580 200,700" fill="#0d1b2a" opacity="0.5"/>
+  <polygon points="150,700 280,550 410,700" fill="#0d1b2a" opacity="0.4"/>
+  <polygon points="350,700 500,570 600,700" fill="#0d1b2a" opacity="0.5"/>
+  <!-- Title -->
+  <text x="300" y="750" font-family="Georgia, serif" font-size="36" fill="#c9a96e" text-anchor="middle" letter-spacing="6">MULAN</text>
+</svg>

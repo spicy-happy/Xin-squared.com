@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <defs>
+    <linearGradient id="watercolorBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f7f3e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ede7d9;stop-opacity:1" />
+    </linearGradient>
+    <filter id="watercolor">
+      <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="5"/>
+    </filter>
+  </defs>
+  <rect width="600" height="600" fill="url(#watercolorBg)"/>
+  <!-- Watercolor texture spots -->
+  <g opacity="0.08">
+    <circle cx="150" cy="150" r="100" fill="#2d8659"/>
+    <circle cx="450" cy="200" r="80" fill="#2d8659"/>
+    <circle cx="300" cy="450" r="120" fill="#3a9e6b"/>
+  </g>
+  <!-- Plant pot -->
+  <path d="M230,480 L220,540 Q220,560 300,560 Q380,560 380,540 L370,480 Z" fill="#c97b4b" filter="url(#watercolor)"/>
+  <ellipse cx="300" cy="480" rx="75" ry="12" fill="#b06a3b"/>
+  <!-- Stems -->
+  <path d="M280,480 Q260,380 240,300 Q220,250 200,220" fill="none" stroke="#2d8659" stroke-width="5" stroke-linecap="round"/>
+  <path d="M300,480 Q300,350 310,280 Q320,230 340,200" fill="none" stroke="#2d8659" stroke-width="5" stroke-linecap="round"/>
+  <path d="M320,480 Q340,370 380,300 Q400,260 420,240" fill="none" stroke="#2d8659" stroke-width="5" stroke-linecap="round"/>
+  <!-- Venus fly trap heads (but cat-shaped) -->
+  <!-- Left cat-trap -->
+  <g transform="translate(190, 200) rotate(-15)">
+    <ellipse cx="0" cy="0" rx="45" ry="35" fill="#4CAF50" opacity="0.8"/>
+    <!-- Cat ears -->
+    <polygon points="-35,-25 -25,-55 -10,-25" fill="#4CAF50"/>
+    <polygon points="10,-25 25,-55 35,-25" fill="#4CAF50"/>
+    <polygon points="-30,-28 -25,-48 -14,-28" fill="#ff9999" opacity="0.6"/>
+    <polygon points="14,-28 25,-48 30,-28" fill="#ff9999" opacity="0.6"/>
+    <!-- Cat face -->
+    <circle cx="-12" cy="-5" r="5" fill="#1a3a1a"/>
+    <circle cx="12" cy="-5" r="5" fill="#1a3a1a"/>
+    <circle cx="-10" cy="-3" r="2" fill="white" opacity="0.7"/>
+    <circle cx="14" cy="-3" r="2" fill="white" opacity="0.7"/>
+    <path d="M-4,5 Q0,10 4,5" fill="none" stroke="#1a3a1a" stroke-width="1.5"/>
+    <ellipse cx="0" cy="8" rx="3" ry="2" fill="#ff9999"/>
+    <!-- Whiskers -->
+    <line x1="-15" y1="5" x2="-40" y2="0" stroke="#1a3a1a" stroke-width="0.8"/>
+    <line x1="-15" y1="8" x2="-40" y2="10" stroke="#1a3a1a" stroke-width="0.8"/>
+    <line x1="15" y1="5" x2="40" y2="0" stroke="#1a3a1a" stroke-width="0.8"/>
+    <line x1="15" y1="8" x2="40" y2="10" stroke="#1a3a1a" stroke-width="0.8"/>
+    <!-- Trap teeth -->
+    <path d="M-40,15 L-30,25 L-20,15 L-10,25 L0,15 L10,25 L20,15 L30,25 L40,15" fill="none" stroke="#2d8659" stroke-width="2"/>
+  </g>
+  <!-- Center cat-trap -->
+  <g transform="translate(340, 180)">
+    <ellipse cx="0" cy="0" rx="50" ry="40" fill="#4CAF50" opacity="0.8"/>
+    <polygon points="-40,-30 -28,-65 -12,-30" fill="#4CAF50"/>
+    <polygon points="12,-30 28,-65 40,-30" fill="#4CAF50"/>
+    <polygon points="-35,-33 -28,-55 -16,-33" fill="#ff9999" opacity="0.6"/>
+    <polygon points="16,-33 28,-55 35,-33" fill="#ff9999" opacity="0.6"/>
+    <circle cx="-14" cy="-5" r="6" fill="#1a3a1a"/>
+    <circle cx="14" cy="-5" r="6" fill="#1a3a1a"/>
+    <circle cx="-12" cy="-3" r="2.5" fill="white" opacity="0.7"/>
+    <circle cx="16" cy="-3" r="2.5" fill="white" opacity="0.7"/>
+    <path d="M-5,7 Q0,13 5,7" fill="none" stroke="#1a3a1a" stroke-width="1.5"/>
+    <ellipse cx="0" cy="10" rx="4" ry="2.5" fill="#ff9999"/>
+    <line x1="-18" y1="7" x2="-48" y2="2" stroke="#1a3a1a" stroke-width="0.8"/>
+    <line x1="-18" y1="10" x2="-48" y2="12" stroke="#1a3a1a" stroke-width="0.8"/>
+    <line x1="18" y1="7" x2="48" y2="2" stroke="#1a3a1a" stroke-width="0.8"/>
+    <line x1="18" y1="10" x2="48" y2="12" stroke="#1a3a1a" stroke-width="0.8"/>
+    <path d="M-45,18 L-33,30 L-22,18 L-11,30 L0,18 L11,30 L22,18 L33,30 L45,18" fill="none" stroke="#2d8659" stroke-width="2"/>
+  </g>
+  <!-- Right cat-trap -->
+  <g transform="translate(430, 220) rotate(10)">
+    <ellipse cx="0" cy="0" rx="40" ry="32" fill="#4CAF50" opacity="0.8"/>
+    <polygon points="-30,-22 -22,-50 -8,-22" fill="#4CAF50"/>
+    <polygon points="8,-22 22,-50 30,-22" fill="#4CAF50"/>
+    <polygon points="-26,-25 -22,-42 -12,-25" fill="#ff9999" opacity="0.6"/>
+    <polygon points="12,-25 22,-42 26,-25" fill="#ff9999" opacity="0.6"/>
+    <circle cx="-10" cy="-4" r="4.5" fill="#1a3a1a"/>
+    <circle cx="10" cy="-4" r="4.5" fill="#1a3a1a"/>
+    <circle cx="-8" cy="-2" r="2" fill="white" opacity="0.7"/>
+    <circle cx="12" cy="-2" r="2" fill="white" opacity="0.7"/>
+    <path d="M-3,4 Q0,8 3,4" fill="none" stroke="#1a3a1a" stroke-width="1.5"/>
+    <ellipse cx="0" cy="6" rx="2.5" ry="1.5" fill="#ff9999"/>
+    <line x1="-13" y1="4" x2="-35" y2="0" stroke="#1a3a1a" stroke-width="0.8"/>
+    <line x1="-13" y1="7" x2="-35" y2="9" stroke="#1a3a1a" stroke-width="0.8"/>
+    <line x1="13" y1="4" x2="35" y2="0" stroke="#1a3a1a" stroke-width="0.8"/>
+    <line x1="13" y1="7" x2="35" y2="9" stroke="#1a3a1a" stroke-width="0.8"/>
+    <path d="M-35,13 L-25,23 L-15,13 L-5,23 L5,13 L15,23 L25,13 L35,23" fill="none" stroke="#2d8659" stroke-width="2"/>
+  </g>
+  <!-- Small leaves -->
+  <path d="M260,420 Q240,400 250,380 Q260,400 280,420" fill="#3a9e6b" opacity="0.7"/>
+  <path d="M340,400 Q360,380 370,360 Q360,380 340,400" fill="#3a9e6b" opacity="0.7"/>
+</svg>
