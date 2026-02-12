@@ -2793,6 +2793,7 @@ Site Layout
 --------------------------------------------------------------*/
 html {
   box-sizing: border-box;
+  overflow-y: scroll;
 }
 
 * {

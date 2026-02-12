@@ -850,7 +850,7 @@ var KRAFT = KRAFT || {};
        
         
     $( document ).ready( KRAFT.documentOnReady.init );    
-    $( window ).load( KRAFT.documentOnLoad.init );    
+    $( window ).on( 'load', KRAFT.documentOnLoad.init );    
     $( window ).on( 'resize', KRAFT.documentOnResize.init );
         
         
