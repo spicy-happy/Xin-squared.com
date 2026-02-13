@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Health Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+      /* Hide spinner on number inputs */
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+      input[type=number] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// Inline SVG icon components (replacing lucide-react)
+function Trash2({ className = "" }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h18" />
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </svg>
+  );
+}
+
+function Plus({ className = "" }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
+// Simple localStorage wrapper
+const storage = {
+  async get(key) {
+    try {
+      const value = localStorage.getItem(key);
+      return value ? { key, value } : null;
+    } catch (e) {
+      console.error('localStorage.get error:', e);
+      return null;
+    }
+  },
+  async set(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return { key, value };
+    } catch (e) {
+      console.error('localStorage.set error:', e);
+      throw e;
+    }
+  },
+  async delete(key) {
+    try {
+      localStorage.removeItem(key);
+      return { key, deleted: true };
+    } catch (e) {
+      console.error('localStorage.delete error:', e);
+      throw e;
+    }
+  }
+};
+
+// OpenAI API helper
+async function callOpenAI(apiKey, prompt) {
+  if (!apiKey) throw new Error('No API key');
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  const data = await response.json();
+  if (data.error) {
+    throw new Error(data.error.message || 'API error');
+  }
+  return data.choices[0]?.message?.content || "";
+}
+
+function HealthTracker() {
+  const [activeTab, setActiveTab] = useState('log');
+  const [summaryView, setSummaryView] = useState('day');
+  const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [weight, setWeight] = useState('');
+  const [isTrainingDay, setIsTrainingDay] = useState(false);
+  const [isPeriod, setIsPeriod] = useState(false);
+  const [weightSaving, setWeightSaving] = useState('saved');
+  const weightSaveTimeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const [userProfile, setUserProfile] = useState({
+    startingWeight: '',
+    gender: 'female',
+    periodTracking: true,
+    cycleLength: '28',
+    heightFt: '',
+    heightIn: '',
+    birthYear: ''
+  });
+
+  const [foodDescription, setFoodDescription] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAnalyzingExercise, setIsAnalyzingExercise] = useState(false);
+  const [exerciseType, setExerciseType] = useState('');
+  const [foods, setFoods] = useState([]);
+  const [exercises, setExercises] = useState([]);
+  const [editingFoodId, setEditingFoodId] = useState(null);
+  const [editingFoodText, setEditingFoodText] = useState('');
+  const [editingExerciseId, setEditingExerciseId] = useState(null);
+  const [editingExerciseText, setEditingExerciseText] = useState('');
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+  const [undoState, setUndoState] = useState(null);
+  const undoTimeoutRef = useRef(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showPasteJson, setShowPasteJson] = useState(false);
+  const [pastedJson, setPastedJson] = useState('');
+  const [showExportJson, setShowExportJson] = useState(false);
+  const [exportedJson, setExportedJson] = useState('');
+  const [goal, setGoal] = useState('');
+  const [showBackupReminder, setShowBackupReminder] = useState(false);
+  const [lastBackupDate, setLastBackupDate] = useState('');
+  const [backupReminderDismissed, setBackupReminderDismissed] = useState('');
+
+  // API key state
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(false);
+
+  // AI-powered nutrition goals
+  const [nutritionGoals, setNutritionGoals] = useState({ calorieMin: 1700, calorieMax: 1900, protein: 150 });
+  const [isCalculatingGoals, setIsCalculatingGoals] = useState(false);
+  const goalCalcTimeoutRef = useRef(null);
+
+  // Load API key on mount
+  useEffect(() => {
+    const savedKey = localStorage.getItem('openai-api-key');
+    if (savedKey) {
+      setApiKey(savedKey);
+    } else {
+      setShowApiKeyPrompt(true);
+    }
+    // Load saved nutrition goals
+    const savedGoals = localStorage.getItem('nutrition-goals');
+    if (savedGoals) {
+      try {
+        setNutritionGoals(JSON.parse(savedGoals));
+      } catch (e) {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (weightSaveTimeoutRef.current) {
+      clearTimeout(weightSaveTimeoutRef.current);
+      setWeightSaving('saved');
+    }
+    if (undoTimeoutRef.current) {
+      clearTimeout(undoTimeoutRef.current);
+    }
+    setUndoState(null);
+    setEditingFoodId(null);
+    setEditingFoodText('');
+    setEditingExerciseId(null);
+    setEditingExerciseText('');
+    setShowCalendar(false);
+    setWeight('');
+    setIsPeriod(false);
+    setFoods([]);
+    setExercises([]);
+    loadDayData(currentDate);
+    loadGoal();
+    loadUserProfile();
+    checkBackupReminder();
+  }, [currentDate]);
+
+  const checkBackupReminder = async () => {
+    const backupResult = await storage.get('last-backup-date');
+    const dismissResult = await storage.get('backup-reminder-dismissed');
+    if (backupResult?.value) setLastBackupDate(backupResult.value);
+    if (dismissResult?.value) setBackupReminderDismissed(dismissResult.value);
+    const now = Date.now();
+    let shouldShow = false;
+    if (!backupResult?.value) {
+      if (!dismissResult?.value) {
+        shouldShow = true;
+      } else {
+        const dismissDate = new Date(dismissResult.value);
+        const daysSinceDismiss = (now - dismissDate.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSinceDismiss > 30) shouldShow = true;
+      }
+    } else {
+      const lastBackup = new Date(backupResult.value);
+      const daysSinceBackup = (now - lastBackup.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceBackup > 30) {
+        if (!dismissResult?.value) {
+          shouldShow = true;
+        } else {
+          const dismissDate = new Date(dismissResult.value);
+          const daysSinceDismiss = (now - dismissDate.getTime()) / (1000 * 60 * 60 * 24);
+          if (daysSinceDismiss > 30) shouldShow = true;
+        }
+      }
+    }
+    setShowBackupReminder(shouldShow);
+  };
+
+  const loadDayData = async (date) => {
+    try {
+      const result = await storage.get(`nutrition-${date}`);
+      if (result?.value) {
+        try {
+          const data = JSON.parse(result.value);
+          if (data.date === date) {
+            setWeight(data.weight || '');
+            setIsPeriod(data.isPeriod || false);
+            setFoods(data.foods || []);
+            setExercises(data.exercises || []);
+          } else {
+            setWeight(''); setIsPeriod(false); setFoods([]); setExercises([]);
+          }
+        } catch (error) {
+          setWeight(''); setIsPeriod(false); setFoods([]); setExercises([]);
+        }
+      } else {
+        setWeight(''); setIsPeriod(false); setFoods([]); setExercises([]);
+      }
+    } catch (error) {
+      setWeight(''); setIsPeriod(false); setFoods([]); setExercises([]);
+    }
+    setWeightSaving('saved');
+  };
+
+  const saveDayData = async () => {
+    const data = { date: currentDate, weight, isPeriod, foods, exercises };
+    await storage.set(`nutrition-${currentDate}`, JSON.stringify(data));
+  };
+
+  const loadGoal = async () => {
+    try {
+      const result = await storage.get('health-goal');
+      if (result?.value) setGoal(result.value);
+    } catch (error) {}
+  };
+
+  const saveGoal = async (text) => {
+    await storage.set('health-goal', text);
+  };
+
+  const loadUserProfile = async () => {
+    try {
+      const result = await storage.get('user-profile');
+      if (result?.value) setUserProfile(JSON.parse(result.value));
+    } catch (error) {}
+  };
+
+  const saveUserProfile = async (profile) => {
+    await storage.set('user-profile', JSON.stringify(profile));
+  };
+
+  // Calculate AI-powered nutrition goals
+  const calculateNutritionGoals = async (profile, goalText) => {
+    if (!apiKey) return;
+    // Need at least some profile data
+    if (!profile.heightFt && !profile.birthYear && !profile.startingWeight) return;
+
+    setIsCalculatingGoals(true);
+    try {
+      const age = profile.birthYear ? new Date().getFullYear() - parseInt(profile.birthYear) : 'unknown';
+      const height = profile.heightFt ? `${profile.heightFt}'${profile.heightIn || 0}"` : 'unknown';
+      const currentWeight = weight || profile.startingWeight || 'unknown';
+
+      const prompt = `Given this person's profile:
+- Gender: ${profile.gender || 'unknown'}
+- Age: ${age} years old
+- Height: ${height}
+- Current weight: ${currentWeight} lbs
+- Goal: "${goalText || 'general health'}"
+
+Recommend daily calorie range and protein target for this person. Consider their goal carefully.
+Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "protein": 150}`;
+
+      const text = await callOpenAI(apiKey, prompt);
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        const goals = {
+          calorieMin: parseInt(parsed.calorieMin) || 1700,
+          calorieMax: parseInt(parsed.calorieMax) || 1900,
+          protein: parseInt(parsed.protein) || 150
+        };
+        setNutritionGoals(goals);
+        localStorage.setItem('nutrition-goals', JSON.stringify(goals));
+      }
+    } catch (error) {
+      console.error('Error calculating goals:', error);
+    } finally {
+      setIsCalculatingGoals(false);
+    }
+  };
+
+  // Debounced goal recalculation when profile or goal changes
+  const triggerGoalRecalc = (profile, goalText) => {
+    if (goalCalcTimeoutRef.current) {
+      clearTimeout(goalCalcTimeoutRef.current);
+    }
+    goalCalcTimeoutRef.current = setTimeout(() => {
+      calculateNutritionGoals(profile, goalText);
+    }, 2000);
+  };
+
+  const exportData = async () => {
+    try {
+      const allData = {
+        exportDate: new Date().toISOString(),
+        version: '1.0',
+        goal: goal,
+        profile: userProfile,
+        nutritionGoals: nutritionGoals,
+        dailyLogs: []
+      };
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
+          const value = localStorage.getItem(key);
+          if (value) allData.dailyLogs.push(JSON.parse(value));
+        }
+      }
+      const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `health-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      await storage.set('last-backup-date', new Date().toISOString());
+      setLastBackupDate(new Date().toISOString());
+      setShowBackupReminder(false);
+      alert('Backup downloaded! Save it somewhere safe (Google Drive recommended)');
+    } catch (error) {
+      alert('Export failed: ' + error.message);
+    }
+  };
+
+  const importData = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const imported = JSON.parse(text);
+      let addedLogs = 0;
+      let skippedLogs = 0;
+      for (const log of imported.dailyLogs || []) {
+        try {
+          const existing = localStorage.getItem(`nutrition-${log.date}`);
+          if (!existing) {
+            localStorage.setItem(`nutrition-${log.date}`, JSON.stringify(log));
+            addedLogs++;
+          } else {
+            skippedLogs++;
+          }
+        } catch (error) {}
+      }
+      if (imported.goal) {
+        localStorage.setItem('health-goal', imported.goal);
+        setGoal(imported.goal);
+      }
+      if (imported.profile) {
+        localStorage.setItem('user-profile', JSON.stringify(imported.profile));
+        setUserProfile(imported.profile);
+      }
+      if (imported.nutritionGoals) {
+        localStorage.setItem('nutrition-goals', JSON.stringify(imported.nutritionGoals));
+        setNutritionGoals(imported.nutritionGoals);
+      }
+      await loadDayData(currentDate);
+      alert(`Import complete!\n\n${addedLogs} days added, ${skippedLogs} days skipped`);
+    } catch (error) {
+      alert('Import failed: ' + error.message);
+    }
+    event.target.value = '';
+  };
+
+  const clearData = () => {
+    try {
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('nutrition-') || key === 'health-goal' || key === 'user-profile' ||
+            key === 'last-backup-date' || key === 'backup-reminder-dismissed' || key === 'nutrition-goals') {
+          localStorage.removeItem(key);
+        }
+        // NOTE: 'openai-api-key' is preserved intentionally
+      });
+      setShowClearConfirm(false);
+      window.location.reload();
+    } catch (error) {
+      setShowClearConfirm(false);
+    }
+  };
+
+  const addFood = async () => {
+    if (!foodDescription) return;
+    if (!apiKey) { setShowApiKeyPrompt(true); return; }
+    const dateToSave = currentDate;
+    setIsAnalyzing(true);
+    try {
+      const text = await callOpenAI(apiKey, `Analyze this food: "${foodDescription}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. Return ONLY JSON: [{"name":"1 scrambled egg","calories":70,"protein":6,"fat":5,"carbs":1}]. Examples: "eggs" -> "2 eggs", "apple" -> "1 apple", "bowl of cereal" -> "1 bowl of cereal", "chicken breast" -> "1 chicken breast".`);
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        const newFoods = parsed.map((n, i) => ({
+          id: Date.now() + i,
+          name: n.name,
+          calories: parseFloat(n.calories) || 0,
+          protein: parseFloat(n.protein) || 0,
+          fat: parseFloat(n.fat) || 0,
+          carbs: parseFloat(n.carbs) || 0
+        }));
+        const updatedFoods = [...foods, ...newFoods];
+        setFoods(updatedFoods);
+        setFoodDescription('');
+        setTimeout(async () => {
+          const saveData = { date: dateToSave, weight, isPeriod, foods: updatedFoods, exercises };
+          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(saveData));
+        }, 50);
+      }
+    } catch (error) {
+      if (error.message && error.message.includes('401')) {
+        alert('Invalid API key. Please update it in the Profile tab.');
+      } else {
+        alert('Error analyzing food: ' + error.message);
+      }
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const deleteFood = (id) => {
+    const dateToSave = currentDate;
+    const foodToDelete = foods.find(f => f.id === id);
+    const newFoods = foods.filter(f => f.id !== id);
+    setFoods(newFoods);
+    setUndoState({ type: 'food', item: foodToDelete, date: dateToSave });
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    undoTimeoutRef.current = setTimeout(() => {
+      setUndoState(null);
+      const data = { date: dateToSave, weight, isPeriod, foods: newFoods, exercises };
+      storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+    }, 10000);
+  };
+
+  const undoDelete = () => {
+    if (!undoState) return;
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    const dateToRestore = undoState.date;
+    if (undoState.type === 'food') {
+      const restoredFoods = [...foods, undoState.item];
+      setFoods(restoredFoods);
+      setTimeout(async () => {
+        const data = { date: dateToRestore, weight, isPeriod, foods: restoredFoods, exercises };
+        await storage.set(`nutrition-${dateToRestore}`, JSON.stringify(data));
+      }, 50);
+    } else if (undoState.type === 'exercise') {
+      const restoredExercises = [...exercises, undoState.item];
+      setExercises(restoredExercises);
+      setTimeout(async () => {
+        const data = { date: dateToRestore, weight, isPeriod, foods, exercises: restoredExercises };
+        await storage.set(`nutrition-${dateToRestore}`, JSON.stringify(data));
+      }, 50);
+    }
+    setUndoState(null);
+  };
+
+  const dismissUndo = () => {
+    if (!undoState) return;
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    const dateToSave = undoState.date;
+    setTimeout(async () => {
+      const data = { date: dateToSave, weight, isPeriod, foods, exercises };
+      await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+    }, 50);
+    setUndoState(null);
+  };
+
+  const startEditingFood = (food) => {
+    setEditingFoodId(food.id);
+    setEditingFoodText(food.name);
+  };
+
+  const cancelEditFood = () => {
+    setEditingFoodId(null);
+    setEditingFoodText('');
+  };
+
+  const saveEditedFood = async () => {
+    if (!editingFoodText || !editingFoodId) return;
+    if (!apiKey) { setShowApiKeyPrompt(true); return; }
+    const dateToSave = currentDate;
+    setIsAnalyzing(true);
+    try {
+      const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. Return ONLY JSON: [{"name":"1 scrambled egg","calories":70,"protein":6,"fat":5,"carbs":1}]. Examples: "eggs" -> "2 eggs", "apple" -> "1 apple", "bowl of cereal" -> "1 bowl of cereal", "chicken breast" -> "1 chicken breast".`);
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        const updatedFood = {
+          id: editingFoodId,
+          name: parsed[0].name,
+          calories: parseFloat(parsed[0].calories) || 0,
+          protein: parseFloat(parsed[0].protein) || 0,
+          fat: parseFloat(parsed[0].fat) || 0,
+          carbs: parseFloat(parsed[0].carbs) || 0
+        };
+        const updatedFoods = foods.map(f => f.id === editingFoodId ? updatedFood : f);
+        setFoods(updatedFoods);
+        setEditingFoodId(null);
+        setEditingFoodText('');
+        setTimeout(async () => {
+          const saveData = { date: dateToSave, weight, isPeriod, foods: updatedFoods, exercises };
+          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(saveData));
+        }, 50);
+      }
+    } catch (error) {
+      if (error.message && error.message.includes('401')) {
+        alert('Invalid API key. Please update it in the Profile tab.');
+      } else {
+        alert('Error analyzing food: ' + error.message);
+      }
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // AI-powered exercise calorie estimation
+  const estimateExerciseCaloriesAI = async (exerciseName) => {
+    if (!apiKey) return 250; // fallback
+    const currentWeight = weight || userProfile.startingWeight || '150';
+    try {
+      const text = await callOpenAI(apiKey, `Estimate total calories burned for this exercise session: "${exerciseName}". The person weighs ${currentWeight} lbs. If no duration is mentioned, assume 1 hour. Return ONLY JSON, no other text: {"calories": 400}`);
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        return parseInt(parsed.calories) || 250;
+      }
+    } catch (error) {
+      console.error('Exercise estimation error:', error);
+    }
+    return 250; // fallback
+  };
+
+  const addExercise = async () => {
+    if (!exerciseType) return;
+    const dateToSave = currentDate;
+
+    const exercises_to_add = exerciseType
+      .split(/,|;|\sand\s/i)
+      .map(e => e.trim())
+      .filter(e => e.length > 0);
+
+    if (apiKey) {
+      setIsAnalyzingExercise(true);
+      try {
+        const newExercises = [];
+        for (const exerciseName of exercises_to_add) {
+          const cal = await estimateExerciseCaloriesAI(exerciseName);
+          newExercises.push({ id: Date.now() + newExercises.length, type: exerciseName, calories: cal });
+        }
+        const updatedExercises = [...exercises, ...newExercises];
+        setExercises(updatedExercises);
+        setExerciseType('');
+        setTimeout(async () => {
+          const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
+          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+        }, 50);
+      } catch (error) {
+        alert('Error estimating exercise: ' + error.message);
+      } finally {
+        setIsAnalyzingExercise(false);
+      }
+    } else {
+      // Fallback: use hardcoded estimates
+      const newExercises = exercises_to_add.map((exerciseName, index) => ({
+        id: Date.now() + index,
+        type: exerciseName,
+        calories: 250
+      }));
+      const updatedExercises = [...exercises, ...newExercises];
+      setExercises(updatedExercises);
+      setExerciseType('');
+      setTimeout(async () => {
+        const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
+        await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+      }, 50);
+    }
+  };
+
+  const deleteExercise = (id) => {
+    const dateToSave = currentDate;
+    const exerciseToDelete = exercises.find(e => e.id === id);
+    const newExercises = exercises.filter(e => e.id !== id);
+    setExercises(newExercises);
+    setUndoState({ type: 'exercise', item: exerciseToDelete, date: dateToSave });
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    undoTimeoutRef.current = setTimeout(() => {
+      setUndoState(null);
+      const data = { date: dateToSave, weight, isPeriod, foods, exercises: newExercises };
+      storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+    }, 10000);
+  };
+
+  const startEditingExercise = (exercise) => {
+    setEditingExerciseId(exercise.id);
+    setEditingExerciseText(exercise.type);
+  };
+
+  const cancelEditExercise = () => {
+    setEditingExerciseId(null);
+    setEditingExerciseText('');
+  };
+
+  const saveEditedExercise = async () => {
+    if (!editingExerciseText || !editingExerciseId) return;
+    const dateToSave = currentDate;
+
+    if (apiKey) {
+      setIsAnalyzingExercise(true);
+      try {
+        const cal = await estimateExerciseCaloriesAI(editingExerciseText);
+        const updatedExercise = { id: editingExerciseId, type: editingExerciseText, calories: cal };
+        const updatedExercises = exercises.map(e => e.id === editingExerciseId ? updatedExercise : e);
+        setExercises(updatedExercises);
+        setEditingExerciseId(null);
+        setEditingExerciseText('');
+        setTimeout(async () => {
+          const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
+          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+        }, 50);
+      } catch (error) {
+        alert('Error estimating exercise: ' + error.message);
+      } finally {
+        setIsAnalyzingExercise(false);
+      }
+    } else {
+      const updatedExercise = { id: editingExerciseId, type: editingExerciseText, calories: 250 };
+      const updatedExercises = exercises.map(e => e.id === editingExerciseId ? updatedExercise : e);
+      setExercises(updatedExercises);
+      setEditingExerciseId(null);
+      setEditingExerciseText('');
+      setTimeout(async () => {
+        const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
+        await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+      }, 50);
+    }
+  };
+
+  const totals = foods.reduce((acc, f) => ({
+    calories: acc.calories + f.calories,
+    protein: acc.protein + f.protein
+  }), { calories: 0, protein: 0 });
+
+  const exerciseCalories = exercises.reduce((sum, ex) => sum + ex.calories, 0);
+
+  // Dynamic calorie goal based on AI targets + exercise
+  const baseGoalMin = nutritionGoals.calorieMin;
+  const baseGoalMax = nutritionGoals.calorieMax;
+  const proteinGoal = nutritionGoals.protein;
+  const calorieGoalMin = baseGoalMin + exerciseCalories;
+  const calorieGoalMax = baseGoalMax + exerciseCalories;
+
+  const getAllHistory = () => {
+    const history = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
+        const value = localStorage.getItem(key);
+        if (value) history.push(JSON.parse(value));
+      }
+    }
+    return history.sort((a, b) => new Date(b.date) - new Date(a.date));
+  };
+
+  const getWeekData = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const mondayOfTargetWeek = new Date(today);
+    mondayOfTargetWeek.setDate(today.getDate() - daysFromMonday + (weekOffset * 7));
+    const weekData = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(mondayOfTargetWeek);
+      date.setDate(mondayOfTargetWeek.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      if (dateStr === currentDate) {
+        weekData.push({ date: dateStr, weight, isPeriod, foods, exercises });
+      } else {
+        const stored = localStorage.getItem(`nutrition-${dateStr}`);
+        if (stored) {
+          weekData.push(JSON.parse(stored));
+        } else {
+          weekData.push({ date: dateStr, weight: '', foods: [], exercises: [] });
+        }
+      }
+    }
+    return weekData;
+  };
+
+  const getMonthData = () => {
+    const today = new Date();
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+    const year = targetMonth.getFullYear();
+    const month = targetMonth.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const monthData = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const dateStr = date.toISOString().split('T')[0];
+      if (dateStr === currentDate) {
+        monthData.push({ date: dateStr, weight, isPeriod, foods, exercises });
+      } else {
+        const stored = localStorage.getItem(`nutrition-${dateStr}`);
+        if (stored) {
+          monthData.push(JSON.parse(stored));
+        } else {
+          monthData.push({ date: dateStr, weight: '', foods: [], exercises: [] });
+        }
+      }
+    }
+    return monthData;
+  };
+
+  const navigateDay = (direction) => {
+    const date = new Date(currentDate);
+    date.setDate(date.getDate() + direction);
+    setCurrentDate(date.toISOString().split('T')[0]);
+  };
+
+  const formatDate = (dateStr, includeWeekday = false) => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    if (includeWeekday) {
+      return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const formatDateWithWeekday = (dateStr) => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  };
+
+  const canNavigateForward = () => {
+    const today = new Date().toISOString().split('T')[0];
+    return currentDate < today;
+  };
+
+  const getLastWeight = () => {
+    const date = new Date(currentDate);
+    for (let i = 1; i <= 30; i++) {
+      date.setDate(date.getDate() - 1);
+      const dateStr = date.toISOString().split('T')[0];
+      const stored = localStorage.getItem(`nutrition-${dateStr}`);
+      if (stored) {
+        const data = JSON.parse(stored);
+        if (data.weight) return data.weight;
+      }
+    }
+    return '';
+  };
+
+  const getCalendarDays = () => {
+    const firstDay = new Date(calendarYear, calendarMonth, 1);
+    const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay();
+    const adjustedStart = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+    const days = [];
+    for (let i = 0; i < adjustedStart; i++) days.push(null);
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      days.push(dateStr);
+    }
+    return days;
+  };
+
+  const selectDate = (dateStr) => {
+    setCurrentDate(dateStr);
+    setShowCalendar(false);
+  };
+
+  const navigateCalendarMonth = (direction) => {
+    const newDate = new Date(calendarYear, calendarMonth + direction, 1);
+    setCalendarMonth(newDate.getMonth());
+    setCalendarYear(newDate.getFullYear());
+  };
+
+  const openCalendar = () => {
+    setCalendarMonth(new Date().getMonth());
+    setCalendarYear(new Date().getFullYear());
+    setShowCalendar(true);
+  };
+
+  const getPredictedPeriods = (targetMonth, targetYear) => {
+    if (!userProfile.periodTracking || !userProfile.cycleLength) return [];
+    let lastPeriodDate = null;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
+        const value = localStorage.getItem(key);
+        if (value) {
+          const data = JSON.parse(value);
+          if (data.isPeriod) {
+            const date = new Date(data.date);
+            if (!lastPeriodDate || date > lastPeriodDate) lastPeriodDate = date;
+          }
+        }
+      }
+    }
+    if (!lastPeriodDate) return [];
+    const cycleLength = parseInt(userProfile.cycleLength);
+    const predicted = [];
+    const monthStart = new Date(targetYear, targetMonth, 1);
+    const monthEnd = new Date(targetYear, targetMonth + 1, 0);
+    let nextPeriod = new Date(lastPeriodDate);
+    while (nextPeriod < monthStart) {
+      nextPeriod.setDate(nextPeriod.getDate() + cycleLength);
+    }
+    while (nextPeriod <= monthEnd) {
+      predicted.push(nextPeriod.toISOString().split('T')[0]);
+      nextPeriod.setDate(nextPeriod.getDate() + cycleLength);
+    }
+    return predicted;
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* API Key Prompt Modal */}
+      {showApiKeyPrompt && !apiKey && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold mb-2">OpenAI API Key Required</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              This app uses OpenAI to analyze food and exercise. Your key is stored only in your browser's localStorage - never in the source code.
+            </p>
+            <input
+              type="password"
+              placeholder="sk-..."
+              className="w-full px-4 py-3 border rounded-xl mb-3"
+              id="api-key-input"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const key = e.target.value.trim();
+                  if (key.length > 10) {
+                    localStorage.setItem('openai-api-key', key);
+                    setApiKey(key);
+                    setShowApiKeyPrompt(false);
+                  }
+                }
+              }}
+            />
+            <button
+              onClick={() => {
+                const key = document.getElementById('api-key-input').value.trim();
+                if (key.length > 10) {
+                  localStorage.setItem('openai-api-key', key);
+                  setApiKey(key);
+                  setShowApiKeyPrompt(false);
+                } else {
+                  alert('Please enter a valid OpenAI API key');
+                }
+              }}
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold"
+            >
+              Save Key
+            </button>
+            <button
+              onClick={() => setShowApiKeyPrompt(false)}
+              className="w-full px-6 py-2 mt-2 text-gray-500 text-sm"
+            >
+              Skip for now (limited features)
+            </button>
+            <p className="text-xs text-gray-500 mt-3 text-center">
+              Get your key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" className="text-blue-600 underline">platform.openai.com/api-keys</a>
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-5xl mx-auto p-4 sm:p-6 pb-32">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 tracking-tight">
+          Health Tracker
+        </h1>
+
+        {showBackupReminder && (
+          <div className="mb-4 p-4 bg-orange-50 border-2 border-orange-200 rounded-xl">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="font-bold text-orange-900 mb-1">Monthly Backup Reminder</div>
+                <div className="text-sm text-orange-800">
+                  {lastBackupDate
+                    ? `Last backup: ${new Date(lastBackupDate).toLocaleDateString()}. Time to back up your data!`
+                    : 'No backup found. Protect your data by creating your first backup!'}
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  await storage.set('backup-reminder-dismissed', new Date().toISOString());
+                  setShowBackupReminder(false);
+                }}
+                className="ml-3 text-orange-600 hover:text-orange-800 font-bold"
+              >
+                X
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-white rounded-2xl shadow-lg mb-6 overflow-hidden">
+          <div className="flex">
+            <button
+              onClick={() => { setActiveTab('log'); setShowCalendar(false); }}
+              className={`flex-1 px-4 py-4 font-semibold ${activeTab === 'log' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'}`}
+            >
+              Log
+            </button>
+            <button
+              onClick={() => { setActiveTab('summary'); setShowCalendar(false); }}
+              className={`flex-1 px-4 py-4 font-semibold ${activeTab === 'summary' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'}`}
+            >
+              Summary
+            </button>
+            <button
+              onClick={() => { setActiveTab('profile'); setShowCalendar(false); }}
+              className={`flex-1 px-4 py-4 font-semibold ${activeTab === 'profile' ? 'text-blue-600 bg-blue-50' : 'text-gray-600'}`}
+            >
+              Profile
+            </button>
+          </div>
+        </div>
+
+        {activeTab === 'log' && (
+          <div className="mb-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl shadow-lg p-4">
+            <div className="flex justify-between items-center">
+              <div className="flex-1">
+                <div className="text-xs font-bold text-gray-600 mb-1">TODAY'S FOOD TOTAL</div>
+                <div className="flex gap-4 items-baseline">
+                  <div>
+                    <span className="text-2xl font-bold text-blue-600">{totals.calories.toFixed(0)}</span>
+                    <span className="text-xs text-gray-600 ml-1">cal</span>
+                  </div>
+                  <div>
+                    <span className="text-lg font-bold text-green-600">{totals.protein.toFixed(0)}</span>
+                    <span className="text-xs text-gray-600 ml-0.5">g protein</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs font-bold text-gray-600">
+                  GOAL {isCalculatingGoals && <span className="text-blue-500">(updating...)</span>}
+                </div>
+                <div className="text-sm text-gray-700">
+                  {calorieGoalMin.toFixed(0)}-{calorieGoalMax.toFixed(0)} cal
+                </div>
+                <div className="text-xs text-gray-500">{proteinGoal}g protein</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'log' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              {/* Date Navigation */}
+              <div className="mb-6 relative">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => navigateDay(-1)}
+                    className="px-4 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 text-xl font-bold"
+                  >
+                    &larr;
+                  </button>
+                  <div
+                    className="flex-1 mx-3 text-center font-bold text-xl cursor-pointer hover:text-blue-600 transition-colors"
+                    onClick={openCalendar}
+                  >
+                    {formatDate(currentDate, true)}
+                  </div>
+                  <button
+                    onClick={() => navigateDay(1)}
+                    disabled={!canNavigateForward()}
+                    className="px-4 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-30 text-xl font-bold"
+                  >
+                    &rarr;
+                  </button>
+                </div>
+
+                {showCalendar && (
+                  <div className="absolute z-50 left-0 right-0 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-xl p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <button onClick={() => navigateCalendarMonth(-1)} className="px-2 py-1 hover:bg-gray-100 rounded text-xl font-bold">&larr;</button>
+                      <div className="font-bold text-lg">
+                        {new Date(calendarYear, calendarMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </div>
+                      <button onClick={() => navigateCalendarMonth(1)} className="px-2 py-1 hover:bg-gray-100 rounded text-xl font-bold">&rarr;</button>
+                      <button onClick={() => setShowCalendar(false)} className="text-gray-400 hover:text-gray-600 font-bold text-xl ml-2">X</button>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                      {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                        <div key={day} className="text-center text-xs font-semibold text-gray-600 py-1">{day}</div>
+                      ))}
+                      {getCalendarDays().map((dateStr, index) => {
+                        if (!dateStr) return <div key={`blank-${index}`} className="aspect-square" />;
+                        const isSelected = dateStr === currentDate;
+                        const isToday = dateStr === new Date().toISOString().split('T')[0];
+                        const isFuture = dateStr > new Date().toISOString().split('T')[0];
+                        const dayNum = parseInt(dateStr.split('-')[2]);
+                        return (
+                          <button
+                            key={dateStr}
+                            onClick={() => !isFuture && selectDate(dateStr)}
+                            disabled={isFuture}
+                            className={`aspect-square flex items-center justify-center text-sm rounded-lg font-medium transition-all
+                              ${isSelected ? 'bg-blue-600 text-white' : ''}
+                              ${!isSelected && isToday ? 'bg-blue-100 text-blue-700' : ''}
+                              ${!isSelected && !isToday && !isFuture ? 'hover:bg-gray-100' : ''}
+                              ${isFuture ? 'text-gray-300 cursor-not-allowed' : 'cursor-pointer'}
+                            `}
+                          >
+                            {dayNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Weight */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-bold">WEIGHT</label>
+                  {weightSaving === 'saving' && <span className="text-xs text-gray-500">Saving...</span>}
+                  {weightSaving === 'saved' && <span className="text-xs text-green-600">Saved</span>}
+                </div>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={weight}
+                    onChange={(e) => {
+                      const newWeight = e.target.value;
+                      const dateToSave = currentDate;
+                      setWeight(newWeight);
+                      setWeightSaving('saving');
+                      if (weightSaveTimeoutRef.current) clearTimeout(weightSaveTimeoutRef.current);
+                      weightSaveTimeoutRef.current = setTimeout(async () => {
+                        const data = { date: dateToSave, weight: newWeight, isPeriod, foods, exercises };
+                        await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+                        setWeightSaving('saved');
+                      }, 500);
+                    }}
+                    placeholder={getLastWeight() ? `Last: ${getLastWeight()} lbs` : ''}
+                    className="w-full px-4 py-3 pr-12 border rounded-xl"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">lbs</span>
+                </div>
+              </div>
+
+              {/* Period Tracking */}
+              {userProfile.periodTracking && (
+                <div className="mb-6">
+                  <label className="flex items-center border-2 border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={isPeriod}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        const dateToSave = currentDate;
+                        setIsPeriod(checked);
+                        setTimeout(async () => {
+                          const data = { date: dateToSave, weight, isPeriod: checked, foods, exercises };
+                          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+                        }, 50);
+                      }}
+                      className="w-5 h-5 mr-2.5"
+                    />
+                    <span className="text-sm text-gray-700">Period</span>
+                  </label>
+                </div>
+              )}
+
+              <div className="border-t border-gray-200 my-6"></div>
+
+              {/* Add Food */}
+              <div className="mb-6">
+                <label className="block text-sm font-bold mb-3">ADD FOOD</label>
+                <textarea
+                  value={foodDescription}
+                  onChange={(e) => setFoodDescription(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addFood(); } }}
+                  placeholder="2 scrambled eggs with toast"
+                  className="w-full px-4 py-3 border rounded-xl resize-none mb-3 overflow-y-auto"
+                  rows={Math.min(5, Math.max(2, foodDescription.split('\n').length))}
+                  style={{maxHeight: 'calc(1.5em * 5 + 1.5rem)'}}
+                />
+                <button
+                  onClick={addFood}
+                  disabled={isAnalyzing || !foodDescription}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold disabled:opacity-50"
+                >
+                  {isAnalyzing ? 'Analyzing...' : <><Plus className="inline w-5 h-5 mr-2" />Add Food</>}
+                </button>
+              </div>
+
+              {/* Food List */}
+              {foods.length > 0 && (
+                <div className="mb-6 space-y-2">
+                  {foods.map((food) => (
+                    <div key={food.id}>
+                      {editingFoodId === food.id ? (
+                        <div className="p-3 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                          <input
+                            type="text"
+                            value={editingFoodText}
+                            onChange={(e) => setEditingFoodText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditedFood();
+                              if (e.key === 'Escape') cancelEditFood();
+                            }}
+                            className="w-full px-3 py-2 border rounded-lg mb-2"
+                            placeholder="e.g., 3 scrambled eggs"
+                            autoFocus
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={saveEditedFood}
+                              disabled={isAnalyzing}
+                              className="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+                            >
+                              {isAnalyzing ? 'Analyzing...' : 'Save'}
+                            </button>
+                            <button
+                              onClick={cancelEditFood}
+                              className="flex-1 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className="flex justify-between items-center p-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md cursor-pointer transition-all duration-200"
+                          onClick={() => startEditingFood(food)}
+                        >
+                          <div className="flex-1">
+                            <div className="font-medium">{food.name}</div>
+                            <div className="text-xs text-gray-600">
+                              {food.calories}cal - Protein: {food.protein}g - Fat: {food.fat}g - Carbs: {food.carbs}g
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteFood(food.id); }}
+                            className="text-blue-500 ml-2 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="border-t border-gray-200 my-6"></div>
+
+              {/* Add Exercise */}
+              <div className="mb-6">
+                <label className="block text-sm font-bold mb-3">ADD EXERCISE</label>
+                <textarea
+                  value={exerciseType}
+                  onChange={(e) => setExerciseType(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addExercise(); } }}
+                  placeholder="e.g., teaching judo, intense running"
+                  className="w-full px-4 py-3 border rounded-xl resize-none mb-3 overflow-y-auto"
+                  rows={Math.min(5, Math.max(2, exerciseType.split('\n').length))}
+                  style={{maxHeight: 'calc(1.5em * 5 + 1.5rem)'}}
+                />
+                <button
+                  onClick={addExercise}
+                  disabled={!exerciseType || isAnalyzingExercise}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold disabled:opacity-50"
+                >
+                  {isAnalyzingExercise ? 'Estimating...' : <><Plus className="inline w-5 h-5 mr-2" />Add Exercise</>}
+                </button>
+              </div>
+
+              {/* Exercise List */}
+              {exercises.length > 0 && (
+                <div className="space-y-2">
+                  {exercises.map((ex) => (
+                    <div key={ex.id}>
+                      {editingExerciseId === ex.id ? (
+                        <div className="p-3 bg-green-50 border-2 border-green-200 rounded-xl">
+                          <input
+                            type="text"
+                            value={editingExerciseText}
+                            onChange={(e) => setEditingExerciseText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditedExercise();
+                              if (e.key === 'Escape') cancelEditExercise();
+                            }}
+                            className="w-full px-3 py-2 border rounded-lg mb-2"
+                            placeholder="e.g., Judo training"
+                            autoFocus
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={saveEditedExercise}
+                              disabled={isAnalyzingExercise}
+                              className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+                            >
+                              {isAnalyzingExercise ? 'Estimating...' : 'Save'}
+                            </button>
+                            <button
+                              onClick={cancelEditExercise}
+                              className="flex-1 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className="flex justify-between items-center p-3 bg-white border-2 border-gray-200 rounded-xl hover:border-green-300 hover:shadow-md cursor-pointer transition-all duration-200"
+                          onClick={() => startEditingExercise(ex)}
+                        >
+                          <div className="flex-1">
+                            <div className="font-medium">{ex.type}</div>
+                            <span className="text-green-600 font-bold">-{ex.calories} cal</span>
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteExercise(ex.id); }}
+                            className="text-blue-500 ml-2 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'summary' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl shadow-lg p-4">
+              <div className="flex gap-2 mb-6">
+                <button
+                  onClick={() => { setSummaryView('day'); setWeekOffset(0); setMonthOffset(0); }}
+                  className={`flex-1 px-4 py-2 rounded-xl font-semibold ${summaryView === 'day' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                >Day</button>
+                <button
+                  onClick={() => { setSummaryView('week'); setWeekOffset(0); setMonthOffset(0); setShowCalendar(false); }}
+                  className={`flex-1 px-4 py-2 rounded-xl font-semibold ${summaryView === 'week' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                >Week</button>
+                <button
+                  onClick={() => { setSummaryView('month'); setWeekOffset(0); setMonthOffset(0); setShowCalendar(false); }}
+                  className={`flex-1 px-4 py-2 rounded-xl font-semibold ${summaryView === 'month' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                >Month</button>
+              </div>
+
+              {summaryView === 'day' && (
+                <div>
+                  <div className="flex items-center justify-between mb-4 relative">
+                    <button onClick={() => navigateDay(-1)} className="px-4 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 text-xl font-bold">&larr;</button>
+                    <div className="flex-1 mx-3 text-center font-bold text-xl cursor-pointer hover:text-blue-600 transition-colors" onClick={openCalendar}>
+                      {formatDate(currentDate, true)}
+                    </div>
+                    <button onClick={() => navigateDay(1)} disabled={!canNavigateForward()} className="px-4 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-30 text-xl font-bold">&rarr;</button>
+
+                    {showCalendar && (
+                      <div className="absolute z-50 left-0 right-0 top-full mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-xl p-4">
+                        <div className="flex justify-between items-center mb-3">
+                          <button onClick={() => navigateCalendarMonth(-1)} className="px-2 py-1 hover:bg-gray-100 rounded text-xl font-bold">&larr;</button>
+                          <div className="font-bold text-lg">
+                            {new Date(calendarYear, calendarMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                          </div>
+                          <button onClick={() => navigateCalendarMonth(1)} className="px-2 py-1 hover:bg-gray-100 rounded text-xl font-bold">&rarr;</button>
+                          <button onClick={() => setShowCalendar(false)} className="text-gray-400 hover:text-gray-600 font-bold text-xl ml-2">X</button>
+                        </div>
+                        <div className="grid grid-cols-7 gap-1">
+                          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                            <div key={day} className="text-center text-xs font-semibold text-gray-600 py-1">{day}</div>
+                          ))}
+                          {getCalendarDays().map((dateStr, index) => {
+                            if (!dateStr) return <div key={`blank-${index}`} className="aspect-square" />;
+                            const isSelected = dateStr === currentDate;
+                            const isToday = dateStr === new Date().toISOString().split('T')[0];
+                            const isFuture = dateStr > new Date().toISOString().split('T')[0];
+                            const dayNum = parseInt(dateStr.split('-')[2]);
+                            return (
+                              <button key={dateStr} onClick={() => !isFuture && selectDate(dateStr)} disabled={isFuture}
+                                className={`aspect-square flex items-center justify-center text-sm rounded-lg font-medium transition-all
+                                  ${isSelected ? 'bg-blue-600 text-white' : ''}
+                                  ${!isSelected && isToday ? 'bg-blue-100 text-blue-700' : ''}
+                                  ${!isSelected && !isToday && !isFuture ? 'hover:bg-gray-100' : ''}
+                                  ${isFuture ? 'text-gray-300 cursor-not-allowed' : 'cursor-pointer'}`}
+                              >{dayNum}</button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {foods.length === 0 && exercises.length === 0 ? (
+                    <div className="text-center py-12 text-gray-400">
+                      <div className="text-4xl mb-2">&#128221;</div>
+                      <div className="font-medium">No data here yet</div>
+                      <div className="text-sm mt-1">Add food or exercise in the Log tab</div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="bg-blue-50 rounded-xl p-3">
+                          <div className="text-xs font-bold text-gray-600">CALORIES</div>
+                          <div className="text-2xl font-bold text-blue-600">{totals.calories.toFixed(0)}</div>
+                          <div className="text-xs text-gray-500">Goal: {calorieGoalMin}-{calorieGoalMax}</div>
+                        </div>
+                        <div className="bg-green-50 rounded-xl p-3">
+                          <div className="text-xs font-bold text-gray-600">PROTEIN</div>
+                          <div className="text-2xl font-bold text-green-600">{totals.protein.toFixed(0)}g</div>
+                          <div className="text-xs text-gray-500">Goal: {proteinGoal}g</div>
+                        </div>
+                      </div>
+
+                      {exerciseCalories > 0 && (
+                        <div className="bg-purple-50 rounded-xl p-3 mb-4">
+                          <div className="text-xs font-bold text-gray-600 mb-1">EXERCISE IMPACT</div>
+                          <div className="text-sm">
+                            <span className="font-semibold text-purple-700">+{exerciseCalories} cal</span>
+                            <span className="text-gray-600"> added to base goal ({baseGoalMin}-{baseGoalMax})</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {foods.length > 0 && (
+                        <div className="mb-4">
+                          <h4 className="font-bold text-sm text-gray-600 mb-2">FOODS</h4>
+                          <div className="space-y-1.5">
+                            {foods.map((food) => (
+                              <div key={food.id} className="bg-gray-50 px-3 py-2 rounded-lg">
+                                <div className="font-medium text-sm">{food.name}</div>
+                                <div className="text-xs text-gray-600">
+                                  {food.calories}cal - Protein: {food.protein}g - Fat: {food.fat}g - Carbs: {food.carbs}g
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {exercises.length > 0 && (
+                        <div>
+                          <h4 className="font-bold text-sm text-gray-600 mb-2">EXERCISES</h4>
+                          <div className="space-y-1.5">
+                            {exercises.map((ex) => (
+                              <div key={ex.id} className="bg-gray-50 px-3 py-2 rounded-lg">
+                                <div className="flex justify-between items-center">
+                                  <div className="font-medium text-sm">{ex.type}</div>
+                                  <div className="text-sm font-semibold text-green-600">-{ex.calories} cal</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {summaryView === 'week' && (
+                <div>
+                  {(() => {
+                    const weekData = getWeekData();
+                    const daysWithData = weekData.filter(day => (day.foods || []).length > 0);
+                    const totalCals = daysWithData.reduce((sum, day) => sum + (day.foods || []).reduce((s, f) => s + f.calories, 0), 0);
+                    const totalProtein = daysWithData.reduce((sum, day) => sum + (day.foods || []).reduce((s, f) => s + f.protein, 0), 0);
+                    const avgCals = daysWithData.length > 0 ? totalCals / daysWithData.length : 0;
+                    const avgProtein = daysWithData.length > 0 ? totalProtein / daysWithData.length : 0;
+                    const firstDay = weekData[0]?.date || '';
+                    const lastDay = weekData[6]?.date || '';
+                    return (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <button onClick={() => setWeekOffset(weekOffset - 1)} className="px-4 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 text-xl font-bold">&larr;</button>
+                          <h3 className="font-bold text-lg text-center">
+                            {firstDay && lastDay ? `${formatDate(firstDay)} - ${formatDate(lastDay)}` : 'No data'}
+                          </h3>
+                          <button onClick={() => setWeekOffset(weekOffset + 1)} disabled={weekOffset >= 0} className="px-4 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-30 text-xl font-bold">&rarr;</button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          <div className="bg-blue-50 rounded-xl p-3">
+                            <div className="text-xs font-bold text-gray-600">AVG DAILY CALORIES</div>
+                            <div className="text-2xl font-bold text-blue-600">{avgCals.toFixed(0)}</div>
+                            <div className="text-xs text-gray-500">Goal: {baseGoalMin}-{baseGoalMax}+</div>
+                          </div>
+                          <div className="bg-green-50 rounded-xl p-3">
+                            <div className="text-xs font-bold text-gray-600">AVG DAILY PROTEIN</div>
+                            <div className="text-2xl font-bold text-green-600">{avgProtein.toFixed(0)}g</div>
+                            <div className="text-xs text-gray-500">Goal: {proteinGoal}g</div>
+                          </div>
+                        </div>
+                        {daysWithData.length > 0 && (
+                          <div className="text-xs text-center text-gray-500 mb-4">
+                            Based on {daysWithData.length} day{daysWithData.length !== 1 ? 's' : ''} with data
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          {weekData.map((day) => {
+                            const hasFoods = (day.foods || []).length > 0;
+                            const dayCals = (day.foods || []).reduce((sum, f) => sum + f.calories, 0);
+                            const dayProtein = (day.foods || []).reduce((sum, f) => sum + f.protein, 0);
+                            const exerciseCals = (day.exercises || []).reduce((sum, e) => sum + e.calories, 0);
+                            const dayCalGoalMin = baseGoalMin + exerciseCals;
+                            const dayCalGoalMax = baseGoalMax + exerciseCals;
+                            return (
+                              <div key={day.date} className="bg-gray-50 p-4 rounded-xl">
+                                <div className="flex justify-between items-center mb-2">
+                                  <div className="font-bold text-sm text-gray-700 uppercase">{formatDateWithWeekday(day.date)}</div>
+                                  {day.weight && <div className="text-sm text-gray-600">{day.weight} lbs</div>}
+                                </div>
+                                {hasFoods ? (
+                                  <div className="flex gap-4 text-sm">
+                                    <div>
+                                      <span className="text-gray-600">Calories:</span>{' '}
+                                      <span className="font-bold text-blue-600">{dayCals.toFixed(0)}</span>
+                                      <span className="text-gray-500 text-xs"> / {dayCalGoalMin}-{dayCalGoalMax}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-600">Protein:</span>{' '}
+                                      <span className="font-bold text-green-600">{dayProtein.toFixed(0)}g</span>
+                                      <span className="text-gray-500 text-xs"> / {proteinGoal}g</span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-gray-400 italic">No data</div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {summaryView === 'month' && (
+                <div>
+                  {(() => {
+                    const monthData = getMonthData();
+                    const daysWithData = monthData.filter(d => d.weight || (d.foods && d.foods.length > 0));
+                    const weights = daysWithData.filter(d => d.weight).map(d => parseFloat(d.weight));
+                    const avgWeight = weights.length > 0 ? weights.reduce((a, b) => a + b, 0) / weights.length : 0;
+                    const today = new Date();
+                    const targetMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+                    const isFutureMonth = monthOffset > 0;
+                    const predictedPeriods = getPredictedPeriods(targetMonth.getMonth(), targetMonth.getFullYear());
+                    return (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <button onClick={() => setMonthOffset(monthOffset - 1)} className="px-4 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 text-xl font-bold">&larr;</button>
+                          <h3 className="font-bold text-lg text-center">
+                            {targetMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                          </h3>
+                          <button onClick={() => setMonthOffset(monthOffset + 1)} className="px-4 py-2 bg-gray-100 rounded-xl hover:bg-gray-200 text-xl font-bold">&rarr;</button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="bg-purple-50 rounded-xl p-4">
+                            <div className="text-center">
+                              <div className="text-sm font-bold text-gray-600">DAYS LOGGED</div>
+                              <div className="text-3xl font-bold text-purple-600">{daysWithData.length}</div>
+                            </div>
+                          </div>
+                          <div className="bg-blue-50 rounded-xl p-4">
+                            <div className="text-center">
+                              <div className="text-sm font-bold text-gray-600">AVG WEIGHT</div>
+                              <div className="text-3xl font-bold text-blue-600">
+                                {avgWeight > 0 ? avgWeight.toFixed(1) : '--'}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {isFutureMonth && predictedPeriods.length > 0 && (
+                          <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-xl text-sm text-center">
+                            <span className="text-pink-700">Future month with predicted periods</span>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-7 gap-1 mb-4">
+                          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                            <div key={day} className="text-center text-xs font-semibold text-gray-600 p-1">{day}</div>
+                          ))}
+                          {(() => {
+                            const firstDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1).getDay();
+                            const blanks = Array(firstDay === 0 ? 6 : firstDay - 1).fill(null);
+                            return (
+                              <>
+                                {blanks.map((_, i) => <div key={`blank-${i}`} className="aspect-square" />)}
+                                {monthData.map((day) => {
+                                  const hasData = day.weight || (day.foods && day.foods.length > 0);
+                                  const isPeriodDay = day.isPeriod;
+                                  const isPredictedPeriod = predictedPeriods.includes(day.date);
+                                  const dayNum = new Date(day.date).getDate();
+                                  const totalCalsDay = (day.foods || []).reduce((sum, f) => sum + f.calories, 0);
+                                  const totalProteinDay = (day.foods || []).reduce((sum, f) => sum + f.protein, 0);
+                                  const exerciseCalsDay = (day.exercises || []).reduce((sum, e) => sum + e.calories, 0);
+                                  const calorieGoalDay = baseGoalMin + exerciseCalsDay;
+                                  const belowCalories = hasData && totalCalsDay < calorieGoalDay;
+                                  const aboveProtein = hasData && totalProteinDay > proteinGoal;
+                                  let bgColor = 'bg-gray-50 text-gray-400';
+                                  if (hasData) bgColor = 'bg-white border-2 border-gray-300 text-gray-900 font-medium';
+                                  return (
+                                    <div key={day.date} className={`aspect-square flex flex-col items-center justify-center text-sm rounded-lg ${bgColor} relative`}>
+                                      <div>{dayNum}</div>
+                                      {hasData && (
+                                        <div className="flex gap-0.5 mt-0.5">
+                                          {isPeriodDay && <div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>}
+                                          {isPredictedPeriod && <div className="w-1.5 h-1.5 rounded-full bg-pink-300"></div>}
+                                          {aboveProtein && <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[4px] border-b-green-500"></div>}
+                                          {belowCalories && <div className="w-1.5 h-1.5 bg-blue-500"></div>}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </>
+                            );
+                          })()}
+                        </div>
+
+                        <div className="bg-gray-50 rounded-xl p-3 text-xs">
+                          <div className="font-bold text-gray-700 mb-2">LEGEND</div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                              <span className="text-gray-600">Period</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-pink-300"></div>
+                              <span className="text-gray-600">Predicted Period</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[5px] border-b-green-500"></div>
+                              <span className="text-gray-600">Above {proteinGoal}g Protein</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-blue-500"></div>
+                              <span className="text-gray-600">Below Calorie Goal</span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'profile' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">My Goal</h2>
+              <textarea
+                value={goal}
+                onChange={(e) => {
+                  setGoal(e.target.value);
+                  saveGoal(e.target.value);
+                  triggerGoalRecalc(userProfile, e.target.value);
+                }}
+                placeholder="Reach 137 lbs by summer"
+                className="w-full px-4 py-3 border rounded-xl resize-none"
+                rows={Math.max(3, goal.split('\n').length)}
+              />
+              {isCalculatingGoals && (
+                <div className="text-xs text-blue-600 mt-2">Updating calorie/protein targets...</div>
+              )}
+              {nutritionGoals && (
+                <div className="mt-3 p-3 bg-blue-50 rounded-xl">
+                  <div className="text-xs font-bold text-gray-600 mb-1">AI-RECOMMENDED TARGETS</div>
+                  <div className="text-sm text-gray-700">
+                    <span className="font-semibold text-blue-600">{nutritionGoals.calorieMin}-{nutritionGoals.calorieMax}</span> cal/day,
+                    <span className="font-semibold text-green-600 ml-1">{nutritionGoals.protein}g</span> protein/day
+                  </div>
+                  <button
+                    onClick={() => calculateNutritionGoals(userProfile, goal)}
+                    disabled={isCalculatingGoals || !apiKey}
+                    className="mt-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold disabled:opacity-50"
+                  >
+                    {isCalculatingGoals ? 'Calculating...' : 'Recalculate Targets'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">Profile</h2>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-2">STARTING WEIGHT</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={userProfile.startingWeight}
+                        onChange={(e) => {
+                          const p = {...userProfile, startingWeight: e.target.value};
+                          setUserProfile(p); saveUserProfile(p);
+                          triggerGoalRecalc(p, goal);
+                        }}
+                        className="w-full px-4 py-3 pr-12 border rounded-xl"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">lbs</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-2">BIRTH YEAR</label>
+                    <input
+                      type="number"
+                      value={userProfile.birthYear}
+                      onChange={(e) => {
+                        const p = {...userProfile, birthYear: e.target.value};
+                        setUserProfile(p); saveUserProfile(p);
+                        triggerGoalRecalc(p, goal);
+                      }}
+                      className="w-full px-4 py-3 border rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold mb-2">HEIGHT</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={userProfile.heightFt}
+                        onChange={(e) => {
+                          const p = {...userProfile, heightFt: e.target.value};
+                          setUserProfile(p); saveUserProfile(p);
+                          triggerGoalRecalc(p, goal);
+                        }}
+                        className="w-full px-4 py-3 pr-12 border rounded-xl"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">ft</span>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={userProfile.heightIn}
+                        onChange={(e) => {
+                          const p = {...userProfile, heightIn: e.target.value};
+                          setUserProfile(p); saveUserProfile(p);
+                          triggerGoalRecalc(p, goal);
+                        }}
+                        className="w-full px-4 py-3 pr-12 border rounded-xl"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">in</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-bold mb-3">Period</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Period Tracking</span>
+                      <input
+                        type="checkbox"
+                        checked={userProfile.periodTracking}
+                        onChange={(e) => {
+                          const p = {...userProfile, periodTracking: e.target.checked};
+                          setUserProfile(p); saveUserProfile(p);
+                        }}
+                        className="w-6 h-6"
+                      />
+                    </div>
+                    {userProfile.periodTracking && (
+                      <div>
+                        <label className="block text-sm font-bold mb-2">AVERAGE CYCLE LENGTH</label>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            value={userProfile.cycleLength}
+                            onChange={(e) => {
+                              const p = {...userProfile, cycleLength: e.target.value};
+                              setUserProfile(p); saveUserProfile(p);
+                            }}
+                            className="w-full px-4 py-3 pr-16 border rounded-xl"
+                            placeholder="28" min="20" max="40"
+                          />
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">days</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">API Settings</h2>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-bold mb-2">OPENAI API KEY</label>
+                  <input
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => {
+                      setApiKey(e.target.value);
+                      localStorage.setItem('openai-api-key', e.target.value);
+                    }}
+                    placeholder="sk-..."
+                    className="w-full px-4 py-3 border rounded-xl"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Stored locally in your browser. Never sent anywhere except OpenAI.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('openai-api-key');
+                      setApiKey('');
+                      setShowApiKeyPrompt(true);
+                    }}
+                    className="flex-1 px-4 py-2 bg-red-100 text-red-700 rounded-xl font-semibold text-sm"
+                  >
+                    Remove Key
+                  </button>
+                  <a
+                    href="https://platform.openai.com/api-keys"
+                    target="_blank"
+                    rel="noopener"
+                    className="flex-1 px-4 py-2 bg-blue-100 text-blue-700 rounded-xl font-semibold text-sm text-center"
+                  >
+                    Get API Key
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">Data Management</h2>
+              <div className="space-y-3">
+                <div>
+                  <button
+                    onClick={exportData}
+                    className="w-full px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg flex items-center justify-center transition-colors mb-2"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export All Data
+                  </button>
+
+                  {!showExportJson ? (
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => {
+                          const endDate = new Date();
+                          const startDate = new Date();
+                          startDate.setMonth(startDate.getMonth() - 3);
+                          const allKeys = Object.keys(localStorage);
+                          const dailyLogs = [];
+                          for (const key of allKeys) {
+                            if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
+                              const data = JSON.parse(localStorage.getItem(key));
+                              const logDate = new Date(data.date);
+                              if (logDate >= startDate && logDate <= endDate) dailyLogs.push(data);
+                            }
+                          }
+                          const expData = {
+                            version: '1.0', exportDate: new Date().toISOString(), dateRange: 'Last 3 months',
+                            dailyLogs: dailyLogs.sort((a, b) => a.date.localeCompare(b.date)),
+                            goal: goal, profile: userProfile, nutritionGoals: nutritionGoals
+                          };
+                          setExportedJson(JSON.stringify(expData, null, 2));
+                          setShowExportJson(true);
+                        }}
+                        className="w-full px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 font-semibold text-sm"
+                      >
+                        Last 3 Months (Copy)
+                      </button>
+                      <button
+                        onClick={() => {
+                          const currentYear = new Date().getFullYear();
+                          const allKeys = Object.keys(localStorage);
+                          const dailyLogs = [];
+                          for (const key of allKeys) {
+                            if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
+                              const data = JSON.parse(localStorage.getItem(key));
+                              if (new Date(data.date).getFullYear() === currentYear) dailyLogs.push(data);
+                            }
+                          }
+                          const expData = {
+                            version: '1.0', exportDate: new Date().toISOString(), dateRange: `Year ${currentYear}`,
+                            dailyLogs: dailyLogs.sort((a, b) => a.date.localeCompare(b.date)),
+                            goal: goal, profile: userProfile, nutritionGoals: nutritionGoals
+                          };
+                          setExportedJson(JSON.stringify(expData, null, 2));
+                          setShowExportJson(true);
+                        }}
+                        className="w-full px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 font-semibold text-sm"
+                      >
+                        This Year (Copy)
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="text-sm font-semibold text-gray-700">Tap text to select all, then copy:</div>
+                      <textarea
+                        value={exportedJson}
+                        readOnly
+                        className="w-full px-3 py-2 border rounded-xl text-xs font-mono resize-none"
+                        rows={8}
+                        onClick={(e) => e.target.select()}
+                      />
+                      <div className="text-xs text-gray-600 text-center">{exportedJson.length.toLocaleString()} characters</div>
+                      <button
+                        onClick={() => { setShowExportJson(false); setExportedJson(''); }}
+                        className="w-full px-3 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold text-sm"
+                      >Close</button>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  {!showClearConfirm ? (
+                    <button
+                      onClick={() => setShowClearConfirm(true)}
+                      className="w-full px-6 py-3.5 bg-transparent border-2 border-red-600 text-red-600 rounded-xl hover:bg-red-50 font-semibold flex items-center justify-center transition-colors"
+                    >
+                      Clear Data
+                    </button>
+                  ) : (
+                    <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl">
+                      <div className="text-sm text-center text-red-700 font-bold mb-3">
+                        Clear all data? This cannot be undone.
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button onClick={() => setShowClearConfirm(false)} className="px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 rounded-xl font-semibold transition-colors">Cancel</button>
+                        <button onClick={clearData} className="px-4 py-2 bg-red-600 text-white rounded-xl font-semibold transition-colors">Clear All</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <input type="file" accept=".json" onChange={importData} id="merge-backup-input" className="hidden" />
+                  <label
+                    htmlFor="merge-backup-input"
+                    className="w-full px-6 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold shadow-lg flex items-center justify-center transition-colors cursor-pointer mb-2"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Merge Backup (File)
+                  </label>
+
+                  {!showPasteJson ? (
+                    <button
+                      onClick={() => setShowPasteJson(true)}
+                      className="w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200 font-semibold text-sm"
+                    >
+                      Or Paste JSON Instead
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
+                      <textarea
+                        value={pastedJson}
+                        onChange={(e) => setPastedJson(e.target.value)}
+                        placeholder='Paste exported JSON here...'
+                        className="w-full px-3 py-2 border rounded-xl text-xs font-mono resize-none"
+                        rows={4}
+                      />
+                      <div className="flex gap-2">
+                        <button onClick={() => { setShowPasteJson(false); setPastedJson(''); }} className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold text-sm">Cancel</button>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const imported = JSON.parse(pastedJson);
+                              let addedLogs = 0; let skippedLogs = 0;
+                              for (const log of imported.dailyLogs || []) {
+                                const existing = localStorage.getItem(`nutrition-${log.date}`);
+                                if (!existing) { localStorage.setItem(`nutrition-${log.date}`, JSON.stringify(log)); addedLogs++; }
+                                else { skippedLogs++; }
+                              }
+                              if (imported.goal) { localStorage.setItem('health-goal', imported.goal); setGoal(imported.goal); }
+                              if (imported.profile) { localStorage.setItem('user-profile', JSON.stringify(imported.profile)); setUserProfile(imported.profile); }
+                              if (imported.nutritionGoals) { localStorage.setItem('nutrition-goals', JSON.stringify(imported.nutritionGoals)); setNutritionGoals(imported.nutritionGoals); }
+                              await loadDayData(currentDate);
+                              setShowPasteJson(false); setPastedJson('');
+                              alert(`Import complete!\n\n${addedLogs} days added, ${skippedLogs} days skipped`);
+                            } catch (error) { alert('Invalid JSON: ' + error.message); }
+                          }}
+                          className="flex-1 px-3 py-2 bg-purple-600 text-white rounded-xl font-semibold text-sm"
+                        >Import</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {lastBackupDate && (
+                  <p className="text-xs text-center text-gray-500 mt-3">
+                    Last backup: {new Date(lastBackupDate).toLocaleDateString()} at {new Date(lastBackupDate).toLocaleTimeString()}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Undo Popup */}
+      {undoState && (
+        <div className="fixed top-0 left-0 right-0 z-50">
+          <div className="bg-gray-900 text-white py-3 px-4 flex items-center justify-between">
+            <div className="font-medium text-sm">
+              {undoState.type === 'food' ? undoState.item.name : undoState.item.type} deleted
+            </div>
+            <div className="flex items-center gap-4">
+              <button onClick={undoDelete} className="text-white hover:text-gray-300 font-semibold text-sm underline">Undo</button>
+              <button onClick={dismissUndo} className="text-gray-400 hover:text-white text-lg">X</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<HealthTracker />);
+    </script>
+</body>
+</html>
