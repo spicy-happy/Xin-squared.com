@@ -48,6 +48,85 @@ function Plus({ className = "" }) {
   );
 }
 
+// Weight chart component (pure SVG, no dependencies)
+function WeightChart({ data, height = 160, unit = 'lbs' }) {
+  // data = [{ label: "Mon", weight: 145.2 }, ...]
+  const points = data.filter(d => d.weight);
+  if (points.length < 2) {
+    return points.length === 1 ? (
+      <div className="bg-gray-50 rounded-xl p-4 mb-4">
+        <div className="text-xs font-bold text-gray-600 mb-2">WEIGHT</div>
+        <div className="text-center text-gray-400 text-sm py-4">
+          Only 1 weigh-in ({points[0].weight} {unit}) — need at least 2 to show chart
+        </div>
+      </div>
+    ) : null;
+  }
+
+  const weights = points.map(p => p.weight);
+  const minW = Math.min(...weights);
+  const maxW = Math.max(...weights);
+  const range = maxW - minW || 1;
+  const padding = range * 0.15;
+  const yMin = minW - padding;
+  const yMax = maxW + padding;
+  const yRange = yMax - yMin;
+
+  const chartW = 100; // viewBox percentage width
+  const chartH = height;
+  const padLeft = 40;
+  const padRight = 15;
+  const padTop = 15;
+  const padBot = 25;
+  const innerW = chartW * 3 - padLeft - padRight; // scale for wider viewBox
+  const innerH = chartH - padTop - padBot;
+  const vbWidth = chartW * 3;
+
+  // Map data points (use original index in full data array for x positioning)
+  const allIndices = data.map((d, i) => ({ ...d, idx: i })).filter(d => d.weight);
+  const totalSlots = data.length - 1 || 1;
+
+  const chartPoints = allIndices.map(d => ({
+    x: padLeft + (d.idx / totalSlots) * innerW,
+    y: padTop + (1 - (d.weight - yMin) / yRange) * innerH,
+    weight: d.weight,
+    label: d.label
+  }));
+
+  const pathD = chartPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+
+  // Y-axis labels (3 labels: min, mid, max)
+  const mid = (minW + maxW) / 2;
+  const yLabels = [maxW, mid, minW].map(w => ({
+    y: padTop + (1 - (w - yMin) / yRange) * innerH,
+    label: w.toFixed(1)
+  }));
+
+  return (
+    <div className="bg-gray-50 rounded-xl p-4 mb-4">
+      <div className="text-xs font-bold text-gray-600 mb-2">WEIGHT TREND</div>
+      <svg viewBox={`0 0 ${vbWidth} ${chartH}`} className="w-full" style={{height: `${height}px`}}>
+        {/* Grid lines */}
+        {yLabels.map((yl, i) => (
+          <g key={i}>
+            <line x1={padLeft} y1={yl.y} x2={vbWidth - padRight} y2={yl.y} stroke="#e5e7eb" strokeWidth="0.5" />
+            <text x={padLeft - 4} y={yl.y + 3} textAnchor="end" fontSize="8" fill="#9ca3af">{yl.label}</text>
+          </g>
+        ))}
+        {/* Line */}
+        <path d={pathD} fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Dots */}
+        {chartPoints.map((p, i) => (
+          <g key={i}>
+            <circle cx={p.x} cy={p.y} r="3.5" fill="#6366f1" stroke="white" strokeWidth="1.5" />
+            <text x={p.x} y={chartH - 5} textAnchor="middle" fontSize="7" fill="#6b7280">{p.label}</text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
 // Simple localStorage wrapper
 const storage = {
   async get(key) {
@@ -329,6 +408,15 @@ function HealthTracker() {
   const [weightSaving, setWeightSaving] = useState('saved');
   const weightSaveTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const [weightUnit, setWeightUnit] = useState(() => localStorage.getItem('weight-unit') || 'lbs');
+  const displayWeight = (w) => {
+    if (!w) return '';
+    const num = parseFloat(w);
+    if (isNaN(num)) return '';
+    return weightUnit === 'kg' ? (num * 0.453592).toFixed(1) : num.toFixed(1);
+  };
+  const weightLabel = weightUnit === 'kg' ? 'kg' : 'lbs';
 
   const [userProfile, setUserProfile] = useState({
     startingWeight: '',
@@ -1434,10 +1522,10 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                         setWeightSaving('saved');
                       }, 500);
                     }}
-                    placeholder={getLastWeight() ? `Last: ${getLastWeight()} lbs` : ''}
+                    placeholder={getLastWeight() ? `Last: ${displayWeight(getLastWeight())} ${weightLabel}` : ''}
                     className="w-full px-4 py-3 pr-12 border rounded-xl"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">lbs</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">{weightLabel}</span>
                 </div>
               </div>
 
@@ -1838,6 +1926,10 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                             Based on {daysWithData.length} day{daysWithData.length !== 1 ? 's' : ''} with data
                           </div>
                         )}
+                        <WeightChart data={weekData.map(d => ({
+                          label: formatDateWithWeekday(d.date).split(',')[0],
+                          weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
+                        }))} unit={weightLabel} />
                         <div className="space-y-2">
                           {weekData.map((day) => {
                             const hasFoods = (day.foods || []).length > 0;
@@ -1850,7 +1942,7 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                               <div key={day.date} className="bg-gray-50 p-4 rounded-xl">
                                 <div className="flex justify-between items-center mb-2">
                                   <div className="font-bold text-sm text-gray-700 uppercase">{formatDateWithWeekday(day.date)}</div>
-                                  {day.weight && <div className="text-sm text-gray-600">{day.weight} lbs</div>}
+                                  {day.weight && <div className="text-sm text-gray-600">{displayWeight(day.weight)} {weightLabel}</div>}
                                 </div>
                                 {hasFoods ? (
                                   <div className="flex gap-4 text-sm">
@@ -1914,6 +2006,11 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                             </div>
                           </div>
                         </div>
+
+                        <WeightChart data={monthData.map(d => ({
+                          label: String(new Date(d.date).getDate()),
+                          weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
+                        }))} height={180} unit={weightLabel} />
 
                         {isFutureMonth && predictedPeriods.length > 0 && (
                           <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-xl text-sm text-center">
@@ -2003,7 +2100,6 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                 onChange={(e) => {
                   setGoal(e.target.value);
                   saveGoal(e.target.value);
-                  triggerGoalRecalc(userProfile, e.target.value);
                 }}
                 placeholder="Reach 137 lbs by summer"
                 className="w-full px-4 py-3 border rounded-xl resize-none"
@@ -2031,8 +2127,36 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold mb-4">Profile</h2>
+              <h2 className="text-2xl font-bold mb-4">Information</h2>
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold mb-2">WEIGHT UNIT</label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setWeightUnit('lbs'); localStorage.setItem('weight-unit', 'lbs'); }}
+                      className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm ${weightUnit === 'lbs' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                    >lbs</button>
+                    <button
+                      onClick={() => { setWeightUnit('kg'); localStorage.setItem('weight-unit', 'kg'); }}
+                      className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm ${weightUnit === 'kg' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                    >kg</button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-2">GENDER</label>
+                  <div className="flex gap-2">
+                    {['female', 'male', 'other'].map(g => (
+                      <button
+                        key={g}
+                        onClick={() => {
+                          const p = {...userProfile, gender: g};
+                          setUserProfile(p); saveUserProfile(p);
+                        }}
+                        className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm capitalize ${userProfile.gender === g ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                      >{g}</button>
+                    ))}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold mb-2">STARTING WEIGHT</label>
@@ -2043,11 +2167,10 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                         onChange={(e) => {
                           const p = {...userProfile, startingWeight: e.target.value};
                           setUserProfile(p); saveUserProfile(p);
-                          triggerGoalRecalc(p, goal);
                         }}
                         className="w-full px-4 py-3 pr-12 border rounded-xl"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">lbs</span>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">{weightLabel}</span>
                     </div>
                   </div>
                   <div>
@@ -2058,7 +2181,6 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                       onChange={(e) => {
                         const p = {...userProfile, birthYear: e.target.value};
                         setUserProfile(p); saveUserProfile(p);
-                        triggerGoalRecalc(p, goal);
                       }}
                       className="w-full px-4 py-3 border rounded-xl"
                     />
@@ -2075,8 +2197,7 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                         onChange={(e) => {
                           const p = {...userProfile, heightFt: e.target.value};
                           setUserProfile(p); saveUserProfile(p);
-                          triggerGoalRecalc(p, goal);
-                        }}
+                          }}
                         className="w-full px-4 py-3 pr-12 border rounded-xl"
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">ft</span>
@@ -2088,8 +2209,7 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                         onChange={(e) => {
                           const p = {...userProfile, heightIn: e.target.value};
                           setUserProfile(p); saveUserProfile(p);
-                          triggerGoalRecalc(p, goal);
-                        }}
+                          }}
                         className="w-full px-4 py-3 pr-12 border rounded-xl"
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">in</span>
