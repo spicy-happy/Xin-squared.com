@@ -521,7 +521,8 @@ function HealthTracker() {
     const initDrive = async () => {
       const success = await DriveSync.init();
       if (success) {
-        // Try cached token first (no popup), then silent sign-in
+        // Try cached token first, then auto-prompt if user has signed in before
+        const hasSignedInBefore = localStorage.getItem('google-drive-user');
         try {
           await DriveSync.requestAccess(false);
           setDriveSignedIn(true);
@@ -532,8 +533,24 @@ function HealthTracker() {
           }
           setDriveSyncStatus('synced');
         } catch(e) {
-          // No cached token, user needs to click sign in
-          setDriveSignedIn(false);
+          if (hasSignedInBefore) {
+            // Token expired but user has signed in before — auto-prompt
+            try {
+              await DriveSync.requestAccess(true);
+              setDriveSignedIn(true);
+              localStorage.setItem('google-drive-user', 'true');
+              setDriveSyncStatus('syncing');
+              const driveData = await DriveSync.loadFromDrive();
+              if (driveData && restoreFromDriveData(driveData)) {
+                window.location.reload();
+              }
+              setDriveSyncStatus('synced');
+            } catch(e2) {
+              setDriveSignedIn(false);
+            }
+          } else {
+            setDriveSignedIn(false);
+          }
         }
       }
     };
@@ -573,8 +590,9 @@ function HealthTracker() {
 
   const handleDriveSignIn = async () => {
     try {
-      await DriveSync.requestAccess();
+      await DriveSync.requestAccess(true);
       setDriveSignedIn(true);
+      localStorage.setItem('google-drive-user', 'true');
       // Load and merge data from Drive
       setDriveSyncStatus('syncing');
       const driveData = await DriveSync.loadFromDrive();
@@ -595,6 +613,7 @@ function HealthTracker() {
     DriveSync.accessToken = null;
     DriveSync.fileId = null;
     localStorage.removeItem('google-access-token');
+    localStorage.removeItem('google-drive-user');
     setDriveSignedIn(false);
     setDriveSyncStatus('');
   };
