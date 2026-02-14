@@ -187,6 +187,53 @@ const storage = {
   }
 };
 
+// One-time migration: fix localStorage entries saved under wrong date keys
+// due to the old toISOString().split('T')[0] bug (UTC instead of local time).
+// Data logged in the evening in western timezones was saved one day ahead.
+(function migrateDateKeys() {
+  if (localStorage.getItem('date-migration-v1')) return;
+  try {
+    const toLocal = (d) => {
+      const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    };
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k.startsWith('nutrition-') && k !== 'nutrition-goals') keys.push(k);
+    }
+    for (const key of keys) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const data = JSON.parse(raw);
+        if (!data.lastModified || !data.date) continue;
+        const modifiedLocal = toLocal(new Date(data.lastModified));
+        // If the entry's date is one day AFTER the local date it was actually
+        // modified, it was saved with the UTC bug. Move it to the correct key.
+        if (data.date > modifiedLocal) {
+          const correctKey = `nutrition-${modifiedLocal}`;
+          data.date = modifiedLocal;
+          // Only move if the correct key is empty or has older data
+          const existing = localStorage.getItem(correctKey);
+          if (!existing) {
+            localStorage.setItem(correctKey, JSON.stringify(data));
+          } else {
+            try {
+              const ex = JSON.parse(existing);
+              if (ex.lastModified && data.lastModified > ex.lastModified) {
+                localStorage.setItem(correctKey, JSON.stringify(data));
+              }
+            } catch(e) {}
+          }
+          localStorage.removeItem(key);
+        }
+      } catch(e) {}
+    }
+  } catch(e) {}
+  localStorage.setItem('date-migration-v1', 'done');
+})();
+
 // OpenAI API helper - supports text-only or text+images
 async function callOpenAI(apiKey, prompt, imageBase64Array = []) {
   if (!apiKey) throw new Error('No API key');
