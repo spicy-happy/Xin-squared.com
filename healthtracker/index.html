@@ -243,12 +243,40 @@ const DriveSync = {
     });
   },
 
-  requestAccess() {
+  loadCachedToken() {
+    try {
+      const cached = localStorage.getItem('google-access-token');
+      if (cached) {
+        const { token, expiry } = JSON.parse(cached);
+        // Check if token is still valid (with 5 min buffer)
+        if (expiry && Date.now() < expiry - 300000) {
+          DriveSync.accessToken = token;
+          return true;
+        }
+      }
+    } catch(e) {}
+    return false;
+  },
+
+  cacheToken(token, expiresIn) {
+    const expiry = Date.now() + (expiresIn || 3600) * 1000;
+    localStorage.setItem('google-access-token', JSON.stringify({ token, expiry }));
+  },
+
+  requestAccess(interactive = true) {
+    // Try cached token first
+    if (DriveSync.loadCachedToken()) {
+      return Promise.resolve({ access_token: DriveSync.accessToken });
+    }
+    if (!interactive) {
+      return Promise.reject(new Error('No cached token'));
+    }
     return new Promise((resolve, reject) => {
       if (!DriveSync.tokenClient) { reject(new Error('Not initialized')); return; }
       DriveSync.tokenClient.callback = (response) => {
         if (response.error) { reject(response); return; }
         DriveSync.accessToken = response.access_token;
+        DriveSync.cacheToken(response.access_token, response.expires_in);
         resolve(response);
       };
       DriveSync.tokenClient.requestAccessToken({ prompt: '' });
@@ -493,20 +521,18 @@ function HealthTracker() {
     const initDrive = async () => {
       const success = await DriveSync.init();
       if (success) {
-        // Try silent sign-in (will work if user previously authorized)
+        // Try cached token first (no popup), then silent sign-in
         try {
-          await DriveSync.requestAccess();
+          await DriveSync.requestAccess(false);
           setDriveSignedIn(true);
-          // Load data from Drive and merge
           setDriveSyncStatus('syncing');
           const driveData = await DriveSync.loadFromDrive();
           if (driveData && restoreFromDriveData(driveData)) {
-            // Reload current day if data was merged
             window.location.reload();
           }
           setDriveSyncStatus('synced');
         } catch(e) {
-          // Silent sign-in failed, user needs to click sign in
+          // No cached token, user needs to click sign in
           setDriveSignedIn(false);
         }
       }
@@ -522,7 +548,14 @@ function HealthTracker() {
       setDriveSyncStatus('syncing');
       try {
         const data = gatherAllData();
-        const success = await DriveSync.saveToDrive(data);
+        let success = await DriveSync.saveToDrive(data);
+        if (!success && DriveSync.initialized) {
+          // Token may have expired, try refreshing
+          try {
+            await DriveSync.requestAccess(false);
+            success = await DriveSync.saveToDrive(data);
+          } catch(e) {}
+        }
         setDriveSyncStatus(success ? 'synced' : 'error');
       } catch(e) {
         console.error('Sync error:', e);
@@ -561,6 +594,7 @@ function HealthTracker() {
     }
     DriveSync.accessToken = null;
     DriveSync.fileId = null;
+    localStorage.removeItem('google-access-token');
     setDriveSignedIn(false);
     setDriveSyncStatus('');
   };
