@@ -936,7 +936,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `health-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `health-tracker-backup-${toLocalDateStr(new Date())}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1511,7 +1511,8 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
         if (value) {
           const data = JSON.parse(value);
           if (data.isPeriod) {
-            const date = new Date(data.date);
+            const [py, pm, pd] = data.date.split('-').map(Number);
+            const date = new Date(py, pm - 1, pd);
             if (!lastPeriodDate || date > lastPeriodDate) lastPeriodDate = date;
           }
         }
@@ -2286,7 +2287,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                         </div>
 
                         <WeightChart data={monthData.map(d => ({
-                          label: String(new Date(d.date).getDate()),
+                          label: String(parseInt(d.date.split('-')[2])),
                           weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
                         }))} height={220} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} />
 
@@ -2310,7 +2311,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                                   const hasData = day.weight || (day.foods && day.foods.length > 0);
                                   const isPeriodDay = day.isPeriod;
                                   const isPredictedPeriod = predictedPeriods.includes(day.date);
-                                  const dayNum = new Date(day.date).getDate();
+                                  const dayNum = parseInt(day.date.split('-')[2]);
                                   const totalCalsDay = (day.foods || []).reduce((sum, f) => sum + f.calories, 0);
                                   const totalProteinDay = (day.foods || []).reduce((sum, f) => sum + f.protein, 0);
                                   const exerciseCalsDay = (day.exercises || []).reduce((sum, e) => sum + e.calories, 0);
