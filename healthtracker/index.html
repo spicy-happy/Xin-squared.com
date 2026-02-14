@@ -187,6 +187,52 @@ const storage = {
   }
 };
 
+// Migration: fix localStorage entries saved under wrong date keys
+// due to the old toISOString().split('T')[0] bug (UTC instead of local time).
+// Data logged in the evening in western timezones was saved one day ahead.
+// Runs on every load to catch entries re-introduced by Drive sync or imports.
+(function migrateDateKeys() {
+  try {
+    const toLocal = (d) => {
+      const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    };
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k.startsWith('nutrition-') && k !== 'nutrition-goals') keys.push(k);
+    }
+    for (const key of keys) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const data = JSON.parse(raw);
+        if (!data.lastModified || !data.date) continue;
+        const modifiedLocal = toLocal(new Date(data.lastModified));
+        // If the entry's date is one day AFTER the local date it was actually
+        // modified, it was saved with the UTC bug. Move it to the correct key.
+        if (data.date > modifiedLocal) {
+          const correctKey = `nutrition-${modifiedLocal}`;
+          data.date = modifiedLocal;
+          // Only move if the correct key is empty or has older data
+          const existing = localStorage.getItem(correctKey);
+          if (!existing) {
+            localStorage.setItem(correctKey, JSON.stringify(data));
+          } else {
+            try {
+              const ex = JSON.parse(existing);
+              if (ex.lastModified && data.lastModified > ex.lastModified) {
+                localStorage.setItem(correctKey, JSON.stringify(data));
+              }
+            } catch(e) {}
+          }
+          localStorage.removeItem(key);
+        }
+      } catch(e) {}
+    }
+  } catch(e) {}
+})();
+
 // OpenAI API helper - supports text-only or text+images
 async function callOpenAI(apiKey, prompt, imageBase64Array = []) {
   if (!apiKey) throw new Error('No API key');
@@ -414,19 +460,33 @@ function restoreFromDriveData(driveData) {
     return score;
   }
 
+  // Helper: fix UTC-shifted date keys from old toISOString bug
+  function fixDateKey(key, value) {
+    if (!value || !value.lastModified || !value.date) return { key, value };
+    const d = new Date(value.lastModified);
+    const localDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const keyDate = key.replace('nutrition-', '');
+    if (keyDate > localDate) {
+      value.date = localDate;
+      return { key: `nutrition-${localDate}`, value };
+    }
+    return { key, value };
+  }
+
   // Restore daily logs with merge logic
   if (driveData.dailyLogs) {
-    for (const [key, driveValue] of Object.entries(driveData.dailyLogs)) {
+    for (const [origKey, driveValue] of Object.entries(driveData.dailyLogs)) {
+      const { key, value: fixedValue } = fixDateKey(origKey, driveValue);
       const existingRaw = localStorage.getItem(key);
       if (!existingRaw) {
         // No local data — use Drive version
-        localStorage.setItem(key, JSON.stringify(driveValue));
+        localStorage.setItem(key, JSON.stringify(fixedValue));
         changed = true;
       } else {
         // Both exist — resolve conflict
         try {
           const local = JSON.parse(existingRaw);
-          const drive = driveValue;
+          const drive = fixedValue;
 
           // If both have timestamps, use the newer one
           if (local.lastModified && drive.lastModified) {
@@ -448,7 +508,7 @@ function restoreFromDriveData(driveData) {
           // If local has timestamp but Drive doesn't, keep local (local is newer format)
         } catch(e) {
           // Parse error on local — overwrite with Drive version
-          localStorage.setItem(key, JSON.stringify(driveValue));
+          localStorage.setItem(key, JSON.stringify(fixedValue));
           changed = true;
         }
       }
