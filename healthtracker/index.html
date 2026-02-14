@@ -1940,7 +1940,8 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                                   const totalProteinDay = (day.foods || []).reduce((sum, f) => sum + f.protein, 0);
                                   const exerciseCalsDay = (day.exercises || []).reduce((sum, e) => sum + e.calories, 0);
                                   const calorieGoalDay = baseGoalMin + exerciseCalsDay;
-                                  const belowCalories = hasData && totalCalsDay < calorieGoalDay;
+                                  const hasFoodOrExercise = (day.foods || []).length > 0 || (day.exercises || []).length > 0;
+                                  const belowCalories = hasFoodOrExercise && totalCalsDay < calorieGoalDay;
                                   const aboveProtein = hasData && totalProteinDay > proteinGoal;
                                   let bgColor = 'bg-gray-50 text-gray-400';
                                   if (hasData) bgColor = 'bg-white border-2 border-gray-300 text-gray-900 font-medium';
