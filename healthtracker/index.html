@@ -1260,28 +1260,8 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
           )}
         </div>
 
-        {showBackupReminder && (
-          <div className="mb-4 p-4 bg-orange-50 border-2 border-orange-200 rounded-xl">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="font-bold text-orange-900 mb-1">Monthly Backup Reminder</div>
-                <div className="text-sm text-orange-800">
-                  {lastBackupDate
-                    ? `Last backup: ${new Date(lastBackupDate).toLocaleDateString()}. Time to back up your data!`
-                    : 'No backup found. Protect your data by creating your first backup!'}
-                </div>
-              </div>
-              <button
-                onClick={async () => {
-                  await storage.set('backup-reminder-dismissed', new Date().toISOString());
-                  setShowBackupReminder(false);
-                }}
-                className="ml-3 text-orange-600 hover:text-orange-800 font-bold"
-              >
-                X
-              </button>
-            </div>
-          </div>
+        {false && showBackupReminder && (
+          <div></div>
         )}
 
         <div className="bg-white rounded-2xl shadow-lg mb-6 overflow-hidden">
@@ -1464,6 +1444,16 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
               <div className="mb-6">
                 <label className="block text-sm font-bold mb-3">ADD FOOD</label>
 
+                <textarea
+                  value={foodDescription}
+                  onChange={(e) => setFoodDescription(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addFood(); } }}
+                  placeholder={foodImages.length > 0 ? "Optional: add details like portion size, ingredients..." : "2 scrambled eggs with toast"}
+                  className="w-full px-4 py-3 border rounded-xl resize-none mb-3 overflow-y-auto"
+                  rows={Math.min(5, Math.max(2, foodDescription.split('\n').length))}
+                  style={{maxHeight: 'calc(1.5em * 5 + 1.5rem)'}}
+                />
+
                 {/* Photo Upload */}
                 <div className="mb-3">
                   <input
@@ -1505,16 +1495,6 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                     </div>
                   )}
                 </div>
-
-                <textarea
-                  value={foodDescription}
-                  onChange={(e) => setFoodDescription(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addFood(); } }}
-                  placeholder={foodImages.length > 0 ? "Optional: add details like portion size, ingredients..." : "2 scrambled eggs with toast"}
-                  className="w-full px-4 py-3 border rounded-xl resize-none mb-3 overflow-y-auto"
-                  rows={Math.min(5, Math.max(2, foodDescription.split('\n').length))}
-                  style={{maxHeight: 'calc(1.5em * 5 + 1.5rem)'}}
-                />
                 <button
                   onClick={addFood}
                   disabled={isAnalyzing || (!foodDescription && foodImages.length === 0)}
@@ -2288,75 +2268,6 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                     Export All Data
                   </button>
 
-                  {!showExportJson ? (
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => {
-                          const endDate = new Date();
-                          const startDate = new Date();
-                          startDate.setMonth(startDate.getMonth() - 3);
-                          const allKeys = Object.keys(localStorage);
-                          const dailyLogs = [];
-                          for (const key of allKeys) {
-                            if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
-                              const data = JSON.parse(localStorage.getItem(key));
-                              const logDate = new Date(data.date);
-                              if (logDate >= startDate && logDate <= endDate) dailyLogs.push(data);
-                            }
-                          }
-                          const expData = {
-                            version: '1.0', exportDate: new Date().toISOString(), dateRange: 'Last 3 months',
-                            dailyLogs: dailyLogs.sort((a, b) => a.date.localeCompare(b.date)),
-                            goal: goal, profile: userProfile, nutritionGoals: nutritionGoals
-                          };
-                          setExportedJson(JSON.stringify(expData, null, 2));
-                          setShowExportJson(true);
-                        }}
-                        className="w-full px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 font-semibold text-sm"
-                      >
-                        Last 3 Months (Copy)
-                      </button>
-                      <button
-                        onClick={() => {
-                          const currentYear = new Date().getFullYear();
-                          const allKeys = Object.keys(localStorage);
-                          const dailyLogs = [];
-                          for (const key of allKeys) {
-                            if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
-                              const data = JSON.parse(localStorage.getItem(key));
-                              if (new Date(data.date).getFullYear() === currentYear) dailyLogs.push(data);
-                            }
-                          }
-                          const expData = {
-                            version: '1.0', exportDate: new Date().toISOString(), dateRange: `Year ${currentYear}`,
-                            dailyLogs: dailyLogs.sort((a, b) => a.date.localeCompare(b.date)),
-                            goal: goal, profile: userProfile, nutritionGoals: nutritionGoals
-                          };
-                          setExportedJson(JSON.stringify(expData, null, 2));
-                          setShowExportJson(true);
-                        }}
-                        className="w-full px-4 py-2 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 font-semibold text-sm"
-                      >
-                        This Year (Copy)
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="text-sm font-semibold text-gray-700">Tap text to select all, then copy:</div>
-                      <textarea
-                        value={exportedJson}
-                        readOnly
-                        className="w-full px-3 py-2 border rounded-xl text-xs font-mono resize-none"
-                        rows={8}
-                        onClick={(e) => e.target.select()}
-                      />
-                      <div className="text-xs text-gray-600 text-center">{exportedJson.length.toLocaleString()} characters</div>
-                      <button
-                        onClick={() => { setShowExportJson(false); setExportedJson(''); }}
-                        className="w-full px-3 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold text-sm"
-                      >Close</button>
-                    </div>
-                  )}
                 </div>
 
                 <div>
@@ -2392,47 +2303,6 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                     Merge Backup (File)
                   </label>
 
-                  {!showPasteJson ? (
-                    <button
-                      onClick={() => setShowPasteJson(true)}
-                      className="w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200 font-semibold text-sm"
-                    >
-                      Or Paste JSON Instead
-                    </button>
-                  ) : (
-                    <div className="space-y-2">
-                      <textarea
-                        value={pastedJson}
-                        onChange={(e) => setPastedJson(e.target.value)}
-                        placeholder='Paste exported JSON here...'
-                        className="w-full px-3 py-2 border rounded-xl text-xs font-mono resize-none"
-                        rows={4}
-                      />
-                      <div className="flex gap-2">
-                        <button onClick={() => { setShowPasteJson(false); setPastedJson(''); }} className="flex-1 px-3 py-2 bg-gray-200 text-gray-700 rounded-xl font-semibold text-sm">Cancel</button>
-                        <button
-                          onClick={async () => {
-                            try {
-                              const imported = JSON.parse(pastedJson);
-                              let addedLogs = 0; let skippedLogs = 0;
-                              for (const log of imported.dailyLogs || []) {
-                                const existing = localStorage.getItem(`nutrition-${log.date}`);
-                                if (!existing) { localStorage.setItem(`nutrition-${log.date}`, JSON.stringify(log)); addedLogs++; }
-                                else { skippedLogs++; }
-                              }
-                              if (imported.goal) { localStorage.setItem('health-goal', imported.goal); setGoal(imported.goal); }
-                              if (imported.profile) { localStorage.setItem('user-profile', JSON.stringify(imported.profile)); setUserProfile(imported.profile); }
-                              if (imported.nutritionGoals) { localStorage.setItem('nutrition-goals', JSON.stringify(imported.nutritionGoals)); setNutritionGoals(imported.nutritionGoals); }
-                              await loadDayData(currentDate);
-                              setShowPasteJson(false); setPastedJson('');
-                              alert(`Import complete!\n\n${addedLogs} days added, ${skippedLogs} days skipped`);
-                            } catch (error) { alert('Invalid JSON: ' + error.message); }
-                          }}
-                          className="flex-1 px-3 py-2 bg-purple-600 text-white rounded-xl font-semibold text-sm"
-                        >Import</button>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {lastBackupDate && (
