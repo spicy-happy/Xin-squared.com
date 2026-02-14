@@ -372,26 +372,83 @@ function gatherAllData() {
   return data;
 }
 
-// Restore data from Drive into localStorage (Drive wins on conflicts by timestamp)
+// Restore data from Drive into localStorage (merge with conflict resolution)
 function restoreFromDriveData(driveData) {
   if (!driveData) return false;
   let changed = false;
-  // Restore daily logs
+
+  // Helper: count meaningful items in a day's log
+  function logContentScore(log) {
+    let score = 0;
+    if (log.weight) score += 1;
+    if (log.isPeriod) score += 1;
+    if (log.foods && log.foods.length) score += log.foods.length;
+    if (log.exercises && log.exercises.length) score += log.exercises.length;
+    return score;
+  }
+
+  // Restore daily logs with merge logic
   if (driveData.dailyLogs) {
-    for (const [key, value] of Object.entries(driveData.dailyLogs)) {
-      const existing = localStorage.getItem(key);
-      if (!existing) {
-        localStorage.setItem(key, JSON.stringify(value));
+    for (const [key, driveValue] of Object.entries(driveData.dailyLogs)) {
+      const existingRaw = localStorage.getItem(key);
+      if (!existingRaw) {
+        // No local data — use Drive version
+        localStorage.setItem(key, JSON.stringify(driveValue));
         changed = true;
+      } else {
+        // Both exist — resolve conflict
+        try {
+          const local = JSON.parse(existingRaw);
+          const drive = driveValue;
+
+          // If both have timestamps, use the newer one
+          if (local.lastModified && drive.lastModified) {
+            if (new Date(drive.lastModified) > new Date(local.lastModified)) {
+              localStorage.setItem(key, JSON.stringify(drive));
+              changed = true;
+            }
+          } else if (drive.lastModified && !local.lastModified) {
+            // Drive has timestamp, local doesn't — Drive is newer format, use it
+            localStorage.setItem(key, JSON.stringify(drive));
+            changed = true;
+          } else if (!drive.lastModified && !local.lastModified) {
+            // Neither has timestamp — use whichever has more data
+            if (logContentScore(drive) > logContentScore(local)) {
+              localStorage.setItem(key, JSON.stringify(drive));
+              changed = true;
+            }
+          }
+          // If local has timestamp but Drive doesn't, keep local (local is newer format)
+        } catch(e) {
+          // Parse error on local — overwrite with Drive version
+          localStorage.setItem(key, JSON.stringify(driveValue));
+          changed = true;
+        }
       }
     }
   }
-  // Restore meta (only if not already set locally)
+
+  // Restore meta — use Drive version if local is missing, or if Drive bundle is newer
   if (driveData.meta) {
     for (const [key, value] of Object.entries(driveData.meta)) {
-      if (!localStorage.getItem(key) && value) {
-        localStorage.setItem(key, value);
-        changed = true;
+      if (value) {
+        const existing = localStorage.getItem(key);
+        if (!existing) {
+          localStorage.setItem(key, value);
+          changed = true;
+        } else if (key === 'user-profile' || key === 'nutrition-goals') {
+          // For profile and goals, use Drive version if Drive bundle is newer
+          // (these are updated less frequently, so top-level lastModified is fine)
+          try {
+            const localData = JSON.parse(existing);
+            const driveData2 = JSON.parse(value);
+            if (driveData.lastModified && JSON.stringify(localData) !== JSON.stringify(driveData2)) {
+              // Data differs — use Drive version if it's the more recent sync
+              localStorage.setItem(key, value);
+              changed = true;
+            }
+          } catch(e) {}
+        }
       }
     }
   }
@@ -543,15 +600,22 @@ function HealthTracker() {
       if (success) {
         // Try cached token first, then auto-prompt if user has signed in before
         const hasSignedInBefore = localStorage.getItem('google-drive-user');
+        const mergeAndSync = async () => {
+          setDriveSyncStatus('syncing');
+          const driveData = await DriveSync.loadFromDrive();
+          const merged = driveData ? restoreFromDriveData(driveData) : false;
+          // Always push merged data back to Drive
+          const localData = gatherAllData();
+          await DriveSync.saveToDrive(localData);
+          setDriveSyncStatus('synced');
+          if (merged) {
+            window.location.reload();
+          }
+        };
         try {
           await DriveSync.requestAccess(false);
           setDriveSignedIn(true);
-          setDriveSyncStatus('syncing');
-          const driveData = await DriveSync.loadFromDrive();
-          if (driveData && restoreFromDriveData(driveData)) {
-            window.location.reload();
-          }
-          setDriveSyncStatus('synced');
+          await mergeAndSync();
         } catch(e) {
           if (hasSignedInBefore) {
             // Token expired but user has signed in before — auto-prompt
@@ -559,12 +623,7 @@ function HealthTracker() {
               await DriveSync.requestAccess(true);
               setDriveSignedIn(true);
               localStorage.setItem('google-drive-user', 'true');
-              setDriveSyncStatus('syncing');
-              const driveData = await DriveSync.loadFromDrive();
-              if (driveData && restoreFromDriveData(driveData)) {
-                window.location.reload();
-              }
-              setDriveSyncStatus('synced');
+              await mergeAndSync();
             } catch(e2) {
               setDriveSignedIn(false);
             }
@@ -613,13 +672,17 @@ function HealthTracker() {
       await DriveSync.requestAccess(true);
       setDriveSignedIn(true);
       localStorage.setItem('google-drive-user', 'true');
-      // Load and merge data from Drive
+      // Load and merge data from Drive, then push merged data back
       setDriveSyncStatus('syncing');
       const driveData = await DriveSync.loadFromDrive();
-      if (driveData && restoreFromDriveData(driveData)) {
+      const merged = driveData ? restoreFromDriveData(driveData) : false;
+      // Always push merged local data back to Drive
+      const localData = gatherAllData();
+      await DriveSync.saveToDrive(localData);
+      setDriveSyncStatus('synced');
+      if (merged) {
         window.location.reload();
       }
-      setDriveSyncStatus('synced');
     } catch(e) {
       console.error('Sign-in error:', e);
       alert('Failed to sign in to Google. Please try again.');
@@ -731,7 +794,7 @@ function HealthTracker() {
   };
 
   const saveDayData = async () => {
-    const data = { date: currentDate, weight, isPeriod, foods, exercises };
+    const data = { date: currentDate, weight, isPeriod, foods, exercises, lastModified: new Date().toISOString() };
     await storage.set(`nutrition-${currentDate}`, JSON.stringify(data));
   };
 
@@ -2245,9 +2308,12 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                     <div className="relative">
                       <input
                         type="number"
-                        value={userProfile.startingWeight}
+                        value={userProfile.startingWeight ? displayWeight(userProfile.startingWeight) : ''}
                         onChange={(e) => {
-                          const p = {...userProfile, startingWeight: e.target.value};
+                          const val = e.target.value;
+                          // Convert back to lbs for storage if metric
+                          const lbsVal = isMetric && val ? (parseFloat(val) / 0.453592).toFixed(1) : val;
+                          const p = {...userProfile, startingWeight: lbsVal};
                           setUserProfile(p); saveUserProfile(p);
                         }}
                         className="w-full px-4 py-3 pr-12 border rounded-xl"
@@ -2404,14 +2470,16 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                       <button
                         onClick={async () => {
                           setDriveSyncStatus('syncing');
+                          // Pull from Drive and merge
                           const driveData = await DriveSync.loadFromDrive();
-                          if (driveData && restoreFromDriveData(driveData)) {
+                          const merged = driveData ? restoreFromDriveData(driveData) : false;
+                          // Always push merged local data back to Drive
+                          const data = gatherAllData();
+                          await DriveSync.saveToDrive(data);
+                          setDriveSyncStatus('synced');
+                          if (merged) {
                             window.location.reload();
                           } else {
-                            // Push local data to Drive
-                            const data = gatherAllData();
-                            await DriveSync.saveToDrive(data);
-                            setDriveSyncStatus('synced');
                             alert('Sync complete! Data is up to date.');
                           }
                         }}
@@ -2514,9 +2582,21 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
-                    Export All Data
+                    Export Data
                   </button>
+                </div>
 
+                <div>
+                  <input type="file" accept=".json" onChange={importData} id="import-data-input" className="hidden" />
+                  <label
+                    htmlFor="import-data-input"
+                    className="w-full px-6 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold shadow-lg flex items-center justify-center transition-colors cursor-pointer mb-2"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Import Data
+                  </label>
                 </div>
 
                 <div>
@@ -2538,20 +2618,6 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                       </div>
                     </div>
                   )}
-                </div>
-
-                <div>
-                  <input type="file" accept=".json" onChange={importData} id="merge-backup-input" className="hidden" />
-                  <label
-                    htmlFor="merge-backup-input"
-                    className="w-full px-6 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold shadow-lg flex items-center justify-center transition-colors cursor-pointer mb-2"
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
-                    Merge Backup (File)
-                  </label>
-
                 </div>
 
                 {lastBackupDate && (
