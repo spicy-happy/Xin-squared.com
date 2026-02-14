@@ -292,6 +292,32 @@ function restoreFromDriveData(driveData) {
 }
 
 function HealthTracker() {
+  const [foodPlaceholder] = useState(() => {
+    const examples = [
+      "2 scrambled eggs with toast",
+      "grilled chicken salad with avocado",
+      "overnight oats with berries",
+      "salmon with roasted vegetables",
+      "greek yogurt with honey and walnuts",
+      "turkey and cheese wrap",
+      "banana with peanut butter",
+      "quinoa bowl with black beans",
+      "acai bowl with granola",
+      "avocado toast with poached egg",
+      "chicken stir fry with brown rice",
+      "hummus with carrots and pita",
+      "protein shake with banana",
+      "grilled shrimp tacos",
+      "caprese salad with mozzarella",
+      "oatmeal with almonds and blueberries",
+      "tuna poke bowl",
+      "sweet potato and black bean burrito",
+      "cottage cheese with pineapple",
+      "veggie omelet with feta"
+    ];
+    return examples[Math.floor(Math.random() * examples.length)];
+  });
+
   const [activeTab, setActiveTab] = useState('log');
   const [summaryView, setSummaryView] = useState('day');
   const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
@@ -1448,7 +1474,7 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                   value={foodDescription}
                   onChange={(e) => setFoodDescription(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addFood(); } }}
-                  placeholder={foodImages.length > 0 ? "Optional: add details like portion size, ingredients..." : "2 scrambled eggs with toast"}
+                  placeholder={foodImages.length > 0 ? "Optional: add details like portion size, ingredients..." : foodPlaceholder}
                   className="w-full px-4 py-3 border rounded-xl resize-none mb-3 overflow-y-auto"
                   rows={Math.min(5, Math.max(2, foodDescription.split('\n').length))}
                   style={{maxHeight: 'calc(1.5em * 5 + 1.5rem)'}}
