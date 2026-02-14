@@ -915,7 +915,7 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
     if (!apiKey) return 250; // fallback
     const currentWeight = weight || userProfile.startingWeight || '150';
     try {
-      const text = await callOpenAI(apiKey, `Estimate total calories burned for this exercise session: "${exerciseName}". The person weighs ${currentWeight} lbs. If no duration is mentioned, assume 1 hour. Return ONLY JSON, no other text: {"calories": 400}`);
+      const text = await callOpenAI(apiKey, `Estimate total calories burned for this exercise: "${exerciseName}". The person weighs ${currentWeight} lbs. If no duration is mentioned, assume 30 minutes. Be conservative with estimates — household chores like cleaning burn roughly 100-150 calories per 30 minutes, walking burns about 100-150 per 30 min, light activity is low. Only high-intensity exercise (running, HIIT, martial arts) burns 300+ per hour. Return ONLY JSON, no other text: {"calories": 150}`);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const parsed = JSON.parse(match[0]);
