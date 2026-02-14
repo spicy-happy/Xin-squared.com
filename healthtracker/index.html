@@ -1049,7 +1049,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     event.target.value = '';
   };
 
-  const clearData = () => {
+  const clearData = async () => {
     try {
       const keys = Object.keys(localStorage);
       keys.forEach(key => {
@@ -1059,6 +1059,15 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
         }
         // NOTE: 'openai-api-key' is preserved intentionally
       });
+      // Push cleared state to Google Drive so other devices don't restore old data
+      if (DriveSync.accessToken) {
+        try {
+          const emptyData = gatherAllData(); // now returns empty since localStorage was cleared
+          await DriveSync.saveToDrive(emptyData);
+        } catch (e) {
+          console.error('Failed to clear Drive data:', e);
+        }
+      }
       setShowClearConfirm(false);
       window.location.reload();
     } catch (error) {
