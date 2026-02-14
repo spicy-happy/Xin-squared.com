@@ -49,7 +49,7 @@ function Plus({ className = "" }) {
 }
 
 // Weight chart component (pure SVG, no dependencies)
-function WeightChart({ data, height = 160, unit = 'lbs' }) {
+function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null }) {
   // data = [{ label: "Mon", weight: 145.2 }, ...]
   const points = data.filter(d => d.weight);
   if (points.length < 2) {
@@ -64,8 +64,10 @@ function WeightChart({ data, height = 160, unit = 'lbs' }) {
   }
 
   const weights = points.map(p => p.weight);
-  const minW = Math.min(...weights);
-  const maxW = Math.max(...weights);
+  // Include target weight in min/max calculation so line is always visible
+  const allValues = targetWeight ? [...weights, targetWeight] : weights;
+  const minW = Math.min(...allValues);
+  const maxW = Math.max(...allValues);
   const range = maxW - minW || 1;
   const padding = range * 0.15;
   const yMin = minW - padding;
@@ -74,10 +76,10 @@ function WeightChart({ data, height = 160, unit = 'lbs' }) {
 
   const chartW = 100; // viewBox percentage width
   const chartH = height;
-  const padLeft = 40;
-  const padRight = 15;
+  const padLeft = 50;
+  const padRight = 30;
   const padTop = 15;
-  const padBot = 25;
+  const padBot = 30;
   const innerW = chartW * 3 - padLeft - padRight; // scale for wider viewBox
   const innerH = chartH - padTop - padBot;
   const vbWidth = chartW * 3;
@@ -110,16 +112,26 @@ function WeightChart({ data, height = 160, unit = 'lbs' }) {
         {yLabels.map((yl, i) => (
           <g key={i}>
             <line x1={padLeft} y1={yl.y} x2={vbWidth - padRight} y2={yl.y} stroke="#e5e7eb" strokeWidth="0.5" />
-            <text x={padLeft - 4} y={yl.y + 3} textAnchor="end" fontSize="8" fill="#9ca3af">{yl.label}</text>
+            <text x={padLeft - 5} y={yl.y + 4} textAnchor="end" fontSize="11" fill="#6b7280">{yl.label}</text>
           </g>
         ))}
+        {/* Target weight line */}
+        {targetWeight && (() => {
+          const ty = padTop + (1 - (targetWeight - yMin) / yRange) * innerH;
+          return (
+            <g>
+              <line x1={padLeft} y1={ty} x2={vbWidth - padRight} y2={ty} stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="6,3" />
+              <text x={vbWidth - padRight + 3} y={ty + 4} fontSize="10" fill="#f59e0b" fontWeight="bold">Goal</text>
+            </g>
+          );
+        })()}
         {/* Line */}
-        <path d={pathD} fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={pathD} fill="none" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         {/* Dots */}
         {chartPoints.map((p, i) => (
           <g key={i}>
-            <circle cx={p.x} cy={p.y} r="3.5" fill="#6366f1" stroke="white" strokeWidth="1.5" />
-            <text x={p.x} y={chartH - 5} textAnchor="middle" fontSize="7" fill="#6b7280">{p.label}</text>
+            <circle cx={p.x} cy={p.y} r="4" fill="#6366f1" stroke="white" strokeWidth="2" />
+            <text x={p.x} y={chartH - 5} textAnchor="middle" fontSize="10" fill="#6b7280">{p.label}</text>
           </g>
         ))}
       </svg>
@@ -525,6 +537,7 @@ function HealthTracker() {
 
   const [userProfile, setUserProfile] = useState({
     startingWeight: '',
+    targetWeight: '',
     gender: 'female',
     periodTracking: true,
     cycleLength: '28',
@@ -537,6 +550,8 @@ function HealthTracker() {
   const [foodImages, setFoodImages] = useState([]); // array of { file, preview, base64 }
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAnalyzingExercise, setIsAnalyzingExercise] = useState(false);
+  const [dayReview, setDayReview] = useState(null);
+  const [isReviewingDay, setIsReviewingDay] = useState(false);
   const [exerciseType, setExerciseType] = useState('');
   const [foods, setFoods] = useState([]);
   const [exercises, setExercises] = useState([]);
@@ -997,16 +1012,17 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
     const dateToSave = currentDate;
     setIsAnalyzing(true);
     try {
+      const fmtRule = `Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Grilled chicken breast", "1 Bowl of oatmeal with berries".`;
       let prompt;
       if (foodImages.length > 0 && foodDescription) {
         // Images + text: use text as context/refinement
-        prompt = `Look at the food in the image(s) and analyze them. The user also provided this description: "${foodDescription}". Use the description to refine your estimates (e.g. portion sizes, specific ingredients). List ALL distinct food items visible in the images. If a food item is mentioned in the description but not in the images, include it too. CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. Return ONLY JSON: [{"name":"1 scrambled egg","calories":70,"protein":6,"fat":5,"carbs":1}]`;
+        prompt = `Look at the food in the image(s) and analyze them. The user also provided this description: "${foodDescription}". Use the description to refine your estimates (e.g. portion sizes, specific ingredients). List ALL distinct food items visible in the images. If a food item is mentioned in the description but not in the images, include it too. CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. ${fmtRule} Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":220,"protein":16,"fat":12,"carbs":18}]`;
       } else if (foodImages.length > 0) {
         // Images only
-        prompt = `Look at the food in the image(s). Identify ALL distinct food items visible and estimate their nutritional content. CRITICAL: If no quantity is obvious, assume quantity is 1. ALWAYS start the name with a number. Return ONLY JSON: [{"name":"1 scrambled egg","calories":70,"protein":6,"fat":5,"carbs":1}]`;
+        prompt = `Look at the food in the image(s). Identify ALL distinct food items visible and estimate their nutritional content. CRITICAL: If no quantity is obvious, assume quantity is 1. ALWAYS start the name with a number. ${fmtRule} Return ONLY JSON: [{"name":"1 Grilled chicken breast","calories":165,"protein":31,"fat":4,"carbs":0}]`;
       } else {
         // Text only
-        prompt = `Analyze this food: "${foodDescription}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. Return ONLY JSON: [{"name":"1 scrambled egg","calories":70,"protein":6,"fat":5,"carbs":1}]. Examples: "eggs" -> "2 eggs", "apple" -> "1 apple", "bowl of cereal" -> "1 bowl of cereal", "chicken breast" -> "1 chicken breast".`;
+        prompt = `Analyze this food: "${foodDescription}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. ${fmtRule} Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":220,"protein":16,"fat":12,"carbs":18}]`;
       }
 
       const imageBase64s = foodImages.map(img => img.base64);
@@ -1049,13 +1065,12 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
     const foodToDelete = foods.find(f => f.id === id);
     const newFoods = foods.filter(f => f.id !== id);
     setFoods(newFoods);
+    // Save immediately so refresh doesn't lose the deletion
+    const data = { date: dateToSave, weight, isPeriod, foods: newFoods, exercises, lastModified: new Date().toISOString() };
+    storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
     setUndoState({ type: 'food', item: foodToDelete, date: dateToSave });
     if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-    undoTimeoutRef.current = setTimeout(() => {
-      setUndoState(null);
-      const data = { date: dateToSave, weight, isPeriod, foods: newFoods, exercises };
-      storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
-    }, 10000);
+    undoTimeoutRef.current = setTimeout(() => setUndoState(null), 10000);
   };
 
   const undoDelete = () => {
@@ -1107,7 +1122,7 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
     const dateToSave = currentDate;
     setIsAnalyzing(true);
     try {
-      const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. Return ONLY JSON: [{"name":"1 scrambled egg","calories":70,"protein":6,"fat":5,"carbs":1}]. Examples: "eggs" -> "2 eggs", "apple" -> "1 apple", "bowl of cereal" -> "1 bowl of cereal", "chicken breast" -> "1 chicken breast".`);
+      const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Apple", "1 Bowl of oatmeal with berries". Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":220,"protein":16,"fat":12,"carbs":18}]`);
       const match = text.match(/\[[\s\S]*\]/);
       if (match) {
         const parsed = JSON.parse(match[0]);
@@ -1145,16 +1160,68 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
     const rawWeight = weight || userProfile.startingWeight || '150';
     const weightDisplay = `${displayWeight(rawWeight)} ${weightLabel}`;
     try {
-      const text = await callOpenAI(apiKey, `Estimate total calories burned for this exercise: "${exerciseName}". The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be conservative with estimates — household chores like cleaning burn roughly 100-150 calories per 30 minutes, walking burns about 100-150 per 30 min, light activity is low. Only high-intensity exercise (running, HIIT, martial arts) burns 300+ per hour. Return ONLY JSON, no other text: {"calories": 150}`);
+      const text = await callOpenAI(apiKey, `Estimate total calories burned for this exercise: "${exerciseName}". The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be very conservative — these are ADDITIONAL calories burned above resting metabolic rate only. Household chores (cleaning, tidying, dishes) burn only 50-80 extra calories per 30 minutes. Walking burns 80-120 per 30 min. Light yoga/stretching is 50-80 per 30 min. Only intense exercise (running, HIIT, cycling hard) burns 250+ per 30 min. Err on the lower end. Also return a cleanly formatted name: capitalize the first letter, use proper grammar, include duration if mentioned, no trailing punctuation. Return ONLY JSON, no other text: {"name": "30 min cleaning", "calories": 75}`);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const parsed = JSON.parse(match[0]);
-        return parseInt(parsed.calories) || 250;
+        return { calories: parseInt(parsed.calories) || 250, name: parsed.name || exerciseName };
       }
     } catch (error) {
       console.error('Exercise estimation error:', error);
     }
-    return 250; // fallback
+    return { calories: 250, name: exerciseName }; // fallback
+  };
+
+  // AI day review — evaluate day vs goals and predict weight in 1 month
+  const reviewDay = async () => {
+    if (!apiKey) return;
+    setIsReviewingDay(true);
+    setDayReview(null);
+    try {
+      const totalCal = foods.reduce((s, f) => s + (f.calories || 0), 0);
+      const totalProtein = foods.reduce((s, f) => s + (f.protein || 0), 0);
+      const totalFat = foods.reduce((s, f) => s + (f.fat || 0), 0);
+      const totalCarbs = foods.reduce((s, f) => s + (f.carbs || 0), 0);
+      const totalExCal = exercises.reduce((s, e) => s + (e.calories || 0), 0);
+      const netCal = totalCal - totalExCal;
+      const currentW = weight || userProfile.startingWeight || 'unknown';
+      const wDisplay = currentW !== 'unknown' ? `${displayWeight(currentW)} ${weightLabel}` : 'unknown';
+      const age = userProfile.birthYear ? new Date().getFullYear() - parseInt(userProfile.birthYear) : 'unknown';
+      const heightStr = userProfile.heightFt
+        ? (isMetric
+          ? `${displayHeight(userProfile.heightFt, userProfile.heightIn)} cm`
+          : `${userProfile.heightFt}'${userProfile.heightIn || 0}"`)
+        : 'unknown';
+
+      const foodList = foods.map(f => `${f.name} (${f.calories} cal)`).join(', ');
+      const exList = exercises.map(e => `${e.type} (-${e.calories} cal)`).join(', ');
+
+      const prompt = `You are a health coach. Evaluate this person's day and predict their weight in 1 month if every day was like this.
+
+Profile: Age ${age}, ${userProfile.gender || 'unknown'}, Height: ${heightStr}, Current weight: ${wDisplay}, Goal: ${goal || 'general health'}
+Calorie target: ${nutritionGoals.calorieMin}-${nutritionGoals.calorieMax} cal/day, Protein target: ${nutritionGoals.protein}g/day
+
+Today's log:
+- Foods: ${foodList || 'none'}
+- Exercises: ${exList || 'none'}
+- Total calories eaten: ${totalCal}
+- Total exercise burned: ${totalExCal}
+- Net calories: ${netCal}
+- Protein: ${totalProtein}g, Fat: ${totalFat}g, Carbs: ${totalCarbs}g
+${weight ? `- Weighed in at: ${displayWeight(weight)} ${weightLabel}` : ''}
+
+Return ONLY JSON: {"rating": "A+/A/B/C/D/F", "summary": "2-3 sentence evaluation of the day comparing to goals", "prediction": "predicted weight in 1 month with units if every day was exactly like this, e.g. 142.5 lbs or 64.8 kg", "tip": "one specific actionable tip for tomorrow"}`;
+
+      const text = await callOpenAI(apiKey, prompt);
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        setDayReview(JSON.parse(match[0]));
+      }
+    } catch (error) {
+      console.error('Day review error:', error);
+    } finally {
+      setIsReviewingDay(false);
+    }
   };
 
   const addExercise = async () => {
@@ -1171,8 +1238,8 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
       try {
         const newExercises = [];
         for (const exerciseName of exercises_to_add) {
-          const cal = await estimateExerciseCaloriesAI(exerciseName);
-          newExercises.push({ id: Date.now() + newExercises.length, type: exerciseName, calories: cal });
+          const result = await estimateExerciseCaloriesAI(exerciseName);
+          newExercises.push({ id: Date.now() + newExercises.length, type: result.name, calories: result.calories });
         }
         const updatedExercises = [...exercises, ...newExercises];
         setExercises(updatedExercises);
@@ -1208,13 +1275,12 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
     const exerciseToDelete = exercises.find(e => e.id === id);
     const newExercises = exercises.filter(e => e.id !== id);
     setExercises(newExercises);
+    // Save immediately so refresh doesn't lose the deletion
+    const data = { date: dateToSave, weight, isPeriod, foods, exercises: newExercises, lastModified: new Date().toISOString() };
+    storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
     setUndoState({ type: 'exercise', item: exerciseToDelete, date: dateToSave });
     if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-    undoTimeoutRef.current = setTimeout(() => {
-      setUndoState(null);
-      const data = { date: dateToSave, weight, isPeriod, foods, exercises: newExercises };
-      storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
-    }, 10000);
+    undoTimeoutRef.current = setTimeout(() => setUndoState(null), 10000);
   };
 
   const startEditingExercise = (exercise) => {
@@ -1234,8 +1300,8 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
     if (apiKey) {
       setIsAnalyzingExercise(true);
       try {
-        const cal = await estimateExerciseCaloriesAI(editingExerciseText);
-        const updatedExercise = { id: editingExerciseId, type: editingExerciseText, calories: cal };
+        const result = await estimateExerciseCaloriesAI(editingExerciseText);
+        const updatedExercise = { id: editingExerciseId, type: result.name, calories: result.calories };
         const updatedExercises = exercises.map(e => e.id === editingExerciseId ? updatedExercise : e);
         setExercises(updatedExercises);
         setEditingExerciseId(null);
@@ -1341,6 +1407,7 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
     const date = new Date(currentDate);
     date.setDate(date.getDate() + direction);
     setCurrentDate(date.toISOString().split('T')[0]);
+    setDayReview(null);
   };
 
   const formatDate = (dateStr, includeWeekday = false) => {
@@ -1651,15 +1718,17 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                   <input
                     type="number"
                     step="0.1"
-                    value={weight}
+                    value={weight ? displayWeight(weight) : ''}
                     onChange={(e) => {
-                      const newWeight = e.target.value;
+                      const val = e.target.value;
+                      // Convert back to lbs for storage if metric
+                      const lbsVal = isMetric && val ? (parseFloat(val) / 0.453592).toFixed(1) : val;
                       const dateToSave = currentDate;
-                      setWeight(newWeight);
+                      setWeight(lbsVal);
                       setWeightSaving('saving');
                       if (weightSaveTimeoutRef.current) clearTimeout(weightSaveTimeoutRef.current);
                       weightSaveTimeoutRef.current = setTimeout(async () => {
-                        const data = { date: dateToSave, weight: newWeight, isPeriod, foods, exercises };
+                        const data = { date: dateToSave, weight: lbsVal, isPeriod, foods, exercises, lastModified: new Date().toISOString() };
                         await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
                         setWeightSaving('saved');
                       }, 500);
@@ -1898,6 +1967,46 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                   ))}
                 </div>
               )}
+
+              {/* Finish Logging / Day Review */}
+              {(foods.length > 0 || exercises.length > 0) && (
+                <div className="mt-6">
+                  <div className="border-t border-gray-200 my-4"></div>
+                  <button
+                    onClick={reviewDay}
+                    disabled={isReviewingDay || !apiKey}
+                    className="w-full px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-semibold shadow-lg disabled:opacity-50 transition-all"
+                  >
+                    {isReviewingDay ? 'Evaluating your day...' : 'Finish Logging — Review My Day'}
+                  </button>
+                  {!apiKey && (
+                    <p className="text-xs text-gray-400 text-center mt-1">Set up OpenAI API key in Information tab to use this feature</p>
+                  )}
+                  {dayReview && (
+                    <div className="mt-4 p-4 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-bold text-lg">Day Review</h4>
+                        <span className={`text-2xl font-black px-3 py-1 rounded-xl ${
+                          dayReview.rating?.startsWith('A') ? 'bg-green-100 text-green-700' :
+                          dayReview.rating === 'B' ? 'bg-blue-100 text-blue-700' :
+                          dayReview.rating === 'C' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>{dayReview.rating}</span>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-3">{dayReview.summary}</p>
+                      <div className="bg-white/70 rounded-xl p-3 mb-3">
+                        <div className="text-xs font-bold text-gray-500 mb-1">1-MONTH PREDICTION</div>
+                        <div className="text-lg font-bold text-indigo-700">{dayReview.prediction}</div>
+                        <div className="text-xs text-gray-500">if every day was like today</div>
+                      </div>
+                      <div className="bg-white/70 rounded-xl p-3">
+                        <div className="text-xs font-bold text-gray-500 mb-1">TIP FOR TOMORROW</div>
+                        <p className="text-sm text-gray-700">{dayReview.tip}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1972,6 +2081,12 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                     </div>
                   ) : (
                     <>
+                      {userProfile.periodTracking && isPeriod && (
+                        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-pink-50 border border-pink-200 rounded-xl">
+                          <div className="w-2.5 h-2.5 rounded-full bg-pink-500"></div>
+                          <span className="text-sm text-pink-700 font-medium">Period</span>
+                        </div>
+                      )}
                       <div className="grid grid-cols-2 gap-3 mb-4">
                         <div className="bg-blue-50 rounded-xl p-3">
                           <div className="text-xs font-bold text-gray-600">CALORIES</div>
@@ -1999,7 +2114,7 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                         <div className="mb-4">
                           <h4 className="font-bold text-sm text-gray-600 mb-2">FOODS</h4>
                           <div className="space-y-1.5">
-                            {foods.map((food) => (
+                            {[...foods].sort((a, b) => (b.calories || 0) - (a.calories || 0)).map((food) => (
                               <div key={food.id} className="bg-gray-50 px-3 py-2 rounded-lg">
                                 <div className="font-medium text-sm">{food.name}</div>
                                 <div className="text-xs text-gray-600">
@@ -2071,7 +2186,7 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                         <WeightChart data={weekData.map(d => ({
                           label: formatDateWithWeekday(d.date).split(',')[0],
                           weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
-                        }))} unit={weightLabel} />
+                        }))} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} />
                         <div className="space-y-2">
                           {weekData.map((day) => {
                             const hasFoods = (day.foods || []).length > 0;
@@ -2081,9 +2196,12 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                             const dayCalGoalMin = baseGoalMin + exerciseCals;
                             const dayCalGoalMax = baseGoalMax + exerciseCals;
                             return (
-                              <div key={day.date} className="bg-gray-50 p-4 rounded-xl">
+                              <div key={day.date} className="bg-gray-50 p-4 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => { setCurrentDate(day.date); setSummaryView('day'); }}>
                                 <div className="flex justify-between items-center mb-2">
-                                  <div className="font-bold text-sm text-gray-700 uppercase">{formatDateWithWeekday(day.date)}</div>
+                                  <div className="flex items-center gap-2">
+                                    <div className="font-bold text-sm text-gray-700 uppercase">{formatDateWithWeekday(day.date)}</div>
+                                    {userProfile.periodTracking && day.isPeriod && <div className="w-2 h-2 rounded-full bg-pink-500" title="Period"></div>}
+                                  </div>
                                   {day.weight && <div className="text-sm text-gray-600">{displayWeight(day.weight)} {weightLabel}</div>}
                                 </div>
                                 {hasFoods ? (
@@ -2152,9 +2270,9 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                         <WeightChart data={monthData.map(d => ({
                           label: String(new Date(d.date).getDate()),
                           weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
-                        }))} height={180} unit={weightLabel} />
+                        }))} height={220} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} />
 
-                        {isFutureMonth && predictedPeriods.length > 0 && (
+                        {userProfile.periodTracking && isFutureMonth && predictedPeriods.length > 0 && (
                           <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-xl text-sm text-center">
                             <span className="text-pink-700">Future month with predicted periods</span>
                           </div>
@@ -2185,12 +2303,12 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                                   let bgColor = 'bg-gray-50 text-gray-400';
                                   if (hasData) bgColor = 'bg-white border-2 border-gray-300 text-gray-900 font-medium';
                                   return (
-                                    <div key={day.date} className={`aspect-square flex flex-col items-center justify-center text-sm rounded-lg ${bgColor} relative`}>
+                                    <div key={day.date} className={`aspect-square flex flex-col items-center justify-center text-sm rounded-lg ${bgColor} relative cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all`} onClick={() => { setCurrentDate(day.date); setSummaryView('day'); }}>
                                       <div>{dayNum}</div>
                                       {hasData && (
                                         <div className="flex gap-0.5 mt-0.5">
-                                          {isPeriodDay && <div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>}
-                                          {isPredictedPeriod && <div className="w-1.5 h-1.5 rounded-full bg-pink-300"></div>}
+                                          {userProfile.periodTracking && isPeriodDay && <div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>}
+                                          {userProfile.periodTracking && isPredictedPeriod && <div className="w-1.5 h-1.5 rounded-full bg-pink-300"></div>}
                                           {aboveProtein && <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[4px] border-b-green-500"></div>}
                                           {belowCalories && <div className="w-1.5 h-1.5 bg-blue-500"></div>}
                                         </div>
@@ -2206,14 +2324,18 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                         <div className="bg-gray-50 rounded-xl p-3 text-xs">
                           <div className="font-bold text-gray-700 mb-2">LEGEND</div>
                           <div className="grid grid-cols-2 gap-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-pink-500"></div>
-                              <span className="text-gray-600">Period</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-pink-300"></div>
-                              <span className="text-gray-600">Predicted Period</span>
-                            </div>
+                            {userProfile.periodTracking && (
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                                <span className="text-gray-600">Period</span>
+                              </div>
+                            )}
+                            {userProfile.periodTracking && (
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-pink-300"></div>
+                                <span className="text-gray-600">Predicted Period</span>
+                              </div>
+                            )}
                             <div className="flex items-center gap-2">
                               <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[5px] border-b-green-500"></div>
                               <span className="text-gray-600">Above {proteinGoal}g Protein</span>
@@ -2283,9 +2405,6 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                       className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm ${isMetric ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
                     >Metric</button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {isMetric ? 'kg, cm' : 'lbs, ft/in'}
-                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-2">GENDER</label>
@@ -2302,18 +2421,34 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                     ))}
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-sm font-bold mb-2">STARTING WEIGHT</label>
+                    <label className="block text-sm font-bold mb-2">STARTING</label>
                     <div className="relative">
                       <input
                         type="number"
                         value={userProfile.startingWeight ? displayWeight(userProfile.startingWeight) : ''}
                         onChange={(e) => {
                           const val = e.target.value;
-                          // Convert back to lbs for storage if metric
                           const lbsVal = isMetric && val ? (parseFloat(val) / 0.453592).toFixed(1) : val;
                           const p = {...userProfile, startingWeight: lbsVal};
+                          setUserProfile(p); saveUserProfile(p);
+                        }}
+                        className="w-full px-4 py-3 pr-12 border rounded-xl"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">{weightLabel}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-2">TARGET</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={userProfile.targetWeight ? displayWeight(userProfile.targetWeight) : ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          const lbsVal = isMetric && val ? (parseFloat(val) / 0.453592).toFixed(1) : val;
+                          const p = {...userProfile, targetWeight: lbsVal};
                           setUserProfile(p); saveUserProfile(p);
                         }}
                         className="w-full px-4 py-3 pr-12 border rounded-xl"
@@ -2463,10 +2598,6 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
                 <div className="space-y-3">
                   {driveSignedIn ? (
                     <div>
-                      <div className="flex items-center gap-2 mb-3 p-3 bg-green-50 rounded-xl">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span className="text-sm font-semibold text-green-700">Connected to Google Drive</span>
-                      </div>
                       <button
                         onClick={async () => {
                           setDriveSyncStatus('syncing');
