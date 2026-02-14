@@ -509,9 +509,16 @@ function HealthTracker() {
     return examples[Math.floor(Math.random() * examples.length)];
   });
 
+  const toLocalDateStr = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [activeTab, setActiveTab] = useState('log');
   const [summaryView, setSummaryView] = useState('day');
-  const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [currentDate, setCurrentDate] = useState(toLocalDateStr(new Date()));
   const [weekOffset, setWeekOffset] = useState(0);
   const [monthOffset, setMonthOffset] = useState(0);
   const [weight, setWeight] = useState('');
@@ -1380,7 +1387,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     for (let i = 0; i < 7; i++) {
       const date = new Date(mondayOfTargetWeek);
       date.setDate(mondayOfTargetWeek.getDate() + i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toLocalDateStr(date);
       if (dateStr === currentDate) {
         weekData.push({ date: dateStr, weight, isPeriod, foods, exercises });
       } else {
@@ -1404,7 +1411,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     const monthData = [];
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toLocalDateStr(date);
       if (dateStr === currentDate) {
         monthData.push({ date: dateStr, weight, isPeriod, foods, exercises });
       } else {
@@ -1420,9 +1427,10 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
   };
 
   const navigateDay = (direction) => {
-    const date = new Date(currentDate);
+    const [y, m, d] = currentDate.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
     date.setDate(date.getDate() + direction);
-    setCurrentDate(date.toISOString().split('T')[0]);
+    setCurrentDate(toLocalDateStr(date));
     setDayReview(null);
   };
 
@@ -1442,15 +1450,16 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
   };
 
   const canNavigateForward = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateStr(new Date());
     return currentDate < today;
   };
 
   const getLastWeight = () => {
-    const date = new Date(currentDate);
+    const [y, m, d] = currentDate.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
     for (let i = 1; i <= 30; i++) {
       date.setDate(date.getDate() - 1);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = toLocalDateStr(date);
       const stored = localStorage.getItem(`nutrition-${dateStr}`);
       if (stored) {
         const data = JSON.parse(stored);
@@ -1518,7 +1527,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       nextPeriod.setDate(nextPeriod.getDate() + cycleLength);
     }
     while (nextPeriod <= monthEnd) {
-      predicted.push(nextPeriod.toISOString().split('T')[0]);
+      predicted.push(toLocalDateStr(nextPeriod));
       nextPeriod.setDate(nextPeriod.getDate() + cycleLength);
     }
     return predicted;
@@ -1699,8 +1708,8 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                       {getCalendarDays().map((dateStr, index) => {
                         if (!dateStr) return <div key={`blank-${index}`} className="aspect-square" />;
                         const isSelected = dateStr === currentDate;
-                        const isToday = dateStr === new Date().toISOString().split('T')[0];
-                        const isFuture = dateStr > new Date().toISOString().split('T')[0];
+                        const isToday = dateStr === toLocalDateStr(new Date());
+                        const isFuture = dateStr > toLocalDateStr(new Date());
                         const dayNum = parseInt(dateStr.split('-')[2]);
                         return (
                           <button
@@ -2064,8 +2073,8 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                           {getCalendarDays().map((dateStr, index) => {
                             if (!dateStr) return <div key={`blank-${index}`} className="aspect-square" />;
                             const isSelected = dateStr === currentDate;
-                            const isToday = dateStr === new Date().toISOString().split('T')[0];
-                            const isFuture = dateStr > new Date().toISOString().split('T')[0];
+                            const isToday = dateStr === toLocalDateStr(new Date());
+                            const isFuture = dateStr > toLocalDateStr(new Date());
                             const dayNum = parseInt(dateStr.split('-')[2]);
                             return (
                               <button key={dateStr} onClick={() => !isFuture && selectDate(dateStr)} disabled={isFuture}
