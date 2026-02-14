@@ -437,14 +437,34 @@ function HealthTracker() {
   const weightSaveTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const [weightUnit, setWeightUnit] = useState(() => localStorage.getItem('weight-unit') || 'lbs');
+  const [unitSystem, setUnitSystem] = useState(() => localStorage.getItem('unit-system') || 'standard');
+  const isMetric = unitSystem === 'metric';
+
+  // Weight: stored internally as lbs, displayed as lbs or kg
   const displayWeight = (w) => {
     if (!w) return '';
     const num = parseFloat(w);
     if (isNaN(num)) return '';
-    return weightUnit === 'kg' ? (num * 0.453592).toFixed(1) : num.toFixed(1);
+    return isMetric ? (num * 0.453592).toFixed(1) : num.toFixed(1);
   };
-  const weightLabel = weightUnit === 'kg' ? 'kg' : 'lbs';
+  const weightLabel = isMetric ? 'kg' : 'lbs';
+
+  // Height: stored internally as ft/in, displayed as ft/in or cm
+  const displayHeight = (ft, inches) => {
+    if (!ft && !inches) return '';
+    const totalInches = (parseFloat(ft) || 0) * 12 + (parseFloat(inches) || 0);
+    if (isMetric) {
+      const cm = totalInches * 2.54;
+      return cm.toFixed(0);
+    }
+    return null; // use ft/in fields directly
+  };
+  const heightLabel = isMetric ? 'cm' : 'ft / in';
+
+  const switchUnitSystem = (system) => {
+    setUnitSystem(system);
+    localStorage.setItem('unit-system', system);
+  };
 
   const [userProfile, setUserProfile] = useState({
     startingWeight: '',
@@ -746,14 +766,19 @@ function HealthTracker() {
     setIsCalculatingGoals(true);
     try {
       const age = profile.birthYear ? new Date().getFullYear() - parseInt(profile.birthYear) : 'unknown';
-      const height = profile.heightFt ? `${profile.heightFt}'${profile.heightIn || 0}"` : 'unknown';
-      const currentWeight = weight || profile.startingWeight || 'unknown';
+      const heightStr = profile.heightFt
+        ? (isMetric
+          ? `${displayHeight(profile.heightFt, profile.heightIn)} cm`
+          : `${profile.heightFt}'${profile.heightIn || 0}"`)
+        : 'unknown';
+      const rawWeight = weight || profile.startingWeight || 'unknown';
+      const currentWeight = rawWeight !== 'unknown' ? `${displayWeight(rawWeight)} ${weightLabel}` : 'unknown';
 
       const prompt = `Given this person's profile:
 - Gender: ${profile.gender || 'unknown'}
 - Age: ${age} years old
-- Height: ${height}
-- Current weight: ${currentWeight} lbs
+- Height: ${heightStr}
+- Current weight: ${currentWeight}
 - Goal: "${goalText || 'general health'}"
 
 Recommend daily calorie range and protein target for this person. Consider their goal carefully.
@@ -1054,9 +1079,10 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
   // AI-powered exercise calorie estimation
   const estimateExerciseCaloriesAI = async (exerciseName) => {
     if (!apiKey) return 250; // fallback
-    const currentWeight = weight || userProfile.startingWeight || '150';
+    const rawWeight = weight || userProfile.startingWeight || '150';
+    const weightDisplay = `${displayWeight(rawWeight)} ${weightLabel}`;
     try {
-      const text = await callOpenAI(apiKey, `Estimate total calories burned for this exercise: "${exerciseName}". The person weighs ${currentWeight} lbs. If no duration is mentioned, assume 30 minutes. Be conservative with estimates — household chores like cleaning burn roughly 100-150 calories per 30 minutes, walking burns about 100-150 per 30 min, light activity is low. Only high-intensity exercise (running, HIIT, martial arts) burns 300+ per hour. Return ONLY JSON, no other text: {"calories": 150}`);
+      const text = await callOpenAI(apiKey, `Estimate total calories burned for this exercise: "${exerciseName}". The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be conservative with estimates — household chores like cleaning burn roughly 100-150 calories per 30 minutes, walking burns about 100-150 per 30 min, light activity is low. Only high-intensity exercise (running, HIIT, martial arts) burns 300+ per hour. Return ONLY JSON, no other text: {"calories": 150}`);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const parsed = JSON.parse(match[0]);
@@ -2183,17 +2209,20 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
               <h2 className="text-2xl font-bold mb-4">Information</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-bold mb-2">WEIGHT UNIT</label>
+                  <label className="block text-sm font-bold mb-2">UNITS</label>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => { setWeightUnit('lbs'); localStorage.setItem('weight-unit', 'lbs'); }}
-                      className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm ${weightUnit === 'lbs' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
-                    >lbs</button>
+                      onClick={() => switchUnitSystem('standard')}
+                      className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm ${!isMetric ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                    >US Standard</button>
                     <button
-                      onClick={() => { setWeightUnit('kg'); localStorage.setItem('weight-unit', 'kg'); }}
-                      className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm ${weightUnit === 'kg' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
-                    >kg</button>
+                      onClick={() => switchUnitSystem('metric')}
+                      className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm ${isMetric ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}
+                    >Metric</button>
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {isMetric ? 'kg, cm' : 'lbs, ft/in'}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-2">GENDER</label>
@@ -2242,32 +2271,52 @@ Return ONLY JSON, no other text: {"calorieMin": 1700, "calorieMax": 1900, "prote
 
                 <div>
                   <label className="block text-sm font-bold mb-2">HEIGHT</label>
-                  <div className="grid grid-cols-2 gap-4">
+                  {isMetric ? (
                     <div className="relative">
                       <input
                         type="number"
-                        value={userProfile.heightFt}
+                        value={displayHeight(userProfile.heightFt, userProfile.heightIn) || ''}
                         onChange={(e) => {
-                          const p = {...userProfile, heightFt: e.target.value};
+                          const cm = parseFloat(e.target.value) || 0;
+                          const totalInches = cm / 2.54;
+                          const ft = Math.floor(totalInches / 12);
+                          const inches = Math.round(totalInches % 12);
+                          const p = {...userProfile, heightFt: String(ft), heightIn: String(inches)};
                           setUserProfile(p); saveUserProfile(p);
-                          }}
+                        }}
+                        placeholder="170"
                         className="w-full px-4 py-3 pr-12 border rounded-xl"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">ft</span>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">cm</span>
                     </div>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={userProfile.heightIn}
-                        onChange={(e) => {
-                          const p = {...userProfile, heightIn: e.target.value};
-                          setUserProfile(p); saveUserProfile(p);
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={userProfile.heightFt}
+                          onChange={(e) => {
+                            const p = {...userProfile, heightFt: e.target.value};
+                            setUserProfile(p); saveUserProfile(p);
                           }}
-                        className="w-full px-4 py-3 pr-12 border rounded-xl"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">in</span>
+                          className="w-full px-4 py-3 pr-12 border rounded-xl"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">ft</span>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={userProfile.heightIn}
+                          onChange={(e) => {
+                            const p = {...userProfile, heightIn: e.target.value};
+                            setUserProfile(p); saveUserProfile(p);
+                          }}
+                          className="w-full px-4 py-3 pr-12 border rounded-xl"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">in</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 <div>
