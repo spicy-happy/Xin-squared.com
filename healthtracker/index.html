@@ -1723,20 +1723,6 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
             Health Tracker
           </h1>
-          {driveSignedIn && (
-            <div className="flex items-center gap-1.5">
-              <div className={`w-2 h-2 rounded-full ${
-                driveSyncStatus === 'syncing' ? 'bg-blue-400 animate-pulse' :
-                driveSyncStatus === 'synced' ? 'bg-green-400' :
-                driveSyncStatus === 'error' ? 'bg-red-400' : 'bg-gray-300'
-              }`}></div>
-              <span className="text-xs text-gray-500">
-                {driveSyncStatus === 'syncing' ? 'Syncing' :
-                 driveSyncStatus === 'synced' ? 'Synced' :
-                 driveSyncStatus === 'error' ? 'Error' : ''}
-              </span>
-            </div>
-          )}
         </div>
 
         {false && showBackupReminder && (
