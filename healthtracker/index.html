@@ -633,7 +633,7 @@ function HealthTracker() {
   const [weight, setWeight] = useState('');
   const [isTrainingDay, setIsTrainingDay] = useState(false);
   const [isPeriod, setIsPeriod] = useState(false);
-  const [weightSaving, setWeightSaving] = useState('saved');
+  const [weightSaving, setWeightSaving] = useState('');
   const weightSaveTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -861,8 +861,8 @@ function HealthTracker() {
   useEffect(() => {
     if (weightSaveTimeoutRef.current) {
       clearTimeout(weightSaveTimeoutRef.current);
-      setWeightSaving('saved');
     }
+    setWeightSaving('');
     if (undoTimeoutRef.current) {
       clearTimeout(undoTimeoutRef.current);
     }
@@ -936,7 +936,6 @@ function HealthTracker() {
     } catch (error) {
       setWeight(''); setIsPeriod(false); setFoods([]); setExercises([]);
     }
-    setWeightSaving('saved');
   };
 
   // Read-modify-write helper: reads latest data from storage, merges updates, and saves.
