@@ -49,21 +49,15 @@ function Plus({ className = "" }) {
 }
 
 // Weight chart component (pure SVG, no dependencies)
-function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null, startingWeight = null }) {
+function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null, startingWeight = null, lastKnownWeight = null }) {
   // data = [{ label: "Mon", weight: 145.2 }, ...]
   const points = data.filter(d => d.weight);
-  if (points.length < 2) {
-    return points.length === 1 ? (
-      <div className="bg-gray-50 rounded-xl p-4 mb-4">
-        <div className="text-xs font-bold text-gray-600 mb-2">WEIGHT</div>
-        <div className="text-center text-gray-400 text-sm py-4">
-          Only 1 weigh-in ({points[0].weight} {unit}) — need at least 2 to show chart
-        </div>
-      </div>
-    ) : null;
-  }
 
-  const weights = points.map(p => p.weight);
+  // If no data points in range, show flat line at lastKnownWeight if available
+  if (points.length === 0 && !lastKnownWeight) return null;
+
+  // Determine the effective weight for calculations
+  const weights = points.length > 0 ? points.map(p => p.weight) : [lastKnownWeight];
   // Include target/starting weight in min/max calculation so lines are always visible
   const allValues = [...weights, ...(targetWeight ? [targetWeight] : []), ...(startingWeight ? [startingWeight] : [])];
   const minW = Math.min(...allValues);
@@ -95,7 +89,37 @@ function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null, st
     label: d.label
   }));
 
-  const pathD = chartPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+  // Build extended path: extend line from first point to left edge, last point to right edge
+  const leftEdgeX = padLeft;
+  const rightEdgeX = padLeft + innerW;
+
+  let pathD;
+  if (chartPoints.length === 0) {
+    // No points in range, draw flat line at lastKnownWeight
+    const flatY = padTop + (1 - (lastKnownWeight - yMin) / yRange) * innerH;
+    pathD = `M${leftEdgeX},${flatY} L${rightEdgeX},${flatY}`;
+  } else {
+    // Extend left from first point, connect all points, extend right from last point
+    const firstPt = chartPoints[0];
+    const lastPt = chartPoints[chartPoints.length - 1];
+    const segments = [];
+    // Extend left (flat from first point)
+    if (firstPt.x > leftEdgeX) {
+      segments.push(`M${leftEdgeX},${firstPt.y}`);
+      segments.push(`L${firstPt.x},${firstPt.y}`);
+    } else {
+      segments.push(`M${firstPt.x},${firstPt.y}`);
+    }
+    // Connect all data points
+    for (let i = 1; i < chartPoints.length; i++) {
+      segments.push(`L${chartPoints[i].x},${chartPoints[i].y}`);
+    }
+    // Extend right (flat from last point)
+    if (lastPt.x < rightEdgeX) {
+      segments.push(`L${rightEdgeX},${lastPt.y}`);
+    }
+    pathD = segments.join(' ');
+  }
 
   // Y-axis labels (3 labels: min, mid, max)
   const mid = (minW + maxW) / 2;
@@ -1502,6 +1526,26 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     return monthData;
   };
 
+  // Find the most recent weight before a given date by searching backwards
+  const getLastKnownWeight = (beforeDateStr) => {
+    const date = new Date(beforeDateStr + 'T00:00:00');
+    // Start from the day before and search up to 365 days back
+    for (let i = 1; i <= 365; i++) {
+      const checkDate = new Date(date);
+      checkDate.setDate(date.getDate() - i);
+      const dateStr = toLocalDateStr(checkDate);
+      if (dateStr === currentDate && weight) {
+        return parseFloat(weight);
+      }
+      const stored = localStorage.getItem(`nutrition-${dateStr}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.weight) return parseFloat(parsed.weight);
+      }
+    }
+    return null;
+  };
+
   const navigateDay = (direction) => {
     const [y, m, d] = currentDate.split('-').map(Number);
     const date = new Date(y, m - 1, d);
@@ -2278,7 +2322,10 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                         <WeightChart data={weekData.map(d => ({
                           label: formatDateWithWeekday(d.date).split(',')[0],
                           weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
-                        }))} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} startingWeight={userProfile.startingWeight ? parseFloat(displayWeight(userProfile.startingWeight)) : null} />
+                        }))} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} startingWeight={userProfile.startingWeight ? parseFloat(displayWeight(userProfile.startingWeight)) : null} lastKnownWeight={(() => {
+                          const w = getLastKnownWeight(weekData[0]?.date);
+                          return w ? parseFloat(displayWeight(w)) : null;
+                        })()} />
                         <div className="space-y-2">
                           {weekData.map((day) => {
                             const hasFoods = (day.foods || []).length > 0;
@@ -2362,7 +2409,10 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                         <WeightChart data={monthData.map(d => ({
                           label: String(parseInt(d.date.split('-')[2])),
                           weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
-                        }))} height={220} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} startingWeight={userProfile.startingWeight ? parseFloat(displayWeight(userProfile.startingWeight)) : null} />
+                        }))} height={220} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} startingWeight={userProfile.startingWeight ? parseFloat(displayWeight(userProfile.startingWeight)) : null} lastKnownWeight={(() => {
+                          const w = getLastKnownWeight(monthData[0]?.date);
+                          return w ? parseFloat(displayWeight(w)) : null;
+                        })()} />
 
                         {userProfile.periodTracking && isFutureMonth && predictedPeriods.length > 0 && (
                           <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-xl text-sm text-center">
