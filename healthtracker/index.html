@@ -49,7 +49,7 @@ function Plus({ className = "" }) {
 }
 
 // Weight chart component (pure SVG, no dependencies)
-function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null }) {
+function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null, startingWeight = null }) {
   // data = [{ label: "Mon", weight: 145.2 }, ...]
   const points = data.filter(d => d.weight);
   if (points.length < 2) {
@@ -64,8 +64,8 @@ function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null }) 
   }
 
   const weights = points.map(p => p.weight);
-  // Include target weight in min/max calculation so line is always visible
-  const allValues = targetWeight ? [...weights, targetWeight] : weights;
+  // Include target/starting weight in min/max calculation so lines are always visible
+  const allValues = [...weights, ...(targetWeight ? [targetWeight] : []), ...(startingWeight ? [startingWeight] : [])];
   const minW = Math.min(...allValues);
   const maxW = Math.max(...allValues);
   const range = maxW - minW || 1;
@@ -122,6 +122,16 @@ function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null }) 
             <g>
               <line x1={padLeft} y1={ty} x2={vbWidth - padRight} y2={ty} stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="6,3" />
               <text x={vbWidth - padRight + 4} y={ty + 5} fontSize="14" fill="#f59e0b" fontWeight="bold">Goal</text>
+            </g>
+          );
+        })()}
+        {/* Starting weight line */}
+        {startingWeight && (() => {
+          const sy = padTop + (1 - (startingWeight - yMin) / yRange) * innerH;
+          return (
+            <g>
+              <line x1={padLeft} y1={sy} x2={vbWidth - padRight} y2={sy} stroke="#9ca3af" strokeWidth="1.5" strokeDasharray="4,4" />
+              <text x={vbWidth - padRight + 4} y={sy + 5} fontSize="14" fill="#9ca3af" fontWeight="bold">Start</text>
             </g>
           );
         })()}
@@ -2268,7 +2278,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                         <WeightChart data={weekData.map(d => ({
                           label: formatDateWithWeekday(d.date).split(',')[0],
                           weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
-                        }))} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} />
+                        }))} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} startingWeight={userProfile.startingWeight ? parseFloat(displayWeight(userProfile.startingWeight)) : null} />
                         <div className="space-y-2">
                           {weekData.map((day) => {
                             const hasFoods = (day.foods || []).length > 0;
@@ -2352,7 +2362,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                         <WeightChart data={monthData.map(d => ({
                           label: String(parseInt(d.date.split('-')[2])),
                           weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
-                        }))} height={220} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} />
+                        }))} height={220} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} startingWeight={userProfile.startingWeight ? parseFloat(displayWeight(userProfile.startingWeight)) : null} />
 
                         {userProfile.periodTracking && isFutureMonth && predictedPeriods.length > 0 && (
                           <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-xl text-sm text-center">
