@@ -49,7 +49,7 @@ function Plus({ className = "" }) {
 }
 
 // Weight chart component (pure SVG, no dependencies)
-function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null }) {
+function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null, startingWeight = null }) {
   // data = [{ label: "Mon", weight: 145.2 }, ...]
   const points = data.filter(d => d.weight);
   if (points.length < 2) {
@@ -64,8 +64,8 @@ function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null }) 
   }
 
   const weights = points.map(p => p.weight);
-  // Include target weight in min/max calculation so line is always visible
-  const allValues = targetWeight ? [...weights, targetWeight] : weights;
+  // Include target/starting weight in min/max calculation so lines are always visible
+  const allValues = [...weights, ...(targetWeight ? [targetWeight] : []), ...(startingWeight ? [startingWeight] : [])];
   const minW = Math.min(...allValues);
   const maxW = Math.max(...allValues);
   const range = maxW - minW || 1;
@@ -122,6 +122,16 @@ function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null }) 
             <g>
               <line x1={padLeft} y1={ty} x2={vbWidth - padRight} y2={ty} stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="6,3" />
               <text x={vbWidth - padRight + 4} y={ty + 5} fontSize="14" fill="#f59e0b" fontWeight="bold">Goal</text>
+            </g>
+          );
+        })()}
+        {/* Starting weight line */}
+        {startingWeight && (() => {
+          const sy = padTop + (1 - (startingWeight - yMin) / yRange) * innerH;
+          return (
+            <g>
+              <line x1={padLeft} y1={sy} x2={vbWidth - padRight} y2={sy} stroke="#9ca3af" strokeWidth="1.5" strokeDasharray="4,4" />
+              <text x={vbWidth - padRight + 4} y={sy + 5} fontSize="14" fill="#9ca3af" fontWeight="bold">Start</text>
             </g>
           );
         })()}
@@ -197,6 +207,9 @@ const storage = {
       const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
       return `${y}-${m}-${day}`;
     };
+    const daysBetween = (a, b) => {
+      return Math.round((new Date(a) - new Date(b)) / (1000 * 60 * 60 * 24));
+    };
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
@@ -209,9 +222,9 @@ const storage = {
         const data = JSON.parse(raw);
         if (!data.lastModified || !data.date) continue;
         const modifiedLocal = toLocal(new Date(data.lastModified));
-        // If the entry's date is one day AFTER the local date it was actually
-        // modified, it was saved with the UTC bug. Move it to the correct key.
-        if (data.date > modifiedLocal) {
+        // Only fix exactly 1-day shifts (the UTC timezone bug).
+        // Larger gaps are NOT timezone issues — leave them alone.
+        if (data.date > modifiedLocal && daysBetween(data.date, modifiedLocal) === 1) {
           const correctKey = `nutrition-${modifiedLocal}`;
           data.date = modifiedLocal;
           // Only move if the correct key is empty or has older data
@@ -461,12 +474,14 @@ function restoreFromDriveData(driveData) {
   }
 
   // Helper: fix UTC-shifted date keys from old toISOString bug
+  // Only corrects exactly 1-day shifts — larger gaps are not timezone issues.
   function fixDateKey(key, value) {
     if (!value || !value.lastModified || !value.date) return { key, value };
     const d = new Date(value.lastModified);
     const localDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const keyDate = key.replace('nutrition-', '');
-    if (keyDate > localDate) {
+    const dayDiff = Math.round((new Date(keyDate) - new Date(localDate)) / (1000 * 60 * 60 * 24));
+    if (keyDate > localDate && dayDiff === 1) {
       value.date = localDate;
       return { key: `nutrition-${localDate}`, value };
     }
@@ -890,9 +905,13 @@ function HealthTracker() {
     setWeightSaving('saved');
   };
 
-  const saveDayData = async () => {
-    const data = { date: currentDate, weight, isPeriod, foods, exercises, lastModified: new Date().toISOString() };
-    await storage.set(`nutrition-${currentDate}`, JSON.stringify(data));
+  // Read-modify-write helper: reads latest data from storage, merges updates, and saves.
+  // This prevents race conditions where concurrent saves overwrite each other's fields.
+  const updateDayStorage = async (date, updates) => {
+    const result = await storage.get(`nutrition-${date}`);
+    const data = result?.value ? JSON.parse(result.value) : { date };
+    Object.assign(data, updates, { lastModified: new Date().toISOString() });
+    await storage.set(`nutrition-${date}`, JSON.stringify(data));
   };
 
   const loadGoal = async () => {
@@ -1106,16 +1125,17 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     try {
       const fmtRule = `Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Grilled chicken breast", "1 Bowl of oatmeal with berries".`;
       const totalRule = `IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity.`;
+      const accuracyRule = `Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. For example, 4 pieces of karaage (fried chicken) at ~35g each is about 300cal total, not 800cal. Use standard home-cooked portions unless "large", "restaurant", or similar is specified.`;
       let prompt;
       if (foodImages.length > 0 && foodDescription) {
         // Images + text: use text as context/refinement
-        prompt = `Look at the food in the image(s) and analyze them. The user also provided this description: "${foodDescription}". Use the description to refine your estimates (e.g. portion sizes, specific ingredients). List ALL distinct food items visible in the images. If a food item is mentioned in the description but not in the images, include it too. CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. ${totalRule} ${fmtRule} Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`;
+        prompt = `Look at the food in the image(s) and analyze them. The user also provided this description: "${foodDescription}". Use the description to refine your estimates (e.g. portion sizes, specific ingredients). List ALL distinct food items visible in the images. If a food item is mentioned in the description but not in the images, include it too. CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. ${totalRule} ${accuracyRule} ${fmtRule} Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`;
       } else if (foodImages.length > 0) {
         // Images only
-        prompt = `Look at the food in the image(s). Identify ALL distinct food items visible and estimate their nutritional content. CRITICAL: If no quantity is obvious, assume quantity is 1. ALWAYS start the name with a number. ${totalRule} ${fmtRule} Return ONLY JSON: [{"name":"1 Grilled chicken breast","calories":165,"protein":31,"fat":4,"carbs":0}]`;
+        prompt = `Look at the food in the image(s). Identify ALL distinct food items visible and estimate their nutritional content. CRITICAL: If no quantity is obvious, assume quantity is 1. ALWAYS start the name with a number. ${totalRule} ${accuracyRule} ${fmtRule} Return ONLY JSON: [{"name":"1 Grilled chicken breast","calories":165,"protein":31,"fat":4,"carbs":0}]`;
       } else {
         // Text only
-        prompt = `Analyze this food: "${foodDescription}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. ${totalRule} ${fmtRule} Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`;
+        prompt = `Analyze this food: "${foodDescription}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. ${totalRule} ${accuracyRule} ${fmtRule} Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`;
       }
 
       const imageBase64s = foodImages.map(img => img.base64);
@@ -1138,8 +1158,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
         foodImages.forEach(img => URL.revokeObjectURL(img.preview));
         setFoodImages([]);
         setTimeout(async () => {
-          const saveData = { date: dateToSave, weight, isPeriod, foods: updatedFoods, exercises };
-          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(saveData));
+          await updateDayStorage(dateToSave, { foods: updatedFoods });
         }, 50);
       }
     } catch (error) {
@@ -1159,8 +1178,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     const newFoods = foods.filter(f => f.id !== id);
     setFoods(newFoods);
     // Save immediately so refresh doesn't lose the deletion
-    const data = { date: dateToSave, weight, isPeriod, foods: newFoods, exercises, lastModified: new Date().toISOString() };
-    storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+    updateDayStorage(dateToSave, { foods: newFoods });
     setUndoState({ type: 'food', item: foodToDelete, date: dateToSave });
     if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
     undoTimeoutRef.current = setTimeout(() => setUndoState(null), 10000);
@@ -1174,15 +1192,13 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const restoredFoods = [...foods, undoState.item];
       setFoods(restoredFoods);
       setTimeout(async () => {
-        const data = { date: dateToRestore, weight, isPeriod, foods: restoredFoods, exercises };
-        await storage.set(`nutrition-${dateToRestore}`, JSON.stringify(data));
+        await updateDayStorage(dateToRestore, { foods: restoredFoods });
       }, 50);
     } else if (undoState.type === 'exercise') {
       const restoredExercises = [...exercises, undoState.item];
       setExercises(restoredExercises);
       setTimeout(async () => {
-        const data = { date: dateToRestore, weight, isPeriod, foods, exercises: restoredExercises };
-        await storage.set(`nutrition-${dateToRestore}`, JSON.stringify(data));
+        await updateDayStorage(dateToRestore, { exercises: restoredExercises });
       }, 50);
     }
     setUndoState(null);
@@ -1191,11 +1207,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
   const dismissUndo = () => {
     if (!undoState) return;
     if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-    const dateToSave = undoState.date;
-    setTimeout(async () => {
-      const data = { date: dateToSave, weight, isPeriod, foods, exercises };
-      await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
-    }, 50);
+    // No need to save — deleteFood/deleteExercise already saved the updated data
     setUndoState(null);
   };
 
@@ -1215,7 +1227,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     const dateToSave = currentDate;
     setIsAnalyzing(true);
     try {
-      const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity. Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Apple", "1 Bowl of oatmeal with berries". Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`);
+      const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity. Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. For example, 4 pieces of karaage (fried chicken) at ~35g each is about 300cal total, not 800cal. Use standard home-cooked portions unless "large", "restaurant", or similar is specified. Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Apple", "1 Bowl of oatmeal with berries". Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`);
       const match = text.match(/\[[\s\S]*\]/);
       if (match) {
         const parsed = JSON.parse(match[0]);
@@ -1232,8 +1244,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
         setEditingFoodId(null);
         setEditingFoodText('');
         setTimeout(async () => {
-          const saveData = { date: dateToSave, weight, isPeriod, foods: updatedFoods, exercises };
-          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(saveData));
+          await updateDayStorage(dateToSave, { foods: updatedFoods });
         }, 50);
       }
     } catch (error) {
@@ -1338,8 +1349,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
         setExercises(updatedExercises);
         setExerciseType('');
         setTimeout(async () => {
-          const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
-          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+          await updateDayStorage(dateToSave, { exercises: updatedExercises });
         }, 50);
       } catch (error) {
         alert('Error estimating exercise: ' + error.message);
@@ -1357,8 +1367,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       setExercises(updatedExercises);
       setExerciseType('');
       setTimeout(async () => {
-        const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
-        await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+        await updateDayStorage(dateToSave, { exercises: updatedExercises });
       }, 50);
     }
   };
@@ -1369,8 +1378,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     const newExercises = exercises.filter(e => e.id !== id);
     setExercises(newExercises);
     // Save immediately so refresh doesn't lose the deletion
-    const data = { date: dateToSave, weight, isPeriod, foods, exercises: newExercises, lastModified: new Date().toISOString() };
-    storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+    updateDayStorage(dateToSave, { exercises: newExercises });
     setUndoState({ type: 'exercise', item: exerciseToDelete, date: dateToSave });
     if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
     undoTimeoutRef.current = setTimeout(() => setUndoState(null), 10000);
@@ -1400,8 +1408,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
         setEditingExerciseId(null);
         setEditingExerciseText('');
         setTimeout(async () => {
-          const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
-          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+          await updateDayStorage(dateToSave, { exercises: updatedExercises });
         }, 50);
       } catch (error) {
         alert('Error estimating exercise: ' + error.message);
@@ -1415,8 +1422,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       setEditingExerciseId(null);
       setEditingExerciseText('');
       setTimeout(async () => {
-        const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
-        await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+        await updateDayStorage(dateToSave, { exercises: updatedExercises });
       }, 50);
     }
   };
@@ -1825,8 +1831,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                       setWeightSaving('saving');
                       if (weightSaveTimeoutRef.current) clearTimeout(weightSaveTimeoutRef.current);
                       weightSaveTimeoutRef.current = setTimeout(async () => {
-                        const data = { date: dateToSave, weight: lbsVal, isPeriod, foods, exercises, lastModified: new Date().toISOString() };
-                        await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+                        await updateDayStorage(dateToSave, { weight: lbsVal });
                         setWeightSaving('saved');
                       }, 500);
                     }}
@@ -1849,8 +1854,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                         const dateToSave = currentDate;
                         setIsPeriod(checked);
                         setTimeout(async () => {
-                          const data = { date: dateToSave, weight, isPeriod: checked, foods, exercises };
-                          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+                          await updateDayStorage(dateToSave, { isPeriod: checked });
                         }, 50);
                       }}
                       className="w-5 h-5 mr-2.5"
@@ -2274,7 +2278,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                         <WeightChart data={weekData.map(d => ({
                           label: formatDateWithWeekday(d.date).split(',')[0],
                           weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
-                        }))} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} />
+                        }))} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} startingWeight={userProfile.startingWeight ? parseFloat(displayWeight(userProfile.startingWeight)) : null} />
                         <div className="space-y-2">
                           {weekData.map((day) => {
                             const hasFoods = (day.foods || []).length > 0;
@@ -2358,7 +2362,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                         <WeightChart data={monthData.map(d => ({
                           label: String(parseInt(d.date.split('-')[2])),
                           weight: d.weight ? parseFloat(displayWeight(d.weight)) : null
-                        }))} height={220} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} />
+                        }))} height={220} unit={weightLabel} targetWeight={userProfile.targetWeight ? parseFloat(displayWeight(userProfile.targetWeight)) : null} startingWeight={userProfile.startingWeight ? parseFloat(displayWeight(userProfile.startingWeight)) : null} />
 
                         {userProfile.periodTracking && isFutureMonth && predictedPeriods.length > 0 && (
                           <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-xl text-sm text-center">
