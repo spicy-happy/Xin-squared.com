@@ -197,6 +197,9 @@ const storage = {
       const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
       return `${y}-${m}-${day}`;
     };
+    const daysBetween = (a, b) => {
+      return Math.round((new Date(a) - new Date(b)) / (1000 * 60 * 60 * 24));
+    };
     const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
@@ -209,9 +212,9 @@ const storage = {
         const data = JSON.parse(raw);
         if (!data.lastModified || !data.date) continue;
         const modifiedLocal = toLocal(new Date(data.lastModified));
-        // If the entry's date is one day AFTER the local date it was actually
-        // modified, it was saved with the UTC bug. Move it to the correct key.
-        if (data.date > modifiedLocal) {
+        // Only fix exactly 1-day shifts (the UTC timezone bug).
+        // Larger gaps are NOT timezone issues — leave them alone.
+        if (data.date > modifiedLocal && daysBetween(data.date, modifiedLocal) === 1) {
           const correctKey = `nutrition-${modifiedLocal}`;
           data.date = modifiedLocal;
           // Only move if the correct key is empty or has older data
@@ -461,12 +464,14 @@ function restoreFromDriveData(driveData) {
   }
 
   // Helper: fix UTC-shifted date keys from old toISOString bug
+  // Only corrects exactly 1-day shifts — larger gaps are not timezone issues.
   function fixDateKey(key, value) {
     if (!value || !value.lastModified || !value.date) return { key, value };
     const d = new Date(value.lastModified);
     const localDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const keyDate = key.replace('nutrition-', '');
-    if (keyDate > localDate) {
+    const dayDiff = Math.round((new Date(keyDate) - new Date(localDate)) / (1000 * 60 * 60 * 24));
+    if (keyDate > localDate && dayDiff === 1) {
       value.date = localDate;
       return { key: `nutrition-${localDate}`, value };
     }
