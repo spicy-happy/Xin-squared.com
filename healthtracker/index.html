@@ -890,9 +890,13 @@ function HealthTracker() {
     setWeightSaving('saved');
   };
 
-  const saveDayData = async () => {
-    const data = { date: currentDate, weight, isPeriod, foods, exercises, lastModified: new Date().toISOString() };
-    await storage.set(`nutrition-${currentDate}`, JSON.stringify(data));
+  // Read-modify-write helper: reads latest data from storage, merges updates, and saves.
+  // This prevents race conditions where concurrent saves overwrite each other's fields.
+  const updateDayStorage = async (date, updates) => {
+    const result = await storage.get(`nutrition-${date}`);
+    const data = result?.value ? JSON.parse(result.value) : { date };
+    Object.assign(data, updates, { lastModified: new Date().toISOString() });
+    await storage.set(`nutrition-${date}`, JSON.stringify(data));
   };
 
   const loadGoal = async () => {
@@ -1138,8 +1142,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
         foodImages.forEach(img => URL.revokeObjectURL(img.preview));
         setFoodImages([]);
         setTimeout(async () => {
-          const saveData = { date: dateToSave, weight, isPeriod, foods: updatedFoods, exercises };
-          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(saveData));
+          await updateDayStorage(dateToSave, { foods: updatedFoods });
         }, 50);
       }
     } catch (error) {
@@ -1159,8 +1162,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     const newFoods = foods.filter(f => f.id !== id);
     setFoods(newFoods);
     // Save immediately so refresh doesn't lose the deletion
-    const data = { date: dateToSave, weight, isPeriod, foods: newFoods, exercises, lastModified: new Date().toISOString() };
-    storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+    updateDayStorage(dateToSave, { foods: newFoods });
     setUndoState({ type: 'food', item: foodToDelete, date: dateToSave });
     if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
     undoTimeoutRef.current = setTimeout(() => setUndoState(null), 10000);
@@ -1174,15 +1176,13 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const restoredFoods = [...foods, undoState.item];
       setFoods(restoredFoods);
       setTimeout(async () => {
-        const data = { date: dateToRestore, weight, isPeriod, foods: restoredFoods, exercises };
-        await storage.set(`nutrition-${dateToRestore}`, JSON.stringify(data));
+        await updateDayStorage(dateToRestore, { foods: restoredFoods });
       }, 50);
     } else if (undoState.type === 'exercise') {
       const restoredExercises = [...exercises, undoState.item];
       setExercises(restoredExercises);
       setTimeout(async () => {
-        const data = { date: dateToRestore, weight, isPeriod, foods, exercises: restoredExercises };
-        await storage.set(`nutrition-${dateToRestore}`, JSON.stringify(data));
+        await updateDayStorage(dateToRestore, { exercises: restoredExercises });
       }, 50);
     }
     setUndoState(null);
@@ -1191,11 +1191,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
   const dismissUndo = () => {
     if (!undoState) return;
     if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
-    const dateToSave = undoState.date;
-    setTimeout(async () => {
-      const data = { date: dateToSave, weight, isPeriod, foods, exercises };
-      await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
-    }, 50);
+    // No need to save — deleteFood/deleteExercise already saved the updated data
     setUndoState(null);
   };
 
@@ -1232,8 +1228,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
         setEditingFoodId(null);
         setEditingFoodText('');
         setTimeout(async () => {
-          const saveData = { date: dateToSave, weight, isPeriod, foods: updatedFoods, exercises };
-          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(saveData));
+          await updateDayStorage(dateToSave, { foods: updatedFoods });
         }, 50);
       }
     } catch (error) {
@@ -1338,8 +1333,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
         setExercises(updatedExercises);
         setExerciseType('');
         setTimeout(async () => {
-          const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
-          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+          await updateDayStorage(dateToSave, { exercises: updatedExercises });
         }, 50);
       } catch (error) {
         alert('Error estimating exercise: ' + error.message);
@@ -1357,8 +1351,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       setExercises(updatedExercises);
       setExerciseType('');
       setTimeout(async () => {
-        const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
-        await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+        await updateDayStorage(dateToSave, { exercises: updatedExercises });
       }, 50);
     }
   };
@@ -1369,8 +1362,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     const newExercises = exercises.filter(e => e.id !== id);
     setExercises(newExercises);
     // Save immediately so refresh doesn't lose the deletion
-    const data = { date: dateToSave, weight, isPeriod, foods, exercises: newExercises, lastModified: new Date().toISOString() };
-    storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+    updateDayStorage(dateToSave, { exercises: newExercises });
     setUndoState({ type: 'exercise', item: exerciseToDelete, date: dateToSave });
     if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
     undoTimeoutRef.current = setTimeout(() => setUndoState(null), 10000);
@@ -1400,8 +1392,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
         setEditingExerciseId(null);
         setEditingExerciseText('');
         setTimeout(async () => {
-          const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
-          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+          await updateDayStorage(dateToSave, { exercises: updatedExercises });
         }, 50);
       } catch (error) {
         alert('Error estimating exercise: ' + error.message);
@@ -1415,8 +1406,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       setEditingExerciseId(null);
       setEditingExerciseText('');
       setTimeout(async () => {
-        const data = { date: dateToSave, weight, isPeriod, foods, exercises: updatedExercises };
-        await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+        await updateDayStorage(dateToSave, { exercises: updatedExercises });
       }, 50);
     }
   };
@@ -1825,8 +1815,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                       setWeightSaving('saving');
                       if (weightSaveTimeoutRef.current) clearTimeout(weightSaveTimeoutRef.current);
                       weightSaveTimeoutRef.current = setTimeout(async () => {
-                        const data = { date: dateToSave, weight: lbsVal, isPeriod, foods, exercises, lastModified: new Date().toISOString() };
-                        await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+                        await updateDayStorage(dateToSave, { weight: lbsVal });
                         setWeightSaving('saved');
                       }, 500);
                     }}
@@ -1849,8 +1838,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                         const dateToSave = currentDate;
                         setIsPeriod(checked);
                         setTimeout(async () => {
-                          const data = { date: dateToSave, weight, isPeriod: checked, foods, exercises };
-                          await storage.set(`nutrition-${dateToSave}`, JSON.stringify(data));
+                          await updateDayStorage(dateToSave, { isPeriod: checked });
                         }, 50);
                       }}
                       className="w-5 h-5 mr-2.5"
