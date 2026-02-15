@@ -1822,34 +1822,27 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
 
               {/* Today's Summary */}
               {(foods.length > 0 || exercises.length > 0) && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 mb-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="text-xs font-bold text-gray-600">
-                      TODAY'S TOTAL {isCalculatingGoals && <span className="text-blue-500">(updating...)</span>}
+                <div className="mb-6">
+                  <div className="grid grid-cols-3 gap-3 mb-2">
+                    <div className="bg-blue-50 rounded-xl p-3 text-center">
+                      <div className="text-xs text-gray-500 mb-1">Calories</div>
+                      <div className="text-xl font-bold text-blue-600">{totals.calories.toFixed(0)}</div>
+                      <div className="text-xs text-gray-400">/ {calorieGoalMin.toFixed(0)}</div>
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {foods.length} food{foods.length !== 1 ? 's' : ''} · {exercises.length} exercise{exercises.length !== 1 ? 's' : ''}
+                    <div className="bg-green-50 rounded-xl p-3 text-center">
+                      <div className="text-xs text-gray-500 mb-1">Protein</div>
+                      <div className="text-xl font-bold text-green-600">{totals.protein.toFixed(0)}g</div>
+                      <div className="text-xs text-gray-400">/ {proteinGoal}g</div>
                     </div>
-                  </div>
-                  <div className="flex justify-between items-baseline">
-                    <div className="flex gap-4 items-baseline">
-                      <div>
-                        <span className="text-2xl font-bold text-blue-600">{totals.calories.toFixed(0)}</span>
-                        <span className="text-xs text-gray-600 ml-1">cal</span>
-                      </div>
-                      <div>
-                        <span className="text-lg font-bold text-green-600">{totals.protein.toFixed(0)}</span>
-                        <span className="text-xs text-gray-600 ml-0.5">g protein</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-700">{calorieGoalMin.toFixed(0)} cal goal</div>
-                      {exerciseCalories > 0 && <div className="text-xs text-gray-500">-{exerciseCalories} cal exercise</div>}
+                    <div className="bg-purple-50 rounded-xl p-3 text-center">
+                      <div className="text-xs text-gray-500 mb-1">Logged</div>
+                      <div className="text-xl font-bold text-purple-600">{foods.length + exercises.length}</div>
+                      <div className="text-xs text-gray-400">{foods.length}F · {exercises.length}E</div>
                     </div>
                   </div>
                   <button
                     onClick={() => { setActiveTab('summary'); setSummaryView('day'); }}
-                    className="block ml-auto mt-2 text-xs text-blue-600 hover:text-blue-800 font-semibold transition-colors"
+                    className="block ml-auto text-xs text-blue-600 hover:text-blue-800 font-semibold transition-colors"
                   >
                     View Summary &rarr;
                   </button>
