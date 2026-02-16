@@ -1740,7 +1740,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
 
         {activeTab === 'log' && (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col" style={{minHeight: 'calc(100dvh - 10rem)'}}>
               {/* Date Navigation */}
               <div className="mb-6 relative">
                 <div className="flex items-center justify-between">
@@ -1836,15 +1836,14 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
               )}
 
               {/* Universal Log */}
-              <div className="mb-6">
+              <div className="mb-6 flex-1 flex flex-col min-h-0">
                 <textarea
                   value={logDescription}
                   onChange={(e) => setLogDescription(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addLog(); } }}
                   placeholder={logImages.length > 0 ? "Optional: add details like portion size, exercise duration..." : logPlaceholder}
-                  className="w-full px-4 py-3 border rounded-xl resize-none mb-3 overflow-y-auto"
-                  rows={Math.min(5, Math.max(2, logDescription.split('\n').length))}
-                  style={{maxHeight: 'calc(1.5em * 5 + 1.5rem)'}}
+                  className="w-full px-4 py-3 border rounded-xl resize-none mb-3 overflow-y-auto flex-1"
+                  style={{minHeight: '2.5em'}}
                 />
 
                 {/* Photo Upload */}
@@ -2001,55 +2000,6 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                     </div>
                   ) : (
                     <>
-                      {weight && (
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm text-gray-500">Weight</span>
-                          {editingWeight ? (
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                type="number"
-                                step="0.1"
-                                value={editingWeightValue}
-                                onChange={(e) => setEditingWeightValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    const val = editingWeightValue;
-                                    if (val === '') { setWeight(''); setEditingWeight(false); updateDayStorage(currentDate, { weight: '' }); return; }
-                                    const lbsVal = isMetric ? (parseFloat(val) / 0.453592).toFixed(1) : parseFloat(val).toFixed(1);
-                                    setWeight(lbsVal);
-                                    setEditingWeight(false);
-                                    updateDayStorage(currentDate, { weight: lbsVal });
-                                  }
-                                  if (e.key === 'Escape') setEditingWeight(false);
-                                }}
-                                className="w-20 px-2 py-1 border rounded-lg text-sm text-center"
-                                autoFocus
-                              />
-                              <span className="text-xs text-gray-400">{weightLabel}</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium cursor-pointer hover:text-blue-600 transition-colors" onClick={() => { setEditingWeightValue(displayWeight(weight)); setEditingWeight(true); }}>{displayWeight(weight)} {weightLabel}</span>
-                              <button
-                                onClick={() => { setWeight(''); updateDayStorage(currentDate, { weight: '' }); }}
-                                className="text-gray-300 hover:text-red-500 transition-colors"
-                              ><X className="w-3.5 h-3.5" /></button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {userProfile.periodTracking && isPeriod && (
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm text-gray-500">Period</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">Yes</span>
-                            <button
-                              onClick={() => { setIsPeriod(false); updateDayStorage(currentDate, { isPeriod: false }); }}
-                              className="text-gray-300 hover:text-red-500 transition-colors"
-                            ><X className="w-3.5 h-3.5" /></button>
-                          </div>
-                        </div>
-                      )}
                       <div className="grid grid-cols-2 gap-3 mb-4">
                         <div className="bg-blue-50 rounded-xl p-3">
                           <div className="text-xs font-bold text-gray-600">CALORIES</div>
@@ -2069,6 +2019,93 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                           <div className="text-sm">
                             <span className="font-semibold text-purple-700">+{exerciseCalories} cal</span>
                             <span className="text-gray-600"> added to base goal ({baseGoalMin})</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {(weight || (userProfile.periodTracking && isPeriod)) && (
+                        <div className="mb-4">
+                          <h4 className="font-bold text-sm text-gray-600 mb-2">TRACKING</h4>
+                          <div className="space-y-2">
+                            {weight && (
+                              <div>
+                                {editingWeight ? (
+                                  <div className="p-3 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                                    <input
+                                      type="number"
+                                      step="0.1"
+                                      value={editingWeightValue}
+                                      onChange={(e) => setEditingWeightValue(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          const val = editingWeightValue;
+                                          if (val === '') { setWeight(''); setEditingWeight(false); updateDayStorage(currentDate, { weight: '' }); return; }
+                                          const lbsVal = isMetric ? (parseFloat(val) / 0.453592).toFixed(1) : parseFloat(val).toFixed(1);
+                                          setWeight(lbsVal);
+                                          setEditingWeight(false);
+                                          updateDayStorage(currentDate, { weight: lbsVal });
+                                        }
+                                        if (e.key === 'Escape') setEditingWeight(false);
+                                      }}
+                                      className="w-full px-3 py-2 border rounded-lg mb-2"
+                                      placeholder={`Enter weight in ${weightLabel}`}
+                                      autoFocus
+                                    />
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => {
+                                          const val = editingWeightValue;
+                                          if (val === '') { setWeight(''); setEditingWeight(false); updateDayStorage(currentDate, { weight: '' }); return; }
+                                          const lbsVal = isMetric ? (parseFloat(val) / 0.453592).toFixed(1) : parseFloat(val).toFixed(1);
+                                          setWeight(lbsVal);
+                                          setEditingWeight(false);
+                                          updateDayStorage(currentDate, { weight: lbsVal });
+                                        }}
+                                        className="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-semibold"
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        onClick={() => setEditingWeight(false)}
+                                        className="flex-1 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div
+                                    className="flex justify-between items-center p-3 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md cursor-pointer transition-all duration-200"
+                                    onClick={() => { setEditingWeightValue(displayWeight(weight)); setEditingWeight(true); }}
+                                  >
+                                    <div className="flex-1">
+                                      <div className="font-medium">Weight</div>
+                                      <div className="text-xs text-gray-600">{displayWeight(weight)} {weightLabel}</div>
+                                    </div>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setWeight(''); updateDayStorage(currentDate, { weight: '' }); }}
+                                      className="text-blue-500 ml-2 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {userProfile.periodTracking && isPeriod && (
+                              <div className="flex justify-between items-center p-3 bg-white border-2 border-gray-200 rounded-xl transition-all duration-200">
+                                <div className="flex-1">
+                                  <div className="font-medium">Period</div>
+                                  <div className="text-xs text-gray-600">Logged</div>
+                                </div>
+                                <button
+                                  onClick={() => { setIsPeriod(false); updateDayStorage(currentDate, { isPeriod: false }); }}
+                                  className="text-blue-500 ml-2 p-2 hover:bg-blue-50 rounded-lg transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
