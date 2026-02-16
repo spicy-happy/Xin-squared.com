@@ -592,28 +592,23 @@ function restoreFromDriveData(driveData) {
 }
 
 function HealthTracker() {
-  const [foodPlaceholder] = useState(() => {
+  const [logPlaceholder] = useState(() => {
     const examples = [
-      "2 scrambled eggs with toast",
-      "grilled chicken salad with avocado",
-      "overnight oats with berries",
+      "2 scrambled eggs with toast, 30 min jog",
+      "grilled chicken salad, 1 hour weight training",
+      "overnight oats with berries, 20 min yoga",
       "salmon with roasted vegetables",
-      "greek yogurt with honey and walnuts",
-      "turkey and cheese wrap",
-      "banana with peanut butter",
-      "quinoa bowl with black beans",
-      "acai bowl with granola",
-      "avocado toast with poached egg",
-      "chicken stir fry with brown rice",
-      "hummus with carrots and pita",
-      "protein shake with banana",
-      "grilled shrimp tacos",
-      "caprese salad with mozzarella",
-      "oatmeal with almonds and blueberries",
-      "tuna poke bowl",
-      "sweet potato and black bean burrito",
-      "cottage cheese with pineapple",
-      "veggie omelet with feta"
+      "protein shake with banana, 45 min cycling",
+      "avocado toast with poached egg, walked 2 miles",
+      "chicken stir fry with brown rice, teaching judo",
+      "greek yogurt with honey, 30 min swimming",
+      "tuna poke bowl, 1 hour basketball",
+      "acai bowl with granola, 15 min stretching",
+      "turkey wrap and an apple, intense HIIT session",
+      "oatmeal with blueberries, 40 min elliptical",
+      "grilled shrimp tacos, played tennis for an hour",
+      "quinoa bowl with black beans, 30 min cleaning",
+      "cottage cheese with pineapple, evening walk"
     ];
     return examples[Math.floor(Math.random() * examples.length)];
   });
@@ -677,13 +672,11 @@ function HealthTracker() {
     birthYear: ''
   });
 
-  const [foodDescription, setFoodDescription] = useState('');
-  const [foodImages, setFoodImages] = useState([]); // array of { file, preview, base64 }
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isAnalyzingExercise, setIsAnalyzingExercise] = useState(false);
+  const [logDescription, setLogDescription] = useState('');
+  const [logImages, setLogImages] = useState([]); // array of { file, preview, base64 }
+  const [isAnalyzingLog, setIsAnalyzingLog] = useState(false);
   const [dayReview, setDayReview] = useState(null);
   const [isReviewingDay, setIsReviewingDay] = useState(false);
-  const [exerciseType, setExerciseType] = useState('');
   const [foods, setFoods] = useState([]);
   const [exercises, setExercises] = useState([]);
   const [editingFoodId, setEditingFoodId] = useState(null);
@@ -1127,9 +1120,9 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     }
   };
 
-  const handleFoodImageUpload = async (e) => {
+  const handleLogImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    const remaining = 10 - foodImages.length;
+    const remaining = 10 - logImages.length;
     const toAdd = files.slice(0, remaining);
     const newImages = [];
     for (const file of toAdd) {
@@ -1137,12 +1130,12 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const preview = URL.createObjectURL(file);
       newImages.push({ file, preview, base64 });
     }
-    setFoodImages(prev => [...prev, ...newImages]);
+    setLogImages(prev => [...prev, ...newImages]);
     e.target.value = '';
   };
 
-  const removeFoodImage = (index) => {
-    setFoodImages(prev => {
+  const removeLogImage = (index) => {
+    setLogImages(prev => {
       const updated = [...prev];
       URL.revokeObjectURL(updated[index].preview);
       updated.splice(index, 1);
@@ -1150,58 +1143,79 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     });
   };
 
-  const addFood = async () => {
-    if (!foodDescription && foodImages.length === 0) return;
+  const addLog = async () => {
+    if (!logDescription && logImages.length === 0) return;
     if (!apiKey) { setShowApiKeyPrompt(true); return; }
     const dateToSave = currentDate;
-    setIsAnalyzing(true);
+    setIsAnalyzingLog(true);
     try {
-      const fmtRule = `Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Grilled chicken breast", "1 Bowl of oatmeal with berries".`;
+      const rawWeight = weight || userProfile.startingWeight || '150';
+      const weightDisplay = `${displayWeight(rawWeight)} ${weightLabel}`;
+      const fmtRule = `Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation.`;
       const totalRule = `IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity.`;
-      const accuracyRule = `Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. For example, 4 pieces of karaage (fried chicken) at ~35g each is about 300cal total, not 800cal. Use standard home-cooked portions unless "large", "restaurant", or similar is specified.`;
+      const accuracyRule = `Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. Use standard home-cooked portions unless "large", "restaurant", or similar is specified.`;
+      const exerciseRule = `For exercises: The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be very conservative — these are ADDITIONAL calories burned above resting metabolic rate only. Household chores (cleaning, tidying, dishes) burn only 50-80 extra calories per 30 minutes. Walking burns 80-120 per 30 min. Light yoga/stretching is 50-80 per 30 min. Only intense exercise (running, HIIT, cycling hard) burns 250+ per 30 min. Err on the lower end.`;
+      const universalFormat = `Return ONLY JSON with this exact structure: {"foods":[{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}],"exercises":[{"name":"30 min running","calories":280}]}. If there are no food items, return an empty foods array. If there are no exercises, return an empty exercises array. ALWAYS start food names with a number (quantity). For food, if no quantity is specified, assume 1.`;
+
       let prompt;
-      if (foodImages.length > 0 && foodDescription) {
-        // Images + text: use text as context/refinement
-        prompt = `Look at the food in the image(s) and analyze them. The user also provided this description: "${foodDescription}". Use the description to refine your estimates (e.g. portion sizes, specific ingredients). List ALL distinct food items visible in the images. If a food item is mentioned in the description but not in the images, include it too. CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. ${totalRule} ${accuracyRule} ${fmtRule} Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`;
-      } else if (foodImages.length > 0) {
-        // Images only
-        prompt = `Look at the food in the image(s). Identify ALL distinct food items visible and estimate their nutritional content. CRITICAL: If no quantity is obvious, assume quantity is 1. ALWAYS start the name with a number. ${totalRule} ${accuracyRule} ${fmtRule} Return ONLY JSON: [{"name":"1 Grilled chicken breast","calories":165,"protein":31,"fat":4,"carbs":0}]`;
+      if (logImages.length > 0 && logDescription) {
+        prompt = `Analyze the following input which may contain BOTH food and exercise entries. Look at the image(s) and use this description for context: "${logDescription}". Identify ALL food items (from images and text) and ALL exercise/activity entries. ${totalRule} ${accuracyRule} ${exerciseRule} ${fmtRule} ${universalFormat}`;
+      } else if (logImages.length > 0) {
+        prompt = `Analyze the image(s). Identify ALL food items visible AND any exercise/activity shown (e.g. gym equipment, running, sports, workout screenshots, fitness tracker stats). Estimate nutritional content for food and calories burned for exercise. ${totalRule} ${accuracyRule} ${exerciseRule} ${fmtRule} ${universalFormat}`;
       } else {
-        // Text only
-        prompt = `Analyze this food: "${foodDescription}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. ${totalRule} ${accuracyRule} ${fmtRule} Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`;
+        prompt = `Analyze this input which may contain BOTH food and exercise entries: "${logDescription}". Separate them into food items and exercises. ${totalRule} ${accuracyRule} ${exerciseRule} ${fmtRule} ${universalFormat}`;
       }
 
-      const imageBase64s = foodImages.map(img => img.base64);
+      const imageBase64s = logImages.map(img => img.base64);
       const text = await callOpenAI(apiKey, prompt, imageBase64s);
-      const match = text.match(/\[[\s\S]*\]/);
+      const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const parsed = JSON.parse(match[0]);
-        const newFoods = parsed.map((n, i) => ({
-          id: Date.now() + i,
-          name: n.name,
-          calories: parseFloat(n.calories) || 0,
-          protein: parseFloat(n.protein) || 0,
-          fat: parseFloat(n.fat) || 0,
-          carbs: parseFloat(n.carbs) || 0
-        }));
-        const updatedFoods = [...foods, ...newFoods];
-        setFoods(updatedFoods);
-        setFoodDescription('');
+
+        let updatedFoods = foods;
+        let updatedExercises = exercises;
+
+        // Process food items
+        if (parsed.foods && parsed.foods.length > 0) {
+          const newFoods = parsed.foods.map((n, i) => ({
+            id: Date.now() + i,
+            name: n.name,
+            calories: parseFloat(n.calories) || 0,
+            protein: parseFloat(n.protein) || 0,
+            fat: parseFloat(n.fat) || 0,
+            carbs: parseFloat(n.carbs) || 0
+          }));
+          updatedFoods = [...foods, ...newFoods];
+          setFoods(updatedFoods);
+        }
+
+        // Process exercise items
+        if (parsed.exercises && parsed.exercises.length > 0) {
+          const newExercises = parsed.exercises.map((e, i) => ({
+            id: Date.now() + 100 + i,
+            type: e.name,
+            calories: parseInt(e.calories) || 250
+          }));
+          updatedExercises = [...exercises, ...newExercises];
+          setExercises(updatedExercises);
+        }
+
+        setLogDescription('');
         // Clean up image previews
-        foodImages.forEach(img => URL.revokeObjectURL(img.preview));
-        setFoodImages([]);
+        logImages.forEach(img => URL.revokeObjectURL(img.preview));
+        setLogImages([]);
         setTimeout(async () => {
-          await updateDayStorage(dateToSave, { foods: updatedFoods });
+          await updateDayStorage(dateToSave, { foods: updatedFoods, exercises: updatedExercises });
         }, 50);
       }
     } catch (error) {
       if (error.message && error.message.includes('401')) {
         alert('Invalid API key. Please update it in the Profile tab.');
       } else {
-        alert('Error analyzing food: ' + error.message);
+        alert('Error analyzing entry: ' + error.message);
       }
     } finally {
-      setIsAnalyzing(false);
+      setIsAnalyzingLog(false);
     }
   };
 
@@ -1258,7 +1272,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     if (!editingFoodText || !editingFoodId) return;
     if (!apiKey) { setShowApiKeyPrompt(true); return; }
     const dateToSave = currentDate;
-    setIsAnalyzing(true);
+    setIsAnalyzingLog(true);
     try {
       const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity. Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. For example, 4 pieces of karaage (fried chicken) at ~35g each is about 300cal total, not 800cal. Use standard home-cooked portions unless "large", "restaurant", or similar is specified. Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Apple", "1 Bowl of oatmeal with berries". Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`);
       const match = text.match(/\[[\s\S]*\]/);
@@ -1287,7 +1301,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
         alert('Error analyzing food: ' + error.message);
       }
     } finally {
-      setIsAnalyzing(false);
+      setIsAnalyzingLog(false);
     }
   };
 
@@ -1361,50 +1375,6 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     }
   };
 
-  const addExercise = async () => {
-    if (!exerciseType) return;
-    const dateToSave = currentDate;
-
-    const exercises_to_add = exerciseType
-      .split(/,|;|\sand\s/i)
-      .map(e => e.trim())
-      .filter(e => e.length > 0);
-
-    if (apiKey) {
-      setIsAnalyzingExercise(true);
-      try {
-        const newExercises = [];
-        for (const exerciseName of exercises_to_add) {
-          const result = await estimateExerciseCaloriesAI(exerciseName);
-          newExercises.push({ id: Date.now() + newExercises.length, type: result.name, calories: result.calories });
-        }
-        const updatedExercises = [...exercises, ...newExercises];
-        setExercises(updatedExercises);
-        setExerciseType('');
-        setTimeout(async () => {
-          await updateDayStorage(dateToSave, { exercises: updatedExercises });
-        }, 50);
-      } catch (error) {
-        alert('Error estimating exercise: ' + error.message);
-      } finally {
-        setIsAnalyzingExercise(false);
-      }
-    } else {
-      // Fallback: use hardcoded estimates
-      const newExercises = exercises_to_add.map((exerciseName, index) => ({
-        id: Date.now() + index,
-        type: exerciseName,
-        calories: 250
-      }));
-      const updatedExercises = [...exercises, ...newExercises];
-      setExercises(updatedExercises);
-      setExerciseType('');
-      setTimeout(async () => {
-        await updateDayStorage(dateToSave, { exercises: updatedExercises });
-      }, 50);
-    }
-  };
-
   const deleteExercise = (id) => {
     const dateToSave = currentDate;
     const exerciseToDelete = exercises.find(e => e.id === id);
@@ -1432,7 +1402,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     const dateToSave = currentDate;
 
     if (apiKey) {
-      setIsAnalyzingExercise(true);
+      setIsAnalyzingLog(true);
       try {
         const result = await estimateExerciseCaloriesAI(editingExerciseText);
         const updatedExercise = { id: editingExerciseId, type: result.name, calories: result.calories };
@@ -1446,7 +1416,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       } catch (error) {
         alert('Error estimating exercise: ' + error.message);
       } finally {
-        setIsAnalyzingExercise(false);
+        setIsAnalyzingLog(false);
       }
     } else {
       const updatedExercise = { id: editingExerciseId, type: editingExerciseText, calories: 250 };
@@ -1903,17 +1873,17 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
 
               <div className="border-t border-gray-200 my-6"></div>
 
-              {/* Add Food */}
+              {/* Universal Log */}
               <div className="mb-6">
-                <label className="block text-sm font-bold mb-3">ADD FOOD</label>
+                <label className="block text-sm font-bold mb-3">LOG FOOD & EXERCISE</label>
 
                 <textarea
-                  value={foodDescription}
-                  onChange={(e) => setFoodDescription(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addFood(); } }}
-                  placeholder={foodImages.length > 0 ? "Optional: add details like portion size, ingredients..." : foodPlaceholder}
+                  value={logDescription}
+                  onChange={(e) => setLogDescription(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addLog(); } }}
+                  placeholder={logImages.length > 0 ? "Optional: add details like portion size, exercise duration..." : logPlaceholder}
                   className="w-full px-4 py-3 border rounded-xl resize-none mb-3 overflow-y-auto"
-                  rows={Math.min(5, Math.max(2, foodDescription.split('\n').length))}
+                  rows={Math.min(5, Math.max(2, logDescription.split('\n').length))}
                   style={{maxHeight: 'calc(1.5em * 5 + 1.5rem)'}}
                 />
 
@@ -1923,34 +1893,34 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                     type="file"
                     accept="image/*"
                     multiple
-                    onChange={handleFoodImageUpload}
-                    id="food-image-input"
+                    onChange={handleLogImageUpload}
+                    id="log-image-input"
                     className="hidden"
                   />
                   <label
-                    htmlFor="food-image-input"
+                    htmlFor="log-image-input"
                     className={`flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-                      foodImages.length >= 10 ? 'border-gray-200 text-gray-300 cursor-not-allowed' : 'border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400'
+                      logImages.length >= 10 ? 'border-gray-200 text-gray-300 cursor-not-allowed' : 'border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400'
                     }`}
-                    onClick={(e) => { if (foodImages.length >= 10) e.preventDefault(); }}
+                    onClick={(e) => { if (logImages.length >= 10) e.preventDefault(); }}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span className="font-semibold text-sm">
-                      {foodImages.length === 0 ? 'Upload Food Photos' : `Add More (${foodImages.length}/10)`}
+                      {logImages.length === 0 ? 'Upload Photos' : `Add More (${logImages.length}/10)`}
                     </span>
                   </label>
 
                   {/* Image Previews */}
-                  {foodImages.length > 0 && (
+                  {logImages.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {foodImages.map((img, index) => (
+                      {logImages.map((img, index) => (
                         <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-gray-200">
-                          <img src={img.preview} alt={`Food ${index + 1}`} className="w-full h-full object-cover" />
+                          <img src={img.preview} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
                           <button
-                            onClick={() => removeFoodImage(index)}
+                            onClick={() => removeLogImage(index)}
                             className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold leading-none"
                           >X</button>
                         </div>
@@ -1959,34 +1929,11 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                   )}
                 </div>
                 <button
-                  onClick={addFood}
-                  disabled={isAnalyzing || (!foodDescription && foodImages.length === 0)}
+                  onClick={addLog}
+                  disabled={isAnalyzingLog || (!logDescription && logImages.length === 0)}
                   className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold disabled:opacity-50"
                 >
-                  {isAnalyzing ? 'Analyzing...' : <><Plus className="inline w-5 h-5 mr-2" />Add Food</>}
-                </button>
-              </div>
-
-              <div className="border-t border-gray-200 my-6"></div>
-
-              {/* Add Exercise */}
-              <div className="mb-6">
-                <label className="block text-sm font-bold mb-3">ADD EXERCISE</label>
-                <textarea
-                  value={exerciseType}
-                  onChange={(e) => setExerciseType(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addExercise(); } }}
-                  placeholder="e.g., teaching judo, intense running"
-                  className="w-full px-4 py-3 border rounded-xl resize-none mb-3 overflow-y-auto"
-                  rows={Math.min(5, Math.max(2, exerciseType.split('\n').length))}
-                  style={{maxHeight: 'calc(1.5em * 5 + 1.5rem)'}}
-                />
-                <button
-                  onClick={addExercise}
-                  disabled={!exerciseType || isAnalyzingExercise}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold disabled:opacity-50"
-                >
-                  {isAnalyzingExercise ? 'Estimating...' : <><Plus className="inline w-5 h-5 mr-2" />Add Exercise</>}
+                  {isAnalyzingLog ? 'Analyzing...' : <><Plus className="inline w-5 h-5 mr-2" />Log Entry</>}
                 </button>
               </div>
 
@@ -2146,10 +2093,10 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                                     <div className="flex gap-2">
                                       <button
                                         onClick={saveEditedFood}
-                                        disabled={isAnalyzing}
+                                        disabled={isAnalyzingLog}
                                         className="flex-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
                                       >
-                                        {isAnalyzing ? 'Analyzing...' : 'Save'}
+                                        {isAnalyzingLog ? 'Analyzing...' : 'Save'}
                                       </button>
                                       <button
                                         onClick={cancelEditFood}
@@ -2207,10 +2154,10 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                                     <div className="flex gap-2">
                                       <button
                                         onClick={saveEditedExercise}
-                                        disabled={isAnalyzingExercise}
+                                        disabled={isAnalyzingLog}
                                         className="flex-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
                                       >
-                                        {isAnalyzingExercise ? 'Estimating...' : 'Save'}
+                                        {isAnalyzingLog ? 'Estimating...' : 'Save'}
                                       </button>
                                       <button
                                         onClick={cancelEditExercise}
