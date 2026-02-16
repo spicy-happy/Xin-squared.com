@@ -2001,67 +2001,53 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                     </div>
                   ) : (
                     <>
-                      {/* Weight & Period indicators */}
-                      {(weight || (userProfile.periodTracking && isPeriod)) && (
-                        <div className="flex gap-2 mb-3">
-                          {weight && (
-                            editingWeight ? (
-                              <div className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl flex-1">
-                                <input
-                                  type="number"
-                                  step="0.1"
-                                  value={editingWeightValue}
-                                  onChange={(e) => setEditingWeightValue(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      const val = editingWeightValue;
-                                      if (val === '') { setWeight(''); setEditingWeight(false); updateDayStorage(currentDate, { weight: '' }); return; }
-                                      const lbsVal = isMetric ? (parseFloat(val) / 0.453592).toFixed(1) : parseFloat(val).toFixed(1);
-                                      setWeight(lbsVal);
-                                      setEditingWeight(false);
-                                      updateDayStorage(currentDate, { weight: lbsVal });
-                                    }
-                                    if (e.key === 'Escape') setEditingWeight(false);
-                                  }}
-                                  className="w-20 px-2 py-1 border rounded-lg text-sm text-center"
-                                  autoFocus
-                                />
-                                <span className="text-xs text-gray-500">{weightLabel}</span>
-                                <button
-                                  onClick={() => {
+                      {weight && (
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-500">Weight</span>
+                          {editingWeight ? (
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={editingWeightValue}
+                                onChange={(e) => setEditingWeightValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
                                     const val = editingWeightValue;
                                     if (val === '') { setWeight(''); setEditingWeight(false); updateDayStorage(currentDate, { weight: '' }); return; }
                                     const lbsVal = isMetric ? (parseFloat(val) / 0.453592).toFixed(1) : parseFloat(val).toFixed(1);
                                     setWeight(lbsVal);
                                     setEditingWeight(false);
                                     updateDayStorage(currentDate, { weight: lbsVal });
-                                  }}
-                                  className="text-xs text-amber-700 font-semibold hover:text-amber-900 ml-auto"
-                                >Save</button>
-                              </div>
-                            ) : (
-                              <div
-                                className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl cursor-pointer hover:border-amber-300 transition-colors"
-                                onClick={() => { setEditingWeightValue(displayWeight(weight)); setEditingWeight(true); }}
-                              >
-                                <span className="text-sm text-amber-700 font-medium">{displayWeight(weight)} {weightLabel}</span>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); setWeight(''); updateDayStorage(currentDate, { weight: '' }); }}
-                                  className="text-amber-400 hover:text-red-500 ml-1 transition-colors"
-                                ><X className="w-3.5 h-3.5" /></button>
-                              </div>
-                            )
-                          )}
-                          {userProfile.periodTracking && isPeriod && (
-                            <div className="flex items-center gap-2 px-3 py-2 bg-pink-50 border border-pink-200 rounded-xl">
-                              <div className="w-2.5 h-2.5 rounded-full bg-pink-500"></div>
-                              <span className="text-sm text-pink-700 font-medium">Period</span>
+                                  }
+                                  if (e.key === 'Escape') setEditingWeight(false);
+                                }}
+                                className="w-20 px-2 py-1 border rounded-lg text-sm text-center"
+                                autoFocus
+                              />
+                              <span className="text-xs text-gray-400">{weightLabel}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium cursor-pointer hover:text-blue-600 transition-colors" onClick={() => { setEditingWeightValue(displayWeight(weight)); setEditingWeight(true); }}>{displayWeight(weight)} {weightLabel}</span>
                               <button
-                                onClick={() => { setIsPeriod(false); updateDayStorage(currentDate, { isPeriod: false }); }}
-                                className="text-pink-400 hover:text-red-500 ml-1 transition-colors"
+                                onClick={() => { setWeight(''); updateDayStorage(currentDate, { weight: '' }); }}
+                                className="text-gray-300 hover:text-red-500 transition-colors"
                               ><X className="w-3.5 h-3.5" /></button>
                             </div>
                           )}
+                        </div>
+                      )}
+                      {userProfile.periodTracking && isPeriod && (
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-500">Period</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">Yes</span>
+                            <button
+                              onClick={() => { setIsPeriod(false); updateDayStorage(currentDate, { isPeriod: false }); }}
+                              className="text-gray-300 hover:text-red-500 transition-colors"
+                            ><X className="w-3.5 h-3.5" /></button>
+                          </div>
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-3 mb-4">
