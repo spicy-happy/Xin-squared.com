@@ -597,12 +597,12 @@ function HealthTracker() {
       "2 scrambled eggs with toast, 30 min jog",
       "grilled chicken salad, 1 hour weight training",
       "overnight oats with berries, 20 min yoga",
-      "salmon with roasted vegetables",
+      "salmon with roasted vegetables, weigh 152 lbs",
       "protein shake with banana, 45 min cycling",
       "avocado toast with poached egg, walked 2 miles",
       "chicken stir fry with brown rice, teaching judo",
       "greek yogurt with honey, 30 min swimming",
-      "tuna poke bowl, 1 hour basketball",
+      "tuna poke bowl, 1 hour basketball, period started",
       "acai bowl with granola, 15 min stretching",
       "turkey wrap and an apple, intense HIIT session",
       "oatmeal with blueberries, 40 min elliptical",
@@ -629,6 +629,8 @@ function HealthTracker() {
   const [isTrainingDay, setIsTrainingDay] = useState(false);
   const [isPeriod, setIsPeriod] = useState(false);
   const [weightSaving, setWeightSaving] = useState('');
+  const [editingWeight, setEditingWeight] = useState(false);
+  const [editingWeightValue, setEditingWeightValue] = useState('');
   const weightSaveTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -1155,15 +1157,16 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const totalRule = `IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity.`;
       const accuracyRule = `Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. Use standard home-cooked portions unless "large", "restaurant", or similar is specified.`;
       const exerciseRule = `For exercises: The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be very conservative — these are ADDITIONAL calories burned above resting metabolic rate only. Household chores (cleaning, tidying, dishes) burn only 50-80 extra calories per 30 minutes. Walking burns 80-120 per 30 min. Light yoga/stretching is 50-80 per 30 min. Only intense exercise (running, HIIT, cycling hard) burns 250+ per 30 min. Err on the lower end.`;
-      const universalFormat = `Return ONLY JSON with this exact structure: {"foods":[{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}],"exercises":[{"name":"30 min running","calories":280}]}. If there are no food items, return an empty foods array. If there are no exercises, return an empty exercises array. ALWAYS start food names with a number (quantity). For food, if no quantity is specified, assume 1.`;
+      const weightPeriodRule = `Also detect if the user mentions their weight (e.g. "weigh 150", "150 lbs", "weight 68 kg", "72.5 kg") or their period (e.g. "period started", "on my period", "period", "menstruation"). If weight is mentioned, extract the numeric value in lbs (convert from kg if needed by dividing by 0.453592). If period is mentioned, set isPeriod to true.`;
+      const universalFormat = `Return ONLY JSON with this exact structure: {"foods":[{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}],"exercises":[{"name":"30 min running","calories":280}],"weight":null,"isPeriod":false}. If there are no food items, return an empty foods array. If there are no exercises, return an empty exercises array. ALWAYS start food names with a number (quantity). For food, if no quantity is specified, assume 1. Set "weight" to the numeric value in lbs if mentioned, otherwise null. Set "isPeriod" to true only if period/menstruation is mentioned.`;
 
       let prompt;
       if (logImages.length > 0 && logDescription) {
-        prompt = `Analyze the following input which may contain BOTH food and exercise entries. Look at the image(s) and use this description for context: "${logDescription}". Identify ALL food items (from images and text) and ALL exercise/activity entries. ${totalRule} ${accuracyRule} ${exerciseRule} ${fmtRule} ${universalFormat}`;
+        prompt = `Analyze the following input which may contain BOTH food and exercise entries. Look at the image(s) and use this description for context: "${logDescription}". Identify ALL food items (from images and text) and ALL exercise/activity entries. ${totalRule} ${accuracyRule} ${exerciseRule} ${weightPeriodRule} ${fmtRule} ${universalFormat}`;
       } else if (logImages.length > 0) {
-        prompt = `Analyze the image(s). Identify ALL food items visible AND any exercise/activity shown (e.g. gym equipment, running, sports, workout screenshots, fitness tracker stats). Estimate nutritional content for food and calories burned for exercise. ${totalRule} ${accuracyRule} ${exerciseRule} ${fmtRule} ${universalFormat}`;
+        prompt = `Analyze the image(s). Identify ALL food items visible AND any exercise/activity shown (e.g. gym equipment, running, sports, workout screenshots, fitness tracker stats). Estimate nutritional content for food and calories burned for exercise. ${totalRule} ${accuracyRule} ${exerciseRule} ${weightPeriodRule} ${fmtRule} ${universalFormat}`;
       } else {
-        prompt = `Analyze this input which may contain BOTH food and exercise entries: "${logDescription}". Separate them into food items and exercises. ${totalRule} ${accuracyRule} ${exerciseRule} ${fmtRule} ${universalFormat}`;
+        prompt = `Analyze this input which may contain BOTH food and exercise entries: "${logDescription}". Separate them into food items and exercises. ${totalRule} ${accuracyRule} ${exerciseRule} ${weightPeriodRule} ${fmtRule} ${universalFormat}`;
       }
 
       const imageBase64s = logImages.map(img => img.base64);
@@ -1200,12 +1203,26 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
           setExercises(updatedExercises);
         }
 
+        // Process weight if mentioned
+        const storageUpdates = { foods: updatedFoods, exercises: updatedExercises };
+        if (parsed.weight != null && !isNaN(parseFloat(parsed.weight))) {
+          const lbsVal = String(parseFloat(parsed.weight).toFixed(1));
+          setWeight(lbsVal);
+          storageUpdates.weight = lbsVal;
+        }
+
+        // Process period if mentioned
+        if (parsed.isPeriod === true) {
+          setIsPeriod(true);
+          storageUpdates.isPeriod = true;
+        }
+
         setLogDescription('');
         // Clean up image previews
         logImages.forEach(img => URL.revokeObjectURL(img.preview));
         setLogImages([]);
         setTimeout(async () => {
-          await updateDayStorage(dateToSave, { foods: updatedFoods, exercises: updatedExercises });
+          await updateDayStorage(dateToSave, storageUpdates);
         }, 50);
       }
     } catch (error) {
@@ -1818,65 +1835,8 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                 </div>
               )}
 
-              {/* Weight & Period */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-bold">WEIGHT</label>
-                  {weightSaving === 'saving' && <span className="text-xs text-gray-500">Saving...</span>}
-                  {weightSaving === 'saved' && <span className="text-xs text-green-600">Saved</span>}
-                </div>
-                <div className="flex gap-3 items-center">
-                  <div className="relative flex-1">
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={weight ? (isMetric ? (parseFloat(weight) * 0.453592).toFixed(1) : weight) : ''}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === '') { setWeight(''); return; }
-                        // Convert back to lbs for storage if metric
-                        const lbsVal = isMetric ? (parseFloat(val) / 0.453592).toFixed(1) : val;
-                        const dateToSave = currentDate;
-                        setWeight(lbsVal);
-                        setWeightSaving('saving');
-                        if (weightSaveTimeoutRef.current) clearTimeout(weightSaveTimeoutRef.current);
-                        weightSaveTimeoutRef.current = setTimeout(async () => {
-                          await updateDayStorage(dateToSave, { weight: lbsVal });
-                          setWeightSaving('saved');
-                        }, 500);
-                      }}
-                      placeholder={getLastWeight() ? `Last: ${displayWeight(getLastWeight())} ${weightLabel}` : ''}
-                      className="w-full px-4 py-3 pr-12 border rounded-xl"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">{weightLabel}</span>
-                  </div>
-                  {userProfile.periodTracking && (
-                    <label className="flex items-center border-2 border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-gray-300 shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={isPeriod}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          const dateToSave = currentDate;
-                          setIsPeriod(checked);
-                          setTimeout(async () => {
-                            await updateDayStorage(dateToSave, { isPeriod: checked });
-                          }, 50);
-                        }}
-                        className="w-5 h-5 mr-2.5"
-                      />
-                      <span className="text-sm text-gray-700">Period</span>
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200 my-6"></div>
-
               {/* Universal Log */}
               <div className="mb-6">
-                <label className="block text-sm font-bold mb-3">LOG FOOD & EXERCISE</label>
-
                 <textarea
                   value={logDescription}
                   onChange={(e) => setLogDescription(e.target.value)}
@@ -2034,17 +1994,60 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                     )}
                   </div>
 
-                  {foods.length === 0 && exercises.length === 0 ? (
+                  {foods.length === 0 && exercises.length === 0 && !weight && !isPeriod ? (
                     <div className="text-center py-12 text-gray-400">
                       <div className="font-medium">No data here yet</div>
                       <div className="text-sm mt-1">Add food or exercise in the Log tab</div>
                     </div>
                   ) : (
                     <>
+                      {weight && (
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-500">Weight</span>
+                          {editingWeight ? (
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={editingWeightValue}
+                                onChange={(e) => setEditingWeightValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    const val = editingWeightValue;
+                                    if (val === '') { setWeight(''); setEditingWeight(false); updateDayStorage(currentDate, { weight: '' }); return; }
+                                    const lbsVal = isMetric ? (parseFloat(val) / 0.453592).toFixed(1) : parseFloat(val).toFixed(1);
+                                    setWeight(lbsVal);
+                                    setEditingWeight(false);
+                                    updateDayStorage(currentDate, { weight: lbsVal });
+                                  }
+                                  if (e.key === 'Escape') setEditingWeight(false);
+                                }}
+                                className="w-20 px-2 py-1 border rounded-lg text-sm text-center"
+                                autoFocus
+                              />
+                              <span className="text-xs text-gray-400">{weightLabel}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium cursor-pointer hover:text-blue-600 transition-colors" onClick={() => { setEditingWeightValue(displayWeight(weight)); setEditingWeight(true); }}>{displayWeight(weight)} {weightLabel}</span>
+                              <button
+                                onClick={() => { setWeight(''); updateDayStorage(currentDate, { weight: '' }); }}
+                                className="text-gray-300 hover:text-red-500 transition-colors"
+                              ><X className="w-3.5 h-3.5" /></button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {userProfile.periodTracking && isPeriod && (
-                        <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-pink-50 border border-pink-200 rounded-xl">
-                          <div className="w-2.5 h-2.5 rounded-full bg-pink-500"></div>
-                          <span className="text-sm text-pink-700 font-medium">Period</span>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm text-gray-500">Period</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">Yes</span>
+                            <button
+                              onClick={() => { setIsPeriod(false); updateDayStorage(currentDate, { isPeriod: false }); }}
+                              className="text-gray-300 hover:text-red-500 transition-colors"
+                            ><X className="w-3.5 h-3.5" /></button>
+                          </div>
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-3 mb-4">
