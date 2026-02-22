@@ -8,10 +8,8 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
     <style>
       body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
       /* Hide spinner on number inputs */
@@ -200,229 +198,122 @@ function WeightChart({ data, height = 200, unit = 'lbs', targetWeight = null, st
   );
 }
 
-// ==========================================
-// Firebase Configuration
-// ==========================================
-// TODO: Replace with your Firebase project config from the Firebase Console
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-
-firebase.initializeApp(firebaseConfig);
-const fbAuth = firebase.auth();
-const fbFirestore = firebase.firestore();
-const fbFunctions = firebase.functions();
-
-// Enable Firestore offline persistence — non-AI writes (weight, period, food edits)
-// automatically queue offline and sync when connectivity returns.
-fbFirestore.enablePersistence({ synchronizeTabs: true }).catch(err => {
-  if (err.code === 'failed-precondition') {
-    console.warn('Firestore persistence unavailable: multiple tabs open');
-  } else if (err.code === 'unimplemented') {
-    console.warn('Firestore persistence not supported in this browser');
-  }
-});
-
-// ==========================================
-// Pending Log Queue (IndexedDB) for offline AI analysis
-// ==========================================
-const PendingQueue = {
-  DB_NAME: 'health-tracker-pending',
-  STORE: 'entries',
-  _db: null,
-
-  async open() {
-    if (this._db) return this._db;
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(this.DB_NAME, 1);
-      req.onupgradeneeded = () => req.result.createObjectStore(this.STORE, { keyPath: 'id', autoIncrement: true });
-      req.onsuccess = () => { this._db = req.result; resolve(this._db); };
-      req.onerror = () => reject(req.error);
-    });
-  },
-
-  async add(entry) {
-    const idb = await this.open();
-    return new Promise((resolve, reject) => {
-      const tx = idb.transaction(this.STORE, 'readwrite');
-      tx.objectStore(this.STORE).add(entry);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  },
-
-  async getAll() {
-    const idb = await this.open();
-    return new Promise((resolve, reject) => {
-      const tx = idb.transaction(this.STORE, 'readonly');
-      const req = tx.objectStore(this.STORE).getAll();
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  },
-
-  async remove(id) {
-    const idb = await this.open();
-    return new Promise((resolve, reject) => {
-      const tx = idb.transaction(this.STORE, 'readwrite');
-      tx.objectStore(this.STORE).delete(id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  },
-
-  async clear() {
-    const idb = await this.open();
-    return new Promise((resolve, reject) => {
-      const tx = idb.transaction(this.STORE, 'readwrite');
-      tx.objectStore(this.STORE).clear();
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-};
-
-// ==========================================
-// Firestore-backed data layer with synchronous cache
-// ==========================================
-const db = {
-  cache: {},
-  userId: null,
-
-  init(userId) {
-    this.userId = userId;
-    this.cache = {};
-  },
-
-  async loadAll() {
-    const userDoc = await fbFirestore.collection('users').doc(this.userId).get();
-    if (userDoc.exists) {
-      const data = userDoc.data();
-      if (data.profile) this.cache['user-profile'] = JSON.stringify(data.profile);
-      if (data.goal) this.cache['health-goal'] = data.goal;
-      if (data.nutritionGoals) this.cache['nutrition-goals'] = JSON.stringify(data.nutritionGoals);
-      if (data.unitSystem) this.cache['unit-system'] = data.unitSystem;
-      if (data.lastBackupDate) this.cache['last-backup-date'] = data.lastBackupDate;
-      if (data.backupReminderDismissed) this.cache['backup-reminder-dismissed'] = data.backupReminderDismissed;
-    }
-    const logsSnapshot = await fbFirestore.collection('users').doc(this.userId).collection('logs').get();
-    logsSnapshot.forEach(doc => {
-      this.cache[`nutrition-${doc.id}`] = JSON.stringify(doc.data());
-    });
-  },
-
-  // Synchronous read from cache
-  get(key) {
-    return this.cache[key] || null;
-  },
-
-  // Update cache immediately + async Firestore write
-  set(key, value) {
-    this.cache[key] = value;
-    this._persist(key, value);
-  },
-
-  delete(key) {
-    delete this.cache[key];
-    this._remove(key);
-  },
-
-  _persist(key, value) {
-    if (!this.userId) return;
-    if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
-      const dateKey = key.replace('nutrition-', '');
-      fbFirestore.collection('users').doc(this.userId).collection('logs').doc(dateKey)
-        .set(JSON.parse(value)).catch(e => console.error('Firestore write error:', e));
-    } else {
-      const field = this._fieldFor(key);
-      if (field) {
-        const update = {};
-        const isJson = key === 'user-profile' || key === 'nutrition-goals';
-        update[field] = isJson ? JSON.parse(value) : value;
-        fbFirestore.collection('users').doc(this.userId).set(update, { merge: true })
-          .catch(e => console.error('Firestore write error:', e));
-      }
-    }
-  },
-
-  _remove(key) {
-    if (!this.userId) return;
-    if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
-      const dateKey = key.replace('nutrition-', '');
-      fbFirestore.collection('users').doc(this.userId).collection('logs').doc(dateKey)
-        .delete().catch(e => console.error('Firestore delete error:', e));
-    } else {
-      const field = this._fieldFor(key);
-      if (field) {
-        const update = {};
-        update[field] = firebase.firestore.FieldValue.delete();
-        fbFirestore.collection('users').doc(this.userId).update(update)
-          .catch(e => console.error('Firestore delete error:', e));
-      }
-    }
-  },
-
-  _fieldFor(key) {
-    return {
-      'user-profile': 'profile',
-      'health-goal': 'goal',
-      'nutrition-goals': 'nutritionGoals',
-      'unit-system': 'unitSystem',
-      'last-backup-date': 'lastBackupDate',
-      'backup-reminder-dismissed': 'backupReminderDismissed'
-    }[key] || null;
-  },
-
-  getLogKeys() {
-    return Object.keys(this.cache).filter(k => k.startsWith('nutrition-') && k !== 'nutrition-goals');
-  },
-
-  async clearAll() {
-    const logsSnapshot = await fbFirestore.collection('users').doc(this.userId).collection('logs').get();
-    const batchSize = 400;
-    let batch = fbFirestore.batch();
-    let count = 0;
-    for (const doc of logsSnapshot.docs) {
-      batch.delete(doc.ref);
-      count++;
-      if (count % batchSize === 0) {
-        await batch.commit();
-        batch = fbFirestore.batch();
-      }
-    }
-    batch.delete(fbFirestore.collection('users').doc(this.userId));
-    await batch.commit();
-    this.cache = {};
-  }
-};
-
-// Storage wrapper (preserves existing async API used by the app)
+// Simple localStorage wrapper
 const storage = {
   async get(key) {
-    const value = db.get(key);
-    return value ? { key, value } : null;
+    try {
+      const value = localStorage.getItem(key);
+      return value ? { key, value } : null;
+    } catch (e) {
+      console.error('localStorage.get error:', e);
+      return null;
+    }
   },
   async set(key, value) {
-    db.set(key, value);
-    return { key, value };
+    try {
+      localStorage.setItem(key, value);
+      // Dispatch event so Drive sync can pick it up
+      window.dispatchEvent(new Event('health-data-changed'));
+      return { key, value };
+    } catch (e) {
+      console.error('localStorage.set error:', e);
+      throw e;
+    }
   },
   async delete(key) {
-    db.delete(key);
-    return { key, deleted: true };
+    try {
+      localStorage.removeItem(key);
+      return { key, deleted: true };
+    } catch (e) {
+      console.error('localStorage.delete error:', e);
+      throw e;
+    }
   }
 };
 
-// OpenAI API helper — calls Firebase Cloud Function proxy
-async function callOpenAI(prompt, imageBase64Array = []) {
-  const openaiProxy = fbFunctions.httpsCallable('openai');
-  const result = await openaiProxy({ prompt, images: imageBase64Array });
-  if (result.data.error) throw new Error(result.data.error);
-  return result.data.text;
+// Migration: fix localStorage entries saved under wrong date keys
+// due to the old toISOString().split('T')[0] bug (UTC instead of local time).
+// Data logged in the evening in western timezones was saved one day ahead.
+// Runs on every load to catch entries re-introduced by Drive sync or imports.
+(function migrateDateKeys() {
+  try {
+    const toLocal = (d) => {
+      const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    };
+    const daysBetween = (a, b) => {
+      return Math.round((new Date(a) - new Date(b)) / (1000 * 60 * 60 * 24));
+    };
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k.startsWith('nutrition-') && k !== 'nutrition-goals') keys.push(k);
+    }
+    for (const key of keys) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const data = JSON.parse(raw);
+        if (!data.lastModified || !data.date) continue;
+        const modifiedLocal = toLocal(new Date(data.lastModified));
+        // Only fix exactly 1-day shifts (the UTC timezone bug).
+        // Larger gaps are NOT timezone issues — leave them alone.
+        if (data.date > modifiedLocal && daysBetween(data.date, modifiedLocal) === 1) {
+          const correctKey = `nutrition-${modifiedLocal}`;
+          data.date = modifiedLocal;
+          // Only move if the correct key is empty or has older data
+          const existing = localStorage.getItem(correctKey);
+          if (!existing) {
+            localStorage.setItem(correctKey, JSON.stringify(data));
+          } else {
+            try {
+              const ex = JSON.parse(existing);
+              if (ex.lastModified && data.lastModified > ex.lastModified) {
+                localStorage.setItem(correctKey, JSON.stringify(data));
+              }
+            } catch(e) {}
+          }
+          localStorage.removeItem(key);
+        }
+      } catch(e) {}
+    }
+  } catch(e) {}
+})();
+
+// OpenAI API helper - supports text-only or text+images
+async function callOpenAI(apiKey, prompt, imageBase64Array = []) {
+  if (!apiKey) throw new Error('No API key');
+
+  let content;
+  if (imageBase64Array.length > 0) {
+    // Vision request: array of text + image content parts
+    content = [{ type: "text", text: prompt }];
+    for (const img of imageBase64Array) {
+      content.push({
+        type: "image_url",
+        image_url: { url: img, detail: "low" }
+      });
+    }
+  } else {
+    content = prompt;
+  }
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content }]
+    })
+  });
+  const data = await response.json();
+  if (data.error) {
+    throw new Error(data.error.message || 'API error');
+  }
+  return data.choices[0]?.message?.content || "";
 }
 
 // Convert File to base64 data URL
@@ -435,34 +326,272 @@ function fileToBase64(file) {
   });
 }
 
-// One-time migration: move data from localStorage to Firestore on first sign-in
-async function migrateLocalStorageToFirestore() {
-  if (localStorage.getItem('firebase-migrated')) return false;
-  let hasData = false;
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith('nutrition-') || key === 'health-goal' || key === 'user-profile') {
-      hasData = true;
-      break;
+// ==========================================
+// Google Drive Sync
+// ==========================================
+const GOOGLE_CLIENT_ID = localStorage.getItem('google-client-id') || '';
+const DRIVE_FILE_NAME = 'health-tracker-data.json';
+const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
+
+const DriveSync = {
+  tokenClient: null,
+  accessToken: null,
+  fileId: null,
+  initialized: false,
+
+  async init() {
+    if (!GOOGLE_CLIENT_ID) return false;
+    return new Promise((resolve) => {
+      const checkLibs = setInterval(() => {
+        if (typeof google !== 'undefined' && google.accounts && typeof gapi !== 'undefined') {
+          clearInterval(checkLibs);
+          gapi.load('client', async () => {
+            await gapi.client.init({});
+            await gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
+            DriveSync.tokenClient = google.accounts.oauth2.initTokenClient({
+              client_id: GOOGLE_CLIENT_ID,
+              scope: DRIVE_SCOPES,
+              callback: () => {},
+            });
+            DriveSync.initialized = true;
+            resolve(true);
+          });
+        }
+      }, 100);
+      // Timeout after 10s
+      setTimeout(() => { clearInterval(checkLibs); resolve(false); }, 10000);
+    });
+  },
+
+  loadCachedToken() {
+    try {
+      const cached = localStorage.getItem('google-access-token');
+      if (cached) {
+        const { token, expiry } = JSON.parse(cached);
+        // Check if token is still valid (with 5 min buffer)
+        if (expiry && Date.now() < expiry - 300000) {
+          DriveSync.accessToken = token;
+          return true;
+        }
+      }
+    } catch(e) {}
+    return false;
+  },
+
+  cacheToken(token, expiresIn) {
+    const expiry = Date.now() + (expiresIn || 3600) * 1000;
+    localStorage.setItem('google-access-token', JSON.stringify({ token, expiry }));
+  },
+
+  requestAccess(interactive = true) {
+    // Try cached token first
+    if (DriveSync.loadCachedToken()) {
+      return Promise.resolve({ access_token: DriveSync.accessToken });
+    }
+    if (!interactive) {
+      return Promise.reject(new Error('No cached token'));
+    }
+    return new Promise((resolve, reject) => {
+      if (!DriveSync.tokenClient) { reject(new Error('Not initialized')); return; }
+      DriveSync.tokenClient.callback = (response) => {
+        if (response.error) { reject(response); return; }
+        DriveSync.accessToken = response.access_token;
+        DriveSync.cacheToken(response.access_token, response.expires_in);
+        resolve(response);
+      };
+      DriveSync.tokenClient.requestAccessToken({ prompt: '' });
+    });
+  },
+
+  async findFile() {
+    try {
+      const response = await gapi.client.drive.files.list({
+        spaces: 'appDataFolder',
+        q: `name='${DRIVE_FILE_NAME}'`,
+        fields: 'files(id, name, modifiedTime)',
+        pageSize: 1
+      });
+      if (response.result.files && response.result.files.length > 0) {
+        DriveSync.fileId = response.result.files[0].id;
+        return DriveSync.fileId;
+      }
+      return null;
+    } catch (error) {
+      console.error('Drive findFile error:', error);
+      return null;
+    }
+  },
+
+  async loadFromDrive() {
+    try {
+      if (!DriveSync.accessToken) return null;
+      let fileId = DriveSync.fileId || await DriveSync.findFile();
+      if (!fileId) return null;
+      const response = await gapi.client.drive.files.get({
+        fileId: fileId,
+        alt: 'media'
+      });
+      return typeof response.result === 'string' ? JSON.parse(response.result) : response.result;
+    } catch (error) {
+      console.error('Drive load error:', error);
+      return null;
+    }
+  },
+
+  async saveToDrive(data) {
+    try {
+      if (!DriveSync.accessToken) return false;
+      const fileContent = JSON.stringify(data);
+      const blob = new Blob([fileContent], { type: 'application/json' });
+      let fileId = DriveSync.fileId || await DriveSync.findFile();
+
+      if (fileId) {
+        // Update existing file
+        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${DriveSync.accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: fileContent
+        });
+      } else {
+        // Create new file in appDataFolder
+        const metadata = { name: DRIVE_FILE_NAME, parents: ['appDataFolder'] };
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        form.append('file', blob);
+        const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${DriveSync.accessToken}` },
+          body: form
+        });
+        const result = await response.json();
+        DriveSync.fileId = result.id;
+      }
+      return true;
+    } catch (error) {
+      console.error('Drive save error:', error);
+      return false;
     }
   }
-  if (hasData) {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
-        const value = localStorage.getItem(key);
-        if (value) db.set(key, value);
-      } else if (['health-goal', 'user-profile', 'nutrition-goals', 'unit-system'].includes(key)) {
-        const value = localStorage.getItem(key);
-        if (value) db.set(key, value);
+};
+
+// Gather all health data from localStorage into a single object
+function gatherAllData() {
+  const data = { dailyLogs: {}, meta: {} };
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
+      try { data.dailyLogs[key] = JSON.parse(localStorage.getItem(key)); } catch(e) {}
+    } else if (['health-goal', 'user-profile', 'nutrition-goals', 'last-backup-date', 'backup-reminder-dismissed'].includes(key)) {
+      data.meta[key] = localStorage.getItem(key);
+    }
+  }
+  data.lastModified = new Date().toISOString();
+  return data;
+}
+
+// Restore data from Drive into localStorage (merge with conflict resolution)
+function restoreFromDriveData(driveData) {
+  if (!driveData) return false;
+  let changed = false;
+
+  // Helper: count meaningful items in a day's log
+  function logContentScore(log) {
+    let score = 0;
+    if (log.weight) score += 1;
+    if (log.isPeriod) score += 1;
+    if (log.foods && log.foods.length) score += log.foods.length;
+    if (log.exercises && log.exercises.length) score += log.exercises.length;
+    return score;
+  }
+
+  // Helper: fix UTC-shifted date keys from old toISOString bug
+  // Only corrects exactly 1-day shifts — larger gaps are not timezone issues.
+  function fixDateKey(key, value) {
+    if (!value || !value.lastModified || !value.date) return { key, value };
+    const d = new Date(value.lastModified);
+    const localDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const keyDate = key.replace('nutrition-', '');
+    const dayDiff = Math.round((new Date(keyDate) - new Date(localDate)) / (1000 * 60 * 60 * 24));
+    if (keyDate > localDate && dayDiff === 1) {
+      value.date = localDate;
+      return { key: `nutrition-${localDate}`, value };
+    }
+    return { key, value };
+  }
+
+  // Restore daily logs with merge logic
+  if (driveData.dailyLogs) {
+    for (const [origKey, driveValue] of Object.entries(driveData.dailyLogs)) {
+      const { key, value: fixedValue } = fixDateKey(origKey, driveValue);
+      const existingRaw = localStorage.getItem(key);
+      if (!existingRaw) {
+        // No local data — use Drive version
+        localStorage.setItem(key, JSON.stringify(fixedValue));
+        changed = true;
+      } else {
+        // Both exist — resolve conflict
+        try {
+          const local = JSON.parse(existingRaw);
+          const drive = fixedValue;
+
+          // If both have timestamps, use the newer one
+          if (local.lastModified && drive.lastModified) {
+            if (new Date(drive.lastModified) > new Date(local.lastModified)) {
+              localStorage.setItem(key, JSON.stringify(drive));
+              changed = true;
+            }
+          } else if (drive.lastModified && !local.lastModified) {
+            // Drive has timestamp, local doesn't — Drive is newer format, use it
+            localStorage.setItem(key, JSON.stringify(drive));
+            changed = true;
+          } else if (!drive.lastModified && !local.lastModified) {
+            // Neither has timestamp — use whichever has more data
+            if (logContentScore(drive) > logContentScore(local)) {
+              localStorage.setItem(key, JSON.stringify(drive));
+              changed = true;
+            }
+          }
+          // If local has timestamp but Drive doesn't, keep local (local is newer format)
+        } catch(e) {
+          // Parse error on local — overwrite with Drive version
+          localStorage.setItem(key, JSON.stringify(fixedValue));
+          changed = true;
+        }
       }
     }
   }
-  localStorage.setItem('firebase-migrated', 'true');
-  return hasData;
+
+  // Restore meta — use Drive version if local is missing, or if Drive bundle is newer
+  if (driveData.meta) {
+    for (const [key, value] of Object.entries(driveData.meta)) {
+      if (value) {
+        const existing = localStorage.getItem(key);
+        if (!existing) {
+          localStorage.setItem(key, value);
+          changed = true;
+        } else if (key === 'user-profile' || key === 'nutrition-goals') {
+          // For profile and goals, use Drive version if Drive bundle is newer
+          // (these are updated less frequently, so top-level lastModified is fine)
+          try {
+            const localData = JSON.parse(existing);
+            const driveData2 = JSON.parse(value);
+            if (driveData.lastModified && JSON.stringify(localData) !== JSON.stringify(driveData2)) {
+              // Data differs — use Drive version if it's the more recent sync
+              localStorage.setItem(key, value);
+              changed = true;
+            }
+          } catch(e) {}
+        }
+      }
+    }
+  }
+  return changed;
 }
 
-function HealthTracker({ user }) {
+function HealthTracker() {
   const [logPlaceholder] = useState(() => {
     const examples = [
       "2 scrambled eggs with toast, 30 min jog",
@@ -505,7 +634,7 @@ function HealthTracker({ user }) {
   const weightSaveTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const [unitSystem, setUnitSystem] = useState(() => db.get('unit-system') || 'standard');
+  const [unitSystem, setUnitSystem] = useState(() => localStorage.getItem('unit-system') || 'standard');
   const isMetric = unitSystem === 'metric';
 
   // Weight: stored internally as lbs, displayed as lbs or kg
@@ -531,7 +660,7 @@ function HealthTracker({ user }) {
 
   const switchUnitSystem = (system) => {
     setUnitSystem(system);
-    db.set('unit-system', system);
+    localStorage.setItem('unit-system', system);
   };
 
   const [userProfile, setUserProfile] = useState({
@@ -571,102 +700,156 @@ function HealthTracker({ user }) {
   const [lastBackupDate, setLastBackupDate] = useState('');
   const [backupReminderDismissed, setBackupReminderDismissed] = useState('');
 
+  // API key state
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(false);
+
   // AI-powered nutrition goals
   const [nutritionGoals, setNutritionGoals] = useState({ calorieMin: 1800, calorieMax: 1800, protein: 150 });
   const [isCalculatingGoals, setIsCalculatingGoals] = useState(false);
   const goalCalcTimeoutRef = useRef(null);
 
-  // Online/offline state and pending queue
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [pendingCount, setPendingCount] = useState(0);
-  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+  // Google Drive sync state
+  const [driveSignedIn, setDriveSignedIn] = useState(false);
+  const [driveSyncStatus, setDriveSyncStatus] = useState(''); // '', 'syncing', 'synced', 'error'
+  const [driveEnabled, setDriveEnabled] = useState(!!localStorage.getItem('google-client-id'));
+  const [googleClientIdInput, setGoogleClientIdInput] = useState(localStorage.getItem('google-client-id') || '');
+  const driveSyncTimeoutRef = useRef(null);
 
-  // Load saved nutrition goals on mount
+  // Load API key on mount
   useEffect(() => {
-    const savedGoals = db.get('nutrition-goals');
+    const savedKey = localStorage.getItem('openai-api-key');
+    if (savedKey) {
+      setApiKey(savedKey);
+    } else {
+      setShowApiKeyPrompt(true);
+    }
+    // Load saved nutrition goals
+    const savedGoals = localStorage.getItem('nutrition-goals');
     if (savedGoals) {
       try {
         setNutritionGoals(JSON.parse(savedGoals));
       } catch (e) {}
     }
-    // Load pending queue count
-    PendingQueue.getAll().then(entries => setPendingCount(entries.length));
   }, []);
 
-  // Online/offline detection + auto-process pending queue
+  // Initialize Google Drive sync on mount
   useEffect(() => {
-    const goOnline = () => {
-      setIsOnline(true);
-      processPendingQueue();
-    };
-    const goOffline = () => setIsOnline(false);
-    window.addEventListener('online', goOnline);
-    window.addEventListener('offline', goOffline);
-    return () => {
-      window.removeEventListener('online', goOnline);
-      window.removeEventListener('offline', goOffline);
-    };
-  }, []);
-
-  const processPendingQueue = async () => {
-    if (isProcessingQueue) return;
-    setIsProcessingQueue(true);
-    try {
-      const entries = await PendingQueue.getAll();
-      for (const entry of entries) {
-        try {
-          const text = await callOpenAI(entry.prompt, entry.images || []);
-          const match = text.match(/\{[\s\S]*\}/);
-          if (match) {
-            const parsed = JSON.parse(match[0]);
-            const dateKey = entry.date;
-            const existing = db.get(`nutrition-${dateKey}`);
-            const dayData = existing ? JSON.parse(existing) : { date: dateKey, foods: [], exercises: [] };
-
-            if (parsed.foods && parsed.foods.length > 0) {
-              const newFoods = parsed.foods.map((n, i) => ({
-                id: Date.now() + i,
-                name: n.name,
-                calories: parseFloat(n.calories) || 0,
-                protein: parseFloat(n.protein) || 0,
-                fat: parseFloat(n.fat) || 0,
-                carbs: parseFloat(n.carbs) || 0
-              }));
-              dayData.foods = [...(dayData.foods || []), ...newFoods];
-            }
-            if (parsed.exercises && parsed.exercises.length > 0) {
-              const newExercises = parsed.exercises.map((e, i) => ({
-                id: Date.now() + 100 + i,
-                type: e.name,
-                calories: parseInt(e.calories) || 250
-              }));
-              dayData.exercises = [...(dayData.exercises || []), ...newExercises];
-            }
-            if (parsed.weight != null && !isNaN(parseFloat(parsed.weight))) {
-              dayData.weight = String(parseFloat(parsed.weight).toFixed(1));
-            }
-            if (parsed.isPeriod === true) {
-              dayData.isPeriod = true;
-            }
-            dayData.lastModified = new Date().toISOString();
-            db.set(`nutrition-${dateKey}`, JSON.stringify(dayData));
-
-            // If we're viewing this date, reload
-            if (dateKey === currentDate) {
-              loadDayData(dateKey);
-            }
+    if (!driveEnabled) return;
+    const initDrive = async () => {
+      const success = await DriveSync.init();
+      if (success) {
+        // Try cached token first, then auto-prompt if user has signed in before
+        const hasSignedInBefore = localStorage.getItem('google-drive-user');
+        const mergeAndSync = async () => {
+          setDriveSyncStatus('syncing');
+          const driveData = await DriveSync.loadFromDrive();
+          const merged = driveData ? restoreFromDriveData(driveData) : false;
+          // Always push merged data back to Drive
+          const localData = gatherAllData();
+          await DriveSync.saveToDrive(localData);
+          setDriveSyncStatus('synced');
+          if (merged) {
+            window.location.reload();
           }
-          await PendingQueue.remove(entry.id);
-        } catch (e) {
-          // Still offline or error — stop processing
-          console.error('Failed to process pending entry:', e);
-          break;
+        };
+        try {
+          await DriveSync.requestAccess(false);
+          setDriveSignedIn(true);
+          await mergeAndSync();
+        } catch(e) {
+          if (hasSignedInBefore) {
+            // Token expired but user has signed in before — auto-prompt
+            try {
+              await DriveSync.requestAccess(true);
+              setDriveSignedIn(true);
+              localStorage.setItem('google-drive-user', 'true');
+              await mergeAndSync();
+            } catch(e2) {
+              setDriveSignedIn(false);
+            }
+          } else {
+            setDriveSignedIn(false);
+          }
         }
       }
-      const remaining = await PendingQueue.getAll();
-      setPendingCount(remaining.length);
-    } finally {
-      setIsProcessingQueue(false);
+    };
+    initDrive();
+  }, [driveEnabled]);
+
+  // Debounced sync to Drive after any data change
+  const syncToDrive = () => {
+    if (!driveSignedIn) return;
+    if (driveSyncTimeoutRef.current) clearTimeout(driveSyncTimeoutRef.current);
+    driveSyncTimeoutRef.current = setTimeout(async () => {
+      setDriveSyncStatus('syncing');
+      try {
+        const data = gatherAllData();
+        let success = await DriveSync.saveToDrive(data);
+        if (!success && DriveSync.initialized) {
+          // Token may have expired, try refreshing
+          try {
+            await DriveSync.requestAccess(false);
+            success = await DriveSync.saveToDrive(data);
+          } catch(e) {}
+        }
+        setDriveSyncStatus(success ? 'synced' : 'error');
+      } catch(e) {
+        console.error('Sync error:', e);
+        setDriveSyncStatus('error');
+      }
+    }, 3000); // 3 second debounce
+  };
+
+  // Listen for any data changes and auto-sync
+  useEffect(() => {
+    const handler = () => syncToDrive();
+    window.addEventListener('health-data-changed', handler);
+    return () => window.removeEventListener('health-data-changed', handler);
+  }, [driveSignedIn]);
+
+  const handleDriveSignIn = async () => {
+    try {
+      await DriveSync.requestAccess(true);
+      setDriveSignedIn(true);
+      localStorage.setItem('google-drive-user', 'true');
+      // Load and merge data from Drive, then push merged data back
+      setDriveSyncStatus('syncing');
+      const driveData = await DriveSync.loadFromDrive();
+      const merged = driveData ? restoreFromDriveData(driveData) : false;
+      // Always push merged local data back to Drive
+      const localData = gatherAllData();
+      await DriveSync.saveToDrive(localData);
+      setDriveSyncStatus('synced');
+      if (merged) {
+        window.location.reload();
+      }
+    } catch(e) {
+      console.error('Sign-in error:', e);
+      alert('Failed to sign in to Google. Please try again.');
+    }
+  };
+
+  const handleDriveSignOut = () => {
+    if (DriveSync.accessToken) {
+      google.accounts.oauth2.revoke(DriveSync.accessToken);
+    }
+    DriveSync.accessToken = null;
+    DriveSync.fileId = null;
+    localStorage.removeItem('google-access-token');
+    localStorage.removeItem('google-drive-user');
+    setDriveSignedIn(false);
+    setDriveSyncStatus('');
+  };
+
+  const saveGoogleClientId = (clientId) => {
+    if (clientId.trim()) {
+      localStorage.setItem('google-client-id', clientId.trim());
+      setDriveEnabled(true);
+      window.location.reload(); // Reload to reinitialize with new client ID
+    } else {
+      localStorage.removeItem('google-client-id');
+      setDriveEnabled(false);
     }
   };
 
@@ -783,7 +966,7 @@ function HealthTracker({ user }) {
 
   // Calculate AI-powered nutrition goals
   const calculateNutritionGoals = async (profile, goalText) => {
-    if (!isOnline) return;
+    if (!apiKey) return;
     // Need at least some profile data
     if (!profile.heightFt && !profile.birthYear && !profile.startingWeight) return;
 
@@ -808,7 +991,7 @@ function HealthTracker({ user }) {
 Recommend a daily calorie target and protein target for this person. Consider their goal carefully.
 Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
 
-      const text = await callOpenAI(prompt);
+      const text = await callOpenAI(apiKey, prompt);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const parsed = JSON.parse(match[0]);
@@ -819,7 +1002,8 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
           protein: parseInt(parsed.protein) || 150
         };
         setNutritionGoals(goals);
-        db.set('nutrition-goals', JSON.stringify(goals));
+        localStorage.setItem('nutrition-goals', JSON.stringify(goals));
+        window.dispatchEvent(new Event('health-data-changed'));
       }
     } catch (error) {
       console.error('Error calculating goals:', error);
@@ -848,9 +1032,12 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
         nutritionGoals: nutritionGoals,
         dailyLogs: []
       };
-      for (const key of db.getLogKeys()) {
-        const value = db.get(key);
-        if (value) allData.dailyLogs.push(JSON.parse(value));
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
+          const value = localStorage.getItem(key);
+          if (value) allData.dailyLogs.push(JSON.parse(value));
+        }
       }
       const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -864,7 +1051,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       await storage.set('last-backup-date', new Date().toISOString());
       setLastBackupDate(new Date().toISOString());
       setShowBackupReminder(false);
-      alert('Backup downloaded! Save it somewhere safe.');
+      alert('Backup downloaded! Save it somewhere safe (Google Drive recommended)');
     } catch (error) {
       alert('Export failed: ' + error.message);
     }
@@ -880,9 +1067,9 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       let skippedLogs = 0;
       for (const log of imported.dailyLogs || []) {
         try {
-          const existing = db.get(`nutrition-${log.date}`);
+          const existing = localStorage.getItem(`nutrition-${log.date}`);
           if (!existing) {
-            db.set(`nutrition-${log.date}`, JSON.stringify(log));
+            localStorage.setItem(`nutrition-${log.date}`, JSON.stringify(log));
             addedLogs++;
           } else {
             skippedLogs++;
@@ -890,15 +1077,15 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
         } catch (error) {}
       }
       if (imported.goal) {
-        db.set('health-goal', imported.goal);
+        localStorage.setItem('health-goal', imported.goal);
         setGoal(imported.goal);
       }
       if (imported.profile) {
-        db.set('user-profile', JSON.stringify(imported.profile));
+        localStorage.setItem('user-profile', JSON.stringify(imported.profile));
         setUserProfile(imported.profile);
       }
       if (imported.nutritionGoals) {
-        db.set('nutrition-goals', JSON.stringify(imported.nutritionGoals));
+        localStorage.setItem('nutrition-goals', JSON.stringify(imported.nutritionGoals));
         setNutritionGoals(imported.nutritionGoals);
       }
       await loadDayData(currentDate);
@@ -911,13 +1098,27 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
 
   const clearData = async () => {
     try {
-      await db.clearAll();
-      await PendingQueue.clear();
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('nutrition-') || key === 'health-goal' || key === 'user-profile' ||
+            key === 'last-backup-date' || key === 'backup-reminder-dismissed' || key === 'nutrition-goals') {
+          localStorage.removeItem(key);
+        }
+        // NOTE: 'openai-api-key' is preserved intentionally
+      });
+      // Push cleared state to Google Drive so other devices don't restore old data
+      if (DriveSync.accessToken) {
+        try {
+          const emptyData = gatherAllData(); // now returns empty since localStorage was cleared
+          await DriveSync.saveToDrive(emptyData);
+        } catch (e) {
+          console.error('Failed to clear Drive data:', e);
+        }
+      }
       setShowClearConfirm(false);
       window.location.reload();
     } catch (error) {
       setShowClearConfirm(false);
-      alert('Failed to clear data: ' + error.message);
     }
   };
 
@@ -946,50 +1147,30 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
 
   const addLog = async () => {
     if (!logDescription && logImages.length === 0) return;
+    if (!apiKey) { setShowApiKeyPrompt(true); return; }
     const dateToSave = currentDate;
-
-    const rawWeight = weight || userProfile.startingWeight || '150';
-    const weightDisplay = `${displayWeight(rawWeight)} ${weightLabel}`;
-    const fmtRule = `Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation.`;
-    const totalRule = `IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity.`;
-    const accuracyRule = `Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. Use standard home-cooked portions unless "large", "restaurant", or similar is specified. CRITICAL: Consider the cuisine context when estimating per-piece size and weight. Asian/Chinese/Japanese/Korean dishes typically use smaller cuts — e.g. a Chinese chicken drumstick is a small bone-in piece (~70-90g raw, ~100-130 cal stir-fried), NOT a large American-style drumstick (~150-200g, ~200 cal). When the user specifies a cuisine or cooking style (e.g. "Chinese", "stir fried", "karaage", "teriyaki"), use portion sizes typical of that cuisine. A number before a food item means that exact count of individual pieces, NOT servings.`;
-    const exerciseRule = `For exercises: The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be very conservative — these are ADDITIONAL calories burned above resting metabolic rate only. Household chores (cleaning, tidying, dishes) burn only 50-80 extra calories per 30 minutes. Walking burns 80-120 per 30 min. Light yoga/stretching is 50-80 per 30 min. Only intense exercise (running, HIIT, cycling hard) burns 250+ per 30 min. Err on the lower end.`;
-    const weightPeriodRule = `Also detect if the user mentions their weight (e.g. "weigh 150", "150 lbs", "weight 68 kg", "72.5 kg") or their period (e.g. "period started", "on my period", "period", "menstruation"). If weight is mentioned, extract the numeric value in lbs (convert from kg if needed by dividing by 0.453592). If period is mentioned, set isPeriod to true.`;
-    const universalFormat = `Return ONLY JSON with this exact structure: {"foods":[{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}],"exercises":[{"name":"30 min running","calories":280}],"weight":null,"isPeriod":false}. If there are no food items, return an empty foods array. If there are no exercises, return an empty exercises array. ALWAYS start food names with a number (quantity). For food, if no quantity is specified, assume 1. Set "weight" to the numeric value in lbs if mentioned, otherwise null. Set "isPeriod" to true only if period/menstruation is mentioned.`;
-
-    let prompt;
-    if (logImages.length > 0 && logDescription) {
-      prompt = `Analyze the following input which may contain BOTH food and exercise entries. Look at the image(s) and use this description for context: "${logDescription}". Identify ALL food items (from images and text) and ALL exercise/activity entries. ${totalRule} ${accuracyRule} ${exerciseRule} ${weightPeriodRule} ${fmtRule} ${universalFormat}`;
-    } else if (logImages.length > 0) {
-      prompt = `Analyze the image(s). Identify ALL food items visible AND any exercise/activity shown (e.g. gym equipment, running, sports, workout screenshots, fitness tracker stats). Estimate nutritional content for food and calories burned for exercise. ${totalRule} ${accuracyRule} ${exerciseRule} ${weightPeriodRule} ${fmtRule} ${universalFormat}`;
-    } else {
-      prompt = `Analyze this input which may contain BOTH food and exercise entries: "${logDescription}". Separate them into food items and exercises. ${totalRule} ${accuracyRule} ${exerciseRule} ${weightPeriodRule} ${fmtRule} ${universalFormat}`;
-    }
-
-    const imageBase64s = logImages.map(img => img.base64);
-    const savedDescription = logDescription;
-
-    // Clear input immediately so user can keep logging
-    setLogDescription('');
-    logImages.forEach(img => URL.revokeObjectURL(img.preview));
-    setLogImages([]);
-
-    // If offline, queue entry for later processing
-    if (!navigator.onLine) {
-      await PendingQueue.add({
-        date: dateToSave,
-        description: savedDescription,
-        prompt,
-        images: imageBase64s,
-        createdAt: new Date().toISOString()
-      });
-      setPendingCount(prev => prev + 1);
-      return;
-    }
-
     setIsAnalyzingLog(true);
     try {
-      const text = await callOpenAI(prompt, imageBase64s);
+      const rawWeight = weight || userProfile.startingWeight || '150';
+      const weightDisplay = `${displayWeight(rawWeight)} ${weightLabel}`;
+      const fmtRule = `Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation.`;
+      const totalRule = `IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity.`;
+      const accuracyRule = `Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. Use standard home-cooked portions unless "large", "restaurant", or similar is specified. CRITICAL: Consider the cuisine context when estimating per-piece size and weight. Asian/Chinese/Japanese/Korean dishes typically use smaller cuts — e.g. a Chinese chicken drumstick is a small bone-in piece (~70-90g raw, ~100-130 cal stir-fried), NOT a large American-style drumstick (~150-200g, ~200 cal). When the user specifies a cuisine or cooking style (e.g. "Chinese", "stir fried", "karaage", "teriyaki"), use portion sizes typical of that cuisine. A number before a food item means that exact count of individual pieces, NOT servings.`;
+      const exerciseRule = `For exercises: The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be very conservative — these are ADDITIONAL calories burned above resting metabolic rate only. Household chores (cleaning, tidying, dishes) burn only 50-80 extra calories per 30 minutes. Walking burns 80-120 per 30 min. Light yoga/stretching is 50-80 per 30 min. Only intense exercise (running, HIIT, cycling hard) burns 250+ per 30 min. Err on the lower end.`;
+      const weightPeriodRule = `Also detect if the user mentions their weight (e.g. "weigh 150", "150 lbs", "weight 68 kg", "72.5 kg") or their period (e.g. "period started", "on my period", "period", "menstruation"). If weight is mentioned, extract the numeric value in lbs (convert from kg if needed by dividing by 0.453592). If period is mentioned, set isPeriod to true.`;
+      const universalFormat = `Return ONLY JSON with this exact structure: {"foods":[{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}],"exercises":[{"name":"30 min running","calories":280}],"weight":null,"isPeriod":false}. If there are no food items, return an empty foods array. If there are no exercises, return an empty exercises array. ALWAYS start food names with a number (quantity). For food, if no quantity is specified, assume 1. Set "weight" to the numeric value in lbs if mentioned, otherwise null. Set "isPeriod" to true only if period/menstruation is mentioned.`;
+
+      let prompt;
+      if (logImages.length > 0 && logDescription) {
+        prompt = `Analyze the following input which may contain BOTH food and exercise entries. Look at the image(s) and use this description for context: "${logDescription}". Identify ALL food items (from images and text) and ALL exercise/activity entries. ${totalRule} ${accuracyRule} ${exerciseRule} ${weightPeriodRule} ${fmtRule} ${universalFormat}`;
+      } else if (logImages.length > 0) {
+        prompt = `Analyze the image(s). Identify ALL food items visible AND any exercise/activity shown (e.g. gym equipment, running, sports, workout screenshots, fitness tracker stats). Estimate nutritional content for food and calories burned for exercise. ${totalRule} ${accuracyRule} ${exerciseRule} ${weightPeriodRule} ${fmtRule} ${universalFormat}`;
+      } else {
+        prompt = `Analyze this input which may contain BOTH food and exercise entries: "${logDescription}". Separate them into food items and exercises. ${totalRule} ${accuracyRule} ${exerciseRule} ${weightPeriodRule} ${fmtRule} ${universalFormat}`;
+      }
+
+      const imageBase64s = logImages.map(img => img.base64);
+      const text = await callOpenAI(apiKey, prompt, imageBase64s);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const parsed = JSON.parse(match[0]);
@@ -1036,21 +1217,17 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
           storageUpdates.isPeriod = true;
         }
 
+        setLogDescription('');
+        // Clean up image previews
+        logImages.forEach(img => URL.revokeObjectURL(img.preview));
+        setLogImages([]);
         setTimeout(async () => {
           await updateDayStorage(dateToSave, storageUpdates);
         }, 50);
       }
     } catch (error) {
-      // Network error — queue for later
-      if (!navigator.onLine || error.message?.includes('network') || error.message?.includes('Failed to fetch')) {
-        await PendingQueue.add({
-          date: dateToSave,
-          description: savedDescription,
-          prompt,
-          images: imageBase64s,
-          createdAt: new Date().toISOString()
-        });
-        setPendingCount(prev => prev + 1);
+      if (error.message && error.message.includes('401')) {
+        alert('Invalid API key. Please update it in the Profile tab.');
       } else {
         alert('Error analyzing entry: ' + error.message);
       }
@@ -1110,11 +1287,11 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
 
   const saveEditedFood = async () => {
     if (!editingFoodText || !editingFoodId) return;
-    if (!navigator.onLine) { alert('Food analysis requires internet connection.'); return; }
+    if (!apiKey) { setShowApiKeyPrompt(true); return; }
     const dateToSave = currentDate;
     setIsAnalyzingLog(true);
     try {
-      const text = await callOpenAI(`Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity. Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. For example, 4 pieces of karaage (fried chicken) at ~35g each is about 300cal total, not 800cal. CRITICAL: Consider the cuisine context when estimating per-piece size and weight. Asian/Chinese/Japanese/Korean dishes typically use smaller cuts — e.g. a Chinese chicken drumstick is a small bone-in piece (~70-90g raw, ~100-130 cal stir-fried), NOT a large American-style drumstick (~150-200g, ~200 cal). When the user specifies a cuisine or cooking style (e.g. "Chinese", "stir fried", "karaage", "teriyaki"), use portion sizes typical of that cuisine. A number before a food item means that exact count of individual pieces, NOT servings. Use standard home-cooked portions unless "large", "restaurant", or similar is specified. Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Apple", "1 Bowl of oatmeal with berries". Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`);
+      const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity. Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. For example, 4 pieces of karaage (fried chicken) at ~35g each is about 300cal total, not 800cal. CRITICAL: Consider the cuisine context when estimating per-piece size and weight. Asian/Chinese/Japanese/Korean dishes typically use smaller cuts — e.g. a Chinese chicken drumstick is a small bone-in piece (~70-90g raw, ~100-130 cal stir-fried), NOT a large American-style drumstick (~150-200g, ~200 cal). When the user specifies a cuisine or cooking style (e.g. "Chinese", "stir fried", "karaage", "teriyaki"), use portion sizes typical of that cuisine. A number before a food item means that exact count of individual pieces, NOT servings. Use standard home-cooked portions unless "large", "restaurant", or similar is specified. Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Apple", "1 Bowl of oatmeal with berries". Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`);
       const match = text.match(/\[[\s\S]*\]/);
       if (match) {
         const parsed = JSON.parse(match[0]);
@@ -1135,7 +1312,11 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
         }, 50);
       }
     } catch (error) {
-      alert('Error analyzing food: ' + error.message);
+      if (error.message && error.message.includes('401')) {
+        alert('Invalid API key. Please update it in the Profile tab.');
+      } else {
+        alert('Error analyzing food: ' + error.message);
+      }
     } finally {
       setIsAnalyzingLog(false);
     }
@@ -1143,11 +1324,11 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
 
   // AI-powered exercise calorie estimation
   const estimateExerciseCaloriesAI = async (exerciseName) => {
-    if (!navigator.onLine) return { calories: 250, name: exerciseName }; // fallback when offline
+    if (!apiKey) return 250; // fallback
     const rawWeight = weight || userProfile.startingWeight || '150';
     const weightDisplay = `${displayWeight(rawWeight)} ${weightLabel}`;
     try {
-      const text = await callOpenAI(`Estimate total calories burned for this exercise: "${exerciseName}". The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be very conservative — these are ADDITIONAL calories burned above resting metabolic rate only. Household chores (cleaning, tidying, dishes) burn only 50-80 extra calories per 30 minutes. Walking burns 80-120 per 30 min. Light yoga/stretching is 50-80 per 30 min. Only intense exercise (running, HIIT, cycling hard) burns 250+ per 30 min. Err on the lower end. Also return a cleanly formatted name: capitalize the first letter, use proper grammar, include duration if mentioned, no trailing punctuation. Return ONLY JSON, no other text: {"name": "30 min cleaning", "calories": 75}`);
+      const text = await callOpenAI(apiKey, `Estimate total calories burned for this exercise: "${exerciseName}". The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be very conservative — these are ADDITIONAL calories burned above resting metabolic rate only. Household chores (cleaning, tidying, dishes) burn only 50-80 extra calories per 30 minutes. Walking burns 80-120 per 30 min. Light yoga/stretching is 50-80 per 30 min. Only intense exercise (running, HIIT, cycling hard) burns 250+ per 30 min. Err on the lower end. Also return a cleanly formatted name: capitalize the first letter, use proper grammar, include duration if mentioned, no trailing punctuation. Return ONLY JSON, no other text: {"name": "30 min cleaning", "calories": 75}`);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const parsed = JSON.parse(match[0]);
@@ -1161,7 +1342,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
 
   // AI day review — evaluate day vs goals and predict weight in 1 month
   const reviewDay = async () => {
-    if (!navigator.onLine) return;
+    if (!apiKey) return;
     setIsReviewingDay(true);
     setDayReview(null);
     try {
@@ -1199,7 +1380,7 @@ ${weight ? `- Weighed in at: ${displayWeight(weight)} ${weightLabel}` : ''}
 
 Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day — what went well, what could be better, always supportive", "prediction": "predicted weight in 1 month with units if every day was exactly like this, e.g. 142.5 lbs or 64.8 kg", "tip": "one friendly, specific suggestion for tomorrow"}`;
 
-      const text = await callOpenAI(prompt);
+      const text = await callOpenAI(apiKey, prompt);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         setDayReview(JSON.parse(match[0]));
@@ -1237,10 +1418,25 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     if (!editingExerciseText || !editingExerciseId) return;
     const dateToSave = currentDate;
 
-    setIsAnalyzingLog(true);
-    try {
-      const result = await estimateExerciseCaloriesAI(editingExerciseText);
-      const updatedExercise = { id: editingExerciseId, type: result.name, calories: result.calories };
+    if (apiKey) {
+      setIsAnalyzingLog(true);
+      try {
+        const result = await estimateExerciseCaloriesAI(editingExerciseText);
+        const updatedExercise = { id: editingExerciseId, type: result.name, calories: result.calories };
+        const updatedExercises = exercises.map(e => e.id === editingExerciseId ? updatedExercise : e);
+        setExercises(updatedExercises);
+        setEditingExerciseId(null);
+        setEditingExerciseText('');
+        setTimeout(async () => {
+          await updateDayStorage(dateToSave, { exercises: updatedExercises });
+        }, 50);
+      } catch (error) {
+        alert('Error estimating exercise: ' + error.message);
+      } finally {
+        setIsAnalyzingLog(false);
+      }
+    } else {
+      const updatedExercise = { id: editingExerciseId, type: editingExerciseText, calories: 250 };
       const updatedExercises = exercises.map(e => e.id === editingExerciseId ? updatedExercise : e);
       setExercises(updatedExercises);
       setEditingExerciseId(null);
@@ -1248,10 +1444,6 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       setTimeout(async () => {
         await updateDayStorage(dateToSave, { exercises: updatedExercises });
       }, 50);
-    } catch (error) {
-      alert('Error estimating exercise: ' + error.message);
-    } finally {
-      setIsAnalyzingLog(false);
     }
   };
 
@@ -1271,9 +1463,12 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
 
   const getAllHistory = () => {
     const history = [];
-    for (const key of db.getLogKeys()) {
-      const value = db.get(key);
-      if (value) history.push(JSON.parse(value));
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
+        const value = localStorage.getItem(key);
+        if (value) history.push(JSON.parse(value));
+      }
     }
     return history.sort((a, b) => new Date(b.date) - new Date(a.date));
   };
@@ -1292,7 +1487,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       if (dateStr === currentDate) {
         weekData.push({ date: dateStr, weight, isPeriod, foods, exercises });
       } else {
-        const stored = db.get(`nutrition-${dateStr}`);
+        const stored = localStorage.getItem(`nutrition-${dateStr}`);
         if (stored) {
           weekData.push(JSON.parse(stored));
         } else {
@@ -1316,7 +1511,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       if (dateStr === currentDate) {
         monthData.push({ date: dateStr, weight, isPeriod, foods, exercises });
       } else {
-        const stored = db.get(`nutrition-${dateStr}`);
+        const stored = localStorage.getItem(`nutrition-${dateStr}`);
         if (stored) {
           monthData.push(JSON.parse(stored));
         } else {
@@ -1338,7 +1533,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       if (dateStr === currentDate && weight) {
         return parseFloat(weight);
       }
-      const stored = db.get(`nutrition-${dateStr}`);
+      const stored = localStorage.getItem(`nutrition-${dateStr}`);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.weight) return parseFloat(parsed.weight);
@@ -1381,7 +1576,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     for (let i = 1; i <= 30; i++) {
       date.setDate(date.getDate() - 1);
       const dateStr = toLocalDateStr(date);
-      const stored = db.get(`nutrition-${dateStr}`);
+      const stored = localStorage.getItem(`nutrition-${dateStr}`);
       if (stored) {
         const data = JSON.parse(stored);
         if (data.weight) return data.weight;
@@ -1425,14 +1620,17 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
   const getPredictedPeriods = (targetMonth, targetYear) => {
     if (!userProfile.periodTracking || !userProfile.cycleLength) return [];
     let lastPeriodDate = null;
-    for (const key of db.getLogKeys()) {
-      const value = db.get(key);
-      if (value) {
-        const data = JSON.parse(value);
-        if (data.isPeriod) {
-          const [py, pm, pd] = data.date.split('-').map(Number);
-          const date = new Date(py, pm - 1, pd);
-          if (!lastPeriodDate || date > lastPeriodDate) lastPeriodDate = date;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
+        const value = localStorage.getItem(key);
+        if (value) {
+          const data = JSON.parse(value);
+          if (data.isPeriod) {
+            const [py, pm, pd] = data.date.split('-').map(Number);
+            const date = new Date(py, pm - 1, pd);
+            if (!lastPeriodDate || date > lastPeriodDate) lastPeriodDate = date;
+          }
         }
       }
     }
@@ -1455,17 +1653,54 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* API Key Prompt Modal */}
-      {/* Online/Offline + Pending Queue Indicator */}
-      {(!isOnline || pendingCount > 0) && (
-        <div className={`fixed top-0 left-0 right-0 z-[90] px-4 py-2 text-center text-sm font-semibold ${isOnline ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>
-          {!isOnline && 'Offline — changes will sync when back online'}
-          {isOnline && pendingCount > 0 && (
-            <span>
-              {isProcessingQueue ? 'Processing queued entries...' : `${pendingCount} queued entr${pendingCount === 1 ? 'y' : 'ies'} — `}
-              {!isProcessingQueue && <button onClick={processPendingQueue} className="underline font-bold">process now</button>}
-            </span>
-          )}
-          {!isOnline && pendingCount > 0 && ` (${pendingCount} queued)`}
+      {showApiKeyPrompt && !apiKey && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold mb-2">OpenAI API Key Required</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              This app uses OpenAI to analyze food and exercise. Your key is stored only in your browser's localStorage - never in the source code.
+            </p>
+            <input
+              type="password"
+              placeholder="sk-..."
+              className="w-full px-4 py-3 border rounded-xl mb-3"
+              id="api-key-input"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const key = e.target.value.trim();
+                  if (key.length > 10) {
+                    localStorage.setItem('openai-api-key', key);
+                    setApiKey(key);
+                    setShowApiKeyPrompt(false);
+                  }
+                }
+              }}
+            />
+            <button
+              onClick={() => {
+                const key = document.getElementById('api-key-input').value.trim();
+                if (key.length > 10) {
+                  localStorage.setItem('openai-api-key', key);
+                  setApiKey(key);
+                  setShowApiKeyPrompt(false);
+                } else {
+                  alert('Please enter a valid OpenAI API key');
+                }
+              }}
+              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold"
+            >
+              Save Key
+            </button>
+            <button
+              onClick={() => setShowApiKeyPrompt(false)}
+              className="w-full px-6 py-2 mt-2 text-gray-500 text-sm"
+            >
+              Skip for now (limited features)
+            </button>
+            <p className="text-xs text-gray-500 mt-3 text-center">
+              Get your key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" className="text-blue-600 underline">platform.openai.com/api-keys</a>
+            </p>
+          </div>
         </div>
       )}
 
@@ -1657,7 +1892,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                   disabled={isAnalyzingLog || (!logDescription && logImages.length === 0)}
                   className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold disabled:opacity-50"
                 >
-                  {isAnalyzingLog ? 'Analyzing...' : !isOnline ? <><Plus className="inline w-5 h-5 mr-2" />Queue Entry</> : <><Plus className="inline w-5 h-5 mr-2" />Log Entry</>}
+                  {isAnalyzingLog ? 'Analyzing...' : <><Plus className="inline w-5 h-5 mr-2" />Log Entry</>}
                 </button>
               </div>
 
@@ -1667,13 +1902,13 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                   <div className="border-t border-gray-200 my-4"></div>
                   <button
                     onClick={reviewDay}
-                    disabled={isReviewingDay || !isOnline}
+                    disabled={isReviewingDay || !apiKey}
                     className="w-full px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-semibold shadow-lg disabled:opacity-50 transition-all"
                   >
                     {isReviewingDay ? 'Evaluating your day...' : 'Review My Day'}
                   </button>
-                  {!isOnline && (
-                    <p className="text-xs text-gray-400 text-center mt-1">Requires internet connection</p>
+                  {!apiKey && (
+                    <p className="text-xs text-gray-400 text-center mt-1">Set up OpenAI API key in Information tab to use this feature</p>
                   )}
                   {dayReview && (
                     <div className="mt-4 p-4 bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl">
@@ -2239,7 +2474,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                   </div>
                   <button
                     onClick={() => calculateNutritionGoals(userProfile, goal)}
-                    disabled={isCalculatingGoals || !isOnline}
+                    disabled={isCalculatingGoals || !apiKey}
                     className="mt-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold disabled:opacity-50"
                   >
                     {isCalculatingGoals ? 'Calculating...' : 'Recalculate Targets'}
@@ -2421,25 +2656,146 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold mb-4">Account</h2>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  {user.photoURL && <img src={user.photoURL} alt="" className="w-10 h-10 rounded-full" />}
+              <h2 className="text-2xl font-bold mb-4">
+                <span className="flex items-center gap-2">
+                  Cloud Sync
+                  {driveSyncStatus === 'syncing' && <span className="text-sm font-normal text-blue-500">Syncing...</span>}
+                  {driveSyncStatus === 'synced' && <span className="text-sm font-normal text-green-500">Synced</span>}
+                  {driveSyncStatus === 'error' && <span className="text-sm font-normal text-red-500">Sync Error</span>}
+                </span>
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Sync your data across devices using your personal Google Drive. Data is stored in a private app folder that only this app can access.
+              </p>
+
+              {!driveEnabled ? (
+                <div className="space-y-3">
                   <div>
-                    <div className="font-semibold">{user.displayName || 'User'}</div>
-                    <div className="text-xs text-gray-500">{user.email}</div>
+                    <label className="block text-sm font-bold mb-2">GOOGLE CLIENT ID</label>
+                    <input
+                      type="text"
+                      value={googleClientIdInput}
+                      onChange={(e) => setGoogleClientIdInput(e.target.value)}
+                      placeholder="xxxxx.apps.googleusercontent.com"
+                      className="w-full px-4 py-3 border rounded-xl text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Required for Google Drive sync. Follow the setup guide to get your Client ID.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => saveGoogleClientId(googleClientIdInput)}
+                    disabled={!googleClientIdInput.includes('.apps.googleusercontent.com')}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold disabled:opacity-50"
+                  >
+                    Enable Google Drive Sync
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {driveSignedIn ? (
+                    <div>
+                      <button
+                        onClick={async () => {
+                          setDriveSyncStatus('syncing');
+                          // Pull from Drive and merge
+                          const driveData = await DriveSync.loadFromDrive();
+                          const merged = driveData ? restoreFromDriveData(driveData) : false;
+                          // Always push merged local data back to Drive
+                          const data = gatherAllData();
+                          await DriveSync.saveToDrive(data);
+                          setDriveSyncStatus('synced');
+                          if (merged) {
+                            window.location.reload();
+                          } else {
+                            alert('Sync complete! Data is up to date.');
+                          }
+                        }}
+                        className="w-full px-4 py-2.5 bg-blue-100 text-blue-700 rounded-xl font-semibold text-sm mb-2"
+                      >
+                        Force Sync Now
+                      </button>
+                      <button
+                        onClick={handleDriveSignOut}
+                        className="w-full px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm"
+                      >
+                        Sign Out of Google
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleDriveSignIn}
+                      className="w-full px-6 py-3 bg-white border-2 border-gray-300 rounded-xl font-semibold flex items-center justify-center gap-3 hover:bg-gray-50"
+                    >
+                      <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      </svg>
+                      Sign in with Google
+                    </button>
+                  )}
+
+                  <div className="border-t pt-3 mt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">Client ID configured</span>
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem('google-client-id');
+                          setDriveEnabled(false);
+                          setDriveSignedIn(false);
+                          setGoogleClientIdInput('');
+                        }}
+                        className="text-xs text-red-500 font-semibold"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                  <span className="text-gray-600">{isOnline ? 'Online — data syncing' : 'Offline — changes will sync later'}</span>
+              )}
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h2 className="text-2xl font-bold mb-4">API Settings</h2>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-bold mb-2">OPENAI API KEY</label>
+                  <input
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => {
+                      setApiKey(e.target.value);
+                      localStorage.setItem('openai-api-key', e.target.value);
+                    }}
+                    placeholder="sk-..."
+                    className="w-full px-4 py-3 border rounded-xl"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Stored locally in your browser. Never sent anywhere except OpenAI.
+                  </p>
                 </div>
-                <button
-                  onClick={() => fbAuth.signOut()}
-                  className="w-full px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm"
-                >
-                  Sign Out
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('openai-api-key');
+                      setApiKey('');
+                      setShowApiKeyPrompt(true);
+                    }}
+                    className="flex-1 px-4 py-2 bg-red-100 text-red-700 rounded-xl font-semibold text-sm"
+                  >
+                    Remove Key
+                  </button>
+                  <a
+                    href="https://platform.openai.com/api-keys"
+                    target="_blank"
+                    rel="noopener"
+                    className="flex-1 px-4 py-2 bg-blue-100 text-blue-700 rounded-xl font-semibold text-sm text-center"
+                  >
+                    Get API Key
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -2521,107 +2877,8 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
   );
 }
 
-// ==========================================
-// Auth Gate — requires sign-in before showing the app
-// ==========================================
-function AuthGate() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [dbReady, setDbReady] = useState(false);
-  const [migrating, setMigrating] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = fbAuth.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        db.init(firebaseUser.uid);
-        await db.loadAll();
-
-        // One-time migration from localStorage
-        if (!localStorage.getItem('firebase-migrated')) {
-          setMigrating(true);
-          const hadData = await migrateLocalStorageToFirestore();
-          if (hadData) {
-            // Reload cache with migrated data
-            await db.loadAll();
-          }
-          setMigrating(false);
-        }
-
-        setDbReady(true);
-      } else {
-        setUser(null);
-        setDbReady(false);
-      }
-      setLoading(false);
-    });
-    return unsubscribe;
-  }, []);
-
-  const signIn = async () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-      await fbAuth.signInWithPopup(provider);
-    } catch (error) {
-      if (error.code !== 'auth/popup-closed-by-user') {
-        console.error('Sign-in error:', error);
-        alert('Sign-in failed. Please try again.');
-      }
-    }
-  };
-
-  if (loading || migrating) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">{migrating ? 'Migrating your data...' : 'Loading...'}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Health Tracker
-          </h1>
-          <p className="text-gray-600 mb-8">Track your nutrition, exercise, and weight with AI-powered analysis.</p>
-          <button
-            onClick={signIn}
-            className="w-full px-6 py-3 bg-white border-2 border-gray-300 rounded-xl font-semibold flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Sign in with Google
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!dbReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return <HealthTracker user={user} />;
-}
-
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<AuthGate />);
+root.render(<HealthTracker />);
     </script>
 </body>
 </html>
