@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learn Chinese! 学中文</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 50%, #ffecd2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: #e44d6e;
+      text-shadow: 2px 2px 0 #fff;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    /* Score & streak */
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .stat-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 10px 22px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .stat-box .label { color: #999; font-size: 0.8rem; font-weight: 400; }
+    .stat-box .value { color: #e44d6e; }
+    .streak-fire { font-size: 1.3rem; }
+
+    /* Card */
+    .card-container {
+      perspective: 800px;
+      width: 320px;
+      height: 380px;
+      margin-bottom: 24px;
+      cursor: pointer;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card.flipped { transform: rotateY(180deg); }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      padding: 30px;
+    }
+
+    .card-front {
+      background: #fff;
+    }
+
+    .card-back {
+      background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+      transform: rotateY(180deg);
+      color: #fff;
+    }
+
+    .card-emoji {
+      font-size: 4rem;
+      margin-bottom: 10px;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .card-chinese {
+      font-size: 5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+
+    .card-pinyin {
+      font-size: 1.5rem;
+      color: #e44d6e;
+      margin-bottom: 6px;
+    }
+
+    .card-hint {
+      font-size: 0.9rem;
+      color: #aaa;
+      margin-top: 10px;
+    }
+
+    .card-back .card-chinese { color: #fff; }
+    .card-back .card-english {
+      font-size: 2rem;
+      font-weight: 700;
+    }
+    .card-back .card-pinyin { color: rgba(255,255,255,0.85); }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 50px;
+      padding: 14px 32px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-know { background: #4ecdc4; color: #fff; }
+    .btn-dont-know { background: #ff6b6b; color: #fff; }
+    .btn-flip { background: #fff; color: #e44d6e; }
+    .btn-next { background: #e44d6e; color: #fff; }
+    .btn-speak { background: #ffd93d; color: #333; }
+    .btn-restart { background: #a18cd1; color: #fff; }
+
+    /* Progress bar */
+    .progress-wrap {
+      width: 320px;
+      height: 14px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #4ecdc4, #44b09e);
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+
+    /* Reward overlay */
+    .reward-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .reward-overlay.show { display: flex; }
+
+    .reward-box {
+      background: #fff;
+      border-radius: 30px;
+      padding: 40px;
+      text-align: center;
+      max-width: 360px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .reward-picture {
+      font-size: 8rem;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .reward-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #e44d6e;
+      margin-bottom: 6px;
+    }
+
+    .reward-msg {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    /* Confetti */
+    .confetti {
+      position: fixed;
+      top: -10px;
+      z-index: 101;
+      font-size: 1.8rem;
+      animation: fall linear forwards;
+      pointer-events: none;
+    }
+
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* Completion screen */
+    .complete-screen {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .complete-screen.show { display: block; }
+    .complete-screen h2 { font-size: 2rem; color: #e44d6e; margin-bottom: 10px; }
+    .complete-screen .big-emoji { font-size: 6rem; margin-bottom: 10px; }
+    .complete-screen p { font-size: 1.1rem; color: #555; margin-bottom: 20px; }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      .card-container { width: 280px; height: 340px; }
+      .card-chinese { font-size: 4rem; }
+      .progress-wrap { width: 280px; }
+      h1 { font-size: 1.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Learn Chinese! 学中文</h1>
+  <p class="subtitle">Tap the card to flip it!</p>
+
+  <div class="stats">
+    <div class="stat-box"><span class="label">Score</span><br><span class="value" id="score">0</span> / <span id="total">10</span></div>
+    <div class="stat-box"><span class="label">Streak</span><br><span class="streak-fire" id="streak">0 🔥</span></div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progress" style="width: 0%"></div>
+  </div>
+
+  <div class="card-container" id="cardContainer">
+    <div class="card" id="card">
+      <div class="card-face card-front">
+        <div class="card-emoji" id="cardEmoji"></div>
+        <div class="card-chinese" id="cardChinese"></div>
+        <div class="card-pinyin" id="cardPinyin"></div>
+        <div class="card-hint">tap to see answer</div>
+      </div>
+      <div class="card-face card-back">
+        <div class="card-emoji" id="cardEmojiBack"></div>
+        <div class="card-chinese" id="cardChineseBack"></div>
+        <div class="card-pinyin" id="cardPinyinBack"></div>
+        <div class="card-english" id="cardEnglish"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row" id="btnRow">
+    <button class="btn btn-speak" onclick="speakWord()" title="Hear it!">🔊 Listen</button>
+    <button class="btn btn-know" onclick="answer(true)">I knew it! ✅</button>
+    <button class="btn btn-dont-know" onclick="answer(false)">Still learning 🤔</button>
+  </div>
+
+  <!-- Reward overlay -->
+  <div class="reward-overlay" id="rewardOverlay">
+    <div class="reward-box">
+      <div class="reward-picture" id="rewardPic"></div>
+      <div class="reward-title" id="rewardTitle"></div>
+      <div class="reward-msg" id="rewardMsg"></div>
+      <button class="btn btn-next" onclick="closeReward()">Keep going! →</button>
+    </div>
+  </div>
+
+  <!-- Completion screen -->
+  <div class="complete-screen" id="completeScreen">
+    <div class="big-emoji">🏆</div>
+    <h2 id="completeTitle">Amazing job!</h2>
+    <p id="completeMsg"></p>
+    <button class="btn btn-restart" onclick="restart()">Play Again! 🔄</button>
+  </div>
+
+<script>
+  // --- Word data: 10 easy Chinese words ---
+  const words = [
+    { chinese: "你好", pinyin: "nǐ hǎo", english: "Hello", emoji: "👋" },
+    { chinese: "猫",   pinyin: "māo",      english: "Cat",   emoji: "🐱" },
+    { chinese: "狗",   pinyin: "gǒu",      english: "Dog",   emoji: "🐶" },
+    { chinese: "水",   pinyin: "shuǐ",     english: "Water", emoji: "💧" },
+    { chinese: "太阳", pinyin: "tài yáng",  english: "Sun",   emoji: "☀️" },
+    { chinese: "月亮", pinyin: "yuè liang", english: "Moon",  emoji: "🌙" },
+    { chinese: "鱼",   pinyin: "yú",        english: "Fish",  emoji: "🐟" },
+    { chinese: "花",   pinyin: "huā",       english: "Flower",emoji: "🌸" },
+    { chinese: "大",   pinyin: "dà",        english: "Big",   emoji: "🦣" },
+    { chinese: "小",   pinyin: "xiǎo",      english: "Small", emoji: "🐜" },
+  ];
+
+  // Silly reward pictures & messages
+  const rewards = [
+    { pic: "🦄", title: "Unicorn Power!", msg: "You unlocked a magical unicorn!" },
+    { pic: "🐸", title: "Frog Prince!", msg: "Ribbit! You're doing great!" },
+    { pic: "🦖", title: "Dino Genius!", msg: "RAWR means 'great job' in dinosaur!" },
+    { pic: "🐙", title: "Octopus High-Five!", msg: "That's 8 high-fives at once!" },
+    { pic: "🤪", title: "Silly Face!", msg: "You earned a silly face! Bleh!" },
+    { pic: "🦩", title: "Flamingo Dance!", msg: "This flamingo is dancing for you!" },
+    { pic: "🐵", title: "Monkey Business!", msg: "Ooh ooh ahh ahh! Smart monkey!" },
+    { pic: "🦊", title: "Foxy Scholar!", msg: "Clever as a fox, you are!" },
+    { pic: "🐋", title: "Whale of a Job!", msg: "Even the whales are impressed!" },
+    { pic: "🦜", title: "Parrot Party!", msg: "Polly says you're awesome!" },
+    { pic: "🐲", title: "Dragon Master!", msg: "The dragon bows to your wisdom!" },
+    { pic: "🧜‍♂️", title: "Merman Mode!", msg: "Splashing through these words!" },
+    { pic: "👽", title: "Alien Genius!", msg: "Even aliens are learning from you!" },
+    { pic: "🤖", title: "Robo-Star!", msg: "Beep boop, you're amazing!" },
+    { pic: "🧙‍♂️", title: "Word Wizard!", msg: "You cast a spell of smartness!" },
+  ];
+
+  const confettiChars = ["🎉", "⭐", "🌟", "💫", "🎊", "✨", "🎈", "❤️", "🧡", "💛"];
+
+  let deck = [];
+  let current = 0;
+  let score = 0;
+  let streak = 0;
+  let bestStreak = 0;
+  let answered = 0;
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function init() {
+    deck = shuffle([...words]);
+    current = 0;
+    score = 0;
+    streak = 0;
+    answered = 0;
+    updateStats();
+    showCard();
+    document.getElementById("completeScreen").classList.remove("show");
+    document.getElementById("cardContainer").style.display = "";
+    document.getElementById("btnRow").style.display = "";
+  }
+
+  function showCard() {
+    const w = deck[current];
+    document.getElementById("cardEmoji").textContent = w.emoji;
+    document.getElementById("cardChinese").textContent = w.chinese;
+    document.getElementById("cardPinyin").textContent = w.pinyin;
+    document.getElementById("cardEmojiBack").textContent = w.emoji;
+    document.getElementById("cardChineseBack").textContent = w.chinese;
+    document.getElementById("cardPinyinBack").textContent = w.pinyin;
+    document.getElementById("cardEnglish").textContent = w.english;
+    document.getElementById("card").classList.remove("flipped");
+  }
+
+  function updateStats() {
+    document.getElementById("score").textContent = score;
+    document.getElementById("total").textContent = deck.length;
+    document.getElementById("streak").textContent = streak + " 🔥";
+    const pct = (answered / deck.length) * 100;
+    document.getElementById("progress").style.width = pct + "%";
+  }
+
+  // Flip card on tap
+  document.getElementById("cardContainer").addEventListener("click", () => {
+    document.getElementById("card").classList.toggle("flipped");
+  });
+
+  function answer(knew) {
+    answered++;
+    if (knew) {
+      score++;
+      streak++;
+      if (streak > bestStreak) bestStreak = streak;
+      // Show reward every 3 correct in a row, or at certain milestones
+      if (streak > 0 && streak % 3 === 0) {
+        showReward();
+      }
+    } else {
+      streak = 0;
+      // Put the word back later in the deck for another try
+      if (answered < deck.length) {
+        deck.push({ ...deck[current] });
+      }
+    }
+    updateStats();
+    current++;
+    if (current >= deck.length) {
+      showComplete();
+    } else {
+      showCard();
+    }
+  }
+
+  function showReward() {
+    const r = rewards[Math.floor(Math.random() * rewards.length)];
+    document.getElementById("rewardPic").textContent = r.pic;
+    document.getElementById("rewardTitle").textContent = r.title;
+    document.getElementById("rewardMsg").textContent = r.msg;
+    document.getElementById("rewardOverlay").classList.add("show");
+    spawnConfetti();
+  }
+
+  function closeReward() {
+    document.getElementById("rewardOverlay").classList.remove("show");
+  }
+
+  function spawnConfetti() {
+    for (let i = 0; i < 30; i++) {
+      const el = document.createElement("div");
+      el.classList.add("confetti");
+      el.textContent = confettiChars[Math.floor(Math.random() * confettiChars.length)];
+      el.style.left = Math.random() * 100 + "vw";
+      el.style.animationDuration = (2 + Math.random() * 3) + "s";
+      el.style.animationDelay = Math.random() * 1 + "s";
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 6000);
+    }
+  }
+
+  function showComplete() {
+    document.getElementById("cardContainer").style.display = "none";
+    document.getElementById("btnRow").style.display = "none";
+    const pct = Math.round((score / words.length) * 100);
+    let title, emoji;
+    if (pct === 100) { title = "PERFECT! You're a Chinese superstar!"; emoji = "🏆🌟🎉"; }
+    else if (pct >= 70) { title = "Great job! Almost perfect!"; emoji = "🎉👏"; }
+    else { title = "Good try! Practice makes perfect!"; emoji = "💪📚"; }
+    document.getElementById("completeTitle").textContent = title;
+    document.getElementById("completeMsg").textContent =
+      `You got ${score} out of ${words.length} correct! ${emoji}\nBest streak: ${bestStreak} 🔥`;
+    document.getElementById("completeScreen").classList.add("show");
+    document.getElementById("progress").style.width = "100%";
+    if (pct >= 70) spawnConfetti();
+  }
+
+  function speakWord() {
+    const w = deck[current];
+    const utterance = new SpeechSynthesisUtterance(w.chinese);
+    utterance.lang = "zh-CN";
+    utterance.rate = 0.8;
+    speechSynthesis.speak(utterance);
+  }
+
+  function restart() {
+    init();
+  }
+
+  // Start!
+  init();
+</script>
+
+</body>
+</html>
