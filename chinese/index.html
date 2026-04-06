@@ -110,7 +110,7 @@
       margin-bottom: 6px;
     }
 
-    .card-front .card-pinyin { margin-bottom: 0; }
+
 
     .listen-btn {
       position: absolute;
@@ -166,23 +166,40 @@
     .btn-know { background: #4ecdc4; color: #fff; }
     .btn-dont-know { background: #ff6b6b; color: #fff; }
     .btn-next { background: #e44d6e; color: #fff; }
-    .btn-restart { background: #a18cd1; color: #fff; }
 
-    /* Progress bar */
-    .progress-wrap {
+    /* Level progress bar */
+    .level-bar-wrap {
       width: 320px;
-      height: 14px;
+      height: 10px;
       background: rgba(255,255,255,0.5);
       border-radius: 10px;
       margin-bottom: 20px;
       overflow: hidden;
     }
 
-    .progress-bar {
+    .level-bar {
       height: 100%;
       background: linear-gradient(90deg, #4ecdc4, #44b09e);
       border-radius: 10px;
       transition: width 0.5s ease;
+    }
+
+    .review-tag {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: #ff6b6b;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-back .review-tag {
+      background: rgba(255,255,255,0.3);
     }
 
     /* Reward overlay */
@@ -246,23 +263,11 @@
       to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
     }
 
-    /* Completion screen */
-    .complete-screen {
-      display: none;
-      text-align: center;
-      padding: 40px 20px;
-    }
-
-    .complete-screen.show { display: block; }
-    .complete-screen h2 { font-size: 2rem; color: #e44d6e; margin-bottom: 10px; }
-    .complete-screen .big-emoji { font-size: 6rem; margin-bottom: 10px; }
-    .complete-screen p { font-size: 1.1rem; color: #555; margin-bottom: 20px; }
-
     /* Responsive */
     @media (max-width: 400px) {
       .card-container { width: 280px; height: 340px; }
       .card-chinese { font-size: 4rem; }
-      .progress-wrap { width: 280px; }
+      .level-bar-wrap { width: 280px; }
       h1 { font-size: 1.7rem; }
     }
   </style>
@@ -270,25 +275,27 @@
 <body>
 
   <h1>Learn Chinese! 学中文</h1>
-  <p class="subtitle">Tap the card to flip it!</p>
+  <p class="subtitle">Endless Mode - Tap to flip!</p>
 
   <div class="stats">
-    <div class="stat-box"><span class="label">Score</span><br><span class="value" id="score">0</span> / <span id="total">10</span></div>
+    <div class="stat-box"><span class="label">Level</span><br><span class="value" id="level">1</span></div>
+    <div class="stat-box"><span class="label">Score</span><br><span class="value" id="score">0</span></div>
     <div class="stat-box"><span class="label">Streak</span><br><span class="streak-fire" id="streak">0 🔥</span></div>
   </div>
 
-  <div class="progress-wrap">
-    <div class="progress-bar" id="progress" style="width: 0%"></div>
+  <div class="level-bar-wrap">
+    <div class="level-bar" id="levelBar" style="width: 0%"></div>
   </div>
 
   <div class="card-container" id="cardContainer">
     <div class="card" id="card">
       <div class="card-face card-front">
+        <div class="review-tag" id="reviewTagFront" style="display:none">Review</div>
         <button class="listen-btn" onclick="event.stopPropagation(); speakWord()">&#x1f50a;</button>
         <div class="card-chinese" id="cardChinese"></div>
-        <div class="card-pinyin" id="cardPinyin"></div>
       </div>
       <div class="card-face card-back">
+        <div class="review-tag" id="reviewTagBack" style="display:none">Review</div>
         <button class="listen-btn" onclick="event.stopPropagation(); speakWord()">&#x1f50a;</button>
         <div class="card-english" id="cardEnglish"></div>
         <div class="card-chinese" id="cardChineseBack"></div>
@@ -311,28 +318,96 @@
     </div>
   </div>
 
-  <!-- Completion screen -->
-  <div class="complete-screen" id="completeScreen">
-    <div class="big-emoji">🏆</div>
-    <h2 id="completeTitle">Amazing job!</h2>
-    <p id="completeMsg"></p>
-    <button class="btn btn-restart" onclick="restart()">Play Again!</button>
-  </div>
 
 <script>
-  // --- Word data: 10 easy Chinese words ---
-  const words = [
-    { chinese: "一",   pinyin: "yī",         english: "One"       },
-    { chinese: "二",   pinyin: "èr",         english: "Two"       },
-    { chinese: "三",   pinyin: "sān",        english: "Three"     },
-    { chinese: "红",   pinyin: "hóng",       english: "Red"       },
-    { chinese: "蓝",   pinyin: "lán",        english: "Blue"      },
-    { chinese: "手",   pinyin: "shǒu",       english: "Hand"      },
-    { chinese: "口",   pinyin: "kǒu",        english: "Mouth"     },
-    { chinese: "山",   pinyin: "shān",        english: "Mountain"  },
-    { chinese: "火",   pinyin: "huǒ",        english: "Fire"      },
-    { chinese: "天",   pinyin: "tiān",        english: "Sky"       },
-  ];
+  // --- Word bank organized by difficulty level (1-5) ---
+  const wordBank = {
+    1: [
+      { chinese: "一", pinyin: "yī", english: "One" },
+      { chinese: "二", pinyin: "èr", english: "Two" },
+      { chinese: "三", pinyin: "sān", english: "Three" },
+      { chinese: "四", pinyin: "sì", english: "Four" },
+      { chinese: "五", pinyin: "wǔ", english: "Five" },
+      { chinese: "大", pinyin: "dà", english: "Big" },
+      { chinese: "小", pinyin: "xiǎo", english: "Small" },
+      { chinese: "人", pinyin: "rén", english: "Person" },
+      { chinese: "口", pinyin: "kǒu", english: "Mouth" },
+      { chinese: "手", pinyin: "shǒu", english: "Hand" },
+      { chinese: "山", pinyin: "shān", english: "Mountain" },
+      { chinese: "水", pinyin: "shuǐ", english: "Water" },
+      { chinese: "火", pinyin: "huǒ", english: "Fire" },
+      { chinese: "天", pinyin: "tiān", english: "Sky" },
+      { chinese: "日", pinyin: "rì", english: "Day" },
+    ],
+    2: [
+      { chinese: "六", pinyin: "liù", english: "Six" },
+      { chinese: "七", pinyin: "qī", english: "Seven" },
+      { chinese: "八", pinyin: "bā", english: "Eight" },
+      { chinese: "九", pinyin: "jiǔ", english: "Nine" },
+      { chinese: "十", pinyin: "shí", english: "Ten" },
+      { chinese: "红", pinyin: "hóng", english: "Red" },
+      { chinese: "蓝", pinyin: "lán", english: "Blue" },
+      { chinese: "白", pinyin: "bái", english: "White" },
+      { chinese: "黑", pinyin: "hēi", english: "Black" },
+      { chinese: "猫", pinyin: "māo", english: "Cat" },
+      { chinese: "狗", pinyin: "gǒu", english: "Dog" },
+      { chinese: "鱼", pinyin: "yú", english: "Fish" },
+      { chinese: "鸟", pinyin: "niǎo", english: "Bird" },
+      { chinese: "花", pinyin: "huā", english: "Flower" },
+      { chinese: "树", pinyin: "shù", english: "Tree" },
+    ],
+    3: [
+      { chinese: "你好", pinyin: "nǐ hǎo", english: "Hello" },
+      { chinese: "谢谢", pinyin: "xiè xie", english: "Thank you" },
+      { chinese: "妈妈", pinyin: "mā ma", english: "Mom" },
+      { chinese: "爸爸", pinyin: "bà ba", english: "Dad" },
+      { chinese: "朋友", pinyin: "péng yǒu", english: "Friend" },
+      { chinese: "太阳", pinyin: "tài yáng", english: "Sun" },
+      { chinese: "月亮", pinyin: "yuè liang", english: "Moon" },
+      { chinese: "星星", pinyin: "xīng xing", english: "Star" },
+      { chinese: "苹果", pinyin: "píng guǒ", english: "Apple" },
+      { chinese: "吃", pinyin: "chī", english: "Eat" },
+      { chinese: "喝", pinyin: "hē", english: "Drink" },
+      { chinese: "跑", pinyin: "pǎo", english: "Run" },
+      { chinese: "走", pinyin: "zǒu", english: "Walk" },
+      { chinese: "看", pinyin: "kàn", english: "Look" },
+      { chinese: "听", pinyin: "tīng", english: "Listen" },
+    ],
+    4: [
+      { chinese: "学校", pinyin: "xué xiào", english: "School" },
+      { chinese: "老师", pinyin: "lǎo shī", english: "Teacher" },
+      { chinese: "学生", pinyin: "xué shēng", english: "Student" },
+      { chinese: "书", pinyin: "shū", english: "Book" },
+      { chinese: "电话", pinyin: "diàn huà", english: "Phone" },
+      { chinese: "医生", pinyin: "yī shēng", english: "Doctor" },
+      { chinese: "高兴", pinyin: "gāo xìng", english: "Happy" },
+      { chinese: "漂亮", pinyin: "piào liang", english: "Pretty" },
+      { chinese: "快乐", pinyin: "kuài lè", english: "Joyful" },
+      { chinese: "时间", pinyin: "shí jiān", english: "Time" },
+      { chinese: "今天", pinyin: "jīn tiān", english: "Today" },
+      { chinese: "明天", pinyin: "míng tiān", english: "Tomorrow" },
+      { chinese: "昨天", pinyin: "zuó tiān", english: "Yesterday" },
+      { chinese: "早上", pinyin: "zǎo shang", english: "Morning" },
+      { chinese: "晚上", pinyin: "wǎn shang", english: "Evening" },
+    ],
+    5: [
+      { chinese: "飞机", pinyin: "fēi jī", english: "Airplane" },
+      { chinese: "图书馆", pinyin: "tú shū guǎn", english: "Library" },
+      { chinese: "动物园", pinyin: "dòng wù yuán", english: "Zoo" },
+      { chinese: "巧克力", pinyin: "qiǎo kè lì", english: "Chocolate" },
+      { chinese: "西瓜", pinyin: "xī guā", english: "Watermelon" },
+      { chinese: "聪明", pinyin: "cōng míng", english: "Smart" },
+      { chinese: "勇敢", pinyin: "yǒng gǎn", english: "Brave" },
+      { chinese: "认真", pinyin: "rèn zhēn", english: "Serious" },
+      { chinese: "练习", pinyin: "liàn xí", english: "Practice" },
+      { chinese: "冒险", pinyin: "mào xiǎn", english: "Adventure" },
+      { chinese: "厨房", pinyin: "chú fáng", english: "Kitchen" },
+      { chinese: "钢琴", pinyin: "gāng qín", english: "Piano" },
+      { chinese: "恐龙", pinyin: "kǒng lóng", english: "Dinosaur" },
+      { chinese: "蝴蝶", pinyin: "hú dié", english: "Butterfly" },
+      { chinese: "彩虹", pinyin: "cǎi hóng", english: "Rainbow" },
+    ],
+  };
 
   // Silly reward pictures & messages
   const rewards = [
@@ -353,51 +428,82 @@
     { pic: "🧙‍♂️", title: "Word Wizard!", msg: "You cast a spell of smartness!" },
   ];
 
+  const levelNames = ["", "Beginner", "Easy", "Medium", "Hard", "Expert"];
   const confettiChars = ["🎉", "⭐", "🌟", "💫", "🎊", "✨", "🎈", "❤️", "🧡", "💛"];
 
-  let deck = [];
-  let current = 0;
+  // --- Game state ---
+  let playerLevel = 1;       // Current difficulty 1-5
+  let levelProgress = 0;     // Progress toward next level (0-4, need 5 correct to level up)
   let score = 0;
   let streak = 0;
-  let bestStreak = 0;
-  let answered = 0;
+  let cardsPlayed = 0;
 
-  function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+  // Spaced repetition: words got wrong, scheduled for review
+  // Each entry: { word, reviewAfter (cardNumber when to show it) }
+  let reviewQueue = [];
+  let currentWord = null;
+  let isReviewCard = false;
+
+  // Track which words have been seen per level so we don't repeat too soon
+  let seenPerLevel = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+
+  function pickWord() {
+    // Check if any review words are due
+    const dueReviews = reviewQueue.filter(r => cardsPlayed >= r.reviewAfter);
+    if (dueReviews.length > 0) {
+      // Pick the oldest due review
+      const review = dueReviews[0];
+      reviewQueue = reviewQueue.filter(r => r !== review);
+      isReviewCard = true;
+      return review.word;
     }
-    return arr;
-  }
 
-  function init() {
-    deck = shuffle([...words]);
-    current = 0;
-    score = 0;
-    streak = 0;
-    answered = 0;
-    updateStats();
-    showCard();
-    document.getElementById("completeScreen").classList.remove("show");
-    document.getElementById("cardContainer").style.display = "";
+    isReviewCard = false;
+
+    // Adaptive: mostly pick from current level, sometimes from adjacent
+    let level = playerLevel;
+    const roll = Math.random();
+    if (roll < 0.15 && playerLevel > 1) {
+      level = playerLevel - 1; // 15% chance easier
+    } else if (roll < 0.25 && playerLevel < 5) {
+      level = playerLevel + 1; // 10% chance harder preview
+    }
+
+    const pool = wordBank[level];
+    const seen = seenPerLevel[level];
+
+    // Pick unseen words first, reset if all seen
+    const unseen = pool.filter(w => !seen.includes(w.chinese));
+    if (unseen.length === 0) {
+      seenPerLevel[level] = [];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    const word = unseen[Math.floor(Math.random() * unseen.length)];
+    seen.push(word.chinese);
+    return word;
   }
 
   function showCard() {
-    const w = deck[current];
-    document.getElementById("cardChinese").textContent = w.chinese;
-    document.getElementById("cardPinyin").textContent = w.pinyin;
-    document.getElementById("cardChineseBack").textContent = w.chinese;
-    document.getElementById("cardPinyinBack").textContent = w.pinyin;
-    document.getElementById("cardEnglish").textContent = w.english;
+    currentWord = pickWord();
+    document.getElementById("cardChinese").textContent = currentWord.chinese;
+    document.getElementById("cardChineseBack").textContent = currentWord.chinese;
+    document.getElementById("cardPinyinBack").textContent = currentWord.pinyin;
+    document.getElementById("cardEnglish").textContent = currentWord.english;
     document.getElementById("card").classList.remove("flipped");
+
+    // Show/hide review tag
+    const show = isReviewCard ? "" : "none";
+    document.getElementById("reviewTagFront").style.display = show;
+    document.getElementById("reviewTagBack").style.display = show;
   }
 
   function updateStats() {
     document.getElementById("score").textContent = score;
-    document.getElementById("total").textContent = deck.length;
+    document.getElementById("level").textContent = playerLevel;
     document.getElementById("streak").textContent = streak + " 🔥";
-    const pct = (answered / deck.length) * 100;
-    document.getElementById("progress").style.width = pct + "%";
+    const pct = (levelProgress / 5) * 100;
+    document.getElementById("levelBar").style.width = pct + "%";
   }
 
   // Flip card on tap
@@ -406,29 +512,62 @@
   });
 
   function answer(knew) {
-    answered++;
+    cardsPlayed++;
+
     if (knew) {
       score++;
       streak++;
-      if (streak > bestStreak) bestStreak = streak;
-      // Show reward every 3 correct in a row, or at certain milestones
-      if (streak > 0 && streak % 3 === 0) {
+
+      // Level up progress
+      levelProgress++;
+      if (levelProgress >= 5 && playerLevel < 5) {
+        playerLevel++;
+        levelProgress = 0;
+        showLevelUp();
+      } else if (levelProgress >= 5) {
+        levelProgress = 5; // Cap at max level
+      }
+
+      // Reward every 5 streak
+      if (streak > 0 && streak % 5 === 0) {
         showReward();
       }
     } else {
       streak = 0;
-      // Put the word back later in the deck for another try
-      if (answered < deck.length) {
-        deck.push({ ...deck[current] });
+
+      // Level down progress (but don't go below 0 or drop level too fast)
+      levelProgress = Math.max(0, levelProgress - 1);
+
+      // If at 0 progress and keep getting wrong, drop a level
+      if (levelProgress === 0 && playerLevel > 1) {
+        // Only drop if they got the last 2 wrong (be gentle)
+        playerLevel--;
+        levelProgress = 3; // Start partway through the lower level
       }
+
+      // Schedule this word for review: come back after 3-6 cards
+      const delay = 3 + Math.floor(Math.random() * 4);
+      reviewQueue.push({
+        word: { ...currentWord },
+        reviewAfter: cardsPlayed + delay,
+      });
     }
+
     updateStats();
-    current++;
-    if (current >= deck.length) {
-      showComplete();
-    } else {
-      showCard();
-    }
+    showCard();
+  }
+
+  function showLevelUp() {
+    const r = {
+      pic: ["🌟", "🚀", "⚡", "🏆", "👑"][playerLevel - 1] || "🌟",
+      title: "Level " + playerLevel + "!",
+      msg: "You reached " + levelNames[playerLevel] + " difficulty!"
+    };
+    document.getElementById("rewardPic").textContent = r.pic;
+    document.getElementById("rewardTitle").textContent = r.title;
+    document.getElementById("rewardMsg").textContent = r.msg;
+    document.getElementById("rewardOverlay").classList.add("show");
+    spawnConfetti();
   }
 
   function showReward() {
@@ -457,38 +596,19 @@
     }
   }
 
-  function showComplete() {
-    document.getElementById("cardContainer").style.display = "none";
-    const pct = Math.round((score / words.length) * 100);
-    let title, emoji;
-    if (pct === 100) { title = "PERFECT! You're a Chinese superstar!"; emoji = "🏆🌟🎉"; }
-    else if (pct >= 70) { title = "Great job! Almost perfect!"; emoji = "🎉👏"; }
-    else { title = "Good try! Practice makes perfect!"; emoji = "💪📚"; }
-    document.getElementById("completeTitle").textContent = title;
-    document.getElementById("completeMsg").textContent =
-      `You got ${score} out of ${words.length} correct! ${emoji}\nBest streak: ${bestStreak} 🔥`;
-    document.getElementById("completeScreen").classList.add("show");
-    document.getElementById("progress").style.width = "100%";
-    if (pct >= 70) spawnConfetti();
-  }
-
   function speakWord() {
-    const w = deck[current];
-    const utterance = new SpeechSynthesisUtterance(w.chinese);
+    const utterance = new SpeechSynthesisUtterance(currentWord.chinese);
     utterance.lang = "zh-CN";
     utterance.rate = 0.8;
     speechSynthesis.speak(utterance);
   }
 
-  function restart() {
-    init();
-  }
-
   // Start!
-  init();
+  updateStats();
+  showCard();
 </script>
 
-<div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: rgba(0,0,0,0.3);">v1.2</div>
+<div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: rgba(0,0,0,0.3);">v2.0</div>
 
 </body>
 </html>
