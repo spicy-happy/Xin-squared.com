@@ -110,7 +110,7 @@
       margin-bottom: 6px;
     }
 
-    .card-front .card-pinyin { margin-bottom: 0; }
+
 
     .listen-btn {
       position: absolute;
@@ -293,7 +293,6 @@
         <div class="review-tag" id="reviewTagFront" style="display:none">Review</div>
         <button class="listen-btn" onclick="event.stopPropagation(); speakWord()">&#x1f50a;</button>
         <div class="card-chinese" id="cardChinese"></div>
-        <div class="card-pinyin" id="cardPinyin"></div>
       </div>
       <div class="card-face card-back">
         <div class="review-tag" id="reviewTagBack" style="display:none">Review</div>
@@ -488,7 +487,6 @@
   function showCard() {
     currentWord = pickWord();
     document.getElementById("cardChinese").textContent = currentWord.chinese;
-    document.getElementById("cardPinyin").textContent = currentWord.pinyin;
     document.getElementById("cardChineseBack").textContent = currentWord.chinese;
     document.getElementById("cardPinyinBack").textContent = currentWord.pinyin;
     document.getElementById("cardEnglish").textContent = currentWord.english;
