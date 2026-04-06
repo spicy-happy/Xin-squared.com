@@ -97,17 +97,6 @@
       color: #fff;
     }
 
-    .card-emoji {
-      font-size: 4rem;
-      margin-bottom: 10px;
-      animation: bounce 2s infinite;
-    }
-
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
     .card-chinese {
       font-size: 5rem;
       font-weight: 700;
@@ -121,28 +110,45 @@
       margin-bottom: 6px;
     }
 
-    .card-hint {
-      font-size: 0.9rem;
-      color: #aaa;
-      margin-top: 10px;
+    .card-front .card-pinyin { margin-bottom: 0; }
+
+    .listen-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.6rem;
+      opacity: 0.5;
+      transition: opacity 0.2s, transform 0.2s;
+      padding: 4px;
+      line-height: 1;
     }
 
-    .card-back .card-chinese { color: #fff; }
+    .listen-btn:hover { opacity: 1; transform: scale(1.15); }
+    .card-back .listen-btn { color: #fff; }
+
+    .card-back .card-chinese { color: #fff; font-size: 3rem; margin-bottom: 4px; }
     .card-back .card-english {
-      font-size: 2rem;
+      font-size: 2.2rem;
       font-weight: 700;
+      margin-bottom: 8px;
     }
-    .card-back .card-pinyin { color: rgba(255,255,255,0.85); }
+    .card-back .card-pinyin { color: rgba(255,255,255,0.85); margin-bottom: 16px; }
+
+    .card-back .card-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .card-back .card-actions .btn {
+      padding: 10px 22px;
+      font-size: 0.95rem;
+    }
 
     /* Buttons */
-    .btn-row {
-      display: flex;
-      gap: 14px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
     .btn {
       border: none;
       border-radius: 50px;
@@ -159,9 +165,7 @@
 
     .btn-know { background: #4ecdc4; color: #fff; }
     .btn-dont-know { background: #ff6b6b; color: #fff; }
-    .btn-flip { background: #fff; color: #e44d6e; }
     .btn-next { background: #e44d6e; color: #fff; }
-    .btn-speak { background: #ffd93d; color: #333; }
     .btn-restart { background: #a18cd1; color: #fff; }
 
     /* Progress bar */
@@ -280,24 +284,21 @@
   <div class="card-container" id="cardContainer">
     <div class="card" id="card">
       <div class="card-face card-front">
-        <div class="card-emoji" id="cardEmoji"></div>
+        <button class="listen-btn" onclick="event.stopPropagation(); speakWord()">&#x1f50a;</button>
         <div class="card-chinese" id="cardChinese"></div>
         <div class="card-pinyin" id="cardPinyin"></div>
-        <div class="card-hint">tap to see answer</div>
       </div>
       <div class="card-face card-back">
-        <div class="card-emoji" id="cardEmojiBack"></div>
+        <button class="listen-btn" onclick="event.stopPropagation(); speakWord()">&#x1f50a;</button>
+        <div class="card-english" id="cardEnglish"></div>
         <div class="card-chinese" id="cardChineseBack"></div>
         <div class="card-pinyin" id="cardPinyinBack"></div>
-        <div class="card-english" id="cardEnglish"></div>
+        <div class="card-actions">
+          <button class="btn btn-know" onclick="event.stopPropagation(); answer(true)">I knew it!</button>
+          <button class="btn btn-dont-know" onclick="event.stopPropagation(); answer(false)">Still learning</button>
+        </div>
       </div>
     </div>
-  </div>
-
-  <div class="btn-row" id="btnRow">
-    <button class="btn btn-speak" onclick="speakWord()" title="Hear it!">🔊 Listen</button>
-    <button class="btn btn-know" onclick="answer(true)">I knew it! ✅</button>
-    <button class="btn btn-dont-know" onclick="answer(false)">Still learning 🤔</button>
   </div>
 
   <!-- Reward overlay -->
@@ -315,32 +316,22 @@
     <div class="big-emoji">🏆</div>
     <h2 id="completeTitle">Amazing job!</h2>
     <p id="completeMsg"></p>
-    <button class="btn btn-restart" onclick="restart()">Play Again! 🔄</button>
+    <button class="btn btn-restart" onclick="restart()">Play Again!</button>
   </div>
 
 <script>
   // --- Word data: 10 easy Chinese words ---
   const words = [
-    { chinese: "你好", pinyin: "nǐ hǎo",    english: "Hello",     emoji: "👋" },
-    { chinese: "猫",   pinyin: "māo",       english: "Cat",       emoji: "🐱" },
-    { chinese: "狗",   pinyin: "gǒu",       english: "Dog",       emoji: "🐶" },
-    { chinese: "水",   pinyin: "shuǐ",      english: "Water",     emoji: "💧" },
-    { chinese: "太阳", pinyin: "tài yáng",   english: "Sun",       emoji: "☀️" },
-    { chinese: "月亮", pinyin: "yuè liang",  english: "Moon",      emoji: "🌙" },
-    { chinese: "鱼",   pinyin: "yú",         english: "Fish",      emoji: "🐟" },
-    { chinese: "花",   pinyin: "huā",        english: "Flower",    emoji: "🌸" },
-    { chinese: "大",   pinyin: "dà",         english: "Big",       emoji: "🦣" },
-    { chinese: "小",   pinyin: "xiǎo",       english: "Small",     emoji: "🐜" },
-    { chinese: "妈妈", pinyin: "mā ma",      english: "Mom",       emoji: "👩" },
-    { chinese: "爸爸", pinyin: "bà ba",      english: "Dad",       emoji: "👨" },
-    { chinese: "星星", pinyin: "xīng xing",  english: "Star",      emoji: "⭐" },
-    { chinese: "树",   pinyin: "shù",        english: "Tree",      emoji: "🌳" },
-    { chinese: "鸟",   pinyin: "niǎo",       english: "Bird",      emoji: "🐦" },
-    { chinese: "苹果", pinyin: "píng guǒ",   english: "Apple",     emoji: "🍎" },
-    { chinese: "吃",   pinyin: "chī",        english: "Eat",       emoji: "😋" },
-    { chinese: "跑",   pinyin: "pǎo",        english: "Run",       emoji: "🏃" },
-    { chinese: "谢谢", pinyin: "xiè xie",    english: "Thank you", emoji: "🙏" },
-    { chinese: "朋友", pinyin: "péng yǒu",   english: "Friend",    emoji: "🤝" },
+    { chinese: "一",   pinyin: "yī",         english: "One"       },
+    { chinese: "二",   pinyin: "èr",         english: "Two"       },
+    { chinese: "三",   pinyin: "sān",        english: "Three"     },
+    { chinese: "红",   pinyin: "hóng",       english: "Red"       },
+    { chinese: "蓝",   pinyin: "lán",        english: "Blue"      },
+    { chinese: "手",   pinyin: "shǒu",       english: "Hand"      },
+    { chinese: "口",   pinyin: "kǒu",        english: "Mouth"     },
+    { chinese: "山",   pinyin: "shān",        english: "Mountain"  },
+    { chinese: "火",   pinyin: "huǒ",        english: "Fire"      },
+    { chinese: "天",   pinyin: "tiān",        english: "Sky"       },
   ];
 
   // Silly reward pictures & messages
@@ -389,15 +380,12 @@
     showCard();
     document.getElementById("completeScreen").classList.remove("show");
     document.getElementById("cardContainer").style.display = "";
-    document.getElementById("btnRow").style.display = "";
   }
 
   function showCard() {
     const w = deck[current];
-    document.getElementById("cardEmoji").textContent = w.emoji;
     document.getElementById("cardChinese").textContent = w.chinese;
     document.getElementById("cardPinyin").textContent = w.pinyin;
-    document.getElementById("cardEmojiBack").textContent = w.emoji;
     document.getElementById("cardChineseBack").textContent = w.chinese;
     document.getElementById("cardPinyinBack").textContent = w.pinyin;
     document.getElementById("cardEnglish").textContent = w.english;
@@ -471,7 +459,6 @@
 
   function showComplete() {
     document.getElementById("cardContainer").style.display = "none";
-    document.getElementById("btnRow").style.display = "none";
     const pct = Math.round((score / words.length) * 100);
     let title, emoji;
     if (pct === 100) { title = "PERFECT! You're a Chinese superstar!"; emoji = "🏆🌟🎉"; }
@@ -501,7 +488,7 @@
   init();
 </script>
 
-<div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: rgba(0,0,0,0.3);">v1.1</div>
+<div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: rgba(0,0,0,0.3);">v1.2</div>
 
 </body>
 </html>
