@@ -1561,17 +1561,33 @@
     if (!text) return;
     if (!activeProfile.customWords) activeProfile.customWords = [];
 
-    const lines = text.split("\n").filter(l => l.trim());
+    // Split input into individual words/characters
+    const rawLines = text.split("\n").filter(l => l.trim());
+    const entries = [];
+    for (const line of rawLines) {
+      const trimmed = line.trim();
+      if (trimmed.includes(",")) {
+        // CSV format: chinese, pinyin, english
+        entries.push(trimmed);
+      } else if (trimmed.length > 2 && !trimmed.includes(" ")) {
+        // Block of characters pasted together - split into individual chars
+        for (const ch of trimmed) {
+          if (/[\u4e00-\u9fff]/.test(ch)) entries.push(ch);
+        }
+      } else {
+        entries.push(trimmed);
+      }
+    }
+
     let added = 0;
-    for (const line of lines) {
-      const parts = line.split(",").map(s => s.trim());
+    for (const entry of entries) {
+      const parts = entry.split(",").map(s => s.trim());
       let word;
       if (parts.length >= 3) {
         word = { chinese: parts[0], pinyin: parts[1], english: parts[2], correct: 0 };
       } else if (parts.length === 2) {
         word = { chinese: parts[0], pinyin: guessPinyin(parts[0]), english: parts[1], correct: 0 };
       } else {
-        // Just Chinese characters pasted
         const ch = parts[0];
         if (!ch) continue;
         word = { chinese: ch, pinyin: guessPinyin(ch), english: guessEnglish(ch), correct: 0 };
