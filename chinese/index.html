@@ -473,6 +473,122 @@
     .game-area { display: none; }
     .game-area.active { display: flex; flex-direction: column; align-items: center; }
 
+    /* Activity menu */
+    .activity-menu { display: none; width: 100%; max-width: 400px; text-align: center; }
+    .activity-menu.active { display: block; }
+
+    .activity-menu h2 { font-size: 1.4rem; color: #e44d6e; margin-bottom: 6px; }
+    .activity-menu .menu-sub { font-size: 0.9rem; color: #999; margin-bottom: 20px; }
+
+    .activity-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .activity-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .activity-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .activity-icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .activity-name { font-weight: 700; font-size: 1rem; color: #333; margin-bottom: 4px; }
+    .activity-desc { font-size: 0.75rem; color: #999; }
+
+    /* Match game */
+    .match-area { display: none; width: 100%; max-width: 400px; }
+    .match-area.active { display: flex; flex-direction: column; align-items: center; }
+
+    .match-prompt {
+      font-size: 3.5rem;
+      font-weight: 700;
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px 40px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      text-align: center;
+      min-width: 200px;
+    }
+
+    .match-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .match-opt {
+      background: #fff;
+      border: 3px solid #eee;
+      border-radius: 16px;
+      padding: 16px 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .match-opt:hover { border-color: #a18cd1; }
+    .match-opt.correct { border-color: #4ecdc4; background: #e8faf8; }
+    .match-opt.wrong { border-color: #ff6b6b; background: #fff0f0; }
+
+    .match-info { font-size: 0.85rem; color: #999; margin-bottom: 10px; }
+
+    /* Trace area */
+    .trace-area { display: none; width: 100%; max-width: 400px; }
+    .trace-area.active { display: flex; flex-direction: column; align-items: center; }
+
+    .trace-char {
+      font-size: 10rem;
+      font-weight: 700;
+      color: #eee;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .trace-canvas-wrap {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .trace-canvas-wrap canvas {
+      position: relative;
+      z-index: 2;
+      cursor: crosshair;
+    }
+
+    .trace-word-info {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .trace-word-info .tw-pinyin { font-size: 1.2rem; color: #e44d6e; }
+    .trace-word-info .tw-english { font-size: 1rem; color: #666; }
+
     /* Settings page */
     .settings-screen {
       display: none;
@@ -737,11 +853,71 @@
     </div>
   </div>
 
-  <!-- Game area (hidden until profile selected) -->
-  <div class="game-area" id="gameArea">
-    <button class="switch-profile-btn" id="switchBtn" onclick="switchProfile()"></button>
+  <!-- Activity menu -->
+  <div class="activity-menu" id="activityMenu">
+    <button class="switch-profile-btn" id="menuSwitchBtn" onclick="switchProfile()"></button>
     <button class="settings-btn" onclick="openSettings()">Settings</button>
-    <p class="subtitle">Endless Mode - Tap to flip!</p>
+    <h2 id="menuGreeting">Pick an activity!</h2>
+    <p class="menu-sub">What do you want to practice?</p>
+    <div class="activity-grid">
+      <div class="activity-card" onclick="startActivity('flashcard')">
+        <div class="activity-icon">🔄</div>
+        <div class="activity-name">Flashcards</div>
+        <div class="activity-desc">Flip cards to learn words</div>
+      </div>
+      <div class="activity-card" onclick="startActivity('match_pinyin')">
+        <div class="activity-icon">🔤</div>
+        <div class="activity-name">Match Pinyin</div>
+        <div class="activity-desc">Match words to their sound</div>
+      </div>
+      <div class="activity-card" onclick="startActivity('match_def')">
+        <div class="activity-icon">🔗</div>
+        <div class="activity-name">Match Meaning</div>
+        <div class="activity-desc">Match words to English</div>
+      </div>
+      <div class="activity-card" onclick="startActivity('trace')">
+        <div class="activity-icon">✏️</div>
+        <div class="activity-name">Trace</div>
+        <div class="activity-desc">Practice writing characters</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match game area -->
+  <div class="match-area" id="matchArea">
+    <button class="switch-profile-btn" onclick="backToMenu()">← Back</button>
+    <button class="settings-btn" onclick="openSettings()">Settings</button>
+    <p class="match-info" id="matchInfo"></p>
+    <div class="stats">
+      <div class="stat-box"><span class="label">Score</span><br><span class="value" id="matchScore">0</span></div>
+      <div class="stat-box"><span class="label">Streak</span><br><span class="streak-fire" id="matchStreak">0 🔥</span></div>
+    </div>
+    <div class="match-prompt" id="matchPrompt"></div>
+    <div class="match-options" id="matchOptions"></div>
+  </div>
+
+  <!-- Trace area -->
+  <div class="trace-area" id="traceArea">
+    <button class="switch-profile-btn" onclick="backToMenu()">← Back</button>
+    <button class="settings-btn" onclick="openSettings()">Settings</button>
+    <div class="trace-word-info">
+      <span class="tw-pinyin" id="tracePinyin"></span> · <span class="tw-english" id="traceEnglish"></span>
+    </div>
+    <div class="trace-canvas-wrap">
+      <div class="trace-char" id="traceChar"></div>
+      <canvas id="traceCanvas" width="280" height="280"></canvas>
+    </div>
+    <div class="form-buttons">
+      <button class="btn btn-cancel btn-small" onclick="clearTrace()">Clear</button>
+      <button class="btn btn-know btn-small" onclick="nextTrace()">Next</button>
+    </div>
+  </div>
+
+  <!-- Game area (flashcards) -->
+  <div class="game-area" id="gameArea">
+    <button class="switch-profile-btn" onclick="backToMenu()">← Back</button>
+    <button class="settings-btn" onclick="openSettings()">Settings</button>
+    <p class="subtitle">Tap to flip!</p>
 
     <div class="stats">
       <div class="stat-box"><span class="label">Level</span><br><span class="value" id="level">1</span></div>
@@ -1165,6 +1341,15 @@
     renderProfiles();
   }
 
+  function hideAllScreens() {
+    document.getElementById("profileScreen").style.display = "none";
+    document.getElementById("activityMenu").classList.remove("active");
+    document.getElementById("gameArea").classList.remove("active");
+    document.getElementById("matchArea").classList.remove("active");
+    document.getElementById("traceArea").classList.remove("active");
+    document.getElementById("settingsScreen").classList.remove("active");
+  }
+
   function selectProfile(i) {
     activeProfile = profiles[i];
     playerLevel = activeProfile.playerLevel;
@@ -1175,19 +1360,43 @@
     cardsPlayed = activeProfile.cardsPlayed;
     reviewQueue = activeProfile.reviewQueue || [];
     seenPerLevel = activeProfile.seenPerLevel || { 1:[], 2:[], 3:[], 4:[], 5:[] };
-    document.getElementById("profileScreen").style.display = "none";
-    document.getElementById("gameArea").classList.add("active");
-    document.getElementById("switchBtn").textContent = activeProfile.avatar + " " + activeProfile.name;
-    updateStats();
-    showCard();
+    showActivityMenu();
+  }
+
+  function showActivityMenu() {
+    hideAllScreens();
+    document.getElementById("activityMenu").classList.add("active");
+    const name = activeProfile ? activeProfile.name : "";
+    document.getElementById("menuGreeting").textContent = "Hi " + name + "!";
+    document.getElementById("menuSwitchBtn").textContent = activeProfile.avatar + " Switch";
+  }
+
+  function backToMenu() {
+    saveProgress();
+    showActivityMenu();
   }
 
   function switchProfile() {
     saveProgress();
-    document.getElementById("gameArea").classList.remove("active");
+    hideAllScreens();
     document.getElementById("profileScreen").style.display = "";
     activeProfile = null;
     renderProfiles();
+  }
+
+  function startActivity(type) {
+    hideAllScreens();
+    if (type === "flashcard") {
+      document.getElementById("gameArea").classList.add("active");
+      updateStats();
+      showCard();
+    } else if (type === "match_pinyin" || type === "match_def") {
+      document.getElementById("matchArea").classList.add("active");
+      startMatch(type);
+    } else if (type === "trace") {
+      document.getElementById("traceArea").classList.add("active");
+      startTrace();
+    }
   }
 
   function saveProgress() {
@@ -1432,7 +1641,7 @@
   // --- Settings page ---
   function openSettings() {
     if (!activeProfile) return;
-    document.getElementById("gameArea").classList.remove("active");
+    hideAllScreens();
     document.getElementById("settingsScreen").classList.add("active");
     document.getElementById("settingsTitle").textContent = activeProfile.name + "'s Settings";
     document.getElementById("editAge").value = activeProfile.age;
@@ -1442,8 +1651,8 @@
   }
 
   function closeSettings() {
-    document.getElementById("settingsScreen").classList.remove("active");
-    document.getElementById("gameArea").classList.add("active");
+    hideAllScreens();
+    showActivityMenu();
   }
 
   function showToast(msg) {
@@ -1699,6 +1908,157 @@
     }
     return origPickWord();
   };
+
+  // --- Matching game ---
+  let matchType = "match_pinyin";
+  let matchCorrectWord = null;
+  let matchScore2 = 0;
+  let matchStreak2 = 0;
+  let matchLocked = false;
+
+  function getMatchPool() {
+    // Gather words from accessible levels + focus words
+    const pool = [];
+    for (let l = 1; l <= maxLevel; l++) {
+      if (wordBank[l]) pool.push(...wordBank[l]);
+    }
+    if (activeProfile && activeProfile.customWords) {
+      for (const cw of activeProfile.customWords) {
+        if (cw.chinese && (cw.pinyin || cw.english)) pool.push(cw);
+      }
+    }
+    return pool;
+  }
+
+  function startMatch(type) {
+    matchType = type;
+    matchScore2 = 0;
+    matchStreak2 = 0;
+    document.getElementById("matchInfo").textContent =
+      type === "match_pinyin" ? "Match the character to its pinyin" : "Match the character to its meaning";
+    document.getElementById("matchScore").textContent = "0";
+    document.getElementById("matchStreak").textContent = "0 🔥";
+    nextMatch();
+  }
+
+  function nextMatch() {
+    matchLocked = false;
+    const pool = getMatchPool().filter(w => w.pinyin && w.english);
+    if (pool.length < 4) return;
+
+    // Pick correct word and 3 distractors
+    const shuffled = pool.sort(() => Math.random() - 0.5);
+    matchCorrectWord = shuffled[0];
+    const options = [matchCorrectWord];
+    const used = new Set([matchCorrectWord.chinese]);
+    for (const w of shuffled) {
+      if (options.length >= 4) break;
+      const val = matchType === "match_pinyin" ? w.pinyin : w.english;
+      const correctVal = matchType === "match_pinyin" ? matchCorrectWord.pinyin : matchCorrectWord.english;
+      if (!used.has(w.chinese) && val !== correctVal) {
+        options.push(w);
+        used.add(w.chinese);
+      }
+    }
+
+    // Shuffle options
+    options.sort(() => Math.random() - 0.5);
+
+    document.getElementById("matchPrompt").textContent = matchCorrectWord.chinese;
+    const container = document.getElementById("matchOptions");
+    container.innerHTML = options.map(w => {
+      const display = matchType === "match_pinyin" ? w.pinyin : w.english;
+      return '<button class="match-opt" onclick="checkMatch(this,\'' +
+        w.chinese.replace(/'/g, "\\'") + '\')">' + display + '</button>';
+    }).join("");
+  }
+
+  function checkMatch(btn, chinese) {
+    if (matchLocked) return;
+    matchLocked = true;
+    const correct = chinese === matchCorrectWord.chinese;
+
+    if (correct) {
+      btn.classList.add("correct");
+      matchScore2++;
+      matchStreak2++;
+      playDing();
+      boostMastery(matchCorrectWord.chinese, matchType, true);
+    } else {
+      btn.classList.add("wrong");
+      matchStreak2 = 0;
+      boostMastery(matchCorrectWord.chinese, matchType, false);
+      // Highlight correct answer
+      document.querySelectorAll(".match-opt").forEach(b => {
+        if (b.textContent === (matchType === "match_pinyin" ? matchCorrectWord.pinyin : matchCorrectWord.english)) {
+          b.classList.add("correct");
+        }
+      });
+    }
+
+    document.getElementById("matchScore").textContent = matchScore2;
+    document.getElementById("matchStreak").textContent = matchStreak2 + " 🔥";
+    saveProgress();
+
+    setTimeout(nextMatch, correct ? 600 : 1200);
+  }
+
+  // --- Tracing activity ---
+  let traceWord = null;
+  let traceCtx = null;
+  let tracing = false;
+
+  function startTrace() {
+    const canvas = document.getElementById("traceCanvas");
+    traceCtx = canvas.getContext("2d");
+    traceCtx.lineWidth = 6;
+    traceCtx.lineCap = "round";
+    traceCtx.strokeStyle = "#e44d6e";
+
+    // Touch + mouse events
+    canvas.onmousedown = (e) => { tracing = true; traceCtx.beginPath(); traceCtx.moveTo(e.offsetX, e.offsetY); };
+    canvas.onmousemove = (e) => { if (tracing) { traceCtx.lineTo(e.offsetX, e.offsetY); traceCtx.stroke(); } };
+    canvas.onmouseup = () => tracing = false;
+    canvas.onmouseleave = () => tracing = false;
+
+    canvas.ontouchstart = (e) => {
+      e.preventDefault();
+      tracing = true;
+      const r = canvas.getBoundingClientRect();
+      const t = e.touches[0];
+      traceCtx.beginPath();
+      traceCtx.moveTo(t.clientX - r.left, t.clientY - r.top);
+    };
+    canvas.ontouchmove = (e) => {
+      e.preventDefault();
+      if (!tracing) return;
+      const r = canvas.getBoundingClientRect();
+      const t = e.touches[0];
+      traceCtx.lineTo(t.clientX - r.left, t.clientY - r.top);
+      traceCtx.stroke();
+    };
+    canvas.ontouchend = () => tracing = false;
+
+    nextTrace();
+  }
+
+  function nextTrace() {
+    clearTrace();
+    const pool = getMatchPool().filter(w => w.chinese && w.chinese.length === 1);
+    if (pool.length === 0) return;
+    traceWord = pool[Math.floor(Math.random() * pool.length)];
+    document.getElementById("traceChar").textContent = traceWord.chinese;
+    document.getElementById("tracePinyin").textContent = traceWord.pinyin || "";
+    document.getElementById("traceEnglish").textContent = traceWord.english || "";
+    boostMastery(traceWord.chinese, "trace", true);
+    saveProgress();
+  }
+
+  function clearTrace() {
+    if (traceCtx) {
+      traceCtx.clearRect(0, 0, 280, 280);
+    }
+  }
 
   // Start - show profile screen
   renderProfiles();
