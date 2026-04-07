@@ -665,23 +665,30 @@
 
   function showCard() {
     currentWord = pickWord();
+    // Update front immediately (it's hidden during flip)
     document.getElementById("cardChinese").textContent = currentWord.chinese;
-    document.getElementById("cardChineseBack").textContent = currentWord.chinese;
-    document.getElementById("cardPinyinBack").textContent = currentWord.pinyin;
-    document.getElementById("cardEnglish").textContent = currentWord.english;
-    const img = document.getElementById("cardIllust");
-    if (currentWord.icon) {
-      img.src = ICON_BASE + currentWord.icon + ".svg?height=96";
-      img.style.display = "";
-    } else {
-      img.style.display = "none";
-    }
-    document.getElementById("card").classList.remove("flipped");
 
-    // Show/hide review tag
-    const show = isReviewCard ? "" : "none";
-    document.getElementById("reviewTagFront").style.display = show;
-    document.getElementById("reviewTagBack").style.display = show;
+    // Flip to front first
+    const card = document.getElementById("card");
+    card.classList.remove("flipped");
+
+    // Update back content after flip animation completes (0.6s)
+    setTimeout(() => {
+      document.getElementById("cardChineseBack").textContent = currentWord.chinese;
+      document.getElementById("cardPinyinBack").textContent = currentWord.pinyin;
+      document.getElementById("cardEnglish").textContent = currentWord.english;
+      const img = document.getElementById("cardIllust");
+      if (currentWord.icon) {
+        img.src = ICON_BASE + currentWord.icon + ".svg?height=96";
+        img.style.display = "";
+      } else {
+        img.style.display = "none";
+      }
+      // Show/hide review tag
+      const show = isReviewCard ? "" : "none";
+      document.getElementById("reviewTagFront").style.display = show;
+      document.getElementById("reviewTagBack").style.display = show;
+    }, 650);
   }
 
   function updateStats() {
