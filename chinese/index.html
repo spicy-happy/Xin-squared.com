@@ -129,7 +129,13 @@
     .listen-btn:hover { opacity: 1; transform: scale(1.15); }
     .card-back .listen-btn { color: #fff; }
 
-    .card-back .card-chinese { color: #fff; font-size: 3rem; margin-bottom: 4px; }
+    .card-illust {
+      font-size: 3rem;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .card-back .card-chinese { color: #fff; font-size: 2.2rem; margin-bottom: 2px; }
     .card-back .card-english {
       font-size: 2.2rem;
       font-weight: 700;
@@ -297,6 +303,7 @@
       <div class="card-face card-back">
         <div class="review-tag" id="reviewTagBack" style="display:none">Review</div>
         <button class="listen-btn" onclick="event.stopPropagation(); speakWord()">&#x1f50a;</button>
+        <div class="card-illust" id="cardIllust"></div>
         <div class="card-english" id="cardEnglish"></div>
         <div class="card-chinese" id="cardChineseBack"></div>
         <div class="card-pinyin" id="cardPinyinBack"></div>
@@ -320,92 +327,262 @@
 
 
 <script>
+  // --- Sound engine (Web Audio API) ---
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function playTone(freq, duration, type, gain) {
+    const osc = audioCtx.createOscillator();
+    const vol = audioCtx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.value = freq;
+    vol.gain.value = gain || 0.3;
+    vol.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(vol);
+    vol.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  }
+
+  function playDing() {
+    playTone(880, 0.15, "sine", 0.3);
+    setTimeout(() => playTone(1320, 0.3, "sine", 0.25), 100);
+  }
+
+  function playBuzz() {
+    playTone(200, 0.12, "square", 0.15);
+    setTimeout(() => playTone(150, 0.2, "square", 0.12), 80);
+  }
+
+  function playMeow() {
+    const osc = audioCtx.createOscillator();
+    const vol = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(700, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(500, audioCtx.currentTime + 0.3);
+    osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.5);
+    vol.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    vol.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+    osc.connect(vol); vol.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+  }
+
+  function playWoof() {
+    const osc = audioCtx.createOscillator();
+    const vol = audioCtx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(250, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(180, audioCtx.currentTime + 0.15);
+    vol.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    vol.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    osc.connect(vol); vol.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    setTimeout(() => {
+      const o2 = audioCtx.createOscillator();
+      const v2 = audioCtx.createGain();
+      o2.type = "sawtooth";
+      o2.frequency.setValueAtTime(230, audioCtx.currentTime);
+      o2.frequency.linearRampToValueAtTime(160, audioCtx.currentTime + 0.18);
+      v2.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      v2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      o2.connect(v2); v2.connect(audioCtx.destination);
+      o2.start(); o2.stop(audioCtx.currentTime + 0.25);
+    }, 200);
+  }
+
+  function playChirp() {
+    const osc = audioCtx.createOscillator();
+    const vol = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(2000, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(3500, audioCtx.currentTime + 0.05);
+    osc.frequency.linearRampToValueAtTime(2500, audioCtx.currentTime + 0.1);
+    vol.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    vol.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+    osc.connect(vol); vol.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+    setTimeout(() => {
+      const o2 = audioCtx.createOscillator();
+      const v2 = audioCtx.createGain();
+      o2.type = "sine";
+      o2.frequency.setValueAtTime(2200, audioCtx.currentTime);
+      o2.frequency.linearRampToValueAtTime(3800, audioCtx.currentTime + 0.06);
+      v2.gain.setValueAtTime(0.18, audioCtx.currentTime);
+      v2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      o2.connect(v2); v2.connect(audioCtx.destination);
+      o2.start(); o2.stop(audioCtx.currentTime + 0.1);
+    }, 130);
+  }
+
+  function playSplash() {
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => {
+        const osc = audioCtx.createOscillator();
+        const vol = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = 200 + Math.random() * 800;
+        vol.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        vol.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+        osc.connect(vol); vol.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+      }, i * 30);
+    }
+  }
+
+  function playWhoosh() {
+    const osc = audioCtx.createOscillator();
+    const vol = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+    vol.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    vol.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+    osc.connect(vol); vol.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+  }
+
+  function playCrackle() {
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => {
+        const osc = audioCtx.createOscillator();
+        const vol = audioCtx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.value = 100 + Math.random() * 300;
+        vol.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        vol.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+        osc.connect(vol); vol.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+      }, i * 40);
+    }
+  }
+
+  function playRing() {
+    playTone(1200, 0.1, "sine", 0.2);
+    setTimeout(() => playTone(1500, 0.1, "sine", 0.15), 100);
+    setTimeout(() => playTone(1200, 0.15, "sine", 0.1), 200);
+  }
+
+  function playMunch() {
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => {
+        playTone(300 + i * 50, 0.06, "square", 0.12);
+      }, i * 80);
+    }
+  }
+
+  function playGulp() {
+    const osc = audioCtx.createOscillator();
+    const vol = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(200, audioCtx.currentTime + 0.15);
+    vol.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    vol.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    osc.connect(vol); vol.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+  }
+
+  function playSteps() {
+    for (let i = 0; i < 4; i++) {
+      setTimeout(() => playTone(100 + (i % 2) * 40, 0.05, "square", 0.1), i * 100);
+    }
+  }
+
+  const soundFns = { meow: playMeow, woof: playWoof, chirp: playChirp, splash: playSplash, whoosh: playWhoosh, crackle: playCrackle, ring: playRing, munch: playMunch, gulp: playGulp, steps: playSteps };
+
+  function playWordSound(key) {
+    if (key && soundFns[key]) {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      soundFns[key]();
+    }
+  }
+
   // --- Word bank organized by difficulty level (1-5) ---
+  // illust = fun emoji illustration for card back, sound = optional fun sound key
   const wordBank = {
     1: [
-      { chinese: "一", pinyin: "yī", english: "One" },
-      { chinese: "二", pinyin: "èr", english: "Two" },
-      { chinese: "三", pinyin: "sān", english: "Three" },
-      { chinese: "四", pinyin: "sì", english: "Four" },
-      { chinese: "五", pinyin: "wǔ", english: "Five" },
-      { chinese: "大", pinyin: "dà", english: "Big" },
-      { chinese: "小", pinyin: "xiǎo", english: "Small" },
-      { chinese: "人", pinyin: "rén", english: "Person" },
-      { chinese: "口", pinyin: "kǒu", english: "Mouth" },
-      { chinese: "手", pinyin: "shǒu", english: "Hand" },
-      { chinese: "山", pinyin: "shān", english: "Mountain" },
-      { chinese: "水", pinyin: "shuǐ", english: "Water" },
-      { chinese: "火", pinyin: "huǒ", english: "Fire" },
-      { chinese: "天", pinyin: "tiān", english: "Sky" },
-      { chinese: "日", pinyin: "rì", english: "Day" },
+      { chinese: "一", pinyin: "yī", english: "One", illust: "1️⃣" },
+      { chinese: "二", pinyin: "èr", english: "Two", illust: "✌️" },
+      { chinese: "三", pinyin: "sān", english: "Three", illust: "3️⃣" },
+      { chinese: "四", pinyin: "sì", english: "Four", illust: "🍀" },
+      { chinese: "五", pinyin: "wǔ", english: "Five", illust: "🖐️" },
+      { chinese: "大", pinyin: "dà", english: "Big", illust: "🦣" },
+      { chinese: "小", pinyin: "xiǎo", english: "Small", illust: "🐜" },
+      { chinese: "人", pinyin: "rén", english: "Person", illust: "🧍" },
+      { chinese: "口", pinyin: "kǒu", english: "Mouth", illust: "👄" },
+      { chinese: "手", pinyin: "shǒu", english: "Hand", illust: "🤚" },
+      { chinese: "山", pinyin: "shān", english: "Mountain", illust: "🏔️" },
+      { chinese: "水", pinyin: "shuǐ", english: "Water", illust: "💧", sound: "splash" },
+      { chinese: "火", pinyin: "huǒ", english: "Fire", illust: "🔥", sound: "crackle" },
+      { chinese: "天", pinyin: "tiān", english: "Sky", illust: "🌤️" },
+      { chinese: "日", pinyin: "rì", english: "Day", illust: "☀️" },
     ],
     2: [
-      { chinese: "六", pinyin: "liù", english: "Six" },
-      { chinese: "七", pinyin: "qī", english: "Seven" },
-      { chinese: "八", pinyin: "bā", english: "Eight" },
-      { chinese: "九", pinyin: "jiǔ", english: "Nine" },
-      { chinese: "十", pinyin: "shí", english: "Ten" },
-      { chinese: "红", pinyin: "hóng", english: "Red" },
-      { chinese: "蓝", pinyin: "lán", english: "Blue" },
-      { chinese: "白", pinyin: "bái", english: "White" },
-      { chinese: "黑", pinyin: "hēi", english: "Black" },
-      { chinese: "猫", pinyin: "māo", english: "Cat" },
-      { chinese: "狗", pinyin: "gǒu", english: "Dog" },
-      { chinese: "鱼", pinyin: "yú", english: "Fish" },
-      { chinese: "鸟", pinyin: "niǎo", english: "Bird" },
-      { chinese: "花", pinyin: "huā", english: "Flower" },
-      { chinese: "树", pinyin: "shù", english: "Tree" },
+      { chinese: "六", pinyin: "liù", english: "Six", illust: "🎲" },
+      { chinese: "七", pinyin: "qī", english: "Seven", illust: "🌈" },
+      { chinese: "八", pinyin: "bā", english: "Eight", illust: "🎱" },
+      { chinese: "九", pinyin: "jiǔ", english: "Nine", illust: "9️⃣" },
+      { chinese: "十", pinyin: "shí", english: "Ten", illust: "🔟" },
+      { chinese: "红", pinyin: "hóng", english: "Red", illust: "🟥" },
+      { chinese: "蓝", pinyin: "lán", english: "Blue", illust: "🟦" },
+      { chinese: "白", pinyin: "bái", english: "White", illust: "⬜" },
+      { chinese: "黑", pinyin: "hēi", english: "Black", illust: "⬛" },
+      { chinese: "猫", pinyin: "māo", english: "Cat", illust: "🐱", sound: "meow" },
+      { chinese: "狗", pinyin: "gǒu", english: "Dog", illust: "🐶", sound: "woof" },
+      { chinese: "鱼", pinyin: "yú", english: "Fish", illust: "🐟", sound: "splash" },
+      { chinese: "鸟", pinyin: "niǎo", english: "Bird", illust: "🐦", sound: "chirp" },
+      { chinese: "花", pinyin: "huā", english: "Flower", illust: "🌸" },
+      { chinese: "树", pinyin: "shù", english: "Tree", illust: "🌳" },
     ],
     3: [
-      { chinese: "你好", pinyin: "nǐ hǎo", english: "Hello" },
-      { chinese: "谢谢", pinyin: "xiè xie", english: "Thank you" },
-      { chinese: "妈妈", pinyin: "mā ma", english: "Mom" },
-      { chinese: "爸爸", pinyin: "bà ba", english: "Dad" },
-      { chinese: "朋友", pinyin: "péng yǒu", english: "Friend" },
-      { chinese: "太阳", pinyin: "tài yáng", english: "Sun" },
-      { chinese: "月亮", pinyin: "yuè liang", english: "Moon" },
-      { chinese: "星星", pinyin: "xīng xing", english: "Star" },
-      { chinese: "苹果", pinyin: "píng guǒ", english: "Apple" },
-      { chinese: "吃", pinyin: "chī", english: "Eat" },
-      { chinese: "喝", pinyin: "hē", english: "Drink" },
-      { chinese: "跑", pinyin: "pǎo", english: "Run" },
-      { chinese: "走", pinyin: "zǒu", english: "Walk" },
-      { chinese: "看", pinyin: "kàn", english: "Look" },
-      { chinese: "听", pinyin: "tīng", english: "Listen" },
+      { chinese: "你好", pinyin: "nǐ hǎo", english: "Hello", illust: "👋" },
+      { chinese: "谢谢", pinyin: "xiè xie", english: "Thank you", illust: "🙏" },
+      { chinese: "妈妈", pinyin: "mā ma", english: "Mom", illust: "👩" },
+      { chinese: "爸爸", pinyin: "bà ba", english: "Dad", illust: "👨" },
+      { chinese: "朋友", pinyin: "péng yǒu", english: "Friend", illust: "🤝" },
+      { chinese: "太阳", pinyin: "tài yáng", english: "Sun", illust: "🌞" },
+      { chinese: "月亮", pinyin: "yuè liang", english: "Moon", illust: "🌙" },
+      { chinese: "星星", pinyin: "xīng xing", english: "Star", illust: "⭐" },
+      { chinese: "苹果", pinyin: "píng guǒ", english: "Apple", illust: "🍎", sound: "munch" },
+      { chinese: "吃", pinyin: "chī", english: "Eat", illust: "😋", sound: "munch" },
+      { chinese: "喝", pinyin: "hē", english: "Drink", illust: "🥤", sound: "gulp" },
+      { chinese: "跑", pinyin: "pǎo", english: "Run", illust: "🏃", sound: "steps" },
+      { chinese: "走", pinyin: "zǒu", english: "Walk", illust: "🚶", sound: "steps" },
+      { chinese: "看", pinyin: "kàn", english: "Look", illust: "👀" },
+      { chinese: "听", pinyin: "tīng", english: "Listen", illust: "👂" },
     ],
     4: [
-      { chinese: "学校", pinyin: "xué xiào", english: "School" },
-      { chinese: "老师", pinyin: "lǎo shī", english: "Teacher" },
-      { chinese: "学生", pinyin: "xué shēng", english: "Student" },
-      { chinese: "书", pinyin: "shū", english: "Book" },
-      { chinese: "电话", pinyin: "diàn huà", english: "Phone" },
-      { chinese: "医生", pinyin: "yī shēng", english: "Doctor" },
-      { chinese: "高兴", pinyin: "gāo xìng", english: "Happy" },
-      { chinese: "漂亮", pinyin: "piào liang", english: "Pretty" },
-      { chinese: "快乐", pinyin: "kuài lè", english: "Joyful" },
-      { chinese: "时间", pinyin: "shí jiān", english: "Time" },
-      { chinese: "今天", pinyin: "jīn tiān", english: "Today" },
-      { chinese: "明天", pinyin: "míng tiān", english: "Tomorrow" },
-      { chinese: "昨天", pinyin: "zuó tiān", english: "Yesterday" },
-      { chinese: "早上", pinyin: "zǎo shang", english: "Morning" },
-      { chinese: "晚上", pinyin: "wǎn shang", english: "Evening" },
+      { chinese: "学校", pinyin: "xué xiào", english: "School", illust: "🏫", sound: "ring" },
+      { chinese: "老师", pinyin: "lǎo shī", english: "Teacher", illust: "👩‍🏫" },
+      { chinese: "学生", pinyin: "xué shēng", english: "Student", illust: "🎒" },
+      { chinese: "书", pinyin: "shū", english: "Book", illust: "📖" },
+      { chinese: "电话", pinyin: "diàn huà", english: "Phone", illust: "📱", sound: "ring" },
+      { chinese: "医生", pinyin: "yī shēng", english: "Doctor", illust: "👨‍⚕️" },
+      { chinese: "高兴", pinyin: "gāo xìng", english: "Happy", illust: "😄" },
+      { chinese: "漂亮", pinyin: "piào liang", english: "Pretty", illust: "💐" },
+      { chinese: "快乐", pinyin: "kuài lè", english: "Joyful", illust: "🥳" },
+      { chinese: "时间", pinyin: "shí jiān", english: "Time", illust: "⏰", sound: "ring" },
+      { chinese: "今天", pinyin: "jīn tiān", english: "Today", illust: "📅" },
+      { chinese: "明天", pinyin: "míng tiān", english: "Tomorrow", illust: "🌅" },
+      { chinese: "昨天", pinyin: "zuó tiān", english: "Yesterday", illust: "🌇" },
+      { chinese: "早上", pinyin: "zǎo shang", english: "Morning", illust: "🌄" },
+      { chinese: "晚上", pinyin: "wǎn shang", english: "Evening", illust: "🌃" },
     ],
     5: [
-      { chinese: "飞机", pinyin: "fēi jī", english: "Airplane" },
-      { chinese: "图书馆", pinyin: "tú shū guǎn", english: "Library" },
-      { chinese: "动物园", pinyin: "dòng wù yuán", english: "Zoo" },
-      { chinese: "巧克力", pinyin: "qiǎo kè lì", english: "Chocolate" },
-      { chinese: "西瓜", pinyin: "xī guā", english: "Watermelon" },
-      { chinese: "聪明", pinyin: "cōng míng", english: "Smart" },
-      { chinese: "勇敢", pinyin: "yǒng gǎn", english: "Brave" },
-      { chinese: "认真", pinyin: "rèn zhēn", english: "Serious" },
-      { chinese: "练习", pinyin: "liàn xí", english: "Practice" },
-      { chinese: "冒险", pinyin: "mào xiǎn", english: "Adventure" },
-      { chinese: "厨房", pinyin: "chú fáng", english: "Kitchen" },
-      { chinese: "钢琴", pinyin: "gāng qín", english: "Piano" },
-      { chinese: "恐龙", pinyin: "kǒng lóng", english: "Dinosaur" },
-      { chinese: "蝴蝶", pinyin: "hú dié", english: "Butterfly" },
-      { chinese: "彩虹", pinyin: "cǎi hóng", english: "Rainbow" },
+      { chinese: "飞机", pinyin: "fēi jī", english: "Airplane", illust: "✈️", sound: "whoosh" },
+      { chinese: "图书馆", pinyin: "tú shū guǎn", english: "Library", illust: "📚" },
+      { chinese: "动物园", pinyin: "dòng wù yuán", english: "Zoo", illust: "🦁" },
+      { chinese: "巧克力", pinyin: "qiǎo kè lì", english: "Chocolate", illust: "🍫", sound: "munch" },
+      { chinese: "西瓜", pinyin: "xī guā", english: "Watermelon", illust: "🍉", sound: "munch" },
+      { chinese: "聪明", pinyin: "cōng míng", english: "Smart", illust: "🧠" },
+      { chinese: "勇敢", pinyin: "yǒng gǎn", english: "Brave", illust: "🦸" },
+      { chinese: "认真", pinyin: "rèn zhēn", english: "Serious", illust: "🤓" },
+      { chinese: "练习", pinyin: "liàn xí", english: "Practice", illust: "✏️" },
+      { chinese: "冒险", pinyin: "mào xiǎn", english: "Adventure", illust: "🗺️" },
+      { chinese: "厨房", pinyin: "chú fáng", english: "Kitchen", illust: "👨‍🍳" },
+      { chinese: "钢琴", pinyin: "gāng qín", english: "Piano", illust: "🎹" },
+      { chinese: "恐龙", pinyin: "kǒng lóng", english: "Dinosaur", illust: "🦕" },
+      { chinese: "蝴蝶", pinyin: "hú dié", english: "Butterfly", illust: "🦋" },
+      { chinese: "彩虹", pinyin: "cǎi hóng", english: "Rainbow", illust: "🌈" },
     ],
   };
 
@@ -490,6 +667,7 @@
     document.getElementById("cardChineseBack").textContent = currentWord.chinese;
     document.getElementById("cardPinyinBack").textContent = currentWord.pinyin;
     document.getElementById("cardEnglish").textContent = currentWord.english;
+    document.getElementById("cardIllust").textContent = currentWord.illust || "";
     document.getElementById("card").classList.remove("flipped");
 
     // Show/hide review tag
@@ -508,15 +686,24 @@
 
   // Flip card on tap
   document.getElementById("cardContainer").addEventListener("click", () => {
-    document.getElementById("card").classList.toggle("flipped");
+    const card = document.getElementById("card");
+    const wasFlipped = card.classList.contains("flipped");
+    card.classList.toggle("flipped");
+    // Play word-specific sound when flipping to back
+    if (!wasFlipped && currentWord.sound) {
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      setTimeout(() => playWordSound(currentWord.sound), 300);
+    }
   });
 
   function answer(knew) {
+    if (audioCtx.state === "suspended") audioCtx.resume();
     cardsPlayed++;
 
     if (knew) {
       score++;
       streak++;
+      playDing();
 
       // Level up progress
       levelProgress++;
@@ -534,6 +721,7 @@
       }
     } else {
       streak = 0;
+      playBuzz();
 
       // Level down progress (but don't go below 0 or drop level too fast)
       levelProgress = Math.max(0, levelProgress - 1);
@@ -608,7 +796,7 @@
   showCard();
 </script>
 
-<div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: rgba(0,0,0,0.3);">v2.0</div>
+<div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: rgba(0,0,0,0.3);">v2.1</div>
 
 </body>
 </html>
