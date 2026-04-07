@@ -447,6 +447,152 @@
 
     .game-area { display: none; }
     .game-area.active { display: flex; flex-direction: column; align-items: center; }
+
+    /* Settings page */
+    .settings-screen {
+      display: none;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .settings-screen.active { display: block; }
+
+    .settings-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .settings-header h2 {
+      font-size: 1.4rem;
+      color: #e44d6e;
+      flex: 1;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #e44d6e;
+      padding: 4px;
+    }
+
+    .settings-section {
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .settings-section h3 {
+      font-size: 1.1rem;
+      color: #e44d6e;
+      margin-bottom: 14px;
+    }
+
+    .settings-section p {
+      font-size: 0.85rem;
+      color: #999;
+      margin-bottom: 12px;
+    }
+
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #eee;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color 0.2s;
+    }
+
+    .form-group textarea:focus { border-color: #e44d6e; }
+
+    .word-list {
+      max-height: 240px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+
+    .word-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #f8f8f8;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    .word-item .wi-chinese {
+      font-weight: 700;
+      font-size: 1.1rem;
+      min-width: 50px;
+    }
+
+    .word-item .wi-pinyin { color: #e44d6e; min-width: 70px; }
+    .word-item .wi-english { color: #666; flex: 1; }
+
+    .word-item .wi-delete {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0 4px;
+    }
+
+    .word-item .wi-delete:hover { color: #ff6b6b; }
+
+    .btn-danger { background: #ff6b6b; color: #fff; }
+    .btn-save { background: #4ecdc4; color: #fff; }
+
+    .settings-btn {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      background: rgba(255,255,255,0.8);
+      border: none;
+      border-radius: 12px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #e44d6e;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 50;
+    }
+
+    .settings-btn:hover { background: #fff; }
+
+    .toast {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 200;
+      animation: fadeInOut 2s ease forwards;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      75% { opacity: 1; }
+      100% { opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -488,9 +634,61 @@
     </div>
   </div>
 
+  <!-- Settings screen -->
+  <div class="settings-screen" id="settingsScreen">
+    <div class="settings-header">
+      <button class="back-btn" onclick="closeSettings()">&larr;</button>
+      <h2 id="settingsTitle">Settings</h2>
+    </div>
+
+    <div class="settings-section">
+      <h3>Priority Words</h3>
+      <p>Paste a list of words to prioritize. Format: one word per line as<br><b>chinese, pinyin, english</b></p>
+      <div class="form-group">
+        <textarea id="wordPaste" placeholder="e.g.&#10;哥哥, gē ge, Brother&#10;姐姐, jiě jie, Sister&#10;牛奶, niú nǎi, Milk"></textarea>
+      </div>
+      <div class="form-buttons" style="justify-content:flex-start">
+        <button class="btn btn-save btn-small" onclick="addPastedWords()">Add Words</button>
+      </div>
+      <div class="word-list" id="customWordList"></div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Profile Settings</h3>
+      <div class="form-group">
+        <label>Age Group</label>
+        <select id="editAge">
+          <option value="3-5">3-5 years</option>
+          <option value="6-8">6-8 years</option>
+          <option value="9-11">9-11 years</option>
+          <option value="12+">12+ years</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Chinese Experience</label>
+        <select id="editExp">
+          <option value="none">None</option>
+          <option value="some">A little</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+      </div>
+      <div class="form-buttons" style="justify-content:flex-start">
+        <button class="btn btn-save btn-small" onclick="saveSettingsProfile()">Save Changes</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Reset Progress</h3>
+      <p>Wipe all scores, streaks, and review data. Start fresh with this profile. Custom words will be kept.</p>
+      <button class="btn btn-danger btn-small" onclick="resetProgress()">Reset All Progress</button>
+    </div>
+  </div>
+
   <!-- Game area (hidden until profile selected) -->
   <div class="game-area" id="gameArea">
     <button class="switch-profile-btn" id="switchBtn" onclick="switchProfile()"></button>
+    <button class="settings-btn" onclick="openSettings()">Settings</button>
     <p class="subtitle">Endless Mode - Tap to flip!</p>
 
     <div class="stats">
@@ -1126,6 +1324,133 @@
     utterance.rate = 0.8;
     speechSynthesis.speak(utterance);
   }
+
+  // --- Settings page ---
+  function openSettings() {
+    if (!activeProfile) return;
+    document.getElementById("gameArea").classList.remove("active");
+    document.getElementById("settingsScreen").classList.add("active");
+    document.getElementById("settingsTitle").textContent = activeProfile.name + "'s Settings";
+    document.getElementById("editAge").value = activeProfile.age;
+    document.getElementById("editExp").value = activeProfile.experience;
+    document.getElementById("wordPaste").value = "";
+    renderCustomWords();
+  }
+
+  function closeSettings() {
+    document.getElementById("settingsScreen").classList.remove("active");
+    document.getElementById("gameArea").classList.add("active");
+  }
+
+  function showToast(msg) {
+    const t = document.createElement("div");
+    t.className = "toast";
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
+  }
+
+  function addPastedWords() {
+    const text = document.getElementById("wordPaste").value.trim();
+    if (!text) return;
+    if (!activeProfile.customWords) activeProfile.customWords = [];
+
+    const lines = text.split("\n").filter(l => l.trim());
+    let added = 0;
+    for (const line of lines) {
+      const parts = line.split(",").map(s => s.trim());
+      if (parts.length >= 2) {
+        const word = {
+          chinese: parts[0],
+          pinyin: parts.length >= 3 ? parts[1] : "",
+          english: parts.length >= 3 ? parts[2] : parts[1],
+        };
+        // Skip duplicates
+        if (!activeProfile.customWords.some(w => w.chinese === word.chinese)) {
+          activeProfile.customWords.push(word);
+          added++;
+        }
+      }
+    }
+
+    saveProfiles();
+    document.getElementById("wordPaste").value = "";
+    renderCustomWords();
+    showToast("Added " + added + " word" + (added !== 1 ? "s" : ""));
+  }
+
+  function removeCustomWord(i) {
+    activeProfile.customWords.splice(i, 1);
+    saveProfiles();
+    renderCustomWords();
+  }
+
+  function renderCustomWords() {
+    const list = document.getElementById("customWordList");
+    const words = (activeProfile && activeProfile.customWords) || [];
+    if (words.length === 0) {
+      list.innerHTML = '<p style="color:#ccc;text-align:center;margin-top:10px">No custom words yet</p>';
+      return;
+    }
+    list.innerHTML = words.map((w, i) =>
+      '<div class="word-item">' +
+        '<span class="wi-chinese">' + w.chinese + '</span>' +
+        '<span class="wi-pinyin">' + (w.pinyin || "") + '</span>' +
+        '<span class="wi-english">' + w.english + '</span>' +
+        '<button class="wi-delete" onclick="removeCustomWord(' + i + ')">&times;</button>' +
+      '</div>'
+    ).join("");
+  }
+
+  function saveSettingsProfile() {
+    const newAge = document.getElementById("editAge").value;
+    const newExp = document.getElementById("editExp").value;
+    activeProfile.age = newAge;
+    activeProfile.experience = newExp;
+    const s = getSettings(newAge, newExp);
+    activeProfile.maxLevel = s.maxLevel;
+    maxLevel = s.maxLevel;
+    if (playerLevel > maxLevel) {
+      playerLevel = maxLevel;
+      activeProfile.playerLevel = maxLevel;
+    }
+    saveProfiles();
+    showToast("Settings saved");
+  }
+
+  function resetProgress() {
+    if (!confirm("Reset all progress for " + activeProfile.name + "? Custom words will be kept.")) return;
+    const s = getSettings(activeProfile.age, activeProfile.experience);
+    activeProfile.playerLevel = s.startLevel;
+    activeProfile.levelProgress = 0;
+    activeProfile.score = 0;
+    activeProfile.streak = 0;
+    activeProfile.cardsPlayed = 0;
+    activeProfile.reviewQueue = [];
+    activeProfile.seenPerLevel = { 1:[], 2:[], 3:[], 4:[], 5:[] };
+    playerLevel = s.startLevel;
+    levelProgress = 0;
+    score = 0;
+    streak = 0;
+    cardsPlayed = 0;
+    reviewQueue = [];
+    seenPerLevel = { 1:[], 2:[], 3:[], 4:[], 5:[] };
+    saveProfiles();
+    updateStats();
+    showToast("Progress reset");
+  }
+
+  // --- Integrate custom/priority words into game engine ---
+  const origPickWord = pickWord;
+  pickWord = function() {
+    // 40% chance to serve a custom/priority word if available
+    if (activeProfile && activeProfile.customWords && activeProfile.customWords.length > 0 && Math.random() < 0.4) {
+      const pool = activeProfile.customWords;
+      isReviewCard = false;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    return origPickWord();
+  };
 
   // Start - show profile screen
   renderProfiles();
