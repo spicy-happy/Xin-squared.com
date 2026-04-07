@@ -130,9 +130,10 @@
     .card-back .listen-btn { color: #fff; }
 
     .card-illust {
-      font-size: 3rem;
-      line-height: 1;
-      margin-bottom: 4px;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 6px;
+      object-fit: contain;
     }
 
     .card-back .card-chinese { color: #fff; font-size: 2.2rem; margin-bottom: 2px; }
@@ -303,7 +304,7 @@
       <div class="card-face card-back">
         <div class="review-tag" id="reviewTagBack" style="display:none">Review</div>
         <button class="listen-btn" onclick="event.stopPropagation(); speakWord()">&#x1f50a;</button>
-        <div class="card-illust" id="cardIllust"></div>
+        <img class="card-illust" id="cardIllust" alt="">
         <div class="card-english" id="cardEnglish"></div>
         <div class="card-chinese" id="cardChineseBack"></div>
         <div class="card-pinyin" id="cardPinyinBack"></div>
@@ -497,92 +498,93 @@
   }
 
   // --- Word bank organized by difficulty level (1-5) ---
-  // illust = fun emoji illustration for card back, sound = optional fun sound key
+  // icon = Icons8 doodle-style illustration key for card back
+  const ICON_BASE = "https://img.icons8.com/doodle/96/";
   const wordBank = {
     1: [
-      { chinese: "一", pinyin: "yī", english: "One", illust: "1️⃣" },
-      { chinese: "二", pinyin: "èr", english: "Two", illust: "✌️" },
-      { chinese: "三", pinyin: "sān", english: "Three", illust: "3️⃣" },
-      { chinese: "四", pinyin: "sì", english: "Four", illust: "🍀" },
-      { chinese: "五", pinyin: "wǔ", english: "Five", illust: "🖐️" },
-      { chinese: "大", pinyin: "dà", english: "Big", illust: "🦣" },
-      { chinese: "小", pinyin: "xiǎo", english: "Small", illust: "🐜" },
-      { chinese: "人", pinyin: "rén", english: "Person", illust: "🧍" },
-      { chinese: "口", pinyin: "kǒu", english: "Mouth", illust: "👄" },
-      { chinese: "手", pinyin: "shǒu", english: "Hand", illust: "🤚" },
-      { chinese: "山", pinyin: "shān", english: "Mountain", illust: "🏔️" },
-      { chinese: "水", pinyin: "shuǐ", english: "Water", illust: "💧", sound: "splash" },
-      { chinese: "火", pinyin: "huǒ", english: "Fire", illust: "🔥", sound: "crackle" },
-      { chinese: "天", pinyin: "tiān", english: "Sky", illust: "🌤️" },
-      { chinese: "日", pinyin: "rì", english: "Day", illust: "☀️" },
+      { chinese: "一", pinyin: "yī", english: "One", icon: "one-finger" },
+      { chinese: "二", pinyin: "èr", english: "Two", icon: "two-fingers" },
+      { chinese: "三", pinyin: "sān", english: "Three", icon: "three-fingers" },
+      { chinese: "四", pinyin: "sì", english: "Four", icon: "four-fingers" },
+      { chinese: "五", pinyin: "wǔ", english: "Five", icon: "hand" },
+      { chinese: "大", pinyin: "dà", english: "Big", icon: "elephant" },
+      { chinese: "小", pinyin: "xiǎo", english: "Small", icon: "ant" },
+      { chinese: "人", pinyin: "rén", english: "Person", icon: "standing-man" },
+      { chinese: "口", pinyin: "kǒu", english: "Mouth", icon: "lips" },
+      { chinese: "手", pinyin: "shǒu", english: "Hand", icon: "hand-cursor" },
+      { chinese: "山", pinyin: "shān", english: "Mountain", icon: "mountain" },
+      { chinese: "水", pinyin: "shuǐ", english: "Water", icon: "water", sound: "splash" },
+      { chinese: "火", pinyin: "huǒ", english: "Fire", icon: "fire-element", sound: "crackle" },
+      { chinese: "天", pinyin: "tiān", english: "Sky", icon: "partly-cloudy-day" },
+      { chinese: "日", pinyin: "rì", english: "Day", icon: "sun" },
     ],
     2: [
-      { chinese: "六", pinyin: "liù", english: "Six", illust: "🎲" },
-      { chinese: "七", pinyin: "qī", english: "Seven", illust: "🌈" },
-      { chinese: "八", pinyin: "bā", english: "Eight", illust: "🎱" },
-      { chinese: "九", pinyin: "jiǔ", english: "Nine", illust: "9️⃣" },
-      { chinese: "十", pinyin: "shí", english: "Ten", illust: "🔟" },
-      { chinese: "红", pinyin: "hóng", english: "Red", illust: "🟥" },
-      { chinese: "蓝", pinyin: "lán", english: "Blue", illust: "🟦" },
-      { chinese: "白", pinyin: "bái", english: "White", illust: "⬜" },
-      { chinese: "黑", pinyin: "hēi", english: "Black", illust: "⬛" },
-      { chinese: "猫", pinyin: "māo", english: "Cat", illust: "🐱", sound: "meow" },
-      { chinese: "狗", pinyin: "gǒu", english: "Dog", illust: "🐶", sound: "woof" },
-      { chinese: "鱼", pinyin: "yú", english: "Fish", illust: "🐟", sound: "splash" },
-      { chinese: "鸟", pinyin: "niǎo", english: "Bird", illust: "🐦", sound: "chirp" },
-      { chinese: "花", pinyin: "huā", english: "Flower", illust: "🌸" },
-      { chinese: "树", pinyin: "shù", english: "Tree", illust: "🌳" },
+      { chinese: "六", pinyin: "liù", english: "Six", icon: "dice" },
+      { chinese: "七", pinyin: "qī", english: "Seven", icon: "rainbow" },
+      { chinese: "八", pinyin: "bā", english: "Eight", icon: "8-ball" },
+      { chinese: "九", pinyin: "jiǔ", english: "Nine", icon: "nine" },
+      { chinese: "十", pinyin: "shí", english: "Ten", icon: "ten" },
+      { chinese: "红", pinyin: "hóng", english: "Red", icon: "red-apple" },
+      { chinese: "蓝", pinyin: "lán", english: "Blue", icon: "water-drop" },
+      { chinese: "白", pinyin: "bái", english: "White", icon: "snowflake" },
+      { chinese: "黑", pinyin: "hēi", english: "Black", icon: "moon-and-stars" },
+      { chinese: "猫", pinyin: "māo", english: "Cat", icon: "cat", sound: "meow" },
+      { chinese: "狗", pinyin: "gǒu", english: "Dog", icon: "dog", sound: "woof" },
+      { chinese: "鱼", pinyin: "yú", english: "Fish", icon: "fish", sound: "splash" },
+      { chinese: "鸟", pinyin: "niǎo", english: "Bird", icon: "bird", sound: "chirp" },
+      { chinese: "花", pinyin: "huā", english: "Flower", icon: "flower" },
+      { chinese: "树", pinyin: "shù", english: "Tree", icon: "deciduous-tree" },
     ],
     3: [
-      { chinese: "你好", pinyin: "nǐ hǎo", english: "Hello", illust: "👋" },
-      { chinese: "谢谢", pinyin: "xiè xie", english: "Thank you", illust: "🙏" },
-      { chinese: "妈妈", pinyin: "mā ma", english: "Mom", illust: "👩" },
-      { chinese: "爸爸", pinyin: "bà ba", english: "Dad", illust: "👨" },
-      { chinese: "朋友", pinyin: "péng yǒu", english: "Friend", illust: "🤝" },
-      { chinese: "太阳", pinyin: "tài yáng", english: "Sun", illust: "🌞" },
-      { chinese: "月亮", pinyin: "yuè liang", english: "Moon", illust: "🌙" },
-      { chinese: "星星", pinyin: "xīng xing", english: "Star", illust: "⭐" },
-      { chinese: "苹果", pinyin: "píng guǒ", english: "Apple", illust: "🍎", sound: "munch" },
-      { chinese: "吃", pinyin: "chī", english: "Eat", illust: "😋", sound: "munch" },
-      { chinese: "喝", pinyin: "hē", english: "Drink", illust: "🥤", sound: "gulp" },
-      { chinese: "跑", pinyin: "pǎo", english: "Run", illust: "🏃", sound: "steps" },
-      { chinese: "走", pinyin: "zǒu", english: "Walk", illust: "🚶", sound: "steps" },
-      { chinese: "看", pinyin: "kàn", english: "Look", illust: "👀" },
-      { chinese: "听", pinyin: "tīng", english: "Listen", illust: "👂" },
+      { chinese: "你好", pinyin: "nǐ hǎo", english: "Hello", icon: "waving-hand" },
+      { chinese: "谢谢", pinyin: "xiè xie", english: "Thank you", icon: "trust" },
+      { chinese: "妈妈", pinyin: "mā ma", english: "Mom", icon: "mother" },
+      { chinese: "爸爸", pinyin: "bà ba", english: "Dad", icon: "father" },
+      { chinese: "朋友", pinyin: "péng yǒu", english: "Friend", icon: "handshake" },
+      { chinese: "太阳", pinyin: "tài yáng", english: "Sun", icon: "smiling-sun" },
+      { chinese: "月亮", pinyin: "yuè liang", english: "Moon", icon: "bright-moon" },
+      { chinese: "星星", pinyin: "xīng xing", english: "Star", icon: "star" },
+      { chinese: "苹果", pinyin: "píng guǒ", english: "Apple", icon: "apple", sound: "munch" },
+      { chinese: "吃", pinyin: "chī", english: "Eat", icon: "meal", sound: "munch" },
+      { chinese: "喝", pinyin: "hē", english: "Drink", icon: "drinking", sound: "gulp" },
+      { chinese: "跑", pinyin: "pǎo", english: "Run", icon: "running", sound: "steps" },
+      { chinese: "走", pinyin: "zǒu", english: "Walk", icon: "walking", sound: "steps" },
+      { chinese: "看", pinyin: "kàn", english: "Look", icon: "vision" },
+      { chinese: "听", pinyin: "tīng", english: "Listen", icon: "ear" },
     ],
     4: [
-      { chinese: "学校", pinyin: "xué xiào", english: "School", illust: "🏫", sound: "ring" },
-      { chinese: "老师", pinyin: "lǎo shī", english: "Teacher", illust: "👩‍🏫" },
-      { chinese: "学生", pinyin: "xué shēng", english: "Student", illust: "🎒" },
-      { chinese: "书", pinyin: "shū", english: "Book", illust: "📖" },
-      { chinese: "电话", pinyin: "diàn huà", english: "Phone", illust: "📱", sound: "ring" },
-      { chinese: "医生", pinyin: "yī shēng", english: "Doctor", illust: "👨‍⚕️" },
-      { chinese: "高兴", pinyin: "gāo xìng", english: "Happy", illust: "😄" },
-      { chinese: "漂亮", pinyin: "piào liang", english: "Pretty", illust: "💐" },
-      { chinese: "快乐", pinyin: "kuài lè", english: "Joyful", illust: "🥳" },
-      { chinese: "时间", pinyin: "shí jiān", english: "Time", illust: "⏰", sound: "ring" },
-      { chinese: "今天", pinyin: "jīn tiān", english: "Today", illust: "📅" },
-      { chinese: "明天", pinyin: "míng tiān", english: "Tomorrow", illust: "🌅" },
-      { chinese: "昨天", pinyin: "zuó tiān", english: "Yesterday", illust: "🌇" },
-      { chinese: "早上", pinyin: "zǎo shang", english: "Morning", illust: "🌄" },
-      { chinese: "晚上", pinyin: "wǎn shang", english: "Evening", illust: "🌃" },
+      { chinese: "学校", pinyin: "xué xiào", english: "School", icon: "school", sound: "ring" },
+      { chinese: "老师", pinyin: "lǎo shī", english: "Teacher", icon: "teacher" },
+      { chinese: "学生", pinyin: "xué shēng", english: "Student", icon: "student-male" },
+      { chinese: "书", pinyin: "shū", english: "Book", icon: "book" },
+      { chinese: "电话", pinyin: "diàn huà", english: "Phone", icon: "phone", sound: "ring" },
+      { chinese: "医生", pinyin: "yī shēng", english: "Doctor", icon: "doctor-male" },
+      { chinese: "高兴", pinyin: "gāo xìng", english: "Happy", icon: "happy" },
+      { chinese: "漂亮", pinyin: "piào liang", english: "Pretty", icon: "bouquet" },
+      { chinese: "快乐", pinyin: "kuài lè", english: "Joyful", icon: "party-baloons" },
+      { chinese: "时间", pinyin: "shí jiān", english: "Time", icon: "clock", sound: "ring" },
+      { chinese: "今天", pinyin: "jīn tiān", english: "Today", icon: "calendar" },
+      { chinese: "明天", pinyin: "míng tiān", english: "Tomorrow", icon: "sunrise" },
+      { chinese: "昨天", pinyin: "zuó tiān", english: "Yesterday", icon: "sunset" },
+      { chinese: "早上", pinyin: "zǎo shang", english: "Morning", icon: "rooster" },
+      { chinese: "晚上", pinyin: "wǎn shang", english: "Evening", icon: "night" },
     ],
     5: [
-      { chinese: "飞机", pinyin: "fēi jī", english: "Airplane", illust: "✈️", sound: "whoosh" },
-      { chinese: "图书馆", pinyin: "tú shū guǎn", english: "Library", illust: "📚" },
-      { chinese: "动物园", pinyin: "dòng wù yuán", english: "Zoo", illust: "🦁" },
-      { chinese: "巧克力", pinyin: "qiǎo kè lì", english: "Chocolate", illust: "🍫", sound: "munch" },
-      { chinese: "西瓜", pinyin: "xī guā", english: "Watermelon", illust: "🍉", sound: "munch" },
-      { chinese: "聪明", pinyin: "cōng míng", english: "Smart", illust: "🧠" },
-      { chinese: "勇敢", pinyin: "yǒng gǎn", english: "Brave", illust: "🦸" },
-      { chinese: "认真", pinyin: "rèn zhēn", english: "Serious", illust: "🤓" },
-      { chinese: "练习", pinyin: "liàn xí", english: "Practice", illust: "✏️" },
-      { chinese: "冒险", pinyin: "mào xiǎn", english: "Adventure", illust: "🗺️" },
-      { chinese: "厨房", pinyin: "chú fáng", english: "Kitchen", illust: "👨‍🍳" },
-      { chinese: "钢琴", pinyin: "gāng qín", english: "Piano", illust: "🎹" },
-      { chinese: "恐龙", pinyin: "kǒng lóng", english: "Dinosaur", illust: "🦕" },
-      { chinese: "蝴蝶", pinyin: "hú dié", english: "Butterfly", illust: "🦋" },
-      { chinese: "彩虹", pinyin: "cǎi hóng", english: "Rainbow", illust: "🌈" },
+      { chinese: "飞机", pinyin: "fēi jī", english: "Airplane", icon: "airplane-take-off", sound: "whoosh" },
+      { chinese: "图书馆", pinyin: "tú shū guǎn", english: "Library", icon: "library" },
+      { chinese: "动物园", pinyin: "dòng wù yuán", english: "Zoo", icon: "lion" },
+      { chinese: "巧克力", pinyin: "qiǎo kè lì", english: "Chocolate", icon: "chocolate-bar", sound: "munch" },
+      { chinese: "西瓜", pinyin: "xī guā", english: "Watermelon", icon: "watermelon", sound: "munch" },
+      { chinese: "聪明", pinyin: "cōng míng", english: "Smart", icon: "brain" },
+      { chinese: "勇敢", pinyin: "yǒng gǎn", english: "Brave", icon: "superhero-male" },
+      { chinese: "认真", pinyin: "rèn zhēn", english: "Serious", icon: "reading" },
+      { chinese: "练习", pinyin: "liàn xí", english: "Practice", icon: "pencil" },
+      { chinese: "冒险", pinyin: "mào xiǎn", english: "Adventure", icon: "treasure-map" },
+      { chinese: "厨房", pinyin: "chú fáng", english: "Kitchen", icon: "kitchen" },
+      { chinese: "钢琴", pinyin: "gāng qín", english: "Piano", icon: "piano" },
+      { chinese: "恐龙", pinyin: "kǒng lóng", english: "Dinosaur", icon: "dinosaur" },
+      { chinese: "蝴蝶", pinyin: "hú dié", english: "Butterfly", icon: "butterfly" },
+      { chinese: "彩虹", pinyin: "cǎi hóng", english: "Rainbow", icon: "rainbow" },
     ],
   };
 
@@ -667,7 +669,13 @@
     document.getElementById("cardChineseBack").textContent = currentWord.chinese;
     document.getElementById("cardPinyinBack").textContent = currentWord.pinyin;
     document.getElementById("cardEnglish").textContent = currentWord.english;
-    document.getElementById("cardIllust").textContent = currentWord.illust || "";
+    const img = document.getElementById("cardIllust");
+    if (currentWord.icon) {
+      img.src = ICON_BASE + currentWord.icon + ".png";
+      img.style.display = "";
+    } else {
+      img.style.display = "none";
+    }
     document.getElementById("card").classList.remove("flipped");
 
     // Show/hide review tag
@@ -796,7 +804,7 @@
   showCard();
 </script>
 
-<div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: rgba(0,0,0,0.3);">v2.1</div>
+<div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: rgba(0,0,0,0.3);">v2.2</div>
 
 </body>
 </html>
