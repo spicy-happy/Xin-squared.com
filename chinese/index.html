@@ -171,7 +171,7 @@
     .btn:active { transform: translateY(0); }
 
     .btn-know { background: #4ecdc4; color: #fff; }
-    .btn-dont-know { background: #ff6b6b; color: #fff; }
+    .btn-dont-know { background: #ffd93d; color: #555; }
     .btn-next { background: #e44d6e; color: #fff; }
 
     /* Level progress bar */
@@ -738,8 +738,8 @@
           <div class="card-chinese" id="cardChineseBack"></div>
           <div class="card-pinyin" id="cardPinyinBack"></div>
           <div class="card-actions">
-            <button class="btn btn-know" onclick="event.stopPropagation(); answer(true)">I knew it!</button>
-            <button class="btn btn-dont-know" onclick="event.stopPropagation(); answer(false)">Still learning</button>
+            <button class="btn btn-know" onclick="event.stopPropagation(); answer(true)">Done</button>
+            <button class="btn btn-dont-know" onclick="event.stopPropagation(); answer(false)">Study</button>
           </div>
         </div>
       </div>
@@ -1275,20 +1275,7 @@
         showReward();
       }
     } else {
-      streak = 0;
-      playBuzz();
-
-      // Level down progress (but don't go below 0 or drop level too fast)
-      levelProgress = Math.max(0, levelProgress - 1);
-
-      // If at 0 progress and keep getting wrong, drop a level
-      if (levelProgress === 0 && playerLevel > 1) {
-        // Only drop if they got the last 2 wrong (be gentle)
-        playerLevel--;
-        levelProgress = 3; // Start partway through the lower level
-      }
-
-      // Schedule this word for review: come back after 3-6 cards
+      // No punishment - just schedule for review later
       const delay = 3 + Math.floor(Math.random() * 4);
       reviewQueue.push({
         word: { ...currentWord },
