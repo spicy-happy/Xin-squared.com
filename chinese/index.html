@@ -427,6 +427,31 @@
 
     .btn-cancel { background: #eee; color: #666; }
 
+    .emoji-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 6px;
+    }
+
+    .emoji-pick {
+      font-size: 1.8rem;
+      width: 44px;
+      height: 44px;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      background: #f8f8f8;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .emoji-pick:hover { background: #eee; transform: scale(1.1); }
+    .emoji-pick.selected { border-color: #e44d6e; background: #fff0f3; }
+
     .switch-profile-btn {
       position: fixed;
       top: 14px;
@@ -627,6 +652,10 @@
     <div class="profile-list" id="profileList"></div>
     <div class="profile-form" id="profileForm" style="display:none">
       <h3>New Player</h3>
+      <div class="form-group">
+        <label>Pick your emoji</label>
+        <div class="emoji-picker" id="emojiPicker"></div>
+      </div>
       <div class="form-group">
         <label>Name</label>
         <input type="text" id="profileName" placeholder="Enter name" maxlength="12">
@@ -1039,7 +1068,12 @@
 
   const levelNames = ["", "Beginner", "Easy", "Medium", "Hard", "Expert"];
   const confettiChars = ["🎉", "⭐", "🌟", "💫", "🎊", "✨", "🎈", "❤️", "🧡", "💛"];
-  const avatars = ["🐼", "🦊", "🐸", "🐶", "🐱", "🐰", "🦄", "🐲", "🐵", "🦁", "🐯", "🐻"];
+  const avatars = [
+    "🐼","🦊","🐸","🐶","🐱","🐰","🦄","🐲","🐵","🦁","🐯","🐻",
+    "🐨","🐷","🐮","🐔","🦋","🐙","🦖","🐳","🦜","🐧","🦝","🐹",
+    "🤖","👽","🧙‍♂️","🧚","🦸","👑","🎃","⭐",
+  ];
+  let selectedEmoji = "🐼";
 
   // --- Profile system ---
   let profiles = JSON.parse(localStorage.getItem("cn_profiles") || "[]");
@@ -1083,7 +1117,19 @@
   function showForm() {
     document.getElementById("profileForm").style.display = "";
     document.getElementById("profileName").value = "";
+    selectedEmoji = "🐼";
+    // Render emoji picker
+    const picker = document.getElementById("emojiPicker");
+    picker.innerHTML = avatars.map(e =>
+      '<button type="button" class="emoji-pick' + (e === selectedEmoji ? ' selected' : '') + '" onclick="pickEmoji(this,\'' + e + '\')">' + e + '</button>'
+    ).join("");
     document.getElementById("profileName").focus();
+  }
+
+  function pickEmoji(btn, emoji) {
+    selectedEmoji = emoji;
+    document.querySelectorAll(".emoji-pick").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
   }
 
   function hideForm() {
@@ -1095,7 +1141,7 @@
     if (!name) return;
     const age = document.getElementById("profileAge").value;
     const exp = document.getElementById("profileExp").value;
-    const avatar = avatars[profiles.length % avatars.length];
+    const avatar = selectedEmoji;
     const settings = getSettings(age, exp);
     const profile = {
       name, age, experience: exp, avatar,
