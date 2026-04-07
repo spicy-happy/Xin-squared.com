@@ -693,8 +693,9 @@
     </div>
 
     <div class="settings-section">
-      <h3>Priority Words</h3>
-      <p>Paste Chinese words (one per line). Pinyin and definitions will be auto-filled and you can edit them.</p>
+      <h3>Focus Words</h3>
+      <p>Add words to practice more often. Paste one per line - pinyin and definitions auto-fill. These get mixed in with regular words at a higher rate.</p>
+      <p style="font-size:0.8rem;color:#bbb">Tip: Use tone numbers in pinyin (e.g. fu4 = f&ugrave;) for correct pronunciation on cards.</p>
       <div class="form-group">
         <textarea id="wordPaste" placeholder="e.g.&#10;哥哥&#10;姐姐&#10;牛奶&#10;&#10;Or with details:&#10;哥哥, gē ge, Brother"></textarea>
       </div>
@@ -731,7 +732,7 @@
 
     <div class="settings-section">
       <h3>Reset Everything</h3>
-      <p>Wipe all scores, streaks, review data, and custom words. Completely start fresh.</p>
+      <p>Wipe all scores, streaks, review data, and focus words. Completely start fresh.</p>
       <button class="btn btn-danger btn-small" onclick="resetProgress()">Reset Everything</button>
     </div>
   </div>
@@ -1340,6 +1341,13 @@
     // Track per-word mastery
     if (currentWord) {
       boostMastery(currentWord.chinese || currentWord.c, "flashcard", knew);
+      // Track focus word correct count
+      if (activeProfile && activeProfile.customWords) {
+        const cw = activeProfile.customWords.find(w => w.chinese === (currentWord.chinese || currentWord.c));
+        if (cw) {
+          cw.correct = knew ? (cw.correct || 0) + 1 : 0;
+        }
+      }
     }
 
     if (knew) {
@@ -1595,7 +1603,7 @@
     const list = document.getElementById("customWordList");
     const words = (activeProfile && activeProfile.customWords) || [];
     if (words.length === 0) {
-      list.innerHTML = '<p style="color:#ccc;text-align:center;margin-top:10px">No custom words yet</p>';
+      list.innerHTML = '<p style="color:#ccc;text-align:center;margin-top:10px">No focus words yet</p>';
       return;
     }
     list.innerHTML = words.map((w, i) => {
@@ -1629,7 +1637,7 @@
   }
 
   function resetProgress() {
-    if (!confirm("Reset everything for " + activeProfile.name + "? This removes all progress AND custom words.")) return;
+    if (!confirm("Reset everything for " + activeProfile.name + "? This removes all progress AND focus words.")) return;
     const s = getSettings(activeProfile.age, activeProfile.experience);
     activeProfile.playerLevel = s.startLevel;
     activeProfile.levelProgress = 0;
@@ -1653,46 +1661,27 @@
     showToast("Everything reset");
   }
 
-  // --- Integrate custom/priority words into game engine ---
-  // Mastery: track correct answers per custom word. After 3 correct,
-  // word is "learned" and appears much less often.
+  // --- Integrate focus words into game engine ---
+  // Focus words appear ~40% of the time, mixed with regular words.
+  // After 3 correct, they fade to occasional review.
   const origPickWord = pickWord;
   pickWord = function() {
     if (activeProfile && activeProfile.customWords && activeProfile.customWords.length > 0) {
-      // Split into unlearned (correct < 3) and learned (correct >= 3)
       const unlearned = activeProfile.customWords.filter(w => (w.correct || 0) < 3);
       const learned = activeProfile.customWords.filter(w => (w.correct || 0) >= 3);
 
-      // 70% chance for unlearned custom words, 10% for learned (review)
       const roll = Math.random();
-      if (unlearned.length > 0 && roll < 0.7) {
+      // 40% unlearned focus words, 5% learned focus review
+      if (unlearned.length > 0 && roll < 0.4) {
         isReviewCard = false;
         return unlearned[Math.floor(Math.random() * unlearned.length)];
       }
-      if (learned.length > 0 && roll < 0.8) {
+      if (learned.length > 0 && roll < 0.45) {
         isReviewCard = false;
         return learned[Math.floor(Math.random() * learned.length)];
       }
     }
     return origPickWord();
-  };
-
-  // Track mastery on custom words when answered
-  const origAnswer = answer;
-  answer = function(knew) {
-    // Update correct count for custom words
-    if (activeProfile && activeProfile.customWords && currentWord) {
-      const cw = activeProfile.customWords.find(w => w.chinese === currentWord.chinese);
-      if (cw) {
-        if (knew) {
-          cw.correct = (cw.correct || 0) + 1;
-        } else {
-          cw.correct = 0; // Reset on wrong
-        }
-        saveProfiles();
-      }
-    }
-    origAnswer(knew);
   };
 
   // Start - show profile screen
