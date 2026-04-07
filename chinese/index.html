@@ -446,6 +446,7 @@
     .switch-profile-btn:hover { background: #fff; }
 
     .game-area { display: none; }
+    .game-area.active { display: flex; flex-direction: column; align-items: center; }
   </style>
 </head>
 <body>
@@ -907,7 +908,7 @@
     reviewQueue = activeProfile.reviewQueue || [];
     seenPerLevel = activeProfile.seenPerLevel || { 1:[], 2:[], 3:[], 4:[], 5:[] };
     document.getElementById("profileScreen").style.display = "none";
-    document.getElementById("gameArea").style.display = "";
+    document.getElementById("gameArea").classList.add("active");
     document.getElementById("switchBtn").textContent = activeProfile.avatar + " " + activeProfile.name;
     updateStats();
     showCard();
@@ -915,7 +916,7 @@
 
   function switchProfile() {
     saveProgress();
-    document.getElementById("gameArea").style.display = "none";
+    document.getElementById("gameArea").classList.remove("active");
     document.getElementById("profileScreen").style.display = "";
     activeProfile = null;
     renderProfiles();
