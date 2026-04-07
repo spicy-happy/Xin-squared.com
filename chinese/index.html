@@ -540,6 +540,27 @@
     .word-item .wi-pinyin { color: #e44d6e; min-width: 70px; }
     .word-item .wi-english { color: #666; flex: 1; }
 
+    .word-item .wi-mastered {
+      font-size: 0.65rem;
+      color: #4ecdc4;
+      font-weight: 600;
+    }
+
+    .word-item input {
+      border: none;
+      border-bottom: 1px dashed #ddd;
+      font-size: 0.85rem;
+      font-family: inherit;
+      padding: 2px 4px;
+      outline: none;
+      background: transparent;
+      width: 100%;
+    }
+
+    .word-item input:focus { border-bottom-color: #e44d6e; }
+    .word-item input.wi-pinyin-input { color: #e44d6e; }
+    .word-item input.wi-english-input { color: #666; }
+
     .word-item .wi-delete {
       background: none;
       border: none;
@@ -547,6 +568,7 @@
       cursor: pointer;
       font-size: 1.1rem;
       padding: 0 4px;
+      flex-shrink: 0;
     }
 
     .word-item .wi-delete:hover { color: #ff6b6b; }
@@ -643,9 +665,9 @@
 
     <div class="settings-section">
       <h3>Priority Words</h3>
-      <p>Paste a list of words to prioritize. Format: one word per line as<br><b>chinese, pinyin, english</b></p>
+      <p>Paste Chinese words (one per line). Pinyin and definitions will be auto-filled and you can edit them.</p>
       <div class="form-group">
-        <textarea id="wordPaste" placeholder="e.g.&#10;哥哥, gē ge, Brother&#10;姐姐, jiě jie, Sister&#10;牛奶, niú nǎi, Milk"></textarea>
+        <textarea id="wordPaste" placeholder="e.g.&#10;哥哥&#10;姐姐&#10;牛奶&#10;&#10;Or with details:&#10;哥哥, gē ge, Brother"></textarea>
       </div>
       <div class="form-buttons" style="justify-content:flex-start">
         <button class="btn btn-save btn-small" onclick="addPastedWords()">Add Words</button>
@@ -679,9 +701,9 @@
     </div>
 
     <div class="settings-section">
-      <h3>Reset Progress</h3>
-      <p>Wipe all scores, streaks, and review data. Start fresh with this profile. Custom words will be kept.</p>
-      <button class="btn btn-danger btn-small" onclick="resetProgress()">Reset All Progress</button>
+      <h3>Reset Everything</h3>
+      <p>Wipe all scores, streaks, review data, and custom words. Completely start fresh.</p>
+      <button class="btn btn-danger btn-small" onclick="resetProgress()">Reset Everything</button>
     </div>
   </div>
 
@@ -1350,6 +1372,38 @@
     setTimeout(() => t.remove(), 2200);
   }
 
+  // Simple pinyin lookup for common characters
+  const pinyinMap = {
+    "哥":"gē","姐":"jiě","弟":"dì","妹":"mèi","牛":"niú","奶":"nǎi","米":"mǐ","饭":"fàn",
+    "茶":"chá","鸡":"jī","蛋":"dàn","面":"miàn","菜":"cài","肉":"ròu","汤":"tāng","糖":"táng",
+    "盐":"yán","油":"yóu","醋":"cù","酱":"jiàng","包":"bāo","杯":"bēi","碗":"wǎn","筷":"kuài",
+    "桌":"zhuō","椅":"yǐ","门":"mén","窗":"chuāng","床":"chuáng","灯":"dēng","车":"chē",
+    "船":"chuán","路":"lù","桥":"qiáo","雨":"yǔ","雪":"xuě","风":"fēng","云":"yún","雷":"léi",
+    "冰":"bīng","石":"shí","土":"tǔ","草":"cǎo","竹":"zhú","河":"hé","海":"hǎi","湖":"hú",
+    "马":"mǎ","牛":"niú","羊":"yáng","猪":"zhū","兔":"tù","龙":"lóng","蛇":"shé","虎":"hǔ",
+    "鹅":"é","鸭":"yā","鸡":"jī","虫":"chóng","蜂":"fēng","蚂":"mǎ","蚁":"yǐ",
+    "头":"tóu","眼":"yǎn","耳":"ěr","鼻":"bí","嘴":"zuǐ","牙":"yá","舌":"shé","心":"xīn",
+    "脚":"jiǎo","腿":"tuǐ","肚":"dù","背":"bèi","脸":"liǎn","发":"fà",
+    "爱":"ài","好":"hǎo","坏":"huài","快":"kuài","慢":"màn","多":"duō","少":"shǎo",
+    "长":"cháng","短":"duǎn","高":"gāo","低":"dī","新":"xīn","旧":"jiù","冷":"lěng","热":"rè",
+    "开":"kāi","关":"guān","来":"lái","去":"qù","上":"shàng","下":"xià","左":"zuǒ","右":"yòu",
+    "前":"qián","后":"hòu","里":"lǐ","外":"wài","中":"zhōng","东":"dōng","西":"xī","南":"nán","北":"běi",
+    "是":"shì","有":"yǒu","没":"méi","不":"bù","很":"hěn","也":"yě","都":"dōu","在":"zài",
+    "的":"de","了":"le","吗":"ma","呢":"ne","和":"hé","会":"huì","能":"néng","要":"yào",
+    "给":"gěi","说":"shuō","做":"zuò","想":"xiǎng","知":"zhī","道":"dào","买":"mǎi","卖":"mài",
+    "一":"yī","二":"èr","三":"sān","四":"sì","五":"wǔ","六":"liù","七":"qī","八":"bā","九":"jiǔ","十":"shí",
+    "百":"bǎi","千":"qiān","万":"wàn","年":"nián","月":"yuè","天":"tiān","日":"rì","时":"shí",
+    "分":"fēn","秒":"miǎo","家":"jiā","学":"xué","校":"xiào","国":"guó","城":"chéng","市":"shì",
+    "店":"diàn","楼":"lóu","房":"fáng","间":"jiān","你":"nǐ","我":"wǒ","他":"tā","她":"tā",
+    "们":"men","大":"dà","小":"xiǎo","人":"rén","口":"kǒu","手":"shǒu","山":"shān","水":"shuǐ",
+    "火":"huǒ","木":"mù","金":"jīn","地":"dì","电":"diàn","话":"huà","书":"shū","笔":"bǐ",
+    "纸":"zhǐ","字":"zì","号":"hào","名":"míng","生":"shēng","老":"lǎo","师":"shī","同":"tóng",
+  };
+
+  function guessPinyin(chinese) {
+    return Array.from(chinese).map(c => pinyinMap[c] || "?").join(" ");
+  }
+
   function addPastedWords() {
     const text = document.getElementById("wordPaste").value.trim();
     if (!text) return;
@@ -1359,30 +1413,38 @@
     let added = 0;
     for (const line of lines) {
       const parts = line.split(",").map(s => s.trim());
-      if (parts.length >= 2) {
-        const word = {
-          chinese: parts[0],
-          pinyin: parts.length >= 3 ? parts[1] : "",
-          english: parts.length >= 3 ? parts[2] : parts[1],
-        };
-        // Skip duplicates
-        if (!activeProfile.customWords.some(w => w.chinese === word.chinese)) {
-          activeProfile.customWords.push(word);
-          added++;
-        }
+      let word;
+      if (parts.length >= 3) {
+        word = { chinese: parts[0], pinyin: parts[1], english: parts[2], correct: 0 };
+      } else if (parts.length === 2) {
+        word = { chinese: parts[0], pinyin: guessPinyin(parts[0]), english: parts[1], correct: 0 };
+      } else {
+        // Just Chinese characters pasted
+        const ch = parts[0];
+        if (!ch) continue;
+        word = { chinese: ch, pinyin: guessPinyin(ch), english: "", correct: 0 };
+      }
+      if (!activeProfile.customWords.some(w => w.chinese === word.chinese)) {
+        activeProfile.customWords.push(word);
+        added++;
       }
     }
 
     saveProfiles();
     document.getElementById("wordPaste").value = "";
     renderCustomWords();
-    showToast("Added " + added + " word" + (added !== 1 ? "s" : ""));
+    showToast("Added " + added + " word" + (added !== 1 ? "s" : "") + " - edit pinyin & definitions below");
   }
 
   function removeCustomWord(i) {
     activeProfile.customWords.splice(i, 1);
     saveProfiles();
     renderCustomWords();
+  }
+
+  function updateCustomWord(i, field, value) {
+    activeProfile.customWords[i][field] = value;
+    saveProfiles();
   }
 
   function renderCustomWords() {
@@ -1392,14 +1454,18 @@
       list.innerHTML = '<p style="color:#ccc;text-align:center;margin-top:10px">No custom words yet</p>';
       return;
     }
-    list.innerHTML = words.map((w, i) =>
-      '<div class="word-item">' +
+    list.innerHTML = words.map((w, i) => {
+      const mastered = (w.correct || 0) >= 3;
+      return '<div class="word-item">' +
         '<span class="wi-chinese">' + w.chinese + '</span>' +
-        '<span class="wi-pinyin">' + (w.pinyin || "") + '</span>' +
-        '<span class="wi-english">' + w.english + '</span>' +
+        '<input class="wi-pinyin-input" value="' + (w.pinyin || "").replace(/"/g, "&quot;") + '" ' +
+          'placeholder="pinyin" onchange="updateCustomWord(' + i + ',\'pinyin\',this.value)">' +
+        '<input class="wi-english-input" value="' + (w.english || "").replace(/"/g, "&quot;") + '" ' +
+          'placeholder="definition" onchange="updateCustomWord(' + i + ',\'english\',this.value)">' +
+        (mastered ? '<span class="wi-mastered">Learned</span>' : '') +
         '<button class="wi-delete" onclick="removeCustomWord(' + i + ')">&times;</button>' +
-      '</div>'
-    ).join("");
+      '</div>';
+    }).join("");
   }
 
   function saveSettingsProfile() {
@@ -1419,7 +1485,7 @@
   }
 
   function resetProgress() {
-    if (!confirm("Reset all progress for " + activeProfile.name + "? Custom words will be kept.")) return;
+    if (!confirm("Reset everything for " + activeProfile.name + "? This removes all progress AND custom words.")) return;
     const s = getSettings(activeProfile.age, activeProfile.experience);
     activeProfile.playerLevel = s.startLevel;
     activeProfile.levelProgress = 0;
@@ -1428,6 +1494,7 @@
     activeProfile.cardsPlayed = 0;
     activeProfile.reviewQueue = [];
     activeProfile.seenPerLevel = { 1:[], 2:[], 3:[], 4:[], 5:[] };
+    activeProfile.customWords = [];
     playerLevel = s.startLevel;
     levelProgress = 0;
     score = 0;
@@ -1437,26 +1504,57 @@
     seenPerLevel = { 1:[], 2:[], 3:[], 4:[], 5:[] };
     saveProfiles();
     updateStats();
-    showToast("Progress reset");
+    renderCustomWords();
+    showToast("Everything reset");
   }
 
   // --- Integrate custom/priority words into game engine ---
+  // Mastery: track correct answers per custom word. After 3 correct,
+  // word is "learned" and appears much less often.
   const origPickWord = pickWord;
   pickWord = function() {
-    // 40% chance to serve a custom/priority word if available
-    if (activeProfile && activeProfile.customWords && activeProfile.customWords.length > 0 && Math.random() < 0.4) {
-      const pool = activeProfile.customWords;
-      isReviewCard = false;
-      return pool[Math.floor(Math.random() * pool.length)];
+    if (activeProfile && activeProfile.customWords && activeProfile.customWords.length > 0) {
+      // Split into unlearned (correct < 3) and learned (correct >= 3)
+      const unlearned = activeProfile.customWords.filter(w => (w.correct || 0) < 3);
+      const learned = activeProfile.customWords.filter(w => (w.correct || 0) >= 3);
+
+      // 70% chance for unlearned custom words, 10% for learned (review)
+      const roll = Math.random();
+      if (unlearned.length > 0 && roll < 0.7) {
+        isReviewCard = false;
+        return unlearned[Math.floor(Math.random() * unlearned.length)];
+      }
+      if (learned.length > 0 && roll < 0.8) {
+        isReviewCard = false;
+        return learned[Math.floor(Math.random() * learned.length)];
+      }
     }
     return origPickWord();
+  };
+
+  // Track mastery on custom words when answered
+  const origAnswer = answer;
+  answer = function(knew) {
+    // Update correct count for custom words
+    if (activeProfile && activeProfile.customWords && currentWord) {
+      const cw = activeProfile.customWords.find(w => w.chinese === currentWord.chinese);
+      if (cw) {
+        if (knew) {
+          cw.correct = (cw.correct || 0) + 1;
+        } else {
+          cw.correct = 0; // Reset on wrong
+        }
+        saveProfiles();
+      }
+    }
+    origAnswer(knew);
   };
 
   // Start - show profile screen
   renderProfiles();
 </script>
 
-<div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: rgba(0,0,0,0.3);">v3.0</div>
+<div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: rgba(0,0,0,0.3);">v3.1</div>
 
 </body>
 </html>
