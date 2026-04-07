@@ -1148,7 +1148,8 @@
       playerLevel: settings.startLevel,
       maxLevel: settings.maxLevel,
       levelProgress: 0, score: 0, streak: 0, cardsPlayed: 0,
-      reviewQueue: [], seenPerLevel: { 1:[], 2:[], 3:[], 4:[], 5:[] }
+      reviewQueue: [], seenPerLevel: { 1:[], 2:[], 3:[], 4:[], 5:[] },
+      mastery: {}, // { "chinese_word": { score: 0-100, seen: N, correct: N, activities: {} } }
     };
     profiles.push(profile);
     saveProfiles();
@@ -1297,9 +1298,49 @@
     }
   });
 
+  // --- Per-word mastery system ---
+  // Activities that boost mastery: flashcard, match_pinyin, match_def, match_illust, trace
+  // Each activity can boost score by a set amount. Score decays slightly over time.
+  function getMastery(word) {
+    if (!activeProfile) return null;
+    if (!activeProfile.mastery) activeProfile.mastery = {};
+    if (!activeProfile.mastery[word]) {
+      activeProfile.mastery[word] = { score: 0, seen: 0, correct: 0, activities: {} };
+    }
+    return activeProfile.mastery[word];
+  }
+
+  function boostMastery(word, activity, knew) {
+    const m = getMastery(word);
+    if (!m) return;
+    m.seen++;
+    // Points per activity when correct
+    const boosts = { flashcard: 15, match_pinyin: 10, match_def: 10, match_illust: 8, trace: 20 };
+    if (knew) {
+      m.correct++;
+      const boost = boosts[activity] || 10;
+      m.score = Math.min(100, m.score + boost);
+      m.activities[activity] = (m.activities[activity] || 0) + 1;
+    } else {
+      // Small decay on wrong, never below 0
+      m.score = Math.max(0, m.score - 5);
+    }
+    saveProfiles();
+  }
+
+  function getWordMasteryScore(word) {
+    if (!activeProfile || !activeProfile.mastery || !activeProfile.mastery[word]) return 0;
+    return activeProfile.mastery[word].score;
+  }
+
   function answer(knew) {
     if (audioCtx.state === "suspended") audioCtx.resume();
     cardsPlayed++;
+
+    // Track per-word mastery
+    if (currentWord) {
+      boostMastery(currentWord.chinese || currentWord.c, "flashcard", knew);
+    }
 
     if (knew) {
       score++;
@@ -1598,6 +1639,7 @@
     activeProfile.reviewQueue = [];
     activeProfile.seenPerLevel = { 1:[], 2:[], 3:[], 4:[], 5:[] };
     activeProfile.customWords = [];
+    activeProfile.mastery = {};
     playerLevel = s.startLevel;
     levelProgress = 0;
     score = 0;
