@@ -1400,8 +1400,78 @@
     "纸":"zhǐ","字":"zì","号":"hào","名":"míng","生":"shēng","老":"lǎo","师":"shī","同":"tóng",
   };
 
+  // English definitions - multi-char words first, then single chars
+  const defMap = {
+    // Common multi-character words
+    "哥哥":"Brother","姐姐":"Sister","弟弟":"Younger brother","妹妹":"Younger sister",
+    "牛奶":"Milk","米饭":"Rice","鸡蛋":"Egg","面包":"Bread","蔬菜":"Vegetables",
+    "水果":"Fruit","苹果":"Apple","西瓜":"Watermelon","香蕉":"Banana","葡萄":"Grape",
+    "巧克力":"Chocolate","冰淇淋":"Ice cream","饺子":"Dumpling","面条":"Noodles",
+    "可乐":"Cola","咖啡":"Coffee","果汁":"Juice","牛肉":"Beef","猪肉":"Pork","鸡肉":"Chicken",
+    "妈妈":"Mom","爸爸":"Dad","爷爷":"Grandpa","奶奶":"Grandma","外公":"Grandpa (maternal)",
+    "外婆":"Grandma (maternal)","叔叔":"Uncle","阿姨":"Auntie","老师":"Teacher",
+    "同学":"Classmate","朋友":"Friend","医生":"Doctor","学生":"Student","警察":"Police",
+    "你好":"Hello","谢谢":"Thank you","再见":"Goodbye","对不起":"Sorry","没关系":"It's okay",
+    "太阳":"Sun","月亮":"Moon","星星":"Star","地球":"Earth","天气":"Weather",
+    "下雨":"Raining","下雪":"Snowing","春天":"Spring","夏天":"Summer","秋天":"Autumn","冬天":"Winter",
+    "学校":"School","教室":"Classroom","图书馆":"Library","操场":"Playground",
+    "医院":"Hospital","超市":"Supermarket","公园":"Park","动物园":"Zoo",
+    "电话":"Phone","电脑":"Computer","电视":"TV","手机":"Cell phone","飞机":"Airplane",
+    "汽车":"Car","火车":"Train","公共汽车":"Bus","自行车":"Bicycle","地铁":"Subway",
+    "高兴":"Happy","快乐":"Joyful","难过":"Sad","生气":"Angry","害怕":"Scared",
+    "漂亮":"Pretty","聪明":"Smart","勇敢":"Brave","认真":"Serious","可爱":"Cute",
+    "今天":"Today","明天":"Tomorrow","昨天":"Yesterday","早上":"Morning","晚上":"Evening",
+    "中午":"Noon","上午":"Morning","下午":"Afternoon","现在":"Now","时间":"Time",
+    "钢琴":"Piano","足球":"Soccer","篮球":"Basketball","游泳":"Swimming","跑步":"Running",
+    "画画":"Drawing","唱歌":"Singing","跳舞":"Dancing","读书":"Reading","写字":"Writing",
+    "厨房":"Kitchen","客厅":"Living room","卧室":"Bedroom","卫生间":"Bathroom",
+    "桌子":"Table","椅子":"Chair","筷子":"Chopsticks","杯子":"Cup","碗":"Bowl",
+    "恐龙":"Dinosaur","蝴蝶":"Butterfly","彩虹":"Rainbow","练习":"Practice","冒险":"Adventure",
+    "知道":"Know","喜欢":"Like","可以":"Can","应该":"Should","因为":"Because","所以":"So",
+    // Single characters
+    "哥":"Brother","姐":"Sister","弟":"Younger brother","妹":"Younger sister",
+    "牛":"Cow","奶":"Milk","米":"Rice","饭":"Meal","茶":"Tea","鸡":"Chicken","蛋":"Egg",
+    "面":"Noodle","菜":"Vegetable","肉":"Meat","汤":"Soup","糖":"Sugar","盐":"Salt",
+    "油":"Oil","醋":"Vinegar","酱":"Sauce","包":"Bag","杯":"Cup","碗":"Bowl","筷":"Chopstick",
+    "桌":"Table","椅":"Chair","门":"Door","窗":"Window","床":"Bed","灯":"Light","车":"Car",
+    "船":"Boat","路":"Road","桥":"Bridge","雨":"Rain","雪":"Snow","风":"Wind","云":"Cloud","雷":"Thunder",
+    "冰":"Ice","石":"Stone","土":"Earth","草":"Grass","竹":"Bamboo","河":"River","海":"Sea","湖":"Lake",
+    "马":"Horse","羊":"Sheep","猪":"Pig","兔":"Rabbit","龙":"Dragon","蛇":"Snake","虎":"Tiger",
+    "鹅":"Goose","鸭":"Duck","虫":"Bug","蜂":"Bee","蚂":"Ant","蚁":"Ant",
+    "头":"Head","眼":"Eye","耳":"Ear","鼻":"Nose","嘴":"Mouth","牙":"Tooth","舌":"Tongue","心":"Heart",
+    "脚":"Foot","腿":"Leg","肚":"Belly","背":"Back","脸":"Face","发":"Hair",
+    "爱":"Love","好":"Good","坏":"Bad","快":"Fast","慢":"Slow","多":"Many","少":"Few",
+    "长":"Long","短":"Short","高":"Tall","低":"Low","新":"New","旧":"Old","冷":"Cold","热":"Hot",
+    "开":"Open","关":"Close","来":"Come","去":"Go","上":"Up","下":"Down","左":"Left","右":"Right",
+    "前":"Front","后":"Behind","里":"Inside","外":"Outside","中":"Middle",
+    "东":"East","西":"West","南":"South","北":"North",
+    "是":"Is","有":"Have","没":"No","不":"Not","很":"Very","也":"Also","都":"All","在":"At",
+    "和":"And","会":"Can","能":"Can","要":"Want",
+    "给":"Give","说":"Say","做":"Do","想":"Think","知":"Know","道":"Way","买":"Buy","卖":"Sell",
+    "吃":"Eat","喝":"Drink","看":"Look","听":"Listen","跑":"Run","走":"Walk",
+    "一":"One","二":"Two","三":"Three","四":"Four","五":"Five",
+    "六":"Six","七":"Seven","八":"Eight","九":"Nine","十":"Ten",
+    "百":"Hundred","千":"Thousand","万":"Ten thousand",
+    "年":"Year","月":"Month","天":"Day/Sky","日":"Day/Sun","时":"Hour",
+    "家":"Home","学":"Study","校":"School","国":"Country",
+    "大":"Big","小":"Small","人":"Person","口":"Mouth","手":"Hand","山":"Mountain","水":"Water",
+    "火":"Fire","木":"Wood","金":"Gold","花":"Flower","树":"Tree","鱼":"Fish","鸟":"Bird",
+    "猫":"Cat","狗":"Dog","书":"Book","笔":"Pen","纸":"Paper","字":"Character",
+    "红":"Red","蓝":"Blue","白":"White","黑":"Black","绿":"Green","黄":"Yellow",
+    "电":"Electric","话":"Speech","名":"Name","生":"Life","老":"Old","师":"Teacher",
+  };
+
   function guessPinyin(chinese) {
     return Array.from(chinese).map(c => pinyinMap[c] || "?").join(" ");
+  }
+
+  function guessEnglish(chinese) {
+    // Try full word first, then fall back to character-by-character
+    if (defMap[chinese]) return defMap[chinese];
+    // Try character by character
+    const parts = Array.from(chinese).map(c => defMap[c]).filter(Boolean);
+    if (parts.length > 0) return parts.join(" + ");
+    return "";
   }
 
   function addPastedWords() {
@@ -1422,7 +1492,7 @@
         // Just Chinese characters pasted
         const ch = parts[0];
         if (!ch) continue;
-        word = { chinese: ch, pinyin: guessPinyin(ch), english: "", correct: 0 };
+        word = { chinese: ch, pinyin: guessPinyin(ch), english: guessEnglish(ch), correct: 0 };
       }
       if (!activeProfile.customWords.some(w => w.chinese === word.chinese)) {
         activeProfile.customWords.push(word);
