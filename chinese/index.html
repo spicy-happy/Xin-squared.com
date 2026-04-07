@@ -963,6 +963,7 @@
   </div>
 
 
+<script src="words.js"></script>
 <script>
   // --- Sound engine (Web Audio API) ---
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1133,96 +1134,14 @@
     }
   }
 
-  // --- Word bank organized by difficulty level (1-5) ---
-  // icon = Fluent Emoji Flat illustration name (via Iconify API)
+  // --- Word bank from external words.js, normalized to internal format ---
   const ICON_BASE = "https://api.iconify.design/fluent-emoji-flat/";
-  const wordBank = {
-    1: [
-      { chinese: "一", pinyin: "yī", english: "One", icon: "keycap-1" },
-      { chinese: "二", pinyin: "èr", english: "Two", icon: "victory-hand" },
-      { chinese: "三", pinyin: "sān", english: "Three", icon: "keycap-3" },
-      { chinese: "四", pinyin: "sì", english: "Four", icon: "four-leaf-clover" },
-      { chinese: "五", pinyin: "wǔ", english: "Five", icon: "raised-hand" },
-      { chinese: "大", pinyin: "dà", english: "Big", icon: "elephant" },
-      { chinese: "小", pinyin: "xiǎo", english: "Small", icon: "ant" },
-      { chinese: "人", pinyin: "rén", english: "Person", icon: "person-standing" },
-      { chinese: "口", pinyin: "kǒu", english: "Mouth", icon: "mouth" },
-      { chinese: "手", pinyin: "shǒu", english: "Hand", icon: "waving-hand" },
-      { chinese: "山", pinyin: "shān", english: "Mountain", icon: "mountain" },
-      { chinese: "水", pinyin: "shuǐ", english: "Water", icon: "droplet", sound: "splash" },
-      { chinese: "火", pinyin: "huǒ", english: "Fire", icon: "fire", sound: "crackle" },
-      { chinese: "天", pinyin: "tiān", english: "Sky", icon: "sun-behind-cloud" },
-      { chinese: "日", pinyin: "rì", english: "Day", icon: "sun" },
-    ],
-    2: [
-      { chinese: "六", pinyin: "liù", english: "Six", icon: "game-die" },
-      { chinese: "七", pinyin: "qī", english: "Seven", icon: "rainbow" },
-      { chinese: "八", pinyin: "bā", english: "Eight", icon: "pool-8-ball" },
-      { chinese: "九", pinyin: "jiǔ", english: "Nine", icon: "keycap-9" },
-      { chinese: "十", pinyin: "shí", english: "Ten", icon: "keycap-10" },
-      { chinese: "红", pinyin: "hóng", english: "Red", icon: "red-heart" },
-      { chinese: "蓝", pinyin: "lán", english: "Blue", icon: "blue-heart" },
-      { chinese: "白", pinyin: "bái", english: "White", icon: "white-heart" },
-      { chinese: "黑", pinyin: "hēi", english: "Black", icon: "black-heart" },
-      { chinese: "猫", pinyin: "māo", english: "Cat", icon: "cat-face", sound: "meow" },
-      { chinese: "狗", pinyin: "gǒu", english: "Dog", icon: "dog-face", sound: "woof" },
-      { chinese: "鱼", pinyin: "yú", english: "Fish", icon: "fish", sound: "splash" },
-      { chinese: "鸟", pinyin: "niǎo", english: "Bird", icon: "bird", sound: "chirp" },
-      { chinese: "花", pinyin: "huā", english: "Flower", icon: "cherry-blossom" },
-      { chinese: "树", pinyin: "shù", english: "Tree", icon: "deciduous-tree" },
-    ],
-    3: [
-      { chinese: "你好", pinyin: "nǐ hǎo", english: "Hello", icon: "waving-hand" },
-      { chinese: "谢谢", pinyin: "xiè xie", english: "Thank you", icon: "folded-hands" },
-      { chinese: "妈妈", pinyin: "mā ma", english: "Mom", icon: "woman" },
-      { chinese: "爸爸", pinyin: "bà ba", english: "Dad", icon: "man" },
-      { chinese: "朋友", pinyin: "péng yǒu", english: "Friend", icon: "handshake" },
-      { chinese: "太阳", pinyin: "tài yáng", english: "Sun", icon: "sun-with-face" },
-      { chinese: "月亮", pinyin: "yuè liang", english: "Moon", icon: "crescent-moon" },
-      { chinese: "星星", pinyin: "xīng xing", english: "Star", icon: "glowing-star" },
-      { chinese: "苹果", pinyin: "píng guǒ", english: "Apple", icon: "red-apple", sound: "munch" },
-      { chinese: "吃", pinyin: "chī", english: "Eat", icon: "fork-and-knife", sound: "munch" },
-      { chinese: "喝", pinyin: "hē", english: "Drink", icon: "cup-with-straw", sound: "gulp" },
-      { chinese: "跑", pinyin: "pǎo", english: "Run", icon: "person-running", sound: "steps" },
-      { chinese: "走", pinyin: "zǒu", english: "Walk", icon: "person-walking", sound: "steps" },
-      { chinese: "看", pinyin: "kàn", english: "Look", icon: "eyes" },
-      { chinese: "听", pinyin: "tīng", english: "Listen", icon: "ear" },
-    ],
-    4: [
-      { chinese: "学校", pinyin: "xué xiào", english: "School", icon: "school", sound: "ring" },
-      { chinese: "老师", pinyin: "lǎo shī", english: "Teacher", icon: "woman-teacher" },
-      { chinese: "学生", pinyin: "xué shēng", english: "Student", icon: "backpack" },
-      { chinese: "书", pinyin: "shū", english: "Book", icon: "open-book" },
-      { chinese: "电话", pinyin: "diàn huà", english: "Phone", icon: "mobile-phone", sound: "ring" },
-      { chinese: "医生", pinyin: "yī shēng", english: "Doctor", icon: "man-health-worker" },
-      { chinese: "高兴", pinyin: "gāo xìng", english: "Happy", icon: "grinning-face-with-big-eyes" },
-      { chinese: "漂亮", pinyin: "piào liang", english: "Pretty", icon: "bouquet" },
-      { chinese: "快乐", pinyin: "kuài lè", english: "Joyful", icon: "partying-face" },
-      { chinese: "时间", pinyin: "shí jiān", english: "Time", icon: "alarm-clock", sound: "ring" },
-      { chinese: "今天", pinyin: "jīn tiān", english: "Today", icon: "calendar" },
-      { chinese: "明天", pinyin: "míng tiān", english: "Tomorrow", icon: "sunrise" },
-      { chinese: "昨天", pinyin: "zuó tiān", english: "Yesterday", icon: "sunset" },
-      { chinese: "早上", pinyin: "zǎo shang", english: "Morning", icon: "sunrise-over-mountains" },
-      { chinese: "晚上", pinyin: "wǎn shang", english: "Evening", icon: "night-with-stars" },
-    ],
-    5: [
-      { chinese: "飞机", pinyin: "fēi jī", english: "Airplane", icon: "airplane", sound: "whoosh" },
-      { chinese: "图书馆", pinyin: "tú shū guǎn", english: "Library", icon: "books" },
-      { chinese: "动物园", pinyin: "dòng wù yuán", english: "Zoo", icon: "lion" },
-      { chinese: "巧克力", pinyin: "qiǎo kè lì", english: "Chocolate", icon: "chocolate-bar", sound: "munch" },
-      { chinese: "西瓜", pinyin: "xī guā", english: "Watermelon", icon: "watermelon", sound: "munch" },
-      { chinese: "聪明", pinyin: "cōng míng", english: "Smart", icon: "brain" },
-      { chinese: "勇敢", pinyin: "yǒng gǎn", english: "Brave", icon: "man-superhero" },
-      { chinese: "认真", pinyin: "rèn zhēn", english: "Serious", icon: "nerd-face" },
-      { chinese: "练习", pinyin: "liàn xí", english: "Practice", icon: "pencil" },
-      { chinese: "冒险", pinyin: "mào xiǎn", english: "Adventure", icon: "world-map" },
-      { chinese: "厨房", pinyin: "chú fáng", english: "Kitchen", icon: "man-cook" },
-      { chinese: "钢琴", pinyin: "gāng qín", english: "Piano", icon: "musical-keyboard" },
-      { chinese: "恐龙", pinyin: "kǒng lóng", english: "Dinosaur", icon: "t-rex" },
-      { chinese: "蝴蝶", pinyin: "hú dié", english: "Butterfly", icon: "butterfly" },
-      { chinese: "彩虹", pinyin: "cǎi hóng", english: "Rainbow", icon: "rainbow" },
-    ],
-  };
+  const wordBank = {};
+  for (const level in WORD_BANK) {
+    wordBank[level] = WORD_BANK[level].map(w => ({
+      chinese: w.c, pinyin: w.p, english: w.e, icon: w.i || null
+    }));
+  }
 
   // Silly reward pictures & messages
   const rewards = [
@@ -1243,7 +1162,7 @@
     { pic: "🧙‍♂️", title: "Word Wizard!", msg: "You cast a spell of smartness!" },
   ];
 
-  const levelNames = ["", "Beginner", "Easy", "Medium", "Hard", "Expert"];
+  const levelNames = ["", "Beginner", "Easy", "Getting There", "Medium", "Solid", "Advanced", "Expert", "Master"];
   const confettiChars = ["🎉", "⭐", "🌟", "💫", "🎊", "✨", "🎈", "❤️", "🧡", "💛"];
   const avatars = [
     "🐼","🦊","🐸","🐶","🐱","🐰","🦄","🐲","🐵","🦁","🐯","🐻",
@@ -1258,8 +1177,8 @@
 
   // Age -> max word level, Experience -> starting level
   function getSettings(age, exp) {
-    const maxLevel = { "3-5": 2, "6-8": 3, "9-11": 4, "12+": 5 }[age] || 3;
-    const startLevel = { none: 1, some: 2, intermediate: 3, advanced: 4 }[exp] || 1;
+    const maxLevel = { "3-5": 3, "6-8": 5, "9-11": 7, "12+": 8 }[age] || 5;
+    const startLevel = { none: 1, some: 2, intermediate: 3, advanced: 5 }[exp] || 1;
     return { maxLevel, startLevel: Math.min(startLevel, maxLevel) };
   }
 
@@ -1325,7 +1244,7 @@
       playerLevel: settings.startLevel,
       maxLevel: settings.maxLevel,
       levelProgress: 0, score: 0, streak: 0, cardsPlayed: 0,
-      reviewQueue: [], seenPerLevel: { 1:[], 2:[], 3:[], 4:[], 5:[] },
+      reviewQueue: [], seenPerLevel: { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[] },
       mastery: {}, // { "chinese_word": { score: 0-100, seen: N, correct: N, activities: {} } }
     };
     profiles.push(profile);
@@ -1359,7 +1278,7 @@
     streak = activeProfile.streak;
     cardsPlayed = activeProfile.cardsPlayed;
     reviewQueue = activeProfile.reviewQueue || [];
-    seenPerLevel = activeProfile.seenPerLevel || { 1:[], 2:[], 3:[], 4:[], 5:[] };
+    seenPerLevel = activeProfile.seenPerLevel || { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[] };
     showActivityMenu();
   }
 
@@ -1870,7 +1789,7 @@
     activeProfile.streak = 0;
     activeProfile.cardsPlayed = 0;
     activeProfile.reviewQueue = [];
-    activeProfile.seenPerLevel = { 1:[], 2:[], 3:[], 4:[], 5:[] };
+    activeProfile.seenPerLevel = { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[] };
     activeProfile.customWords = [];
     activeProfile.mastery = {};
     playerLevel = s.startLevel;
@@ -1879,7 +1798,7 @@
     streak = 0;
     cardsPlayed = 0;
     reviewQueue = [];
-    seenPerLevel = { 1:[], 2:[], 3:[], 4:[], 5:[] };
+    seenPerLevel = { 1:[], 2:[], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[] };
     saveProfiles();
     updateStats();
     renderCustomWords();
