@@ -506,6 +506,32 @@
     .activity-name { font-weight: 700; font-size: 1rem; color: #333; margin-bottom: 4px; }
     .activity-desc { font-size: 0.75rem; color: #999; }
 
+    .activity-card.all-mode {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+      color: #fff;
+      padding: 30px 16px;
+    }
+
+    .activity-card.all-mode .activity-icon { font-size: 3rem; }
+    .activity-card.all-mode .activity-name { font-size: 1.3rem; color: #fff; }
+    .activity-card.all-mode .activity-desc { color: rgba(255,255,255,0.8); font-size: 0.85rem; }
+
+    .activity-card.small {
+      padding: 16px 12px;
+    }
+
+    .activity-card.small .activity-icon { font-size: 1.8rem; margin-bottom: 4px; }
+    .activity-card.small .activity-name { font-size: 0.85rem; }
+    .activity-card.small .activity-desc { font-size: 0.65rem; }
+
+    .level-indicator {
+      font-size: 0.75rem;
+      color: #a18cd1;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
     /* Match game */
     .match-area { display: none; width: 100%; max-width: 400px; }
     .match-area.active { display: flex; flex-direction: column; align-items: center; }
@@ -859,26 +885,32 @@
     <button class="settings-btn" onclick="openSettings()">Settings</button>
     <h2 id="menuGreeting">Pick an activity!</h2>
     <p class="menu-sub">What do you want to practice?</p>
+    <p class="level-indicator" id="levelIndicator"></p>
     <div class="activity-grid">
-      <div class="activity-card" onclick="startActivity('flashcard')">
+      <div class="activity-card all-mode" onclick="startActivity('all')">
+        <div class="activity-icon">🐼</div>
+        <div class="activity-name">All Activities</div>
+        <div class="activity-desc">Flashcards, matching, and tracing - all mixed together</div>
+      </div>
+      <div class="activity-card small" onclick="startActivity('flashcard')">
         <div class="activity-icon">🔄</div>
         <div class="activity-name">Flashcards</div>
-        <div class="activity-desc">Flip cards to learn words</div>
+        <div class="activity-desc">Flip to learn</div>
       </div>
-      <div class="activity-card" onclick="startActivity('match_pinyin')">
+      <div class="activity-card small" onclick="startActivity('match_pinyin')">
         <div class="activity-icon">🔤</div>
         <div class="activity-name">Match Pinyin</div>
-        <div class="activity-desc">Match words to their sound</div>
+        <div class="activity-desc">Match sounds</div>
       </div>
-      <div class="activity-card" onclick="startActivity('match_def')">
+      <div class="activity-card small" onclick="startActivity('match_def')">
         <div class="activity-icon">🔗</div>
         <div class="activity-name">Match Meaning</div>
-        <div class="activity-desc">Match words to English</div>
+        <div class="activity-desc">Match English</div>
       </div>
-      <div class="activity-card" onclick="startActivity('trace')">
+      <div class="activity-card small" onclick="startActivity('trace')">
         <div class="activity-icon">✏️</div>
         <div class="activity-name">Trace</div>
-        <div class="activity-desc">Practice writing characters</div>
+        <div class="activity-desc">Write characters</div>
       </div>
     </div>
   </div>
@@ -1282,30 +1314,117 @@
     showActivityMenu();
   }
 
+  // --- Difficulty system: each word has a difficulty 1-5 ---
+  // playerLevel determines which difficulty words to serve.
+  // ~60% from current level, ~20% from level-1, ~15% from level+1, ~5% random
+  function getWordDifficulty(word) {
+    const ch = word.chinese || word.c;
+    // Check which wordBank level it belongs to
+    for (const lvl in wordBank) {
+      if (wordBank[lvl].some(w => w.chinese === ch)) {
+        // Map 8 bank levels to 5 difficulty levels
+        const bankLvl = parseInt(lvl);
+        if (bankLvl <= 2) return 1;
+        if (bankLvl <= 3) return 2;
+        if (bankLvl <= 5) return 3;
+        if (bankLvl <= 7) return 4;
+        return 5;
+      }
+    }
+    return 3; // default for custom words
+  }
+
   function showActivityMenu() {
     hideAllScreens();
     document.getElementById("activityMenu").classList.add("active");
     const name = activeProfile ? activeProfile.name : "";
     document.getElementById("menuGreeting").textContent = "Hi " + name + "!";
     document.getElementById("menuSwitchBtn").textContent = activeProfile.avatar + " Switch";
+    // Show level
+    const diffLevel = Math.min(5, Math.ceil(playerLevel / 1.6));
+    document.getElementById("levelIndicator").textContent =
+      "Level " + playerLevel + " · Difficulty " + diffLevel + "/5";
   }
 
   function backToMenu() {
     saveProgress();
+    allModeActive = false;
     showActivityMenu();
   }
 
   function switchProfile() {
     saveProgress();
+    allModeActive = false;
     hideAllScreens();
     document.getElementById("profileScreen").style.display = "";
     activeProfile = null;
     renderProfiles();
   }
 
+  // --- All Activities mode ---
+  let allModeActive = false;
+  let allModeQueue = [];  // queue of activity types to cycle through
+  let allModeWord = null; // current word being practiced in all mode
+
+  function buildAllModeRound() {
+    // Pick a word, then create a round of activities for it
+    allModeWord = pickWord();
+    const activities = ["flashcard"];
+    // Only add matching if word has pinyin and english
+    if (allModeWord.pinyin && allModeWord.english) {
+      activities.push("match_pinyin");
+      activities.push("match_def");
+    }
+    // Only add trace for single characters
+    if ((allModeWord.chinese || "").length === 1) {
+      activities.push("trace");
+    }
+    allModeQueue = activities;
+  }
+
+  function nextAllModeActivity() {
+    if (allModeQueue.length === 0) {
+      buildAllModeRound();
+    }
+    const next = allModeQueue.shift();
+    hideAllScreens();
+    if (next === "flashcard") {
+      document.getElementById("gameArea").classList.add("active");
+      // Force show the allModeWord
+      currentWord = allModeWord;
+      document.getElementById("cardChinese").textContent = currentWord.chinese;
+      document.getElementById("card").classList.remove("flipped");
+      setTimeout(() => {
+        document.getElementById("cardChineseBack").textContent = currentWord.chinese;
+        document.getElementById("cardPinyinBack").textContent = currentWord.pinyin;
+        document.getElementById("cardEnglish").textContent = currentWord.english;
+        const img = document.getElementById("cardIllust");
+        if (currentWord.icon) {
+          img.src = ICON_BASE + currentWord.icon + ".svg?height=96";
+          img.style.display = "";
+        } else {
+          img.style.display = "none";
+        }
+        document.getElementById("reviewTagFront").style.display = "none";
+        document.getElementById("reviewTagBack").style.display = "none";
+      }, 100);
+      updateStats();
+    } else if (next === "match_pinyin" || next === "match_def") {
+      document.getElementById("matchArea").classList.add("active");
+      startMatchForWord(next, allModeWord);
+    } else if (next === "trace") {
+      document.getElementById("traceArea").classList.add("active");
+      startTraceForWord(allModeWord);
+    }
+  }
+
   function startActivity(type) {
     hideAllScreens();
-    if (type === "flashcard") {
+    allModeActive = (type === "all");
+    if (type === "all") {
+      buildAllModeRound();
+      nextAllModeActivity();
+    } else if (type === "flashcard") {
       document.getElementById("gameArea").classList.add("active");
       updateStats();
       showCard();
@@ -1355,17 +1474,24 @@
 
     isReviewCard = false;
 
-    // Adaptive: mostly pick from current level, sometimes from adjacent
+    // Adaptive difficulty: 60% current level, 20% below, 15% above, 5% random
     let level = playerLevel;
     const roll = Math.random();
-    if (roll < 0.15 && playerLevel > 1) {
+    if (roll < 0.20 && playerLevel > 1) {
       level = playerLevel - 1;
-    } else if (roll < 0.25 && playerLevel < maxLevel) {
+      if (roll < 0.05 && playerLevel > 2) level = playerLevel - 2; // occasional deep review
+    } else if (roll < 0.35 && playerLevel < maxLevel) {
       level = playerLevel + 1;
+    } else if (roll < 0.40) {
+      // Random level for variety
+      level = 1 + Math.floor(Math.random() * Math.min(maxLevel, Object.keys(wordBank).length));
     }
+    level = Math.max(1, Math.min(level, maxLevel));
 
+    if (!wordBank[level]) level = playerLevel; // fallback
     const pool = wordBank[level];
-    const seen = seenPerLevel[level];
+    if (!pool || pool.length === 0) return wordBank[1][0]; // ultimate fallback
+    const seen = seenPerLevel[level] || [];
 
     // Pick unseen words first, reset if all seen
     const unseen = pool.filter(w => !seen.includes(w.chinese));
@@ -1508,7 +1634,11 @@
 
     updateStats();
     saveProgress();
-    showCard();
+    if (allModeActive) {
+      nextAllModeActivity();
+    } else {
+      showCard();
+    }
   }
 
   function showLevelUp() {
@@ -1919,7 +2049,34 @@
     document.getElementById("matchStreak").textContent = matchStreak2 + " 🔥";
     saveProgress();
 
-    setTimeout(nextMatch, correct ? 600 : 1200);
+    if (allModeActive) {
+      setTimeout(() => nextAllModeActivity(), correct ? 600 : 1200);
+    } else {
+      setTimeout(nextMatch, correct ? 600 : 1200);
+    }
+  }
+
+  // Start match for a specific word (used by all-mode)
+  function startMatchForWord(type, word) {
+    matchType = type;
+    document.getElementById("matchInfo").textContent =
+      type === "match_pinyin" ? "Match the character to its pinyin" : "Match the character to its meaning";
+    document.getElementById("matchScore").textContent = matchScore2;
+    document.getElementById("matchStreak").textContent = matchStreak2 + " 🔥";
+
+    matchLocked = false;
+    matchCorrectWord = word;
+    const pool = getMatchPool().filter(w => w.pinyin && w.english && w.chinese !== word.chinese);
+    const distractors = pool.sort(() => Math.random() - 0.5).slice(0, 3);
+    const options = [word, ...distractors].sort(() => Math.random() - 0.5);
+
+    document.getElementById("matchPrompt").textContent = word.chinese;
+    const container = document.getElementById("matchOptions");
+    container.innerHTML = options.map(w => {
+      const display = matchType === "match_pinyin" ? w.pinyin : w.english;
+      return '<button class="match-opt" onclick="checkMatch(this,\'' +
+        w.chinese.replace(/'/g, "\\'") + '\')">' + display + '</button>';
+    }).join("");
   }
 
   // --- Tracing activity ---
@@ -1962,6 +2119,10 @@
   }
 
   function nextTrace() {
+    if (allModeActive) {
+      nextAllModeActivity();
+      return;
+    }
     clearTrace();
     const pool = getMatchPool().filter(w => w.chinese && w.chinese.length === 1);
     if (pool.length === 0) return;
@@ -1970,6 +2131,31 @@
     document.getElementById("tracePinyin").textContent = traceWord.pinyin || "";
     document.getElementById("traceEnglish").textContent = traceWord.english || "";
     boostMastery(traceWord.chinese, "trace", true);
+    saveProgress();
+  }
+
+  // Start trace for a specific word (used by all-mode)
+  function startTraceForWord(word) {
+    const canvas = document.getElementById("traceCanvas");
+    if (!traceCtx) {
+      traceCtx = canvas.getContext("2d");
+      traceCtx.lineWidth = 6;
+      traceCtx.lineCap = "round";
+      traceCtx.strokeStyle = "#e44d6e";
+      canvas.onmousedown = (e) => { tracing = true; traceCtx.beginPath(); traceCtx.moveTo(e.offsetX, e.offsetY); };
+      canvas.onmousemove = (e) => { if (tracing) { traceCtx.lineTo(e.offsetX, e.offsetY); traceCtx.stroke(); } };
+      canvas.onmouseup = () => tracing = false;
+      canvas.onmouseleave = () => tracing = false;
+      canvas.ontouchstart = (e) => { e.preventDefault(); tracing = true; const r = canvas.getBoundingClientRect(); const t = e.touches[0]; traceCtx.beginPath(); traceCtx.moveTo(t.clientX - r.left, t.clientY - r.top); };
+      canvas.ontouchmove = (e) => { e.preventDefault(); if (!tracing) return; const r = canvas.getBoundingClientRect(); const t = e.touches[0]; traceCtx.lineTo(t.clientX - r.left, t.clientY - r.top); traceCtx.stroke(); };
+      canvas.ontouchend = () => tracing = false;
+    }
+    clearTrace();
+    traceWord = word;
+    document.getElementById("traceChar").textContent = word.chinese;
+    document.getElementById("tracePinyin").textContent = word.pinyin || "";
+    document.getElementById("traceEnglish").textContent = word.english || "";
+    boostMastery(word.chinese, "trace", true);
     saveProgress();
   }
 
