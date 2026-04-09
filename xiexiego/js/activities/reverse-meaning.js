@@ -78,6 +78,15 @@ export async function renderReverseMeaning(container, word, distractors, onResul
 
         const encouragements = ['Try again!', 'Almost!', 'Keep trying!'];
         feedbackEl.textContent = encouragements[Math.min(attempts - 1, 2)];
+
+        // After 2 wrong attempts, hint the correct answer with a subtle glow
+        if (attempts >= 2) {
+          optionBtns.forEach(b => {
+            if (b.dataset.char === word.character) {
+              b.classList.add('quiz__option--hint');
+            }
+          });
+        }
       }
     });
   });

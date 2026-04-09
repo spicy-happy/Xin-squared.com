@@ -11,7 +11,7 @@ import { renderPinyinMatch } from './activities/pinyin-match.js';
 import { renderReverseMeaning } from './activities/reverse-meaning.js';
 import { renderStrokeWriting } from './activities/stroke-writing.js';
 import { speakChinese } from './enrichment.js';
-import { playCelebration, playClick } from './sounds.js';
+import { playCelebration, playClick, playLevelUp } from './sounds.js';
 
 /** Shuffle array in place (Fisher-Yates) */
 function shuffle(arr) {
@@ -198,6 +198,8 @@ export function renderSession(app, storage, navigate) {
   window.addEventListener('keydown', onKeyDown);
   function cleanupKeyboard() { window.removeEventListener('keydown', onKeyDown); }
 
+  let prevIndex = 0; // Track previous index for progress animation
+
   function render() {
     if (currentIndex >= sessionPlan.length) {
       renderCelebration();
@@ -207,6 +209,8 @@ export function renderSession(app, storage, navigate) {
     const { word, activityType, render: renderActivity } = sessionPlan[currentIndex];
     const total = sessionPlan.length;
     const freshProfile = storage.getProfile(profileId);
+    const prevPct = (prevIndex / total) * 100;
+    const newPct = (currentIndex / total) * 100;
 
     app.innerHTML = `
       <div class="screen session">
@@ -214,7 +218,7 @@ export function renderSession(app, storage, navigate) {
           <button class="session__close" id="btn-session-close">×</button>
           <div class="session__progress">
             <div class="session__progress-bar">
-              <div class="session__progress-fill" style="width: ${((currentIndex) / total) * 100}%"></div>
+              <div class="session__progress-fill" id="progress-fill" style="width: ${prevPct}%"></div>
             </div>
             <span class="session__progress-text">${currentIndex + 1} / ${total}</span>
           </div>
@@ -222,6 +226,19 @@ export function renderSession(app, storage, navigate) {
         <div id="activity-container" class="session__activity"></div>
       </div>
     `;
+
+    // Animate progress bar and play level-up sound
+    if (currentIndex > prevIndex) {
+      requestAnimationFrame(() => {
+        const fill = app.querySelector('#progress-fill');
+        if (fill) fill.style.width = newPct + '%';
+      });
+      playLevelUp();
+    } else {
+      const fill = app.querySelector('#progress-fill');
+      if (fill) fill.style.width = newPct + '%';
+    }
+    prevIndex = currentIndex;
 
     app.querySelector('#btn-session-close').addEventListener('click', () => {
       abortCurrentActivity();

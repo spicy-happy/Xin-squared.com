@@ -130,7 +130,7 @@ export async function renderStrokeWriting(container, word, distractors, onResult
       showCharacter: true,
       showHintAfterMisses: 0, // Always show the blue next-stroke hint
       highlightOnComplete: true,
-      leniency: 1.2,
+      leniency: 1.5,
       strokeHighlightSpeed: 0.5,
     },
     outline: {
@@ -138,7 +138,7 @@ export async function renderStrokeWriting(container, word, distractors, onResult
       showCharacter: false,
       showHintAfterMisses: 3,
       highlightOnComplete: true,
-      leniency: 1.0,
+      leniency: 1.2,
     },
     flash: {
       showOutline: true,
@@ -177,7 +177,7 @@ export async function renderStrokeWriting(container, word, distractors, onResult
           radicalColor: '#2D3436',
           highlightColor: '#4A90D9',
           drawingColor: drawingColor,
-          drawingWidth: 20,
+          drawingWidth: 30,
           showHintAfterMisses: opts.showHintAfterMisses,
           highlightOnComplete: opts.highlightOnComplete,
           strokeHighlightSpeed: opts.strokeHighlightSpeed || 1,

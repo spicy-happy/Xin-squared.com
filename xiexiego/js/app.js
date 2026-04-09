@@ -15,7 +15,7 @@ const app = document.getElementById('app');
 // One-time migration: re-enrich words with bad/missing meanings from the
 // corrected cedict index. Runs in background, doesn't block rendering.
 (async function migrateWordMeanings() {
-  const MIGRATION_KEY = 'migration_meanings_v1';
+  const MIGRATION_KEY = 'migration_meanings_v2';
   if (storage.get(MIGRATION_KEY)) return;
 
   const profiles = storage.getProfiles();

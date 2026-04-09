@@ -143,6 +143,27 @@ export function playSparkle() {
   } catch {}
 }
 
+/** Satisfying "level up" ding for progress bar advancement — Duolingo style */
+export function playLevelUp() {
+  try {
+    const ctx = getCtx();
+    // Quick two-note ascending ding
+    [698, 880].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const t = ctx.currentTime + i * 0.08;
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.15, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      osc.start(t);
+      osc.stop(t + 0.25);
+    });
+  } catch {}
+}
+
 /** Celebratory fanfare for session completion */
 export function playCelebration() {
   try {

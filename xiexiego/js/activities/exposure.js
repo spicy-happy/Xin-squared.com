@@ -31,7 +31,6 @@ export async function renderExposure(container, word, onComplete) {
   const spokenMeaning = (word.meaning || word.meanings?.[0] || '').replace(/\s*\/\s*/g, ' or ');
   const pinyin = word.pinyinMarked || word.pinyin || '';
   const example = word.example;
-  const hasComponents = word.components && word.components.length > 0;
   const illustration = getIllustration(word.character);
 
   container.innerHTML = `
@@ -47,11 +46,8 @@ export async function renderExposure(container, word, onComplete) {
           <div class="activity__meaning activity__reveal" id="exposure-meaning">${meaning}</div>
           ${example ? `
             <div class="activity__example activity__reveal" id="exposure-example">
-              <span class="activity__example-zh">${example.zh}</span>, ${example.en ? `<span class="activity__example-en">${example.en}</span>` : ''}
+              <span class="activity__example-zh">${example.zh}</span>
             </div>
-          ` : ''}
-          ${hasComponents && word.etymology?.hint ? `
-            <div class="activity__etymology activity__reveal" id="exposure-etymology">${word.etymology.hint}</div>
           ` : ''}
         </div>
       </div>
@@ -83,7 +79,6 @@ export async function renderExposure(container, word, onComplete) {
   const pinyinEl = container.querySelector('#exposure-pinyin');
   const meaningEl = container.querySelector('#exposure-meaning');
   const exampleEl = container.querySelector('#exposure-example');
-  const etymologyEl = container.querySelector('#exposure-etymology');
 
   let aborted = false; // Set to true when leaving this activity
 
@@ -104,14 +99,14 @@ export async function renderExposure(container, word, onComplete) {
 
   /** Show all elements instantly (no sound, no animation) */
   function revealAll() {
-    [illustrationEl, pinyinEl, meaningEl, exampleEl, etymologyEl].forEach(el => {
+    [illustrationEl, pinyinEl, meaningEl, exampleEl].forEach(el => {
       if (el) el.classList.add('activity__reveal--visible');
     });
   }
 
   /** Hide all info elements */
   function hideAll() {
-    [illustrationEl, pinyinEl, meaningEl, exampleEl, etymologyEl].forEach(el => {
+    [illustrationEl, pinyinEl, meaningEl, exampleEl].forEach(el => {
       if (el) el.classList.remove('activity__reveal--visible');
     });
   }
@@ -123,9 +118,9 @@ export async function renderExposure(container, word, onComplete) {
     setTimeout(() => el.classList.remove('activity__highlight'), 1500);
   }
 
-  /** Show buttons (and hide skip) */
+  /** Show buttons (keep skip visible — tapping again acts as Continue) */
   function showButtons() {
-    if (skipBtn) skipBtn.style.display = 'none';
+    if (skipBtn) skipBtn.textContent = 'skip ››';
     if (replayBtn) {
       replayBtn.style.visibility = 'visible';
       replayBtn.style.animation = 'fadeIn 0.3s ease-out';
@@ -136,9 +131,17 @@ export async function renderExposure(container, word, onComplete) {
     }
   }
 
-  /** Skip: stop playback, reveal everything, show buttons */
+  /** Skip: stop playback, reveal everything, show buttons.
+   *  If already stopped (buttons visible), acts as Continue. */
   function skipSequence() {
-    if (!playing) return;
+    if (!playing) {
+      // Already stopped — treat as Continue
+      abort();
+      if (writer) { try { writer.hideCharacter(); } catch {} }
+      writers.forEach(w => { if (w) try { w.hideCharacter(); } catch {} });
+      onComplete();
+      return;
+    }
     window.speechSynthesis?.cancel();
     playing = false;
     // Show the character(s) immediately
@@ -256,19 +259,6 @@ export async function renderExposure(container, word, onComplete) {
         highlight(exampleEl);
         await speakChinese(example.zh, 0.6);
         if (aborted) return;
-        if (example.en) {
-          await new Promise(r => setTimeout(r, 150));
-          if (aborted) return;
-          await speakEnglish(example.en);
-          if (aborted) return;
-        }
-      }
-
-      // 5. Reveal etymology
-      if (etymologyEl) {
-        await new Promise(r => setTimeout(r, 150));
-        if (aborted) return;
-        reveal(etymologyEl);
       }
 
       showButtons();
@@ -365,22 +355,7 @@ export async function renderExposure(container, word, onComplete) {
       highlight(exampleEl);
       if (word.example?.zh) {
         await speakChinese(word.example.zh, 0.6);
-        if (word.example.en) {
-          await new Promise(r => setTimeout(r, 300));
-          await speakEnglish(word.example.en);
-        }
       }
-    });
-  }
-
-  // Tap etymology → read hint aloud
-  if (etymologyEl) {
-    etymologyEl.addEventListener('click', (e) => {
-      if (playing) return;
-      e.stopPropagation();
-      window.speechSynthesis?.cancel();
-      highlight(etymologyEl);
-      speakEnglish(etymologyEl.textContent);
     });
   }
 

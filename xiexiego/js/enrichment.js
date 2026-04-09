@@ -149,7 +149,11 @@ const EXAMPLES = {
   '蝴蝶': { zh: '小蝴蝶', en: 'little butterfly' },
   '再见': { zh: '说再见', en: 'say goodbye' },
   '家': { zh: '回家', en: 'go home' },
+  '耳': { zh: '耳朵', en: 'ear' },
 };
+
+// Blocklist for violent/inappropriate compound words — kids' app
+const BLOCKED_EXAMPLES = new Set(['耳光', '打人', '杀', '死', '杀人', '打死', '杀死']);
 
 /**
  * Get an example for a character. Tries hardcoded table first,
@@ -162,7 +166,7 @@ function getExample(char) {
   if (compoundsIndex && char.length === 1) {
     // Look for compounds starting with this char
     for (const key of Object.keys(compoundsIndex)) {
-      if (key.startsWith(char) && key.length === 2) {
+      if (key.startsWith(char) && key.length === 2 && !BLOCKED_EXAMPLES.has(key)) {
         const comp = compoundsIndex[key];
         const meaning = (comp.d || []).map(cleanDefinition).filter(Boolean)[0];
         if (meaning) return { zh: key, en: meaning };
@@ -170,7 +174,7 @@ function getExample(char) {
     }
     // Look for compounds ending with this char
     for (const key of Object.keys(compoundsIndex)) {
-      if (key.endsWith(char) && key.length === 2) {
+      if (key.endsWith(char) && key.length === 2 && !BLOCKED_EXAMPLES.has(key)) {
         const comp = compoundsIndex[key];
         const meaning = (comp.d || []).map(cleanDefinition).filter(Boolean)[0];
         if (meaning) return { zh: key, en: meaning };
