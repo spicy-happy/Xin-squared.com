@@ -5,10 +5,10 @@
 
 import { enrichCharacter } from '../enrichment.js';
 
-const MASTERY_LABELS = {
-  1: { text: 'Learning', cls: 'mastery-badge--learning' },
-  2: { text: 'Practicing', cls: 'mastery-badge--practicing' },
-  3: { text: 'Mastered', cls: 'mastery-badge--mastered' },
+const MASTERY_ICONS = {
+  1: { icon: '🌱', label: 'Learning' },
+  2: { icon: '🌿', label: 'Practicing' },
+  3: { icon: '🌸', label: 'Mastered' },
 };
 
 export function renderWordEditor(app, storage, navigate) {
@@ -167,34 +167,18 @@ export function renderWordEditor(app, storage, navigate) {
   }
 
   function renderWordRow(word) {
-    const mastery = MASTERY_LABELS[word.box] || MASTERY_LABELS[1];
+    const mastery = MASTERY_ICONS[word.box] || MASTERY_ICONS[1];
     const isStarred = word.starFlag && word.starFlag.expiresAt > Date.now();
-    const isDeleting = deleteConfirm === word.character;
     const pinyin = word.pinyinMarked || word.pinyin || '';
-
-    if (isDeleting) {
-      return `
-        <div class="word-row word-row--deleting">
-          <span class="word-row__char">${word.character}</span>
-          <span class="word-row__confirm-text">Remove?</span>
-          <button class="btn word-row__confirm-yes" data-char="${word.character}">Yes</button>
-          <button class="btn word-row__confirm-no" data-char="${word.character}">No</button>
-        </div>
-      `;
-    }
+    const meaning = word.meaning || word.meanings?.[0] || '';
 
     return `
       <div class="word-row" data-char="${word.character}">
         <button class="word-row__star ${isStarred ? 'word-row__star--active' : ''}"
                 data-star="${word.character}">${isStarred ? '★' : '☆'}</button>
-        <div class="word-row__info">
-          <span class="word-row__char">${word.character}</span>
-          <div class="word-row__text">
-            <span class="word-row__meaning">${word.meaning || word.meanings?.[0] || ''}</span>
-            ${pinyin ? `<span class="word-row__pinyin">${pinyin}</span>` : ''}
-          </div>
-        </div>
-        <span class="mastery-badge ${mastery.cls}">${mastery.text}</span>
+        <span class="word-row__char">${word.character}</span>
+        <span class="word-row__desc">${meaning}${pinyin ? ' · ' + pinyin : ''}</span>
+        <span class="word-row__mastery" title="${mastery.label}">${mastery.icon}</span>
         <button class="word-row__delete" data-delete="${word.character}">×</button>
       </div>
     `;
@@ -298,27 +282,37 @@ export function renderWordEditor(app, storage, navigate) {
       });
     });
 
-    // Delete buttons
+    // Delete buttons — swap row content in-place instead of full re-render
     app.querySelectorAll('[data-delete]').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        deleteConfirm = btn.dataset.delete;
-        render();
-      });
-    });
-
-    // Delete confirm yes/no
-    app.querySelectorAll('.word-row__confirm-yes').forEach(btn => {
-      btn.addEventListener('click', () => {
-        storage.removeWordFromProfile(profileId, btn.dataset.char);
-        deleteConfirm = null;
-        render();
-      });
-    });
-    app.querySelectorAll('.word-row__confirm-no').forEach(btn => {
-      btn.addEventListener('click', () => {
-        deleteConfirm = null;
-        render();
+        const char = btn.dataset.delete;
+        const row = btn.closest('.word-row');
+        row.classList.add('word-row--deleting');
+        row.innerHTML = `
+          <span class="word-row__char">${char}</span>
+          <span class="word-row__confirm-text">Remove?</span>
+          <button class="btn word-row__confirm-yes">Yes</button>
+          <button class="btn word-row__confirm-no">No</button>
+        `;
+        row.querySelector('.word-row__confirm-yes').addEventListener('click', () => {
+          storage.removeWordFromProfile(profileId, char);
+          row.style.height = row.offsetHeight + 'px';
+          row.style.overflow = 'hidden';
+          row.style.transition = 'height 0.2s ease, opacity 0.2s ease';
+          requestAnimationFrame(() => {
+            row.style.height = '0px';
+            row.style.opacity = '0';
+            row.style.marginBottom = '0';
+            row.style.padding = '0';
+            row.style.border = 'none';
+          });
+          setTimeout(() => render(), 250);
+        });
+        row.querySelector('.word-row__confirm-no').addEventListener('click', () => {
+          deleteConfirm = null;
+          render();
+        });
       });
     });
   }

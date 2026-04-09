@@ -600,14 +600,6 @@ input {
   color: #FFB300;
 }
 
-.word-row__info {
-  flex: 1;
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-sm);
-  min-width: 0;
-}
-
 .word-row__char {
   font-family: var(--font-chinese);
   font-size: 1.5rem;
@@ -615,23 +607,19 @@ input {
   flex-shrink: 0;
 }
 
-.word-row__text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.word-row__meaning {
+.word-row__desc {
+  flex: 1;
   font-size: 0.85rem;
-  color: var(--color-text);
+  color: var(--color-text-light);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
-.word-row__pinyin {
-  font-size: 0.75rem;
-  color: var(--color-text-light);
+.word-row__mastery {
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
 .word-row__confirm-text {
@@ -677,30 +665,7 @@ input {
   opacity: 1;
 }
 
-/* Mastery badges */
-.mastery-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 10px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.mastery-badge--learning {
-  background: #FFF3E0;
-  color: #E65100;
-}
-
-.mastery-badge--practicing {
-  background: #E3F2FD;
-  color: #1565C0;
-}
-
-.mastery-badge--mastered {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
+/* Mastery badges (kept for future use) */
 
 /* Add word form */
 .add-word-form {
