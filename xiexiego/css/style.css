@@ -578,26 +578,31 @@ input {
   background: var(--color-surface);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
-  min-height: 56px;
+  min-height: 52px;
+  position: relative;
+  overflow: hidden;
+  border-left: 4px solid transparent;
+  cursor: pointer;
 }
 
-.word-row--deleting {
-  background: #FFF8E1;
-  border-color: var(--color-warning-light);
+.word-row.mastery--learning { border-left-color: #FF9800; }
+.word-row.mastery--practicing { border-left-color: #4A90D9; }
+.word-row.mastery--mastered { border-left-color: #4CAF50; }
+
+.word-row:active {
+  background: #F5F7FA;
 }
 
-.word-row__star {
-  font-size: 1.3rem;
-  background: none;
-  padding: var(--space-xs);
-  min-width: 36px;
-  min-height: 36px;
-  color: var(--color-border);
+.word-row__star-dot {
+  font-size: 0.7rem;
+  color: #FFB300;
   flex-shrink: 0;
 }
 
-.word-row__star--active {
-  color: #FFB300;
+.word-row__chevron {
+  font-size: 1.2rem;
+  color: var(--color-border);
+  flex-shrink: 0;
 }
 
 .word-row__char {
@@ -617,55 +622,99 @@ input {
   min-width: 0;
 }
 
-.word-row__mastery {
-  font-size: 1.1rem;
-  flex-shrink: 0;
+/* Word detail view */
+.word-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
 }
 
-.word-row__confirm-text {
-  flex: 1;
-  font-size: 0.95rem;
+.word-detail__char {
+  font-family: var(--font-chinese);
+  font-size: 5rem;
   font-weight: 600;
-  color: var(--color-warning);
+  line-height: 1.1;
 }
 
-.word-row__confirm-yes,
-.word-row__confirm-no {
-  min-height: 36px;
-  min-width: 52px;
-  padding: var(--space-xs) var(--space-md);
-  font-size: 0.85rem;
-  font-weight: 600;
-  border-radius: var(--radius-sm);
-}
-
-.word-row__confirm-yes {
-  background: var(--color-warning);
+.word-detail__mastery-bar {
   color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: var(--space-xs) var(--space-lg);
+  border-radius: 20px;
+  text-align: center;
 }
 
-.word-row__confirm-no {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
+.word-detail__input-row {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
 }
 
-.word-row__delete {
+.word-detail__input-row .form-group__input {
+  flex: 1;
+}
+
+.word-detail__reset {
   font-size: 1.2rem;
   background: none;
   color: var(--color-text-light);
-  padding: var(--space-xs);
-  min-width: 36px;
-  min-height: 36px;
-  flex-shrink: 0;
-  opacity: 0.4;
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
 }
 
-.word-row__delete:active {
-  opacity: 1;
+.word-detail__reset:active {
+  background: var(--color-border);
 }
 
-/* Mastery badges (kept for future use) */
+.word-detail__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  width: 100%;
+  text-align: left;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+}
+
+.word-detail__star-btn {
+  width: 100%;
+  min-height: 48px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  color: var(--color-text);
+  margin-top: var(--space-sm);
+}
+
+.word-detail__star-btn--active {
+  border-color: #FFB300;
+  background: #FFF8E1;
+  color: #F57F17;
+}
+
+.word-detail__delete-btn {
+  width: 100%;
+  min-height: 48px;
+  background: transparent;
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+}
+
+.word-detail__delete-btn--confirm {
+  color: #D32F2F;
+  font-weight: 600;
+}
+
+/* (Delete confirmation is now in detail view) */
 
 /* Add word form */
 .add-word-form {
