@@ -565,11 +565,21 @@ input {
 }
 
 .word-editor__bottom {
-  position: sticky;
+  position: fixed;
   bottom: 0;
-  padding: var(--space-md) 0;
-  background: linear-gradient(transparent, var(--color-bg) 30%);
-  padding-top: var(--space-xl);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  padding: var(--space-md) var(--space-lg) var(--space-xl);
+  background: rgba(250, 251, 255, 0.7);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+}
+
+.word-list {
+  padding-bottom: 100px; /* space for fixed button */
 }
 
 .word-editor__add-btn {
@@ -588,6 +598,44 @@ input {
 .word-editor__delete-profile--confirm {
   color: #E53935;
   font-weight: 600;
+}
+
+/* Alphabet jump */
+.word-editor__alpha-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-bottom: var(--space-sm);
+}
+
+.alpha-jump__letter {
+  min-width: 28px;
+  min-height: 28px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alpha-jump__letter:active {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Section labels */
+.word-list__section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: var(--space-sm) var(--space-xs);
+  margin-top: var(--space-sm);
 }
 
 /* Word list */
@@ -1039,7 +1087,7 @@ input {
 /* === Add Words Textarea === */
 .add-word-form__textarea {
   width: 100%;
-  min-height: 120px;
+  min-height: 200px;
   padding: var(--space-md);
   background: var(--color-surface);
   border: 2px solid var(--color-border);

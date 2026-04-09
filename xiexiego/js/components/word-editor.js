@@ -65,6 +65,18 @@ export function renderWordEditor(app, storage, navigate) {
     const p = storage.getProfile(profileId);
     const words = p.wordBank || [];
 
+    // Sort: starred first (alphabetical), then rest alphabetical by pinyin
+    const sortByPinyin = (a, b) => (a.pinyinMarked || a.pinyin || 'zzz').localeCompare(b.pinyinMarked || b.pinyin || 'zzz');
+    const now = Date.now();
+    const starred = words.filter(w => w.starFlag && w.starFlag.expiresAt > now).sort(sortByPinyin);
+    const unstarred = words.filter(w => !w.starFlag || w.starFlag.expiresAt <= now).sort(sortByPinyin);
+
+    // Build alphabet index from unstarred words
+    const letters = [...new Set(unstarred.map(w => {
+      const p = (w.pinyinMarked || w.pinyin || '');
+      return p.charAt(0).toUpperCase();
+    }).filter(Boolean))].sort();
+
     app.innerHTML = `
       <div class="screen word-editor">
         <div class="word-editor__header">
@@ -83,8 +95,22 @@ export function renderWordEditor(app, storage, navigate) {
             <div class="empty-state__desc">Tap "+ Add Words" to get started.</div>
           </div>
         ` : `
+          ${letters.length > 3 ? `
+            <div class="word-editor__alpha-jump">
+              ${letters.map(l => `<button class="alpha-jump__letter" data-letter="${l}">${l}</button>`).join('')}
+            </div>
+          ` : ''}
           <div class="word-list">
-            ${words.map(w => renderWordRow(w)).join('')}
+            ${starred.length > 0 ? `
+              <div class="word-list__section-label">★ Starred</div>
+              ${starred.map(w => renderWordRow(w)).join('')}
+            ` : ''}
+            ${unstarred.map((w, i) => {
+              const letter = (w.pinyinMarked || w.pinyin || '').charAt(0).toUpperCase();
+              const prev = i > 0 ? (unstarred[i-1].pinyinMarked || unstarred[i-1].pinyin || '').charAt(0).toUpperCase() : '';
+              const divider = letter && letter !== prev ? `<div class="word-list__section-label" id="alpha-${letter}">${letter}</div>` : '';
+              return divider + renderWordRow(w);
+            }).join('')}
           </div>
         `}
 
@@ -103,6 +129,14 @@ export function renderWordEditor(app, storage, navigate) {
     app.querySelector('#btn-back').addEventListener('click', () => navigate('session'));
     app.querySelector('#btn-show-add').addEventListener('click', () => {
       view = 'add'; addInput = ''; render();
+    });
+
+    // Alphabet jump
+    app.querySelectorAll('.alpha-jump__letter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(`alpha-${btn.dataset.letter}`);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     });
 
     // Delete profile
