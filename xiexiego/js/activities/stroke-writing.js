@@ -77,12 +77,12 @@ export async function renderStrokeWriting(container, word, distractors, onResult
         <div class="stroke__progress" id="stroke-progress">
           ${isCompound ? chars.map((_, i) => `<span class="stroke__dot" id="stroke-dot-${i}"></span>`).join('') : ''}
         </div>
-        <div class="quiz__feedback" id="stroke-feedback"></div>
         <div class="stroke__pencils" id="stroke-pencils">
           ${['#2D3436','#E53935','#E91E63','#4CAF50','#FF9800','#9C27B0'].map((c, i) => `
             <button class="stroke__pencil ${i === 0 ? 'stroke__pencil--selected' : ''}" data-color="${c}" style="background:${c}"></button>
           `).join('')}
         </div>
+        <div class="quiz__feedback" id="stroke-feedback"></div>
       </div>
     </div>
   `;
@@ -127,14 +127,10 @@ export async function renderStrokeWriting(container, word, distractors, onResult
   const quizOpts = {
     guided: {
       showOutline: true,
-      // Keep the full character visible underneath so kids can see
-      // exactly what they're tracing. HanziWriter highlights each
-      // stroke in blue as the next one to write.
       showCharacter: true,
-      showHintAfterMisses: 1,
+      showHintAfterMisses: 0, // Always show the blue next-stroke hint
       highlightOnComplete: true,
       leniency: 1.2,
-      // Slower highlight so the blue guide stroke stays visible longer
       strokeHighlightSpeed: 0.5,
     },
     outline: {

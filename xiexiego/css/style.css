@@ -1432,6 +1432,17 @@ input {
   padding: var(--space-lg) 0 var(--space-xl);
 }
 
+.activity__skip {
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  font-size: 0.85rem;
+  opacity: 0.4;
+  cursor: pointer;
+  padding: var(--space-xs) var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
 .activity__btn-row {
   display: flex;
   gap: var(--space-sm);
@@ -1706,8 +1717,7 @@ input {
   display: flex;
   gap: var(--space-sm);
   justify-content: center;
-  margin-top: auto;
-  padding-top: var(--space-md);
+  padding-top: var(--space-sm);
 }
 
 .stroke__pencil {

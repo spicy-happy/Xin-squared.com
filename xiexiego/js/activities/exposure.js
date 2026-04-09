@@ -57,6 +57,7 @@ export async function renderExposure(container, word, onComplete) {
       </div>
 
       <div class="activity__actions">
+        <button class="activity__skip" id="btn-skip">skip ›</button>
         <div class="activity__btn-row">
           <button class="btn btn--secondary activity__replay" id="btn-replay" style="visibility: hidden;">
             ↻ Replay
@@ -75,6 +76,7 @@ export async function renderExposure(container, word, onComplete) {
   let playing = false; // Lock to prevent tap interruptions during sequence
   const target = container.querySelector('#hanzi-target');
   const charArea = container.querySelector('#exposure-char-area');
+  const skipBtn = container.querySelector('#btn-skip');
   const replayBtn = container.querySelector('#btn-replay');
   const continueBtn = container.querySelector('#btn-continue');
   const illustrationEl = container.querySelector('#exposure-illustration');
@@ -121,8 +123,9 @@ export async function renderExposure(container, word, onComplete) {
     setTimeout(() => el.classList.remove('activity__highlight'), 1500);
   }
 
-  /** Show buttons */
+  /** Show buttons (and hide skip) */
   function showButtons() {
+    if (skipBtn) skipBtn.style.display = 'none';
     if (replayBtn) {
       replayBtn.style.visibility = 'visible';
       replayBtn.style.animation = 'fadeIn 0.3s ease-out';
@@ -131,6 +134,18 @@ export async function renderExposure(container, word, onComplete) {
       continueBtn.style.visibility = 'visible';
       continueBtn.style.animation = 'fadeIn 0.3s ease-out';
     }
+  }
+
+  /** Skip: stop playback, reveal everything, show buttons */
+  function skipSequence() {
+    if (!playing) return;
+    window.speechSynthesis?.cancel();
+    playing = false;
+    // Show the character(s) immediately
+    if (writer) { try { writer.showCharacter(); } catch {} }
+    writers.forEach(w => { if (w) try { w.showCharacter(); } catch {} });
+    revealAll();
+    showButtons();
   }
 
   /** Animate a single HanziWriter: hide → animate → show + chime */
@@ -155,7 +170,7 @@ export async function renderExposure(container, word, onComplete) {
       // Compound word: say it, draw each char + say it individually, then say whole word
       await speakChinese(word.character, 0.5);
       if (aborted) return;
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 150));
       if (aborted) return;
 
       const chars = word.character.split('');
@@ -165,7 +180,7 @@ export async function renderExposure(container, word, onComplete) {
         if (aborted) return;
         await speakChinese(chars[i], 0.5);
         if (aborted) return;
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 100));
         if (aborted) return;
       }
       if (!aborted) playChime();
@@ -174,13 +189,13 @@ export async function renderExposure(container, word, onComplete) {
       charArea.classList.add('activity__character-area--pop');
       if (aborted) return;
 
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 150));
       if (aborted) return;
       await speakChinese(word.character, 0.5);
     } else if (writer) {
       await speakChinese(word.character, 0.5);
       if (aborted) return;
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 150));
       if (aborted) return;
 
       await animateOneWriter(writer);
@@ -190,7 +205,7 @@ export async function renderExposure(container, word, onComplete) {
       charArea.classList.add('activity__character-area--pop');
       if (aborted) return;
 
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 150));
       if (aborted) return;
       await speakChinese(word.character, 0.5);
     } else {
@@ -220,7 +235,7 @@ export async function renderExposure(container, word, onComplete) {
 
       // 2. Reveal illustration
       reveal(illustrationEl);
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 150));
       if (aborted) return;
 
       // 3. Reveal pinyin + meaning, speak meaning
@@ -235,14 +250,14 @@ export async function renderExposure(container, word, onComplete) {
 
       // 4. Reveal example, speak it
       if (example?.zh) {
-        await new Promise(r => setTimeout(r, 400));
+        await new Promise(r => setTimeout(r, 200));
         if (aborted) return;
         reveal(exampleEl);
         highlight(exampleEl);
         await speakChinese(example.zh, 0.6);
         if (aborted) return;
         if (example.en) {
-          await new Promise(r => setTimeout(r, 300));
+          await new Promise(r => setTimeout(r, 150));
           if (aborted) return;
           await speakEnglish(example.en);
           if (aborted) return;
@@ -251,7 +266,7 @@ export async function renderExposure(container, word, onComplete) {
 
       // 5. Reveal etymology
       if (etymologyEl) {
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(r => setTimeout(r, 150));
         if (aborted) return;
         reveal(etymologyEl);
       }
@@ -275,8 +290,8 @@ export async function renderExposure(container, word, onComplete) {
           width: charSize,
           height: charSize,
           padding: 5,
-          strokeAnimationSpeed: 1.0,
-          delayBetweenStrokes: 150,
+          strokeAnimationSpeed: 2.0,
+          delayBetweenStrokes: 60,
           strokeColor: '#2D3436',
           radicalColor: '#2D3436',
           showOutline: true,
@@ -296,8 +311,8 @@ export async function renderExposure(container, word, onComplete) {
         width: 220,
         height: 220,
         padding: 10,
-        strokeAnimationSpeed: 0.5,
-        delayBetweenStrokes: 300,
+        strokeAnimationSpeed: 1.5,
+        delayBetweenStrokes: 100,
         strokeColor: '#2D3436',
         radicalColor: '#2D3436',
         showOutline: true,
@@ -373,7 +388,13 @@ export async function renderExposure(container, word, onComplete) {
   container._abortExposure = abort;
 
   // --- Auto-play on load ---
-  setTimeout(() => runNarratedSequence(true), 400);
+  setTimeout(() => runNarratedSequence(true), 200);
+
+  // Skip — tap to jump past the narrated sequence
+  skipBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    skipSequence();
+  });
 
   // Replay — replay full narration, keep buttons
   replayBtn?.addEventListener('click', (e) => {
