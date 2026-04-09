@@ -1236,6 +1236,7 @@ input {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: calc(100dvh - 80px); /* below session header */
 }
 
 .activity__body {
@@ -1244,7 +1245,8 @@ input {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-lg);
+  gap: var(--space-md);
+  min-height: 0;
 }
 
 .activity__character-area {
@@ -1252,7 +1254,6 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 220px;
 }
 
 .activity__character-area svg {

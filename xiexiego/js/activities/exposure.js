@@ -4,7 +4,7 @@
  * shows meaning + pinyin + example. Replay button to repeat.
  */
 
-import { playAudio, speakExposureSequence } from '../enrichment.js';
+import { playAudio, speakExposureSequence, enrichCharacter } from '../enrichment.js';
 
 /**
  * Render the exposure activity for a single word.
@@ -13,7 +13,15 @@ import { playAudio, speakExposureSequence } from '../enrichment.js';
  * @param {Object} word - Enriched word object from word bank
  * @param {Function} onComplete - Called when user taps Continue
  */
-export function renderExposure(container, word, onComplete) {
+export async function renderExposure(container, word, onComplete) {
+  // If no example, try to enrich on-the-fly to get one
+  if (!word.example && word.character.length === 1) {
+    try {
+      const enriched = await enrichCharacter(word.character);
+      if (enriched.example) word.example = enriched.example;
+    } catch {}
+  }
+
   const meaning = word.meaning || word.meanings?.[0] || '';
   const pinyin = word.pinyinMarked || word.pinyin || '';
   const example = word.example;

@@ -339,13 +339,35 @@ export async function speakExposureSequence(word) {
   // Say the character slowly
   await speakChinese(word.character, 0.5);
 
-  // Pause
-  await new Promise(r => setTimeout(r, 600));
-
-  // Say example if available
-  if (word.example?.zh) {
-    await speakChinese(word.example.zh, 0.6);
+  // Pause, then say English meaning
+  await new Promise(r => setTimeout(r, 500));
+  const meaning = word.meaning || word.meanings?.[0] || '';
+  if (meaning) {
+    await speakEnglish(meaning);
   }
+
+  // Pause, then say example if available
+  if (word.example?.zh) {
+    await new Promise(r => setTimeout(r, 500));
+    await speakChinese(word.example.zh, 0.6);
+    if (word.example.en) {
+      await new Promise(r => setTimeout(r, 300));
+      await speakEnglish(word.example.en);
+    }
+  }
+}
+
+/** Speak English text using Web Speech API. */
+function speakEnglish(text) {
+  return new Promise((resolve, reject) => {
+    if (!('speechSynthesis' in window)) { resolve(); return; }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.85;
+    utterance.onend = resolve;
+    utterance.onerror = resolve; // don't block on error
+    window.speechSynthesis.speak(utterance);
+  });
 }
 
 /**
