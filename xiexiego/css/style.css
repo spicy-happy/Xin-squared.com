@@ -698,8 +698,8 @@ input {
   background: #F5F7FA;
 }
 
-.word-row__star-dot {
-  font-size: 0.7rem;
+.word-row__star-icon {
+  font-size: 0.9rem;
   color: #FFB300;
   flex-shrink: 0;
 }

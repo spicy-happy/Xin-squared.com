@@ -5,6 +5,13 @@
 
 import { enrichCharacter, parseAndEnrich } from '../enrichment.js';
 
+/** Strip tone marks from pinyin to get plain letter for sorting/grouping. */
+function pinyinToLetter(p) {
+  if (!p) return '';
+  const stripped = p.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z]/g, '');
+  return stripped.charAt(0).toUpperCase();
+}
+
 const MASTERY = {
   1: { label: 'Learning', color: '#FF9800', cls: 'mastery--learning' },
   2: { label: 'Practicing', color: '#4A90D9', cls: 'mastery--practicing' },
@@ -66,16 +73,14 @@ export function renderWordEditor(app, storage, navigate) {
     const words = p.wordBank || [];
 
     // Sort: starred first (alphabetical), then rest alphabetical by pinyin
-    const sortByPinyin = (a, b) => (a.pinyinMarked || a.pinyin || 'zzz').localeCompare(b.pinyinMarked || b.pinyin || 'zzz');
+    const sortByPinyin = (a, b) => pinyinToLetter(a.pinyinMarked || a.pinyin).localeCompare(pinyinToLetter(b.pinyinMarked || b.pinyin))
+      || (a.pinyinMarked || a.pinyin || '').localeCompare(b.pinyinMarked || b.pinyin || '');
     const now = Date.now();
     const starred = words.filter(w => w.starFlag && w.starFlag.expiresAt > now).sort(sortByPinyin);
     const unstarred = words.filter(w => !w.starFlag || w.starFlag.expiresAt <= now).sort(sortByPinyin);
 
-    // Build alphabet index from unstarred words
-    const letters = [...new Set(unstarred.map(w => {
-      const p = (w.pinyinMarked || w.pinyin || '');
-      return p.charAt(0).toUpperCase();
-    }).filter(Boolean))].sort();
+    // Build alphabet index from all words (plain letters, no tone marks)
+    const letters = [...new Set(words.map(w => pinyinToLetter(w.pinyinMarked || w.pinyin)).filter(Boolean))].sort();
 
     app.innerHTML = `
       <div class="screen word-editor">
@@ -95,21 +100,25 @@ export function renderWordEditor(app, storage, navigate) {
             <div class="empty-state__desc">Tap "+ Add Words" to get started.</div>
           </div>
         ` : `
-          ${letters.length > 3 ? `
-            <div class="word-editor__alpha-jump">
-              ${letters.map(l => `<button class="alpha-jump__letter" data-letter="${l}">${l}</button>`).join('')}
-            </div>
-          ` : ''}
           <div class="word-list">
             ${starred.length > 0 ? `
               <div class="word-list__section-label">★ Starred</div>
               ${starred.map(w => renderWordRow(w)).join('')}
             ` : ''}
+          </div>
+
+          ${letters.length > 3 ? `
+            <div class="word-editor__alpha-jump">
+              ${letters.map(l => `<button class="alpha-jump__letter" data-letter="${l}">${l}</button>`).join('')}
+            </div>
+          ` : ''}
+
+          <div class="word-list">
             ${unstarred.map((w, i) => {
-              const letter = (w.pinyinMarked || w.pinyin || '').charAt(0).toUpperCase();
-              const prev = i > 0 ? (unstarred[i-1].pinyinMarked || unstarred[i-1].pinyin || '').charAt(0).toUpperCase() : '';
-              const divider = letter && letter !== prev ? `<div class="word-list__section-label" id="alpha-${letter}">${letter}</div>` : '';
-              return divider + renderWordRow(w);
+              const letter = pinyinToLetter(w.pinyinMarked || w.pinyin);
+              const prev = i > 0 ? pinyinToLetter(unstarred[i-1].pinyinMarked || unstarred[i-1].pinyin) : '';
+              const anchor = letter && letter !== prev ? `<div id="alpha-${letter}"></div>` : '';
+              return anchor + renderWordRow(w);
             }).join('')}
           </div>
         `}
@@ -229,7 +238,7 @@ export function renderWordEditor(app, storage, navigate) {
         <div class="word-row ${mastery.cls}">
           <span class="word-row__char">${word.character}</span>
           <span class="word-row__desc">${pinyin ? pinyin + ' · ' : ''}${meaning}</span>
-          ${isStarred ? '<span class="word-row__star-dot">★</span>' : ''}
+          ${isStarred ? '<span class="word-row__star-icon">★</span>' : ''}
           <span class="word-row__chevron">›</span>
         </div>
       </div>
@@ -259,7 +268,7 @@ export function renderWordEditor(app, storage, navigate) {
               ${isStarred ? '★' : '☆'}
             </button>
             <button class="word-detail__action-btn word-detail__action-btn--delete" id="btn-detail-delete">
-              Delete
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </button>
           </div>
         </div>
@@ -294,6 +303,14 @@ export function renderWordEditor(app, storage, navigate) {
                      value="${word.pinyinMarked || word.pinyin || ''}" autocomplete="off">
               ${defaultPinyin ? '<button class="word-detail__reset" id="btn-reset-pinyin">↺</button>' : ''}
             </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-group__label">Example</label>
+            <input class="form-group__input" id="edit-example-zh" type="text"
+                   value="${word.example?.zh || ''}" placeholder="Chinese sentence" autocomplete="off" lang="zh">
+            <input class="form-group__input" id="edit-example-en" type="text" style="margin-top: var(--space-xs);"
+                   value="${word.example?.en || ''}" placeholder="English translation" autocomplete="off">
           </div>
 
           ${word.radical || word.etymology?.hint ? `
@@ -349,12 +366,20 @@ export function renderWordEditor(app, storage, navigate) {
   function saveDetailEdits() {
     const meaningInput = app.querySelector('#edit-meaning');
     const pinyinInput = app.querySelector('#edit-pinyin');
+    const exZh = app.querySelector('#edit-example-zh');
+    const exEn = app.querySelector('#edit-example-en');
     if (!meaningInput || !pinyinInput) return;
+
     const updates = {};
     const meaning = meaningInput.value.trim();
     const pinyin = pinyinInput.value.trim();
     if (meaning) updates.meaning = meaning;
     if (pinyin) updates.pinyinMarked = pinyin;
+
+    const zh = exZh?.value.trim();
+    const en = exEn?.value.trim();
+    if (zh || en) updates.example = { zh: zh || '', en: en || '' };
+
     if (Object.keys(updates).length > 0) {
       storage.updateWordInProfile(profileId, detailChar, updates);
     }

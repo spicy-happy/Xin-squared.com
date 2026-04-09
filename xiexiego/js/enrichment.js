@@ -52,12 +52,65 @@ async function ensureCompounds() {
  */
 function cleanDefinition(def) {
   if (!def) return def;
-  return def
+  let cleaned = def
     .replace(/\s*\(CL:[^)]*\)/g, '')           // Remove (CL:...) classifiers
     .replace(/\s*\[[\w\d\s]+\]/g, '')           // Remove [pinyin] refs like [hu2 die2]
-    .replace(/^(used in|variant of|see also)\s+\S+\s*/i, '') // Remove "used in X" prefixes
-    .replace(/^(surname|abbr\. for)\s+.*/i, '') // Remove surname/abbr entries
+    .replace(/\s*\([^)]*\)/g, '')               // Remove all parenthetical notes
+    .replace(/^(used in|variant of|see also)\s+\S+\s*/i, '')
+    .replace(/^(surname|abbr\. for)\s+.*/i, '')
     .trim();
+  // Take only the first meaning if semicolon-separated
+  if (cleaned.includes(';')) cleaned = cleaned.split(';')[0].trim();
+  return cleaned;
+}
+
+/**
+ * Generate a simple example usage for a character/word.
+ * Uses common patterns kids would recognize.
+ */
+const EXAMPLES = {
+  '大': { zh: '大象很大', en: 'Elephants are big' },
+  '小': { zh: '小猫很可爱', en: 'Small cats are cute' },
+  '人': { zh: '那个人是谁', en: 'Who is that person?' },
+  '口': { zh: '张开口', en: 'Open your mouth' },
+  '山': { zh: '山很高', en: 'The mountain is tall' },
+  '水': { zh: '我要喝水', en: 'I want to drink water' },
+  '日': { zh: '今日天气好', en: 'Today the weather is nice' },
+  '月': { zh: '月亮很亮', en: 'The moon is bright' },
+  '火': { zh: '火很热', en: 'Fire is hot' },
+  '木': { zh: '木头桌子', en: 'Wooden table' },
+  '天': { zh: '天上有云', en: 'There are clouds in the sky' },
+  '中': { zh: '在中间', en: 'In the middle' },
+  '学': { zh: '我去学校', en: 'I go to school' },
+  '花': { zh: '花很漂亮', en: 'Flowers are pretty' },
+  '鸟': { zh: '鸟在飞', en: 'The bird is flying' },
+  '一': { zh: '一个苹果', en: 'One apple' },
+  '二': { zh: '二月很冷', en: 'February is cold' },
+  '三': { zh: '三只猫', en: 'Three cats' },
+  '上': { zh: '上楼去', en: 'Go upstairs' },
+  '下': { zh: '下雨了', en: 'It\'s raining' },
+  '白': { zh: '白色的云', en: 'White clouds' },
+  '红': { zh: '红色的花', en: 'Red flowers' },
+  '手': { zh: '洗手', en: 'Wash hands' },
+  '目': { zh: '目光', en: 'Gaze' },
+  '马': { zh: '马跑得快', en: 'Horses run fast' },
+  '牛': { zh: '牛吃草', en: 'Cows eat grass' },
+  '风': { zh: '风很大', en: 'The wind is strong' },
+  '雨': { zh: '下雨了', en: 'It\'s raining' },
+  '云': { zh: '白云', en: 'White clouds' },
+  '土': { zh: '土地', en: 'Earth / land' },
+  '是': { zh: '这是我的', en: 'This is mine' },
+  '我': { zh: '我很好', en: 'I am fine' },
+  '你': { zh: '你好', en: 'Hello' },
+  '好': { zh: '很好吃', en: 'Very delicious' },
+  '谢谢': { zh: '谢谢你', en: 'Thank you' },
+  '你好': { zh: '你好吗', en: 'How are you?' },
+  '学校': { zh: '我的学校', en: 'My school' },
+  '蝴蝶': { zh: '蝴蝶很美', en: 'Butterflies are beautiful' },
+};
+
+function getExample(char) {
+  return EXAMPLES[char] || null;
 }
 
 /**
@@ -114,7 +167,7 @@ export async function enrichCharacter(char) {
     etymology: mmah?.e || null,
     hasStrokeData,
     enrichmentStatus,
-    // Audio: check for pre-generated MP3, fall back to Web Speech API
+    example: getExample(char),
     audioFile: cedict ? `./audio/${cedict.p}.mp3` : null,
   };
 }
@@ -188,6 +241,7 @@ export async function parseAndEnrich(text) {
       components: [...w],
       hasStrokeData,
       enrichmentStatus: compound ? 'complete' : 'manual',
+      example: getExample(w),
       audioFile: compound ? `./audio/${compound.p}.mp3` : null,
     };
   }));
