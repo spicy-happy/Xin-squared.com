@@ -1,0 +1,12 @@
+[
+  { "character": "大", "meaning": "big", "emoji": "🐘" },
+  { "character": "小", "meaning": "small", "emoji": "🐜" },
+  { "character": "人", "meaning": "person", "emoji": "🧍" },
+  { "character": "口", "meaning": "mouth", "emoji": "👄" },
+  { "character": "山", "meaning": "mountain", "emoji": "⛰️" },
+  { "character": "水", "meaning": "water", "emoji": "💧" },
+  { "character": "日", "meaning": "sun / day", "emoji": "☀️" },
+  { "character": "月", "meaning": "moon / month", "emoji": "🌙" },
+  { "character": "火", "meaning": "fire", "emoji": "🔥" },
+  { "character": "木", "meaning": "tree / wood", "emoji": "🌳" }
+]

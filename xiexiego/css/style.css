@@ -1,0 +1,450 @@
+/* XieXie Go — Mobile-first styles */
+
+/* === CSS Variables === */
+:root {
+  /* Colors */
+  --color-primary: #4A90D9;
+  --color-primary-light: #6BAAEF;
+  --color-primary-dark: #3570B0;
+  --color-success: #4CAF50;
+  --color-success-light: #81C784;
+  --color-warning: #FF9800;
+  --color-warning-light: #FFB74D;
+  --color-bg: #FAFBFF;
+  --color-surface: #FFFFFF;
+  --color-text: #2D3436;
+  --color-text-light: #636E72;
+  --color-border: #E0E6ED;
+  --color-accent: #FF6B6B;
+
+  /* Typography */
+  --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-chinese: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Sizing */
+  --tap-target-min: 60px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-round: 50%;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* === Reset === */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input {
+  font-family: inherit;
+  font-size: 16px; /* Prevents iOS zoom on focus */
+  border: none;
+  outline: none;
+}
+
+/* === App container === */
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg);
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* === Profile Picker === */
+.profile-picker {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.profile-picker__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.profile-picker__subtitle {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  margin-bottom: var(--space-xl);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+  width: 100%;
+  margin-bottom: var(--space-xl);
+}
+
+.profile-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg) var(--space-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 120px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 2px solid transparent;
+}
+
+.profile-card:active {
+  transform: scale(0.96);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-card__avatar {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.profile-card__name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.profile-card--add {
+  border: 2px dashed var(--color-border);
+  background: transparent;
+  color: var(--color-text-light);
+}
+
+.profile-card--add .profile-card__avatar {
+  font-size: 2rem;
+  opacity: 0.5;
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  gap: var(--space-lg);
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+.empty-state__emoji {
+  font-size: 4rem;
+}
+
+.empty-state__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.empty-state__desc {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+/* === Buttons === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-target-min);
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-md);
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn--primary {
+  background: var(--color-primary);
+  color: white;
+  width: 100%;
+}
+
+.btn--primary:active {
+  background: var(--color-primary-dark);
+}
+
+.btn--secondary {
+  background: transparent;
+  color: var(--color-primary);
+}
+
+.btn--large {
+  min-height: 64px;
+  font-size: 1.2rem;
+  border-radius: var(--radius-lg);
+}
+
+/* === Onboarding === */
+.onboarding {
+  justify-content: space-between;
+  min-height: 100dvh;
+}
+
+.onboarding__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-lg);
+}
+
+.onboarding__emoji {
+  font-size: 4rem;
+}
+
+.onboarding__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.onboarding__desc {
+  font-size: 1.05rem;
+  color: var(--color-text-light);
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+.onboarding__actions {
+  padding-bottom: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Progress dots */
+.progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.progress-dots__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-round);
+  background: var(--color-border);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.progress-dots__dot--active {
+  background: var(--color-primary);
+  transform: scale(1.3);
+}
+
+/* === Create Profile Form === */
+.form-group {
+  width: 100%;
+  text-align: left;
+  margin-bottom: var(--space-lg);
+}
+
+.form-group__label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  margin-bottom: var(--space-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group__input {
+  width: 100%;
+  padding: var(--space-md);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 1.1rem;
+  transition: border-color 0.2s ease;
+}
+
+.form-group__input:focus {
+  border-color: var(--color-primary);
+}
+
+/* Avatar picker */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+}
+
+.avatar-option {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.avatar-option:active {
+  transform: scale(0.93);
+}
+
+.avatar-option--selected {
+  border-color: var(--color-primary);
+  background: #EBF3FC;
+  transform: scale(1.05);
+}
+
+/* Age selector */
+.age-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.age-chip {
+  min-width: var(--tap-target-min);
+  min-height: 48px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  transition: border-color 0.15s ease;
+}
+
+.age-chip--selected {
+  border-color: var(--color-primary);
+  background: #EBF3FC;
+  color: var(--color-primary);
+}
+
+/* === Starter Words === */
+.starter-words {
+  width: 100%;
+}
+
+.starter-words__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.word-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 1.1rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.word-chip--selected {
+  border-color: var(--color-success);
+  background: #E8F5E9;
+}
+
+.word-chip__char {
+  font-family: var(--font-chinese);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.word-chip__meaning {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+}
+
+/* === Placeholder Session Screen === */
+.placeholder-session {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-lg);
+}
+
+.placeholder-session__emoji {
+  font-size: 4rem;
+}
+
+.placeholder-session__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.placeholder-session__desc {
+  color: var(--color-text-light);
+  line-height: 1.5;
+}
+
+/* === Utilities === */
+.text-center { text-align: center; }
+.mt-auto { margin-top: auto; }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+.gap-sm { gap: var(--space-sm); }

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "xiexiego",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["xiexiego/_serve.js"],
+      "port": 8000
+    }
+  ]
+}
