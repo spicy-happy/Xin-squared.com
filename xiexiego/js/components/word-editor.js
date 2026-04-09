@@ -588,13 +588,23 @@ export function renderWordEditor(app, storage, navigate) {
         }
       }
 
-      // Enrich and add component characters
+      // Enrich component characters and only add ones with their own distinct meaning
       let allWords = [...enrichedQueue];
+      let addedComponents = 0;
       if (componentChars.size > 0) {
         try {
           const { enrichCharacters } = await import('../enrichment.js');
           const components = await enrichCharacters([...componentChars]);
-          allWords = [...allWords, ...components.map(e => ({ ...e, meaning: e.meanings?.[0] || '' }))];
+          for (const comp of components) {
+            const meaning = comp.meanings?.[0] || '';
+            // Skip components with no useful meaning (e.g. 蝴 alone = useless)
+            if (!meaning || meaning.length < 2) continue;
+            // Skip if meaning is just a reference to the compound itself
+            const compoundMeaning = enrichedQueue.find(e => e.character.includes(comp.character))?.meaning || '';
+            if (meaning === compoundMeaning) continue;
+            allWords.push({ ...comp, meaning });
+            addedComponents++;
+          }
         } catch (err) {
           console.error('Component enrichment error:', err);
         }
@@ -602,7 +612,7 @@ export function renderWordEditor(app, storage, navigate) {
 
       storage.addWordsToProfile(profileId, allWords);
       const count = allWords.length;
-      showToast(`Added ${count} word${count !== 1 ? 's' : ''}${componentChars.size > 0 ? ` (including ${componentChars.size} component${componentChars.size !== 1 ? 's' : ''})` : ''}`);
+      showToast(`Added ${count} word${count !== 1 ? 's' : ''}${addedComponents > 0 ? ` (+${addedComponents} component${addedComponents !== 1 ? 's' : ''})` : ''}`);
       view = 'list'; enrichedQueue = []; addInput = '';
       render();
     });
