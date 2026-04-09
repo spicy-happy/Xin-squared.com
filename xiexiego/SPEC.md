@@ -1,10 +1,10 @@
-# XieXie Go: Product Specification and Technical Design
+# XieXieGo: Product Specification and Technical Design
 
 ## A phone-first web app for Chinese dictation practice, ages 4–10
 
-**The name.** XieXie Go — 写写 ("write write") puns on 谢谢 ("thank you"), the first Chinese word every BUMI kid knows. The double meaning is warm, kid-friendly, and instantly recognizable to the target audience.
+**The name.** XieXieGo — 写写 ("write write") puns on 谢谢 ("thank you"), the first Chinese word every BUMI kid knows. The double meaning is warm, kid-friendly, and instantly recognizable to the target audience.
 
-**The scope.** XieXie Go is a focused tool for practicing weekly 听写 (dictation) word lists. It is not a Mandarin curriculum, not a reading comprehension tool, not a broad language-learning app. Its job is to take the characters a teacher has assigned for this week's dictation test and help the kid be ready to pass that test by Friday. Everything in the app serves that outcome.
+**The scope.** XieXieGo is a focused tool for practicing weekly 听写 (dictation) word lists. It is not a Mandarin curriculum, not a reading comprehension tool, not a broad language-learning app. Its job is to take the characters a teacher has assigned for this week's dictation test and help the kid be ready to pass that test by Friday. Everything in the app serves that outcome.
 
 **The pedagogy.** Strict no-pinyin on child-facing activities. Five-stage mastery progression. Modified 3-box Leitner spaced repetition with same-day second exposure for new words. Response time as a silent difficulty signal. Interleaved practice of confusion pairs. Hints available everywhere, treated as a learning signal. Encouraging growth-mindset feedback — "Not yet!" never "Wrong." Four neutral difficulty levels that auto-adjust silently. Compound discovery for compositional two-character words.
 
@@ -14,13 +14,13 @@
 
 ## 1. Scope boundary
 
-**XieXie Go IS:**
+**XieXieGo IS:**
 - A dictation test prep tool for weekly 听写 word lists
 - Parent-managed, kid-operated, phone-first
 - A 5–10 minute daily utility, typically used in the car or at bedtime
 - A complement to immersion school instruction
 
-**XieXie Go is NOT:**
+**XieXieGo is NOT:**
 - A Mandarin curriculum (parents provide word lists; app doesn't suggest its own)
 - A reading comprehension tool (no story library, no graded readers)
 - A speaking tutor (pronunciation check exists but tone scoring is out of scope)
@@ -56,7 +56,7 @@ Each word moves through five stages from introduction to test-readiness:
 
 ### Spaced repetition: modified 3-box Leitner
 
-Full SM-2 is far too complex for a 4-year-old. FSRS requires thousands of reviews to calibrate. XieXie Go uses a modified 3-box Leitner system with binary grading modulated by response time.
+Full SM-2 is far too complex for a 4-year-old. FSRS requires thousands of reviews to calibrate. XieXieGo uses a modified 3-box Leitner system with binary grading modulated by response time.
 
 **Box 1 (Learning):** Reviewed every session. All new words start here. Words answered wrong from any box return here.
 
@@ -141,7 +141,7 @@ Test mode mimics classroom 听写 format exactly. Audio plays each word twice wi
 
 ### Four neutral difficulty levels
 
-XieXie Go uses four levels labeled simply "Level 1" through "Level 4." No fancy names, no metaphors, no judgment. Parent-facing descriptions are short and plain:
+XieXieGo uses four levels labeled simply "Level 1" through "Level 4." No fancy names, no metaphors, no judgment. Parent-facing descriptions are short and plain:
 
 - **Level 1** — Gentlest pace. Lots of scaffolding. Shortest sessions. Default starting point for ages 4–5.
 - **Level 2** — Gentle pace. Most scaffolding. Short sessions. Default starting point for ages 5–6.
@@ -459,7 +459,7 @@ class StorageAdapter {
 
 Settings ~200 bytes, 50 word lists × ~500 bytes = ~25KB per bank, progress for 500 characters × ~250 bytes = ~125KB per profile, session history ~50KB per year. Total per family: well under 500KB, comfortably within localStorage's 5MB limit.
 
-**Important: localStorage key prefix `xxg_`** prevents collision with other apps hosted at xin-squared.com. All XieXie Go keys must use this prefix.
+**Important: localStorage key prefix `xxg_`** prevents collision with other apps hosted at xin-squared.com. All XieXieGo keys must use this prefix.
 
 ---
 
@@ -551,7 +551,7 @@ Share codes like `BUMI-K-W12` are more WeChat-friendly than long URLs. Free tier
 
 **Parent onboarding (first run).** Three brief screens before the kid ever touches the app:
 
-1. *Welcome screen.* "XieXie Go helps your child practice their weekly Chinese dictation list so they're ready for the test." Two-sentence statement of purpose. "Let's set up your first kid."
+1. *Welcome screen.* "XieXieGo helps your child practice their weekly Chinese dictation list so they're ready for the test." Two-sentence statement of purpose. "Let's set up your first kid."
 2. *Create profile.* Parent enters kid's name, picks an avatar from a 3×4 emoji grid, enters age. The age sets the initial difficulty level silently.
 3. *Add first words.* Simple text input for Chinese characters. Auto-enrichment fires as characters are typed, showing meanings for confirmation. A "Try these starter words" button offers 大 小 人 口. Parent taps "Start Practicing!"
 
@@ -559,7 +559,7 @@ The app immediately launches a demo session with the entered words, starting at 
 
 **"How it works" page (accessible anytime from parent dashboard).** A plain-language explanation of the pedagogy without jargon. Sections:
 
-- *What this app is.* "XieXie Go is a focused tool for practicing your child's weekly Chinese dictation list. It's not a complete Chinese learning program — it does one thing well, so your practice time is focused and effective."
+- *What this app is.* "XieXieGo is a focused tool for practicing your child's weekly Chinese dictation list. It's not a complete Chinese learning program — it does one thing well, so your practice time is focused and effective."
 - *How it teaches.* "New words are introduced, practiced, and reviewed across several short sessions. Words your child gets right quickly move on; words they're still learning come back until they're confident."
 - *Why no pinyin.* "Research shows that pinyin gets in the way when kids are learning to recognize Chinese characters. We teach characters as whole shapes tied directly to sound and meaning — the same way kids in China learn them."
 - *Difficulty levels.* "The app automatically adjusts to your kid's pace. You'll see their level in settings if you want to change it manually, but most parents don't need to."
@@ -644,7 +644,7 @@ Access to settings requires solving a simple math problem (e.g., "3 + 4 = ?"). O
 
 ```
 xin-squared.com/
-└── xiexiego/                    # This subfolder is XieXie Go
+└── xiexiego/                    # This subfolder is XieXieGo
     ├── index.html               # Single-page app entry
     ├── README.md                # Quick overview
     ├── SPEC.md                  # This document
@@ -707,7 +707,7 @@ xin-squared.com/
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-  <title>XieXie Go</title>
+  <title>XieXieGo</title>
   <link rel="stylesheet" href="./css/style.css">
 
   <!-- Third-party libraries from CDN -->
@@ -740,7 +740,7 @@ import { SessionPlanner } from './session.js';
 
 **Web Speech API SpeechRecognition** with `recognition.lang = 'zh-CN'`. Works on Chrome for Android. On iOS Safari, works only if Siri is enabled and the app is NOT running as a PWA.
 
-**Known limits:** Adult Mandarin STT ~3% WER; child speech degrades to ~25% WER. Tone scoring is not available at free/cheap price points. XieXie Go uses Speech API for binary pass/fail check on character transcription only — no tone scoring attempted.
+**Known limits:** Adult Mandarin STT ~3% WER; child speech degrades to ~25% WER. Tone scoring is not available at free/cheap price points. XieXieGo uses Speech API for binary pass/fail check on character transcription only — no tone scoring attempted.
 
 **Self-assessment fallback:** When Speech API is unavailable or unreliable, the app plays the correct pronunciation after the kid speaks, and the kid self-rates "Got It / Not Yet." Pedagogically sound and universally reliable.
 
@@ -1061,7 +1061,7 @@ Rotating banks for variety. Loaded from `js/data/encouragement-messages.json`.
 ### Contents of CLAUDE.md
 
 ```markdown
-# XieXie Go — Project Context for Claude Code
+# XieXieGo — Project Context for Claude Code
 
 This is a phone-first web app for Chinese dictation practice, ages 4–10.
 It lives in the xiexiego/ subfolder of the xin-squared.com repo and
@@ -1125,7 +1125,7 @@ Then open http://<your-ip>:8000/ on your phone.
 Copy and paste this into your first Claude Code session:
 
 ```
-Read SPEC.md and CLAUDE.md. Then build Phase 1 of XieXie Go.
+Read SPEC.md and CLAUDE.md. Then build Phase 1 of XieXieGo.
 
 PHASE 1 GOAL: Get a working profile picker + onboarding flow running
 locally on my phone via a local HTTP server.

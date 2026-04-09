@@ -10,12 +10,12 @@ export function renderProfilePicker(app, storage, navigate) {
     app.innerHTML = `
       <div class="screen empty-state">
         <div class="empty-state__emoji">✏️</div>
-        <h1 class="empty-state__title">Welcome to XieXie Go!</h1>
+        <h1 class="empty-state__title">Welcome to XieXieGo!</h1>
         <p class="empty-state__desc">
-          Practice weekly Chinese dictation lists so your child is ready for the test.
+          A handy app to help kids ace their 听写 test.
         </p>
         <button class="btn btn--primary btn--large" id="btn-start">
-          Let's get started
+          Let's go!
         </button>
       </div>
     `;
@@ -27,7 +27,7 @@ export function renderProfilePicker(app, storage, navigate) {
 
   app.innerHTML = `
     <div class="screen profile-picker">
-      <h1 class="profile-picker__title">XieXie Go</h1>
+      <h1 class="profile-picker__title">XieXieGo</h1>
       <p class="profile-picker__subtitle">Who's practicing today?</p>
       <div class="profile-grid">
         ${profiles.map(p => `
@@ -54,6 +54,6 @@ export function renderProfilePicker(app, storage, navigate) {
 
   // Add new profile
   app.querySelector('#btn-add-profile').addEventListener('click', () => {
-    navigate('onboarding');
+    navigate('add-profile');
   });
 }

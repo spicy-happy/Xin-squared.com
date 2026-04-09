@@ -1,5 +1,5 @@
 /**
- * XieXie Go — App initialization and hash-based routing.
+ * XieXieGo — App initialization and hash-based routing.
  */
 
 import { StorageAdapter } from './storage.js';
@@ -21,6 +21,10 @@ function route() {
   switch (hash) {
     case 'onboarding':
       renderOnboarding(app, storage, navigate);
+      break;
+
+    case 'add-profile':
+      renderOnboarding(app, storage, navigate, { skipWelcome: true });
       break;
 
     case 'session':

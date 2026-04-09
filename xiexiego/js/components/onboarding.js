@@ -8,7 +8,7 @@
 import { enrichCharacters } from '../enrichment.js';
 
 const AVATARS = ['🐼', '🐉', '🌸', '🎋', '🏮', '🦊', '🐯', '🐰', '🌈', '🦋', '🐬', '🌻'];
-const AGES = [4, 5, 6, 7, 8, 9, 10];
+const AGES = ['<4', '4', '5', '6', '7', '8', '9', '10+'];
 
 let starterWords = null;
 
@@ -19,9 +19,9 @@ async function loadStarterWords() {
   return starterWords;
 }
 
-export function renderOnboarding(app, storage, navigate) {
-  let step = 0;
-  let profileData = { name: '', avatar: AVATARS[0], age: 5 };
+export function renderOnboarding(app, storage, navigate, { skipWelcome = false } = {}) {
+  let step = skipWelcome ? 1 : 0;
+  let profileData = { name: '', avatar: AVATARS[0], age: '5' };
   let selectedWords = new Set();
 
   function render() {
@@ -37,15 +37,15 @@ export function renderOnboarding(app, storage, navigate) {
       <div class="screen onboarding">
         <div class="onboarding__content">
           <div class="onboarding__emoji">✏️</div>
-          <h1 class="onboarding__title">XieXie Go helps your child practice their weekly Chinese dictation list</h1>
+          <h1 class="onboarding__title">A handy app to help kids ace their 听写 test</h1>
           <p class="onboarding__desc">
-            5 minutes a day so they're ready for the test by Friday.
+            Practice weekly Chinese dictation lists — 5 minutes a day so they're ready by Friday.
           </p>
         </div>
         <div class="onboarding__actions">
           ${renderDots()}
           <button class="btn btn--primary btn--large" id="btn-next">
-            Let's set up your first kid
+            Let's go!
           </button>
         </div>
       </div>
@@ -110,7 +110,7 @@ export function renderOnboarding(app, storage, navigate) {
     // Age selection
     app.querySelectorAll('.age-chip').forEach(btn => {
       btn.addEventListener('click', () => {
-        profileData.age = parseInt(btn.dataset.age);
+        profileData.age = btn.dataset.age;
         app.querySelectorAll('.age-chip').forEach(b => b.classList.remove('age-chip--selected'));
         btn.classList.add('age-chip--selected');
       });

@@ -1,5 +1,5 @@
 /**
- * StorageAdapter — localStorage backend for XieXie Go.
+ * StorageAdapter — localStorage backend for XieXieGo.
  * All keys are prefixed with `xxg_` to avoid collisions.
  *
  * TODO: Add Firebase Firestore backend for optional sharing features.
@@ -99,9 +99,10 @@ export class StorageAdapter {
 
   /** Map age to initial difficulty level per spec Section 2. */
   _levelFromAge(age) {
-    if (age <= 5) return 1;
-    if (age <= 6) return 2;
-    if (age <= 8) return 3;
-    return 4;
+    const n = parseInt(age) || 4; // '<4' → NaN → 4 (defaults to youngest)
+    if (age === '<4' || n <= 5) return 1;
+    if (n <= 6) return 2;
+    if (n <= 8) return 3;
+    return 4; // 10+
   }
 }
