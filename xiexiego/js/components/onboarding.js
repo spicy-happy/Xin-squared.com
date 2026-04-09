@@ -36,11 +36,37 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
     app.innerHTML = `
       <div class="screen onboarding">
         <div class="onboarding__content">
-          <div class="onboarding__emoji">✏️</div>
-          <h1 class="onboarding__title">A handy app to help kids ace their 听写 test</h1>
-          <p class="onboarding__desc">
-            Practice weekly Chinese dictation lists — 5 minutes a day so they're ready by Friday.
-          </p>
+          <h1 class="onboarding__title" style="font-size: 1.5rem;">How it works</h1>
+          <div class="how-it-works">
+            <div class="how-step">
+              <span class="how-step__icon">📝</span>
+              <div class="how-step__text">
+                <strong>Add words to practice list</strong>
+                <span>Type words, pinyin and meaning autoadded</span>
+              </div>
+            </div>
+            <div class="how-step">
+              <span class="how-step__icon">🎧</span>
+              <div class="how-step__text">
+                <strong>Practice daily</strong>
+                <span>5 min sessions — hear, match, trace, and write</span>
+              </div>
+            </div>
+            <div class="how-step">
+              <span class="how-step__icon">✅</span>
+              <div class="how-step__text">
+                <strong>Test when ready</strong>
+                <span>Mock dictation test just like in class</span>
+              </div>
+            </div>
+            <div class="how-step">
+              <span class="how-step__icon">🌟</span>
+              <div class="how-step__text">
+                <strong>Ace the test</strong>
+                <span>Words they struggle with get extra practice</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="onboarding__actions">
           ${renderDots()}
