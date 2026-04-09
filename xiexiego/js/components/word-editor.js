@@ -79,16 +79,68 @@ export function renderWordEditor(app, storage, navigate) {
       render();
     });
 
-    // Tap word row → detail view
-    app.querySelectorAll('.word-row').forEach(row => {
-      row.addEventListener('click', () => {
-        detailChar = row.dataset.char;
-        view = 'detail';
-        render();
+    // Swipe + tap on word rows
+    app.querySelectorAll('.word-row-wrap').forEach(wrap => {
+      const row = wrap.querySelector('.word-row');
+      const char = wrap.dataset.char;
+      let startX = 0, startY = 0, currentX = 0, swiping = false;
+
+      wrap.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        currentX = 0;
+        swiping = false;
+        row.style.transition = 'none';
+      }, { passive: true });
+
+      wrap.addEventListener('touchmove', (e) => {
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        // Only swipe if horizontal movement > vertical
+        if (!swiping && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+          swiping = true;
+        }
+        if (swiping) {
+          currentX = Math.max(-100, Math.min(100, dx));
+          row.style.transform = `translateX(${currentX}px)`;
+        }
+      }, { passive: true });
+
+      wrap.addEventListener('touchend', () => {
+        row.style.transition = 'transform 0.2s ease';
+        if (currentX < -60) {
+          // Swipe left → delete
+          row.style.transform = 'translateX(-100%)';
+          setTimeout(() => {
+            storage.removeWordFromProfile(profileId, char);
+            render();
+          }, 200);
+        } else if (currentX > 60) {
+          // Swipe right → star
+          storage.toggleStarWord(profileId, char);
+          row.style.transform = 'translateX(0)';
+          render();
+        } else if (!swiping) {
+          // Tap → detail
+          detailChar = char;
+          view = 'detail';
+          render();
+        } else {
+          row.style.transform = 'translateX(0)';
+        }
+      });
+
+      // Mouse fallback for desktop — just tap
+      wrap.addEventListener('click', (e) => {
+        if (swiping) return;
+        // Only handle if no touch events fired
+        if (!('ontouchstart' in window)) {
+          detailChar = char;
+          view = 'detail';
+          render();
+        }
       });
     });
-
-    // (Star toggle is now in detail view only)
   }
 
   function renderWordRow(word) {
@@ -98,11 +150,14 @@ export function renderWordEditor(app, storage, navigate) {
     const meaning = word.meaning || word.meanings?.[0] || '';
 
     return `
-      <div class="word-row ${mastery.cls}" data-char="${word.character}">
-        ${isStarred ? '<span class="word-row__star-dot">★</span>' : ''}
-        <span class="word-row__char">${word.character}</span>
-        <span class="word-row__desc">${meaning}${pinyin ? ' · ' + pinyin : ''}</span>
-        <span class="word-row__chevron">›</span>
+      <div class="word-row-wrap" data-char="${word.character}">
+        <div class="word-row__action word-row__action--star">★ Star</div>
+        <div class="word-row__action word-row__action--delete">Delete</div>
+        <div class="word-row ${mastery.cls}">
+          <span class="word-row__char">${word.character}</span>
+          <span class="word-row__desc">${meaning}${pinyin ? ' · ' + pinyin : ''}</span>
+          ${isStarred ? '<span class="word-row__star-dot">★</span>' : ''}
+        </div>
       </div>
     `;
   }
