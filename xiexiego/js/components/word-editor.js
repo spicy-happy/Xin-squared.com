@@ -33,14 +33,19 @@ function showToast(message, undoFn) {
   `;
   document.body.appendChild(el);
 
-  // Push page content up so toast doesn't cover it
-  document.body.style.paddingBottom = '52px';
-
-  requestAnimationFrame(() => el.classList.add('toast--visible'));
+  requestAnimationFrame(() => {
+    el.classList.add('toast--visible');
+    // Bump up any fixed bottom elements (e.g. Add Words button)
+    document.querySelectorAll('.word-editor__bottom').forEach(b => {
+      b.style.bottom = el.offsetHeight + 'px';
+    });
+  });
 
   const dismiss = () => {
     el.classList.remove('toast--visible');
-    document.body.style.paddingBottom = '';
+    document.querySelectorAll('.word-editor__bottom').forEach(b => {
+      b.style.bottom = '';
+    });
     setTimeout(() => el.remove(), 300);
   };
 

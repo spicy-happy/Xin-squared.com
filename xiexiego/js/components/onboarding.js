@@ -205,13 +205,14 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
         <div class="onboarding__actions">
           <div class="onboarding__nav-row">
             <button class="btn btn--secondary" id="btn-back">Back</button>
-            <button class="btn btn--primary" id="btn-start">Let's Start!</button>
+            <button class="btn btn--primary" id="btn-start" ${selectedWords.size === 0 ? 'disabled' : ''}>Let's Start!</button>
           </div>
         </div>
       </div>
     `;
 
     // Word selection toggles
+    const startBtn = app.querySelector('#btn-start');
     app.querySelectorAll('.word-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         const char = chip.dataset.char;
@@ -222,6 +223,7 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
           selectedWords.add(char);
           chip.classList.add('word-chip--selected');
         }
+        startBtn.disabled = selectedWords.size === 0;
       });
     });
 
