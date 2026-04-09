@@ -3,6 +3,7 @@
  */
 
 import { StorageAdapter } from './storage.js';
+import { enrichCharacter } from './enrichment.js';
 import { renderProfilePicker } from './components/profile-picker.js';
 import { renderOnboarding } from './components/onboarding.js';
 import { renderWordEditor } from './components/word-editor.js';
@@ -10,6 +11,38 @@ import { renderSession } from './session.js';
 
 const storage = new StorageAdapter();
 const app = document.getElementById('app');
+
+// One-time migration: re-enrich words with bad/missing meanings from the
+// corrected cedict index. Runs in background, doesn't block rendering.
+(async function migrateWordMeanings() {
+  const MIGRATION_KEY = 'migration_meanings_v1';
+  if (storage.get(MIGRATION_KEY)) return;
+
+  const profiles = storage.getProfiles();
+  let changed = false;
+  for (const profile of profiles) {
+    for (const word of profile.wordBank) {
+      const m = word.meaning || word.meanings?.[0] || '';
+      const needsFix = !m || m === '?' ||
+        /variant of|used in|short name for|ethnic group|penis|dry measure/.test(m);
+      if (needsFix && word.character) {
+        try {
+          const enriched = await enrichCharacter(word.character.charAt(0));
+          const newMeaning = enriched.meanings?.[0];
+          if (newMeaning) {
+            word.meaning = newMeaning;
+            word.meanings = enriched.meanings;
+            word.pinyin = enriched.pinyin || word.pinyin;
+            word.pinyinMarked = enriched.pinyinMarked || word.pinyinMarked;
+            changed = true;
+          }
+        } catch {}
+      }
+    }
+  }
+  if (changed) storage.saveProfiles(profiles);
+  storage.set(MIGRATION_KEY, true);
+})();
 
 // Prevent scroll-ending touches from triggering clicks on mobile.
 // Tracks whether a touch involved significant movement (scrolling);

@@ -101,11 +101,13 @@ for (const line of lines) {
     if (!index[simplified]) {
       index[simplified] = entry; count++;
     } else {
-      // If existing entry's first definition is a surname/abbreviation,
-      // replace with this entry if it has a better definition
+      // Replace if existing entry has an uncommon/useless definition
+      // but the new one looks more useful
       const existing = index[simplified];
-      const isSurname = d => /^(surname |abbr\. for )/.test(d);
-      if (isSurname(existing.d[0]) && !isSurname(entry.d[0])) {
+      const isUncommon = d =>
+        /^(surname |abbr\. for |variant of |old variant of |used in |short name for )/.test(d) ||
+        /ethnic group|penis|dry measure/.test(d);
+      if (isUncommon(existing.d[0]) && !isUncommon(entry.d[0])) {
         index[simplified] = entry;
       }
     }

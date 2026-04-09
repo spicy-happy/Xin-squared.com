@@ -64,8 +64,7 @@ function cleanDefinition(def) {
     .trim();
   // Take only the first meaning if semicolon-separated
   if (cleaned.includes(';')) cleaned = cleaned.split(';')[0].trim();
-  // Skip if result is empty or too short to be useful
-  if (cleaned.length < 2) return '';
+  if (!cleaned) return '';
   return cleaned;
 }
 
