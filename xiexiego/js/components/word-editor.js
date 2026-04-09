@@ -325,10 +325,10 @@ export function renderWordEditor(app, storage, navigate) {
             <label class="form-group__label">Example</label>
             <div class="word-detail__input-row">
               <input class="form-group__input" id="edit-example" type="text"
-                     value="${word.example?.zh || ''}" placeholder="e.g. ${word.character}很好" autocomplete="off" lang="zh">
-              ${word.example?.zh ? '<button class="word-detail__reset" id="btn-reset-example">↺</button>' : ''}
+                     value="${word.example ? word.example.zh + ', ' + word.example.en : ''}"
+                     placeholder="e.g. 大象, big elephant" autocomplete="off">
+              ${word.example ? '<button class="word-detail__reset" id="btn-reset-example">↺</button>' : ''}
             </div>
-            ${word.example?.en ? `<div class="word-detail__example-hint">${word.example.en}</div>` : ''}
           </div>
 
           ${word.character.length > 1 ? `
@@ -424,9 +424,15 @@ export function renderWordEditor(app, storage, navigate) {
 
     const exInput = app.querySelector('#edit-example');
     if (exInput) {
-      const zh = exInput.value.trim();
-      const existingEn = storage.getProfile(profileId)?.wordBank.find(w => w.character === detailChar)?.example?.en || '';
-      if (zh) updates.example = { zh, en: existingEn };
+      const val = exInput.value.trim();
+      if (val) {
+        const commaIdx = val.indexOf(',');
+        if (commaIdx > 0) {
+          updates.example = { zh: val.slice(0, commaIdx).trim(), en: val.slice(commaIdx + 1).trim() };
+        } else {
+          updates.example = { zh: val, en: '' };
+        }
+      }
     }
 
     if (Object.keys(updates).length > 0) {
