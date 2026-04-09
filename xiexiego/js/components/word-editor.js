@@ -49,10 +49,6 @@ export function renderWordEditor(app, storage, navigate) {
           <span class="word-editor__count">${words.length}</span>
         </div>
 
-        <button class="btn btn--primary word-editor__add-btn" id="btn-show-add">
-          + Add Words
-        </button>
-
         ${words.length === 0 ? `
           <div class="empty-state" style="padding-top: var(--space-2xl);">
             <div class="empty-state__emoji">📝</div>
@@ -64,6 +60,12 @@ export function renderWordEditor(app, storage, navigate) {
             ${words.map(w => renderWordRow(w)).join('')}
           </div>
         `}
+
+        <div class="word-editor__bottom">
+          <button class="btn btn--primary word-editor__add-btn" id="btn-show-add">
+            + Add Words
+          </button>
+        </div>
       </div>
     `;
 
@@ -174,54 +176,76 @@ export function renderWordEditor(app, storage, navigate) {
     const defaultMeaning = word.meanings?.[0] || '';
     const defaultPinyin = word.pinyinMarked || '';
 
+    const stats = {
+      correct: word.consecutiveCorrect || 0,
+      total: word.totalAttempts || 0,
+      added: word.addedAt ? new Date(word.addedAt).toLocaleDateString() : '—',
+    };
+
     app.innerHTML = `
       <div class="screen word-editor">
         <div class="word-editor__header">
-          <button class="word-editor__back" id="btn-detail-back">← Save</button>
+          <button class="word-editor__back" id="btn-detail-back">←</button>
           <div class="word-editor__profile">
-            <span class="word-editor__name"></span>
+            <span class="word-editor__name">${word.character}</span>
           </div>
         </div>
 
         <div class="word-detail">
           <div class="word-detail__char">${word.character}</div>
-          <div class="word-detail__mastery-bar" style="background: ${mastery.color}">
-            ${mastery.label} · Box ${word.box} · ${word.consecutiveCorrect || 0} in a row
+
+          <div class="word-detail__section">
+            <div class="word-detail__section-title">Progress</div>
+            <div class="word-detail__stats">
+              <div class="word-detail__stat">
+                <span class="word-detail__stat-value" style="color: ${mastery.color}">${mastery.label}</span>
+                <span class="word-detail__stat-label">Status</span>
+              </div>
+              <div class="word-detail__stat">
+                <span class="word-detail__stat-value">${stats.correct}</span>
+                <span class="word-detail__stat-label">In a row</span>
+              </div>
+              <div class="word-detail__stat">
+                <span class="word-detail__stat-value">${stats.added}</span>
+                <span class="word-detail__stat-label">Added</span>
+              </div>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-group__label">Definition</label>
-            <div class="word-detail__input-row">
+          <div class="word-detail__section">
+            <div class="word-detail__section-title">Details</div>
+            <div class="form-group">
+              <label class="form-group__label">Definition</label>
               <input class="form-group__input" id="edit-meaning" type="text"
                      value="${word.meaning || defaultMeaning}" autocomplete="off">
-              ${defaultMeaning ? `<button class="word-detail__reset" id="btn-reset-meaning" title="Reset to default">↺</button>` : ''}
             </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-group__label">Pinyin</label>
-            <div class="word-detail__input-row">
+            <div class="form-group">
+              <label class="form-group__label">Pinyin</label>
               <input class="form-group__input" id="edit-pinyin" type="text"
                      value="${word.pinyinMarked || word.pinyin || ''}" autocomplete="off">
-              ${defaultPinyin ? `<button class="word-detail__reset" id="btn-reset-pinyin" title="Reset to default">↺</button>` : ''}
             </div>
+            ${word.radical || word.etymology?.hint ? `
+              <div class="word-detail__meta">
+                ${word.radical ? `<span>Radical: ${word.radical}</span>` : ''}
+                ${word.strokeCount ? `<span>Strokes: ${word.strokeCount}</span>` : ''}
+                ${word.etymology?.hint ? `<span>${word.etymology.hint}</span>` : ''}
+              </div>
+            ` : ''}
           </div>
 
-          ${word.radical ? `
-            <div class="word-detail__meta">
-              <span>Radical: ${word.radical}</span>
-              ${word.strokeCount ? `<span>Strokes: ${word.strokeCount}</span>` : ''}
-              ${word.etymology?.hint ? `<span>${word.etymology.hint}</span>` : ''}
-            </div>
-          ` : ''}
-
-          <button class="btn word-detail__star-btn ${isStarred ? 'word-detail__star-btn--active' : ''}" id="btn-detail-star">
-            ${isStarred ? '★ Starred' : '☆ Star for priority practice'}
-          </button>
-
-          <button class="btn word-detail__delete-btn" id="btn-detail-delete">
-            Delete word
-          </button>
+          <div class="word-detail__actions">
+            ${defaultMeaning || defaultPinyin ? `
+              <button class="btn btn--outline" id="btn-reset-defaults">
+                Reset to defaults
+              </button>
+            ` : ''}
+            <button class="btn btn--outline ${isStarred ? 'btn--star-active' : ''}" id="btn-detail-star">
+              ${isStarred ? '★ Starred' : '☆ Star for priority'}
+            </button>
+            <button class="btn btn--danger" id="btn-detail-delete">
+              Delete word
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -233,12 +257,10 @@ export function renderWordEditor(app, storage, navigate) {
       render();
     });
 
-    // Reset buttons
-    app.querySelector('#btn-reset-meaning')?.addEventListener('click', () => {
-      app.querySelector('#edit-meaning').value = defaultMeaning;
-    });
-    app.querySelector('#btn-reset-pinyin')?.addEventListener('click', () => {
-      app.querySelector('#edit-pinyin').value = defaultPinyin;
+    // Reset to defaults
+    app.querySelector('#btn-reset-defaults')?.addEventListener('click', () => {
+      if (defaultMeaning) app.querySelector('#edit-meaning').value = defaultMeaning;
+      if (defaultPinyin) app.querySelector('#edit-pinyin').value = defaultPinyin;
     });
 
     // Star toggle

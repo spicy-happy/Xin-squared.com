@@ -559,8 +559,16 @@ input {
   border-radius: 12px;
 }
 
+.word-editor__bottom {
+  position: sticky;
+  bottom: 0;
+  padding: var(--space-md) 0;
+  background: linear-gradient(transparent, var(--color-bg) 30%);
+  padding-top: var(--space-xl);
+}
+
 .word-editor__add-btn {
-  margin-bottom: var(--space-md);
+  width: 100%;
 }
 
 /* Word list */
@@ -653,8 +661,7 @@ input {
 .word-detail {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-lg);
   padding-top: var(--space-md);
 }
 
@@ -663,41 +670,48 @@ input {
   font-size: 5rem;
   font-weight: 600;
   line-height: 1.1;
-}
-
-.word-detail__mastery-bar {
-  color: white;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: var(--space-xs) var(--space-lg);
-  border-radius: 20px;
   text-align: center;
 }
 
-.word-detail__input-row {
+.word-detail__section {
   display: flex;
-  gap: var(--space-xs);
-  align-items: center;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
-.word-detail__input-row .form-group__input {
-  flex: 1;
-}
-
-.word-detail__reset {
-  font-size: 1.2rem;
-  background: none;
+.word-detail__section-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   color: var(--color-text-light);
-  min-width: 40px;
-  min-height: 40px;
+}
+
+.word-detail__stats {
   display: flex;
+  gap: var(--space-sm);
+}
+
+.word-detail__stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 2px;
+  padding: var(--space-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
 }
 
-.word-detail__reset:active {
-  background: var(--color-border);
+.word-detail__stat-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.word-detail__stat-label {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
 }
 
 .word-detail__meta {
@@ -706,39 +720,53 @@ input {
   gap: var(--space-xs);
   font-size: 0.85rem;
   color: var(--color-text-light);
-  width: 100%;
-  text-align: left;
   padding: var(--space-sm) var(--space-md);
   background: var(--color-bg);
   border-radius: var(--radius-sm);
 }
 
-.word-detail__star-btn {
+.word-detail__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+/* Button variants */
+.btn--outline {
   width: 100%;
   min-height: 48px;
   background: var(--color-surface);
   border: 2px solid var(--color-border);
   color: var(--color-text);
-  margin-top: var(--space-sm);
 }
 
-.word-detail__star-btn--active {
+.btn--outline:active {
+  background: var(--color-bg);
+}
+
+.btn--star-active {
   border-color: #FFB300;
   background: #FFF8E1;
   color: #F57F17;
 }
 
-.word-detail__delete-btn {
+.btn--danger {
   width: 100%;
   min-height: 48px;
-  background: transparent;
-  color: var(--color-text-light);
-  font-size: 0.9rem;
+  background: #FFEBEE;
+  border: 2px solid #E53935;
+  color: #C62828;
+  font-weight: 600;
 }
 
-.word-detail__delete-btn--confirm {
-  color: #D32F2F;
-  font-weight: 600;
+.btn--danger:active {
+  background: #FFCDD2;
+}
+
+.btn--danger-confirm {
+  background: #E53935;
+  color: white;
 }
 
 /* (Delete confirmation is now in detail view) */
