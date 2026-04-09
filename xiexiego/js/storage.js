@@ -71,6 +71,15 @@ export class StorageAdapter {
     this.set('activeProfileId', id);
   }
 
+  /** Delete a profile by ID. */
+  deleteProfile(id) {
+    const profiles = this.getProfiles().filter(p => p.id !== id);
+    this.saveProfiles(profiles);
+    if (this.getActiveProfileId() === id) {
+      this.set('activeProfileId', null);
+    }
+  }
+
   /** Add words to a profile's word bank. */
   addWordsToProfile(profileId, words) {
     const profiles = this.getProfiles();

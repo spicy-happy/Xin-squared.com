@@ -1,12 +1,86 @@
 /**
- * Session Planner — minimal Phase 4 version.
- * Picks words from the profile's word bank, runs exposure activity
- * for each, then shows celebration screen.
- *
- * TODO: Full Leitner logic, interleaving, multiple activity types.
+ * Session Planner — Phase 5
+ * Picks words, selects activity types (exposure vs quiz),
+ * picks distractors, runs activities, updates Leitner state.
  */
 
 import { renderExposure } from './activities/exposure.js';
+import { renderAudioRecognition } from './activities/audio-recognition.js';
+import { renderMeaningMatch } from './activities/meaning-match.js';
+import { renderPinyinMatch } from './activities/pinyin-match.js';
+import { renderReverseMeaning } from './activities/reverse-meaning.js';
+import { renderStrokeWriting } from './activities/stroke-writing.js';
+import { speakChinese } from './enrichment.js';
+import { playCelebration, playClick } from './sounds.js';
+
+/** Shuffle array in place (Fisher-Yates) */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/** Quiz activity renderers */
+/** Quiz types that need distractors */
+const MC_QUIZ_TYPES = [
+  { name: 'audioRecognition', render: renderAudioRecognition },
+  { name: 'meaningMatch', render: renderMeaningMatch },
+  { name: 'pinyinMatch', render: renderPinyinMatch },
+  { name: 'reverseMeaning', render: renderReverseMeaning },
+];
+
+/** All quiz types including stroke writing */
+const QUIZ_TYPES = [
+  ...MC_QUIZ_TYPES,
+  { name: 'strokeWriting', render: renderStrokeWriting },
+];
+
+/**
+ * Pick distractors for a target word from the word bank.
+ * Prefers words of the same length (compound ↔ compound, single ↔ single).
+ * Returns array of distractor word objects (without the target).
+ */
+function pickDistractors(targetWord, wordBank, count = 3) {
+  const others = wordBank.filter(w => w.character !== targetWord.character && w.meaning);
+  const targetLen = targetWord.character.length;
+  // Prefer same-length words as distractors
+  const sameLen = others.filter(w => w.character.length === targetLen);
+  const diffLen = others.filter(w => w.character.length !== targetLen);
+  shuffle(sameLen);
+  shuffle(diffLen);
+  // Fill with same-length first, then different-length if needed
+  return [...sameLen, ...diffLen].slice(0, count);
+}
+
+/**
+ * Decide what activity type to use for a word.
+ * - Never seen (no lastSeen): exposure
+ * - Box 2-3: 40% stroke writing, 60% multiple choice quiz
+ * - Box 4+: equal weight across all types
+ * - Only use stroke writing for words with stroke data
+ */
+function selectActivity(word) {
+  if (!word.lastSeen) {
+    return { type: 'exposure' };
+  }
+  const box = word.box || 1;
+  const canWrite = word.hasStrokeData !== false;
+
+  // Weight stroke writing higher for intermediate boxes
+  if (canWrite && box >= 2 && box <= 3 && Math.random() < 0.4) {
+    return { type: 'strokeWriting', render: renderStrokeWriting };
+  }
+
+  const quiz = QUIZ_TYPES[Math.floor(Math.random() * QUIZ_TYPES.length)];
+  // If stroke writing was picked but no stroke data, pick MC instead
+  if (quiz.name === 'strokeWriting' && !canWrite) {
+    const mc = MC_QUIZ_TYPES[Math.floor(Math.random() * MC_QUIZ_TYPES.length)];
+    return { type: mc.name, render: mc.render };
+  }
+  return { type: quiz.name, render: quiz.render };
+}
 
 /**
  * Run a practice session for the active profile.
@@ -19,28 +93,120 @@ export function renderSession(app, storage, navigate) {
     return;
   }
 
-  // Pick session words: starred first, then Box 1, limit 5
-  const now = Date.now();
-  const words = profile.wordBank;
-  const starred = words.filter(w => w.starFlag && w.starFlag.expiresAt > now);
-  const box1 = words.filter(w => w.box === 1 && (!w.starFlag || w.starFlag.expiresAt <= now));
-  const sessionWords = [...starred, ...box1].slice(0, 5);
+  // Session size scales with age/level
+  // Level 1 (age 4-5): 8 activities, Level 2 (age 6): 10, Level 3 (age 7-8): 12, Level 4 (age 9+): 15
+  const SESSION_SIZES = { 1: 8, 2: 10, 3: 12, 4: 15 };
+  const sessionSize = SESSION_SIZES[profile.level] || 10;
+  const MAX_EXPOSURES = Math.min(3, Math.ceil(sessionSize / 3));
 
-  // If no eligible words, show all words (light review)
-  if (sessionWords.length === 0) {
-    sessionWords.push(...words.slice(0, 5));
-  }
-
+  let sessionPlan = []; // Array of { word, activityType, render }
   let currentIndex = 0;
 
+  /** Pick fresh session words and build a session plan */
+  function buildSessionPlan() {
+    const now = Date.now();
+    const freshProfile = storage.getProfile(profileId);
+    const words = freshProfile.wordBank;
+    const starred = words.filter(w => w.starFlag && w.starFlag.expiresAt > now);
+
+    // New words never seen
+    const newWords = words.filter(w => !w.lastSeen && (!w.starFlag || w.starFlag.expiresAt <= now));
+    shuffle(newWords);
+
+    // Review words (seen before), oldest first
+    const review = words
+      .filter(w => w.lastSeen && (!w.starFlag || w.starFlag.expiresAt <= now))
+      .sort((a, b) => (a.lastSeen || 0) - (b.lastSeen || 0));
+
+    // Prioritize starred, fill with new + review
+    const nonStarred = [...newWords, ...review];
+    const starCount = Math.min(starred.length, sessionSize);
+    const fillCount = sessionSize - starCount;
+    const picked = [...starred, ...nonStarred.slice(0, fillCount)];
+    shuffle(picked);
+
+    if (picked.length === 0) {
+      picked.push(...words.slice(0, Math.min(sessionSize, words.length)));
+      shuffle(picked);
+    }
+
+    // Build plan: exposure for new words, quiz for seen words
+    const plan = [];
+    let exposureCount = 0;
+
+    for (const word of picked) {
+      const isNew = !word.lastSeen;
+      if (isNew && exposureCount < MAX_EXPOSURES) {
+        plan.push({ word, activityType: 'exposure', render: null });
+        exposureCount++;
+      } else {
+        // Quiz — pick a random quiz type
+        const quiz = QUIZ_TYPES[Math.floor(Math.random() * QUIZ_TYPES.length)];
+        plan.push({ word, activityType: quiz.name, render: quiz.render });
+      }
+    }
+
+    // Avoid 3+ of the same activity type in a row — swap if needed
+    for (let i = 2; i < plan.length; i++) {
+      if (plan[i].activityType === plan[i-1].activityType &&
+          plan[i].activityType === plan[i-2].activityType &&
+          plan[i].activityType !== 'exposure') {
+        const others = QUIZ_TYPES.filter(q => q.name !== plan[i].activityType);
+        const alt = others[Math.floor(Math.random() * others.length)];
+        plan[i].activityType = alt.name;
+        plan[i].render = alt.render;
+      }
+    }
+
+    sessionPlan = plan;
+  }
+
+  buildSessionPlan();
+
+  /** Abort current activity audio */
+  function abortCurrentActivity() {
+    const container = app.querySelector('#activity-container');
+    if (container?._abortExposure) container._abortExposure();
+    window.speechSynthesis?.cancel();
+  }
+
+  /** Give credit for current word (used by arrow key skip) */
+  function giveCredit() {
+    if (currentIndex >= sessionPlan.length) return;
+    const { word } = sessionPlan[currentIndex];
+    const newBox = Math.min((word.box || 1) + 1, 5);
+    storage.updateWordInProfile(profileId, word.character, {
+      box: newBox,
+      lastSeen: Date.now(),
+    });
+    word.box = newBox;
+  }
+
+  // Keyboard arrows for testing
+  function onKeyDown(e) {
+    if (e.key === 'ArrowLeft' && currentIndex > 0) {
+      abortCurrentActivity();
+      currentIndex--;
+      render();
+    } else if (e.key === 'ArrowRight' && currentIndex <= sessionPlan.length - 1) {
+      abortCurrentActivity();
+      giveCredit();
+      currentIndex++;
+      render();
+    }
+  }
+  window.addEventListener('keydown', onKeyDown);
+  function cleanupKeyboard() { window.removeEventListener('keydown', onKeyDown); }
+
   function render() {
-    if (currentIndex >= sessionWords.length) {
+    if (currentIndex >= sessionPlan.length) {
       renderCelebration();
       return;
     }
 
-    const word = sessionWords[currentIndex];
-    const total = sessionWords.length;
+    const { word, activityType, render: renderActivity } = sessionPlan[currentIndex];
+    const total = sessionPlan.length;
+    const freshProfile = storage.getProfile(profileId);
 
     app.innerHTML = `
       <div class="screen session">
@@ -57,32 +223,100 @@ export function renderSession(app, storage, navigate) {
       </div>
     `;
 
-    // Close button
     app.querySelector('#btn-session-close').addEventListener('click', () => {
+      abortCurrentActivity();
+      cleanupKeyboard();
       navigate('profiles');
     });
 
-    // Render the exposure activity into the container
     const container = app.querySelector('#activity-container');
-    renderExposure(container, word, () => {
-      currentIndex++;
-      render();
-    });
+
+    if (activityType === 'exposure') {
+      // Exposure activity — simple onComplete
+      renderExposure(container, word, () => {
+        const newBox = Math.min((word.box || 1) + 1, 5);
+        storage.updateWordInProfile(profileId, word.character, {
+          box: newBox,
+          lastSeen: Date.now(),
+        });
+        word.box = newBox;
+        currentIndex++;
+        render();
+      });
+    } else {
+      // Quiz activity
+      const needsDistractors = activityType !== 'strokeWriting';
+      const distractors = needsDistractors ? pickDistractors(word, freshProfile.wordBank) : [];
+
+      // Need at least 1 distractor for MC quizzes; fall back to exposure
+      if (needsDistractors && distractors.length === 0) {
+        renderExposure(container, word, () => {
+          storage.updateWordInProfile(profileId, word.character, {
+            box: Math.min((word.box || 1) + 1, 5),
+            lastSeen: Date.now(),
+          });
+          currentIndex++;
+          render();
+        });
+        return;
+      }
+
+      renderActivity(container, word, distractors, (result) => {
+        // Update Leitner state based on result
+        if (result.correct) {
+          const cc = (word.consecutiveCorrect || 0) + 1;
+          const shouldAdvance = cc >= 2;
+          const newBox = shouldAdvance ? Math.min((word.box || 1) + 1, 5) : (word.box || 1);
+          storage.updateWordInProfile(profileId, word.character, {
+            consecutiveCorrect: shouldAdvance ? 0 : cc,
+            box: newBox,
+            lastSeen: Date.now(),
+          });
+          word.box = newBox;
+          word.consecutiveCorrect = shouldAdvance ? 0 : cc;
+        } else {
+          // Wrong: regress box, reset streak
+          const newBox = Math.max(1, (word.box || 1) - 1);
+          storage.updateWordInProfile(profileId, word.character, {
+            consecutiveCorrect: 0,
+            box: newBox,
+            lastSeen: Date.now(),
+          });
+          word.box = newBox;
+          word.consecutiveCorrect = 0;
+        }
+
+        currentIndex++;
+        render();
+      });
+    }
   }
 
   function renderCelebration() {
-    const count = sessionWords.length;
+    const count = sessionPlan.length;
+
+    const cheers = [
+      { emoji: '🐉', title: '厉害', desc: `${count} words down — like a dragon` },
+      { emoji: '🏮', title: '太棒了', desc: `You practiced ${count} words today` },
+      { emoji: '🎋', title: '加油', desc: `${count} words — keep it up` },
+      { emoji: '🧧', title: '很好', desc: `${count} words in the bag` },
+      { emoji: '🎑', title: '了不起', desc: `You just tackled ${count} words` },
+      { emoji: '🐼', title: '棒棒哒', desc: `${count} words — panda proud` },
+      { emoji: '🎆', title: '好极了', desc: `${count} words practiced` },
+    ];
+    const cheer = cheers[Math.floor(Math.random() * cheers.length)];
 
     app.innerHTML = `
       <div class="screen session-celebration">
+        <div class="session-celebration__confetti" id="confetti-container"></div>
         <div class="session-celebration__content">
-          <div class="session-celebration__emoji">🎉</div>
-          <h1 class="session-celebration__title">Great job!</h1>
-          <p class="session-celebration__desc">
-            You practiced ${count} word${count !== 1 ? 's' : ''} today!
-          </p>
+          <div class="session-celebration__emoji">${cheer.emoji}</div>
+          <h1 class="session-celebration__title">${cheer.title}</h1>
+          <p class="session-celebration__desc">${cheer.desc}</p>
           <div class="session-celebration__words">
-            ${sessionWords.map(w => `<span class="session-celebration__word">${w.character}</span>`).join('')}
+            ${[...new Set(sessionPlan.map(p => p.word.character))].map(ch =>
+              `<span class="session-celebration__word">${ch}</span>`
+            ).join('')}
           </div>
         </div>
         <div class="session-celebration__actions">
@@ -96,11 +330,30 @@ export function renderSession(app, storage, navigate) {
       </div>
     `;
 
+    // Spawn confetti particles
+    const confettiContainer = app.querySelector('#confetti-container');
+    for (let i = 0; i < 40; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'confetti-particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 2 + 's';
+      particle.style.backgroundColor = ['#FF6B6B','#4A90D9','#4CAF50','#FF9800','#9C27B0','#FFD700'][Math.floor(Math.random()*6)];
+      confettiContainer.appendChild(particle);
+    }
+
+    playCelebration();
+    // Say the title in Chinese
+    setTimeout(() => speakChinese(cheer.title, 0.6), 800);
+
     app.querySelector('#btn-again').addEventListener('click', () => {
+      playClick();
+      buildSessionPlan();
       currentIndex = 0;
       render();
     });
     app.querySelector('#btn-done').addEventListener('click', () => {
+      playClick();
+      cleanupKeyboard();
       navigate('profiles');
     });
   }

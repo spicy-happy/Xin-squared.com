@@ -73,6 +73,37 @@ function cleanDefinition(def) {
  * Generate a simple example usage for a character/word.
  * Uses common patterns kids would recognize.
  */
+/**
+ * Emoji illustrations for common characters.
+ * Shown during exposure to make the experience more visual and fun.
+ */
+const ILLUSTRATIONS = {
+  '大': '🐘', '小': '🐱', '人': '🧑', '口': '👄', '山': '⛰️',
+  '水': '💧', '日': '☀️', '月': '🌙', '火': '🔥', '木': '🌳',
+  '天': '🌤️', '中': '🇨🇳', '学': '📚', '花': '🌸', '鸟': '🐦',
+  '一': '☝️', '二': '✌️', '三': '🤟', '上': '⬆️', '下': '⬇️',
+  '白': '☁️', '红': '❤️', '手': '✋', '目': '👀', '马': '🐴',
+  '牛': '🐄', '风': '🌬️', '雨': '🌧️', '云': '☁️', '土': '🌍',
+  '是': '✅', '我': '🙋', '你': '👋', '好': '👍', '家': '🏠',
+  '鱼': '🐟', '猫': '🐱', '狗': '🐕', '虫': '🐛', '草': '🌿',
+  '果': '🍎', '瓜': '🍉', '米': '🍚', '田': '🌾', '石': '🪨',
+  '金': '🥇', '车': '🚗', '门': '🚪', '书': '📖', '笔': '✏️',
+  '星': '⭐', '心': '❤️', '眼': '👁️', '耳': '👂', '足': '🦶',
+  '爸': '👨', '妈': '👩', '哥': '👦', '姐': '👧', '弟': '👦',
+  '妹': '👧', '朋': '🤝', '友': '🤝', '老': '👴', '师': '👩‍🏫',
+  '飞': '✈️', '走': '🚶', '跑': '🏃', '吃': '🍽️', '喝': '🥤',
+  '看': '👀', '听': '👂', '说': '💬', '笑': '😊', '哭': '😢',
+  '蝴蝶': '🦋', '谢谢': '🙏', '你好': '👋', '学校': '🏫',
+  '再见': '👋', '爸爸': '👨', '妈妈': '👩', '老师': '👩‍🏫',
+  '朋友': '🤝', '苹果': '🍎', '西瓜': '🍉', '太阳': '☀️',
+  '月亮': '🌙', '星星': '⭐', '大象': '🐘', '小鸟': '🐦',
+};
+
+/** Get emoji illustration for a character/word. */
+export function getIllustration(char) {
+  return ILLUSTRATIONS[char] || null;
+}
+
 const EXAMPLES = {
   '大': { zh: '大象', en: 'big elephant' },
   '小': { zh: '小猫', en: 'small cat' },
@@ -304,21 +335,53 @@ export async function parseAndEnrich(text) {
  * @param {string} text - Chinese text to speak
  * @returns {Promise<void>}
  */
-/** Find a Chinese female voice if available. */
+/**
+ * Ensure voices are loaded (they load async in some browsers).
+ * Resolves immediately if voices are already available.
+ */
+let voicesReady = false;
+function waitForVoices() {
+  if (voicesReady) return Promise.resolve();
+  return new Promise(resolve => {
+    const voices = window.speechSynthesis?.getVoices() || [];
+    if (voices.length > 0) { voicesReady = true; resolve(); return; }
+    // Some browsers fire voiceschanged when voices become available
+    window.speechSynthesis?.addEventListener('voiceschanged', () => {
+      voicesReady = true;
+      resolve();
+    }, { once: true });
+    // Fallback timeout — don't block forever
+    setTimeout(() => { voicesReady = true; resolve(); }, 1000);
+  });
+}
+
+/** Find a female Chinese voice if available. */
 function getChineseVoice() {
   const voices = window.speechSynthesis?.getVoices() || [];
-  // Prefer female Chinese voice
   const female = voices.find(v => v.lang.startsWith('zh') && /female|ting|xiaoxiao/i.test(v.name));
   const any = voices.find(v => v.lang.startsWith('zh'));
   return female || any || null;
 }
 
+/** Find a female English voice if available. */
+function getEnglishVoice() {
+  const voices = window.speechSynthesis?.getVoices() || [];
+  // Prefer female English voice — common names across platforms
+  const female = voices.find(v =>
+    v.lang.startsWith('en') && /female|samantha|karen|victoria|zira|hazel|susan|fiona/i.test(v.name)
+  );
+  // Fallback: any English voice
+  const any = voices.find(v => v.lang.startsWith('en'));
+  return female || any || null;
+}
+
 export function speakChinese(text, rate = 0.65) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     if (!('speechSynthesis' in window)) {
       reject(new Error('Speech synthesis not supported'));
       return;
     }
+    await waitForVoices();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'zh-CN';
@@ -332,23 +395,33 @@ export function speakChinese(text, rate = 0.65) {
 }
 
 /**
- * Speak an exposure sequence: character... pause... example.
- * E.g. "大" ... pause ... "大象"
+ * Speak an exposure sequence: character... pause... meaning... example.
+ * E.g. "大" ... "big" ... "大象" ... "big elephant"
+ *
+ * @param {Object} word - Enriched word object
+ * @param {Object} [opts] - Optional callbacks for highlighting
+ * @param {Function} [opts.highlightMeaning] - Called when meaning is spoken
+ * @param {Function} [opts.highlightExample] - Called when example is spoken
  */
-export async function speakExposureSequence(word) {
-  // Say the character slowly
-  await speakChinese(word.character, 0.5);
+export async function speakExposureSequence(word, opts = {}) {
+  // Say the character slowly (unless already said)
+  if (!opts.skipCharacter) {
+    await speakChinese(word.character, 0.5);
+  }
 
   // Pause, then say English meaning
   await new Promise(r => setTimeout(r, 500));
-  const meaning = word.meaning || word.meanings?.[0] || '';
+  const rawMeaning = word.meaning || word.meanings?.[0] || '';
+  const meaning = rawMeaning.replace(/\s*\/\s*/g, ' or ');
   if (meaning) {
+    opts.highlightMeaning?.();
     await speakEnglish(meaning);
   }
 
   // Pause, then say example if available
   if (word.example?.zh) {
     await new Promise(r => setTimeout(r, 500));
+    opts.highlightExample?.();
     await speakChinese(word.example.zh, 0.6);
     if (word.example.en) {
       await new Promise(r => setTimeout(r, 300));
@@ -357,13 +430,17 @@ export async function speakExposureSequence(word) {
   }
 }
 
-/** Speak English text using Web Speech API. */
-function speakEnglish(text) {
-  return new Promise((resolve, reject) => {
+/** Speak English text using Web Speech API with female voice. */
+export function speakEnglish(text) {
+  return new Promise(async (resolve) => {
     if (!('speechSynthesis' in window)) { resolve(); return; }
+    await waitForVoices();
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-US';
     utterance.rate = 0.85;
+    const voice = getEnglishVoice();
+    if (voice) utterance.voice = voice;
     utterance.onend = resolve;
     utterance.onerror = resolve; // don't block on error
     window.speechSynthesis.speak(utterance);

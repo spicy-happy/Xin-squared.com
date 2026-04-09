@@ -111,11 +111,9 @@ export function renderWordEditor(app, storage, navigate) {
       <div class="screen word-editor">
         <div class="word-editor__header">
           <button class="word-editor__back" id="btn-back">←</button>
-          <div class="word-editor__profile">
-            <span class="word-editor__avatar">${p.avatar}</span>
-            <span class="word-editor__name">${p.name}'s Words</span>
-          </div>
-          <span class="word-editor__count">${words.length}</span>
+          <span class="word-editor__avatar">${p.avatar}</span>
+          <span class="word-editor__name">${p.name}'s Words</span>
+          <button class="word-editor__delete-profile" id="btn-delete-profile">Delete profile</button>
         </div>
 
         ${words.length === 0 ? `
@@ -157,10 +155,35 @@ export function renderWordEditor(app, storage, navigate) {
       </div>
     `;
 
-    app.querySelector('#btn-back').addEventListener('click', () => navigate('session'));
+    app.querySelector('#btn-back').addEventListener('click', () => navigate('profiles'));
     app.querySelector('#btn-show-add').addEventListener('click', () => {
       view = 'add'; addInput = ''; render();
     });
+
+    // Delete profile — double tap to confirm
+    let deleteClickedOnce = false;
+    const deleteBtn = app.querySelector('#btn-delete-profile');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (deleteClickedOnce) {
+          storage.deleteProfile(profileId);
+          navigate('profiles');
+        } else {
+          deleteClickedOnce = true;
+          const origHTML = deleteBtn.innerHTML;
+          deleteBtn.textContent = 'Delete?';
+          deleteBtn.classList.add('word-editor__delete-profile--confirm');
+          setTimeout(() => {
+            deleteClickedOnce = false;
+            if (deleteBtn) {
+              deleteBtn.innerHTML = origHTML;
+              deleteBtn.classList.remove('word-editor__delete-profile--confirm');
+            }
+          }, 3000);
+        }
+      });
+    }
 
     // Alphabet jump
     app.querySelectorAll('.alpha-jump__letter').forEach(btn => {
@@ -270,7 +293,7 @@ export function renderWordEditor(app, storage, navigate) {
           <button class="word-editor__back" id="btn-detail-back">←</button>
           <div class="word-editor__profile"></div>
           <div class="word-detail__top-actions">
-            <button class="word-detail__action-btn ${isStarred ? 'word-detail__action-btn--star' : ''}" id="btn-detail-star">
+            <button class="word-detail__action-btn word-detail__action-btn--star" id="btn-detail-star">
               ${isStarred ? '★' : '☆'}
             </button>
             <button class="word-detail__action-btn word-detail__action-btn--delete" id="btn-detail-delete">

@@ -18,6 +18,8 @@ function navigate(screen) {
 
 /** Route to the correct screen based on current hash. */
 function route() {
+  // Stop any in-progress speech when navigating away
+  window.speechSynthesis?.cancel();
   const hash = window.location.hash.slice(1) || '';
 
   switch (hash) {
