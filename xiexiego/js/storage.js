@@ -91,6 +91,51 @@ export class StorageAdapter {
     this.saveProfiles(profiles);
   }
 
+  // --- Word management helpers ---
+
+  /** Remove a word from a profile's word bank. */
+  removeWordFromProfile(profileId, character) {
+    const profiles = this.getProfiles();
+    const profile = profiles.find(p => p.id === profileId);
+    if (!profile) return;
+    profile.wordBank = profile.wordBank.filter(w => w.character !== character);
+    this.saveProfiles(profiles);
+  }
+
+  /** Toggle star flag on a word. Returns the new star state. */
+  toggleStarWord(profileId, character) {
+    const profiles = this.getProfiles();
+    const profile = profiles.find(p => p.id === profileId);
+    if (!profile) return false;
+
+    const word = profile.wordBank.find(w => w.character === character);
+    if (!word) return false;
+
+    if (word.starFlag) {
+      word.starFlag = null;
+    } else {
+      word.starFlag = {
+        starredAt: Date.now(),
+        expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+      };
+    }
+    this.saveProfiles(profiles);
+    return !!word.starFlag;
+  }
+
+  /** Update specific fields on a word in a profile. */
+  updateWordInProfile(profileId, character, updates) {
+    const profiles = this.getProfiles();
+    const profile = profiles.find(p => p.id === profileId);
+    if (!profile) return;
+
+    const word = profile.wordBank.find(w => w.character === character);
+    if (!word) return;
+
+    Object.assign(word, updates);
+    this.saveProfiles(profiles);
+  }
+
   // --- Internal ---
 
   _generateId() {

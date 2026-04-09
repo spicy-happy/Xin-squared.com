@@ -5,6 +5,7 @@
 import { StorageAdapter } from './storage.js';
 import { renderProfilePicker } from './components/profile-picker.js';
 import { renderOnboarding } from './components/onboarding.js';
+import { renderWordEditor } from './components/word-editor.js';
 
 const storage = new StorageAdapter();
 const app = document.getElementById('app');
@@ -25,6 +26,10 @@ function route() {
 
     case 'add-profile':
       renderOnboarding(app, storage, navigate, { skipWelcome: true });
+      break;
+
+    case 'words':
+      renderWordEditor(app, storage, navigate);
       break;
 
     case 'session':
@@ -51,12 +56,18 @@ function renderPlaceholderSession() {
         ${name}'s words are saved and ready to go.<br>
         Activities will be built in the next phase!
       </p>
+      <button class="btn btn--primary" id="btn-edit-words" style="width:100%">
+        Edit Words
+      </button>
       <button class="btn btn--secondary" id="btn-back-profiles">
         ← Back to profiles
       </button>
     </div>
   `;
 
+  app.querySelector('#btn-edit-words').addEventListener('click', () => {
+    navigate('words');
+  });
   app.querySelector('#btn-back-profiles').addEventListener('click', () => {
     navigate('profiles');
   });

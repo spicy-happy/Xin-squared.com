@@ -508,6 +508,268 @@ input {
   line-height: 1.5;
 }
 
+/* === Word Bank Editor === */
+.word-editor {
+  padding-top: 0;
+  gap: 0;
+}
+
+.word-editor__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-md);
+}
+
+.word-editor__back {
+  font-size: 1.4rem;
+  background: none;
+  padding: var(--space-sm);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.word-editor__profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+}
+
+.word-editor__avatar {
+  font-size: 1.5rem;
+}
+
+.word-editor__name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.word-editor__count {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  background: var(--color-border);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.word-editor__add-btn {
+  margin-bottom: var(--space-md);
+}
+
+/* Word list */
+.word-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.word-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  min-height: 56px;
+}
+
+.word-row--deleting {
+  background: #FFF8E1;
+  border-color: var(--color-warning-light);
+}
+
+.word-row__star {
+  font-size: 1.3rem;
+  background: none;
+  padding: var(--space-xs);
+  min-width: 36px;
+  min-height: 36px;
+  color: var(--color-border);
+  flex-shrink: 0;
+}
+
+.word-row__star--active {
+  color: #FFB300;
+}
+
+.word-row__info {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.word-row__char {
+  font-family: var(--font-chinese);
+  font-size: 1.5rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.word-row__meaning {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.word-row__confirm-text {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-warning);
+}
+
+.word-row__confirm-yes,
+.word-row__confirm-no {
+  min-height: 36px;
+  min-width: 52px;
+  padding: var(--space-xs) var(--space-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+.word-row__confirm-yes {
+  background: var(--color-warning);
+  color: white;
+}
+
+.word-row__confirm-no {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.word-row__delete {
+  font-size: 1.2rem;
+  background: none;
+  color: var(--color-text-light);
+  padding: var(--space-xs);
+  min-width: 36px;
+  min-height: 36px;
+  flex-shrink: 0;
+  opacity: 0.4;
+}
+
+.word-row__delete:active {
+  opacity: 1;
+}
+
+/* Mastery badges */
+.mastery-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mastery-badge--learning {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.mastery-badge--practicing {
+  background: #E3F2FD;
+  color: #1565C0;
+}
+
+.mastery-badge--mastered {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+/* Add word form */
+.add-word-form {
+  margin-bottom: var(--space-md);
+}
+
+.add-word-form__input-row {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.add-word-form__input {
+  flex: 1;
+  font-family: var(--font-chinese);
+  font-size: 1.3rem;
+}
+
+.add-word-form__cancel {
+  min-height: 48px;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.9rem;
+  border: 1px solid var(--color-border);
+}
+
+.add-word-form__preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.add-word-form__preview--loading {
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.add-word-form__char {
+  font-family: var(--font-chinese);
+  font-size: 2.5rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.add-word-form__details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.add-word-form__meaning {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.add-word-form__pinyin {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+}
+
+.add-word-form__meta {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+}
+
+.add-word-form__manual {
+  margin-top: var(--space-sm);
+}
+
+.add-word-form__confirm {
+  min-height: 44px;
+  padding: var(--space-sm) var(--space-lg);
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
 /* === Utilities === */
 .text-center { text-align: center; }
 .mt-auto { margin-top: auto; }
