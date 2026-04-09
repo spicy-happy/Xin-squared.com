@@ -193,27 +193,44 @@ export async function enrichCharacters(chars) {
  * @returns {Promise<Object[]>} Array of enriched word objects
  */
 export async function parseAndEnrich(text) {
+  // Sanitize: limit length, strip anything dangerous
+  if (!text || typeof text !== 'string') return [];
+  text = text.slice(0, 5000); // Cap at 5000 chars to prevent abuse
+
   await ensureIndices();
   await ensureCompounds();
 
-  // Extract only CJK characters
-  const cjk = [...text].filter(c => c.charCodeAt(0) >= 0x4E00 && c.charCodeAt(0) <= 0x9FFF);
-  if (cjk.length === 0) return [];
+  // Split by lines/commas/spaces — each segment is treated as a separate word group
+  const segments = text.split(/[\n\r,，、;；\s]+/).filter(Boolean);
 
-  // Greedy left-to-right compound detection
   const words = [];
-  let i = 0;
-  while (i < cjk.length) {
-    if (i + 1 < cjk.length) {
-      const pair = cjk[i] + cjk[i + 1];
-      if (compoundsIndex[pair]) {
-        words.push(pair);
-        i += 2;
-        continue;
-      }
+  for (const segment of segments) {
+    // Extract only CJK characters from this segment
+    const cjk = [...segment].filter(c => c.charCodeAt(0) >= 0x4E00 && c.charCodeAt(0) <= 0x9FFF);
+    if (cjk.length === 0) continue;
+
+    // If entire segment is CJK (e.g. 蝴蝶 on its own line), treat as one word
+    // if it's a known compound OR has 2+ chars with no non-CJK separators
+    const cjkStr = cjk.join('');
+    if (cjk.length >= 2 && cjk.length <= 4 && compoundsIndex[cjkStr]) {
+      words.push(cjkStr);
+      continue;
     }
-    words.push(cjk[i]);
-    i++;
+
+    // Otherwise: greedy left-to-right compound detection within segment
+    let i = 0;
+    while (i < cjk.length) {
+      if (i + 1 < cjk.length) {
+        const pair = cjk[i] + cjk[i + 1];
+        if (compoundsIndex[pair]) {
+          words.push(pair);
+          i += 2;
+          continue;
+        }
+      }
+      words.push(cjk[i]);
+      i++;
+    }
   }
 
   // Deduplicate while preserving order

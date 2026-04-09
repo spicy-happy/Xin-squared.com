@@ -571,10 +571,8 @@ input {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  padding: var(--space-md) var(--space-lg) var(--space-xl);
-  background: rgba(250, 251, 255, 0.7);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  padding: var(--space-xl) var(--space-lg) var(--space-xl);
+  background: linear-gradient(to bottom, rgba(250, 251, 255, 0) 0%, rgba(250, 251, 255, 0.85) 30%, rgba(250, 251, 255, 1) 100%);
   z-index: 10;
 }
 
@@ -605,7 +603,7 @@ input {
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
-  margin-bottom: var(--space-sm);
+  margin: var(--space-xs) 0;
 }
 
 .alpha-jump__letter {
@@ -634,8 +632,7 @@ input {
   color: var(--color-text-light);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: var(--space-sm) var(--space-xs);
-  margin-top: var(--space-sm);
+  padding: var(--space-xs) var(--space-xs);
 }
 
 /* Word list */
@@ -716,8 +713,7 @@ input {
   font-size: 1.5rem;
   font-weight: 600;
   flex-shrink: 0;
-  width: 2em;
-  text-align: center;
+  min-width: 1.8em;
 }
 
 .word-row__desc {
@@ -1008,21 +1004,14 @@ input {
   flex-shrink: 0;
 }
 
-.add-word-form__queue-details {
+.add-word-form__queue-desc {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.add-word-form__queue-meaning {
   font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.add-word-form__queue-pinyin {
-  font-size: 0.8rem;
   color: var(--color-text-light);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .add-word-form__hint {

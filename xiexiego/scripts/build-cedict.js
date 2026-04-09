@@ -27,8 +27,12 @@ const TONE_MARKS = {
  */
 function numberedToMarked(numbered) {
   return numbered.split(' ').map(syllable => {
+    // Tone 5 = neutral, just strip the number
+    const neutral = syllable.match(/^([a-züÜ]+?)5$/i);
+    if (neutral) return neutral[1].replace(/v/g, 'ü');
+
     const match = syllable.match(/^([a-züÜ]+?)([1-4])$/i);
-    if (!match) return syllable; // neutral tone or non-standard
+    if (!match) return syllable;
 
     let [, letters, tone] = match;
     tone = parseInt(tone) - 1; // 0-indexed

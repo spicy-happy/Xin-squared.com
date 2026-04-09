@@ -479,10 +479,7 @@ export function renderWordEditor(app, storage, navigate) {
             ${enrichedQueue.map((e, i) => `
               <div class="add-word-form__queue-item">
                 <span class="add-word-form__queue-char">${e.character}</span>
-                <div class="add-word-form__queue-details">
-                  <span class="add-word-form__queue-meaning">${e.meaning || '?'}</span>
-                  ${e.pinyinMarked ? `<span class="add-word-form__queue-pinyin">${e.pinyinMarked}</span>` : ''}
-                </div>
+                <span class="add-word-form__queue-desc">${e.pinyinMarked || ''} · ${e.meaning || '?'}</span>
                 <button class="add-word-form__queue-remove" data-remove-idx="${i}">×</button>
               </div>
             `).join('')}
