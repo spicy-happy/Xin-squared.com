@@ -133,6 +133,16 @@ input {
   color: var(--color-text-light);
 }
 
+.profile-picker__warning {
+  font-size: 0.75rem;
+  color: #E65100;
+  background: #FFF3E0;
+  padding: 4px 12px;
+  border-radius: 8px;
+  margin-bottom: var(--space-sm);
+  display: inline-block;
+}
+
 .profile-picker__footer a {
   color: var(--color-primary);
   text-decoration: none;

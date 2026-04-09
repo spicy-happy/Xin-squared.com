@@ -45,6 +45,7 @@ export function renderProfilePicker(app, storage, navigate) {
         </button>
       </div>
       <footer class="profile-picker__footer">
+        <div class="profile-picker__warning">Still in testing mode — features may change.</div>
         <p>Made by Xin for my 2 kids. <a href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">Tip me a boba 🧋</a> <a href="mailto:xin@xin-squared.com">Give feedback ✉️</a></p>
       </footer>
     </div>
