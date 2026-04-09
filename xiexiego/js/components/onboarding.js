@@ -69,7 +69,6 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
           </div>
         </div>
         <div class="onboarding__actions">
-          ${renderDots()}
           <button class="btn btn--primary btn--large" id="btn-next">
             Let's go!
           </button>
@@ -82,8 +81,8 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
   function renderCreateProfile() {
     app.innerHTML = `
       <div class="screen onboarding">
-        <div class="onboarding__content" style="justify-content: flex-start; padding-top: var(--space-xl);">
-          <h1 class="onboarding__title" style="margin-bottom: var(--space-lg);">Create a profile</h1>
+        <div class="onboarding__content">
+          <h1 class="onboarding__title">Create a profile</h1>
 
           <div class="form-group">
             <label class="form-group__label">Name</label>
@@ -113,16 +112,27 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
         </div>
 
         <div class="onboarding__actions">
-          ${renderDots()}
-          <button class="btn btn--primary btn--large" id="btn-next">Next</button>
-          <button class="btn btn--secondary" id="btn-back">Back</button>
+          <div class="onboarding__nav-row">
+            <button class="btn btn--secondary" id="btn-back">Back</button>
+            <button class="btn btn--primary" id="btn-next" disabled>Next</button>
+          </div>
         </div>
       </div>
     `;
 
-    // Name input
+    // Name input + validation
     const nameInput = app.querySelector('#input-name');
-    nameInput.addEventListener('input', () => { profileData.name = nameInput.value.trim(); });
+    const btnNext = app.querySelector('#btn-next');
+
+    function updateNextState() {
+      btnNext.disabled = !profileData.name;
+    }
+
+    nameInput.addEventListener('input', () => {
+      profileData.name = nameInput.value.trim();
+      updateNextState();
+    });
+    updateNextState();
 
     // Avatar selection
     app.querySelectorAll('.avatar-option').forEach(btn => {
@@ -143,12 +153,7 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
     });
 
     // Navigation
-    app.querySelector('#btn-next').addEventListener('click', () => {
-      if (!profileData.name) {
-        nameInput.style.borderColor = 'var(--color-warning)';
-        nameInput.focus();
-        return;
-      }
+    btnNext.addEventListener('click', () => {
       step = 2;
       render();
     });
@@ -185,11 +190,10 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
         </div>
 
         <div class="onboarding__actions">
-          ${renderDots()}
-          <button class="btn btn--primary btn--large" id="btn-start">
-            Start Practicing!
-          </button>
-          <button class="btn btn--secondary" id="btn-back">Back</button>
+          <div class="onboarding__nav-row">
+            <button class="btn btn--secondary" id="btn-back">Back</button>
+            <button class="btn btn--primary" id="btn-start">Start Practicing!</button>
+          </div>
         </div>
       </div>
     `;
