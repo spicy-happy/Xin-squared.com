@@ -1,6 +1,6 @@
 /**
  * Stroke Writing Activity — 4 difficulty modes:
- *   1. guided:     Outline + ghost strokes visible, trace stroke by stroke
+ *   1. guided:     Outline + highlighted next stroke, trace stroke by stroke
  *   2. outline:    Outline only, write with no guide strokes
  *   3. flash:      Flash the character briefly, then write from memory
  *   4. memory:     Hear it, write from scratch (no visual help)
@@ -16,9 +16,6 @@ function formatMeaning(m) {
   return (m || '').replace(/\s*\/\s*/g, ' or ');
 }
 
-/** Writing modes in order of difficulty */
-const MODES = ['guided', 'outline', 'flash', 'memory'];
-
 /**
  * Pick writing mode based on Leitner box.
  */
@@ -27,6 +24,9 @@ function pickMode(word) {
   if (box <= 1) return 'guided';
   if (box <= 2) return 'outline';
   if (box <= 3) return 'flash';
+  // Memory mode requires box 5 — kids need lots of practice before
+  // writing with zero visual help. Box 4 still gets flash mode.
+  if (box <= 4) return 'flash';
   return 'memory';
 }
 
@@ -48,7 +48,7 @@ export async function renderStrokeWriting(container, word, distractors, onResult
   }
 
   // Sizing
-  const singleSize = 260;
+  const singleSize = 280;
   const compoundSize = chars.length <= 2 ? 180 : chars.length <= 3 ? 140 : 110;
   const writerSize = isCompound ? compoundSize : singleSize;
 
@@ -56,7 +56,7 @@ export async function renderStrokeWriting(container, word, distractors, onResult
     guided: 'Trace the strokes',
     outline: 'Write the character',
     flash: 'Write from memory',
-    memory: 'Write what you hear',
+    memory: 'Write from memory',
   };
 
   container.innerHTML = `
@@ -67,11 +67,6 @@ export async function renderStrokeWriting(container, word, distractors, onResult
           <svg class="quiz__speaker-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         </button>
         ${meaning && mode !== 'memory' ? `<p class="stroke__meaning">${meaning}</p>` : ''}
-        <div class="stroke__pencils" id="stroke-pencils">
-          ${['#2D3436','#E53935','#4A90D9','#4CAF50','#FF9800','#9C27B0'].map((c, i) => `
-            <button class="stroke__pencil ${i === 0 ? 'stroke__pencil--selected' : ''}" data-color="${c}" style="background:${c}"></button>
-          `).join('')}
-        </div>
         <div class="stroke__area" id="stroke-area">
           ${chars.map((_, i) => `
             <div class="stroke__slot ${i === 0 ? 'stroke__slot--active' : ''}" id="stroke-slot-${i}">
@@ -83,6 +78,11 @@ export async function renderStrokeWriting(container, word, distractors, onResult
           ${isCompound ? chars.map((_, i) => `<span class="stroke__dot" id="stroke-dot-${i}"></span>`).join('') : ''}
         </div>
         <div class="quiz__feedback" id="stroke-feedback"></div>
+        <div class="stroke__pencils" id="stroke-pencils">
+          ${['#2D3436','#E53935','#E91E63','#4CAF50','#FF9800','#9C27B0'].map((c, i) => `
+            <button class="stroke__pencil ${i === 0 ? 'stroke__pencil--selected' : ''}" data-color="${c}" style="background:${c}"></button>
+          `).join('')}
+        </div>
       </div>
     </div>
   `;
@@ -123,13 +123,51 @@ export async function renderStrokeWriting(container, word, distractors, onResult
     if (!aborted) speakChinese(word.character, 0.5);
   }, 300);
 
+  // HanziWriter quiz options per mode
+  const quizOpts = {
+    guided: {
+      showOutline: true,
+      // Keep the full character visible underneath so kids can see
+      // exactly what they're tracing. HanziWriter highlights each
+      // stroke in blue as the next one to write.
+      showCharacter: true,
+      showHintAfterMisses: 1,
+      highlightOnComplete: true,
+      leniency: 1.2,
+      // Slower highlight so the blue guide stroke stays visible longer
+      strokeHighlightSpeed: 0.5,
+    },
+    outline: {
+      showOutline: true,
+      showCharacter: false,
+      showHintAfterMisses: 3,
+      highlightOnComplete: true,
+      leniency: 1.0,
+    },
+    flash: {
+      showOutline: true,
+      showCharacter: false,
+      showHintAfterMisses: 3,
+      highlightOnComplete: true,
+      leniency: 1.0,
+    },
+    memory: {
+      // Show outline so the screen is never blank — kid still needs
+      // to recall stroke order but has the shape as a guide
+      showOutline: true,
+      showCharacter: false,
+      showHintAfterMisses: 3,
+      highlightOnComplete: true,
+      leniency: 1.0,
+    },
+  };
+
+  const opts = quizOpts[mode];
+
   // Create HanziWriter instances
   const writers = [];
   for (let i = 0; i < chars.length; i++) {
     try {
-      const showOutline = mode !== 'memory';
-      const showChar = mode === 'guided';
-
       const w = HanziWriter.create(
         container.querySelector(`#stroke-writer-${i}`),
         chars[i],
@@ -137,15 +175,16 @@ export async function renderStrokeWriting(container, word, distractors, onResult
           width: writerSize,
           height: writerSize,
           padding: 10,
-          showOutline: showOutline,
-          showCharacter: showChar,
+          showOutline: opts.showOutline,
+          showCharacter: opts.showCharacter,
           strokeColor: '#2D3436',
           radicalColor: '#2D3436',
           highlightColor: '#4A90D9',
           drawingColor: drawingColor,
           drawingWidth: 20,
-          showHintAfterMisses: mode === 'guided' ? 2 : 3,
-          highlightOnComplete: true,
+          showHintAfterMisses: opts.showHintAfterMisses,
+          highlightOnComplete: opts.highlightOnComplete,
+          strokeHighlightSpeed: opts.strokeHighlightSpeed || 1,
         }
       );
       writers.push(w);
@@ -155,9 +194,11 @@ export async function renderStrokeWriting(container, word, distractors, onResult
     }
   }
 
+  // Guided mode: character stays visible (showCharacter: true),
+  // no need for a show/hide dance — just go straight to quiz.
+
   // Flash mode: show character briefly then hide
   if (mode === 'flash') {
-    // Show all characters for 2 seconds
     writers.forEach(w => { if (w) w.showCharacter(); });
     await new Promise(r => setTimeout(r, 2000));
     if (aborted) return;
@@ -178,21 +219,18 @@ export async function renderStrokeWriting(container, word, distractors, onResult
     });
 
     if (!w) {
-      // No stroke data for this character, auto-complete
       const dot = container.querySelector(`#stroke-dot-${i}`);
       if (dot) dot.classList.add('stroke__dot--done');
       continue;
     }
 
     // Run HanziWriter quiz for this character
-    let charMistakes = 0;
     await new Promise((resolve) => {
       w.quiz({
-        onMistake: (strokeData) => {
-          charMistakes++;
+        onMistake: () => {
           totalMistakes++;
         },
-        onComplete: (summaryData) => {
+        onComplete: () => {
           resolve();
         }
       });
@@ -229,10 +267,6 @@ export async function renderStrokeWriting(container, word, distractors, onResult
 
   await new Promise(r => setTimeout(r, 400));
   if (!aborted) await speakChinese(word.character, 0.5);
-  if (!aborted && meaning) {
-    await new Promise(r => setTimeout(r, 300));
-    await speakEnglish(meaning);
-  }
   await new Promise(r => setTimeout(r, 1200));
   if (!aborted) onResult({ correct: totalMistakes === 0, attempts: totalMistakes });
 }

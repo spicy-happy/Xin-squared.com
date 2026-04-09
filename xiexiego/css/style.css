@@ -1704,8 +1704,10 @@ input {
 
 .stroke__pencils {
   display: flex;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   justify-content: center;
+  margin-top: auto;
+  padding-top: var(--space-md);
 }
 
 .stroke__pencil {
