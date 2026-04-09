@@ -1,12 +1,56 @@
-[
-  { "character": "大", "meaning": "big", "emoji": "🐘" },
-  { "character": "小", "meaning": "small", "emoji": "🐜" },
-  { "character": "人", "meaning": "person", "emoji": "🧍" },
-  { "character": "口", "meaning": "mouth", "emoji": "👄" },
-  { "character": "山", "meaning": "mountain", "emoji": "⛰️" },
-  { "character": "水", "meaning": "water", "emoji": "💧" },
-  { "character": "日", "meaning": "sun / day", "emoji": "☀️" },
-  { "character": "月", "meaning": "moon / month", "emoji": "🌙" },
-  { "character": "火", "meaning": "fire", "emoji": "🔥" },
-  { "character": "木", "meaning": "tree / wood", "emoji": "🌳" }
-]
+{
+  "easy": [
+    { "character": "一", "meaning": "one", "emoji": "1️⃣" },
+    { "character": "二", "meaning": "two", "emoji": "2️⃣" },
+    { "character": "三", "meaning": "three", "emoji": "3️⃣" },
+    { "character": "大", "meaning": "big", "emoji": "🐘" },
+    { "character": "小", "meaning": "small", "emoji": "🐜" },
+    { "character": "人", "meaning": "person", "emoji": "🧍" },
+    { "character": "口", "meaning": "mouth", "emoji": "👄" },
+    { "character": "山", "meaning": "mountain", "emoji": "⛰️" },
+    { "character": "水", "meaning": "water", "emoji": "💧" },
+    { "character": "日", "meaning": "sun", "emoji": "☀️" },
+    { "character": "月", "meaning": "moon", "emoji": "🌙" },
+    { "character": "火", "meaning": "fire", "emoji": "🔥" },
+    { "character": "木", "meaning": "tree", "emoji": "🌳" },
+    { "character": "土", "meaning": "earth", "emoji": "🪨" },
+    { "character": "上", "meaning": "up", "emoji": "⬆️" },
+    { "character": "下", "meaning": "down", "emoji": "⬇️" }
+  ],
+  "medium": [
+    { "character": "大", "meaning": "big", "emoji": "🐘" },
+    { "character": "小", "meaning": "small", "emoji": "🐜" },
+    { "character": "人", "meaning": "person", "emoji": "🧍" },
+    { "character": "天", "meaning": "sky / day", "emoji": "🌤️" },
+    { "character": "中", "meaning": "middle", "emoji": "🎯" },
+    { "character": "山", "meaning": "mountain", "emoji": "⛰️" },
+    { "character": "水", "meaning": "water", "emoji": "💧" },
+    { "character": "日", "meaning": "sun", "emoji": "☀️" },
+    { "character": "月", "meaning": "moon", "emoji": "🌙" },
+    { "character": "火", "meaning": "fire", "emoji": "🔥" },
+    { "character": "木", "meaning": "tree", "emoji": "🌳" },
+    { "character": "花", "meaning": "flower", "emoji": "🌸" },
+    { "character": "鸟", "meaning": "bird", "emoji": "🐦" },
+    { "character": "手", "meaning": "hand", "emoji": "✋" },
+    { "character": "目", "meaning": "eye", "emoji": "👁️" },
+    { "character": "耳", "meaning": "ear", "emoji": "👂" }
+  ],
+  "hard": [
+    { "character": "天", "meaning": "sky / day", "emoji": "🌤️" },
+    { "character": "中", "meaning": "middle", "emoji": "🎯" },
+    { "character": "学", "meaning": "study", "emoji": "📚" },
+    { "character": "生", "meaning": "life / student", "emoji": "🌱" },
+    { "character": "花", "meaning": "flower", "emoji": "🌸" },
+    { "character": "鸟", "meaning": "bird", "emoji": "🐦" },
+    { "character": "白", "meaning": "white", "emoji": "⬜" },
+    { "character": "红", "meaning": "red", "emoji": "🔴" },
+    { "character": "风", "meaning": "wind", "emoji": "💨" },
+    { "character": "雨", "meaning": "rain", "emoji": "🌧️" },
+    { "character": "电", "meaning": "electric", "emoji": "⚡" },
+    { "character": "云", "meaning": "cloud", "emoji": "☁️" },
+    { "character": "马", "meaning": "horse", "emoji": "🐴" },
+    { "character": "牛", "meaning": "cow", "emoji": "🐄" },
+    { "character": "羊", "meaning": "sheep", "emoji": "🐑" },
+    { "character": "虫", "meaning": "insect", "emoji": "🐛" }
+  ]
+}

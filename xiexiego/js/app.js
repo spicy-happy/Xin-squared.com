@@ -65,5 +65,12 @@ function renderPlaceholderSession() {
 // Listen for hash changes
 window.addEventListener('hashchange', route);
 
+// Debug helper — type resetdata() in console to wipe all data
+window.resetdata = () => {
+  Object.keys(localStorage).filter(k => k.startsWith('xxg_')).forEach(k => localStorage.removeItem(k));
+  location.hash = '';
+  location.reload();
+};
+
 // Initial route
 route();

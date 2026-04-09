@@ -10,13 +10,21 @@ import { enrichCharacters } from '../enrichment.js';
 const AVATARS = ['🐼', '🐉', '🌸', '🎋', '🏮', '🦊', '🐯', '🐰', '🌈', '🦋', '🐬', '🌻'];
 const AGES = ['<4', '4', '5', '6', '7', '8', '9', '10+'];
 
-let starterWords = null;
+let starterData = null;
 
 async function loadStarterWords() {
-  if (starterWords) return starterWords;
+  if (starterData) return starterData;
   const resp = await fetch('./js/data/starter-words.json');
-  starterWords = await resp.json();
-  return starterWords;
+  starterData = await resp.json();
+  return starterData;
+}
+
+/** Pick word tier based on age and return { words, preSelectCount }. */
+function getWordsForAge(data, age) {
+  const n = parseInt(age) || 5;
+  if (age === '<4' || n <= 5) return { words: data.easy, preSelectCount: 6 };
+  if (n <= 7) return { words: data.medium, preSelectCount: 6 };
+  return { words: data.hard, preSelectCount: 6 };
 }
 
 export function renderOnboarding(app, storage, navigate, { skipWelcome = false } = {}) {
@@ -161,19 +169,21 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
   }
 
   async function renderAddWords() {
-    const words = await loadStarterWords();
-    // Pre-select all starter words
+    const data = await loadStarterWords();
+    const { words, preSelectCount } = getWordsForAge(data, profileData.age);
+
+    // Pre-select the first N words, leave the rest unselected
     if (selectedWords.size === 0) {
-      words.forEach(w => selectedWords.add(w.character));
+      words.slice(0, preSelectCount).forEach(w => selectedWords.add(w.character));
     }
 
     app.innerHTML = `
       <div class="screen onboarding">
-        <div class="onboarding__content" style="justify-content: flex-start; padding-top: var(--space-xl);">
-          <h1 class="onboarding__title" style="margin-bottom: var(--space-sm);">Add first words</h1>
-          <p class="onboarding__desc" style="margin-bottom: var(--space-lg);">
-            Tap to select starter characters for ${profileData.name || 'your child'}.
-            You can always add more later.
+        <div class="onboarding__content">
+          <h1 class="onboarding__title">Add first words</h1>
+          <p class="onboarding__desc">
+            We picked some starters for ${profileData.name || 'your child'}.
+            Tap to add or remove. You can always change later.
           </p>
 
           <div class="starter-words">

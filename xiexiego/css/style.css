@@ -235,6 +235,7 @@ input {
 .btn--secondary {
   background: transparent;
   color: var(--color-primary);
+  border: 2px solid var(--color-border);
 }
 
 .btn--large {
@@ -246,15 +247,18 @@ input {
 /* === Onboarding === */
 .onboarding {
   min-height: 100dvh;
-  padding-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
 }
 
 .onboarding__content {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: var(--space-md);
+  gap: var(--space-lg);
+  padding: var(--space-xl) 0;
 }
 
 .onboarding__emoji {
@@ -278,7 +282,7 @@ input {
 .how-it-works {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-lg);
   width: 100%;
   max-width: 340px;
 }
@@ -316,10 +320,11 @@ input {
 
 .onboarding__actions {
   flex-shrink: 0;
-  padding-bottom: var(--space-lg);
+  padding: var(--space-md) 0 var(--space-xl);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  margin-top: auto;
 }
 
 .onboarding__nav-row {
@@ -328,13 +333,7 @@ input {
   align-items: center;
 }
 
-.onboarding__nav-row .btn--secondary {
-  flex: 0 0 auto;
-  min-height: 48px;
-  padding: var(--space-sm) var(--space-lg);
-}
-
-.onboarding__nav-row .btn--primary {
+.onboarding__nav-row .btn {
   flex: 1;
   min-height: 48px;
   padding: var(--space-sm) var(--space-lg);
