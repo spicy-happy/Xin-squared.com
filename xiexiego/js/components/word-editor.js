@@ -76,7 +76,8 @@ export function renderWordEditor(app, storage, navigate) {
 
   let view = 'list';
   let addInput = '';
-  let enrichedQueue = [];
+  let enrichedQueue = [];    // main words to add
+  let componentMap = {};     // compound char → array of enriched component words
   let isEnriching = false;
   let duplicates = [];
   let detailChar = null;
@@ -324,7 +325,7 @@ export function renderWordEditor(app, storage, navigate) {
             <div class="word-detail__components">
               <label class="form-group__label">Characters in this word</label>
               <div class="word-detail__component-list">
-                ${[...word.character].map(c => {
+                ${[...new Set(word.character)].map(c => {
                   const comp = p.wordBank.find(w => w.character === c);
                   return `<span class="word-detail__component ${comp ? 'word-detail__component--linked' : ''}"
                     ${comp ? `data-comp="${c}"` : ''}>${c}</span>`;
