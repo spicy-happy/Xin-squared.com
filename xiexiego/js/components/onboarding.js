@@ -166,7 +166,9 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
       step = 2;
       render();
     });
-    app.querySelector('#btn-back').addEventListener('click', () => { step = 0; render(); });
+    app.querySelector('#btn-back').addEventListener('click', () => {
+      if (skipWelcome) { navigate('profiles'); } else { step = 0; render(); }
+    });
   }
 
   async function renderAddWords() {
