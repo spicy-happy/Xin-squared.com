@@ -52,6 +52,7 @@
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  overflow-y: scroll; /* always show scrollbar gutter to prevent layout shift */
 }
 
 body {
@@ -820,6 +821,19 @@ input {
 .add-word-form__queue-pinyin {
   font-size: 0.8rem;
   color: var(--color-text-light);
+}
+
+.add-word-form__hint {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  text-align: center;
+  padding: var(--space-lg) 0;
+}
+
+.add-word-form__hint--warn {
+  color: var(--color-warning);
+  font-size: 0.85rem;
+  padding: var(--space-sm) 0;
 }
 
 .add-word-form__queue-remove {

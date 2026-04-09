@@ -20,9 +20,19 @@ export function renderWordEditor(app, storage, navigate) {
   let addInput = '';
   let enrichedQueue = [];   // array of enriched chars ready to add
   let isEnriching = false;
+  let duplicates = [];      // chars already in word bank
   let deleteConfirm = null;
 
   function render() {
+    if (showAddForm) {
+      renderAddView();
+    } else {
+      renderListView();
+    }
+    bindEvents();
+  }
+
+  function renderListView() {
     const profile = storage.getProfile(profileId);
     const words = profile.wordBank || [];
 
@@ -37,13 +47,11 @@ export function renderWordEditor(app, storage, navigate) {
           <span class="word-editor__count">${words.length}</span>
         </div>
 
-        ${showAddForm ? renderAddForm() : `
-          <button class="btn btn--primary word-editor__add-btn" id="btn-show-add">
-            + Add Words
-          </button>
-        `}
+        <button class="btn btn--primary word-editor__add-btn" id="btn-show-add">
+          + Add Words
+        </button>
 
-        ${words.length === 0 && !showAddForm ? `
+        ${words.length === 0 ? `
           <div class="empty-state" style="padding-top: var(--space-2xl);">
             <div class="empty-state__emoji">📝</div>
             <div class="empty-state__title">No words yet</div>
@@ -56,8 +64,69 @@ export function renderWordEditor(app, storage, navigate) {
         `}
       </div>
     `;
+  }
 
-    bindEvents();
+  function renderAddView() {
+    app.innerHTML = `
+      <div class="screen word-editor">
+        <div class="word-editor__header">
+          <button class="word-editor__back" id="btn-cancel-add">←</button>
+          <div class="word-editor__profile">
+            <span class="word-editor__name">Add Words</span>
+          </div>
+        </div>
+
+        <div class="add-word-form">
+          <input class="form-group__input add-word-form__input" id="add-input"
+                 type="text" placeholder="Type characters (e.g. 学花鸟)"
+                 value="${addInput}" autocomplete="off" lang="zh">
+
+          ${isEnriching ? `
+            <div class="add-word-form__preview add-word-form__preview--loading">
+              Looking up characters...
+            </div>
+          ` : ''}
+
+          ${enrichedQueue.length > 0 && !isEnriching ? `
+            <div class="add-word-form__queue">
+              ${enrichedQueue.map((e, i) => `
+                <div class="add-word-form__queue-item">
+                  <span class="add-word-form__queue-char">${e.character}</span>
+                  <div class="add-word-form__queue-details">
+                    <span class="add-word-form__queue-meaning">${e.meaning || e.meanings?.[0] || '?'}</span>
+                    ${e.pinyinMarked ? `<span class="add-word-form__queue-pinyin">${e.pinyinMarked}</span>` : ''}
+                  </div>
+                  <button class="add-word-form__queue-remove" data-remove-idx="${i}">×</button>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          ${duplicates.length > 0 ? `
+            <div class="add-word-form__hint add-word-form__hint--warn">
+              Already in list: ${duplicates.join(' ')}
+            </div>
+          ` : ''}
+
+          ${!addInput && !isEnriching ? `
+            <div class="add-word-form__hint">
+              Type Chinese characters — meaning and pinyin will appear automatically.
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="add-word-form__actions" style="margin-top: auto; padding: var(--space-md) 0 var(--space-xl);">
+          <div class="onboarding__nav-row">
+            <button class="btn btn--secondary" id="btn-cancel-add-bottom">Cancel</button>
+            <button class="btn btn--primary" id="btn-confirm-add" ${enrichedQueue.length === 0 ? 'disabled' : ''}>
+              Add ${enrichedQueue.length || ''} word${enrichedQueue.length !== 1 ? 's' : ''}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    app.querySelector('#add-input')?.focus();
   }
 
   function renderAddForm() {
@@ -144,13 +213,15 @@ export function renderWordEditor(app, storage, navigate) {
       app.querySelector('#add-input')?.focus();
     });
 
-    // Cancel add
-    app.querySelector('#btn-cancel-add')?.addEventListener('click', () => {
+    // Cancel add (header back button or bottom cancel)
+    const cancelAdd = () => {
       showAddForm = false;
       enrichedQueue = [];
       addInput = '';
       render();
-    });
+    };
+    app.querySelector('#btn-cancel-add')?.addEventListener('click', cancelAdd);
+    app.querySelector('#btn-cancel-add-bottom')?.addEventListener('click', cancelAdd);
 
     // Add input — extract CJK chars and enrich all of them
     let enrichTimer = null;
@@ -166,13 +237,16 @@ export function renderWordEditor(app, storage, navigate) {
         return;
       }
 
-      // Filter out chars already in word bank or already in queue
+      // Filter out chars already in word bank
       const existingChars = new Set((storage.getProfile(profileId)?.wordBank || []).map(w => w.character));
-      const newChars = [...new Set(chars)].filter(c => !existingChars.has(c));
+      const uniqueChars = [...new Set(chars)];
+      duplicates = uniqueChars.filter(c => existingChars.has(c));
+      const newChars = uniqueChars.filter(c => !existingChars.has(c));
 
       if (newChars.length === 0) {
         enrichedQueue = [];
         isEnriching = false;
+        render();
         return;
       }
 
