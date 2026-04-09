@@ -614,12 +614,23 @@ input {
   flex-shrink: 0;
 }
 
+.word-row__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .word-row__meaning {
   font-size: 0.85rem;
-  color: var(--color-text-light);
+  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.word-row__pinyin {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
 }
 
 .word-row__confirm-text {
@@ -768,6 +779,58 @@ input {
   padding: var(--space-sm) var(--space-lg);
   flex-shrink: 0;
   align-self: flex-end;
+}
+
+/* Add word queue (multi-char) */
+.add-word-form__queue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.add-word-form__queue-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: #F0F7FF;
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--radius-sm);
+}
+
+.add-word-form__queue-char {
+  font-family: var(--font-chinese);
+  font-size: 1.4rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.add-word-form__queue-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.add-word-form__queue-meaning {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.add-word-form__queue-pinyin {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+}
+
+.add-word-form__queue-remove {
+  font-size: 1.1rem;
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  padding: var(--space-xs);
+  min-width: 32px;
+  min-height: 32px;
+  flex-shrink: 0;
 }
 
 /* === Utilities === */
