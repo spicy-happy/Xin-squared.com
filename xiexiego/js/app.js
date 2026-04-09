@@ -6,6 +6,7 @@ import { StorageAdapter } from './storage.js';
 import { renderProfilePicker } from './components/profile-picker.js';
 import { renderOnboarding } from './components/onboarding.js';
 import { renderWordEditor } from './components/word-editor.js';
+import { renderSession } from './session.js';
 
 const storage = new StorageAdapter();
 const app = document.getElementById('app');
@@ -33,7 +34,7 @@ function route() {
       break;
 
     case 'session':
-      renderPlaceholderSession();
+      renderSession(app, storage, navigate);
       break;
 
     case 'profiles':
@@ -41,55 +42,6 @@ function route() {
       renderProfilePicker(app, storage, navigate);
       break;
   }
-}
-
-/** Placeholder session screen — activities not yet built. */
-function renderPlaceholderSession() {
-  const profile = storage.getProfile(storage.getActiveProfileId());
-  const name = profile ? profile.name : 'there';
-
-  app.innerHTML = `
-    <div class="screen placeholder-session">
-      <div class="placeholder-session__emoji">🚧</div>
-      <h1 class="placeholder-session__title">Coming soon — practice screen</h1>
-      <p class="placeholder-session__desc">
-        ${name}'s words are saved and ready to go.<br>
-        Activities will be built in the next phase!
-      </p>
-      <button class="btn btn--primary" id="btn-edit-words" style="width:100%">
-        Edit Words
-      </button>
-      <button class="btn word-editor__delete-profile" id="btn-delete-profile">
-        Delete profile
-      </button>
-      <button class="btn btn--secondary" id="btn-back-profiles">
-        ← Back to profiles
-      </button>
-    </div>
-  `;
-
-  app.querySelector('#btn-edit-words').addEventListener('click', () => {
-    navigate('words');
-  });
-  app.querySelector('#btn-back-profiles').addEventListener('click', () => {
-    navigate('profiles');
-  });
-
-  let delClicked = false;
-  app.querySelector('#btn-delete-profile').addEventListener('click', () => {
-    const btn = app.querySelector('#btn-delete-profile');
-    if (!delClicked) {
-      delClicked = true;
-      btn.textContent = 'Tap again to confirm';
-      btn.classList.add('word-editor__delete-profile--confirm');
-      setTimeout(() => { delClicked = false; btn.textContent = 'Delete profile'; btn.classList.remove('word-editor__delete-profile--confirm'); }, 3000);
-      return;
-    }
-    const profiles = storage.getProfiles().filter(p => p.id !== profile.id);
-    storage.saveProfiles(profiles);
-    storage.setActiveProfileId(null);
-    navigate('profiles');
-  });
 }
 
 // Listen for hash changes
