@@ -51,16 +51,21 @@ async function ensureCompounds() {
  * Removes: CL classifiers, bracketed pinyin refs, "variant of", "surname", etc.
  */
 function cleanDefinition(def) {
-  if (!def) return def;
+  if (!def) return '';
   let cleaned = def
     .replace(/\s*\(CL:[^)]*\)/g, '')           // Remove (CL:...) classifiers
-    .replace(/\s*\[[\w\d\s]+\]/g, '')           // Remove [pinyin] refs like [hu2 die2]
+    .replace(/\s*\[[\w\d\s]+\]/g, '')           // Remove [pinyin] refs
     .replace(/\s*\([^)]*\)/g, '')               // Remove all parenthetical notes
-    .replace(/^(used in|variant of|see also)\s+\S+\s*/i, '')
-    .replace(/^(surname|abbr\. for)\s+.*/i, '')
+    .replace(/[\u4E00-\u9FFF\u3400-\u4DBF]+/g, '') // Remove Chinese characters
+    .replace(/\|/g, '')                         // Remove pipe separators
+    .replace(/^(used in|variant of|see also|see|cf\.)\s*/i, '')
+    .replace(/^(surname|abbr\. for|old variant of)\s*.*/i, '')
+    .replace(/^(and|or)\s+$/i, '')              // Remove lonely conjunctions
     .trim();
   // Take only the first meaning if semicolon-separated
   if (cleaned.includes(';')) cleaned = cleaned.split(';')[0].trim();
+  // Skip if result is empty or too short to be useful
+  if (cleaned.length < 2) return '';
   return cleaned;
 }
 

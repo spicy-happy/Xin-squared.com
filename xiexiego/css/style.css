@@ -843,6 +843,44 @@ input {
   background: var(--color-border);
 }
 
+.word-detail__example-hint {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  margin-top: var(--space-xs);
+  padding-left: var(--space-md);
+}
+
+.word-detail__components {
+  margin-top: var(--space-xs);
+}
+
+.word-detail__component-list {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+
+.word-detail__component {
+  font-family: var(--font-chinese);
+  font-size: 1.8rem;
+  font-weight: 600;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-light);
+}
+
+.word-detail__component--linked {
+  color: var(--color-primary);
+  border-color: var(--color-primary-light);
+  cursor: pointer;
+}
+
+.word-detail__component--linked:active {
+  background: #EBF3FC;
+}
+
 .word-detail__meta {
   display: flex;
   flex-direction: column;

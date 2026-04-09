@@ -323,11 +323,26 @@ export function renderWordEditor(app, storage, navigate) {
 
           <div class="form-group">
             <label class="form-group__label">Example</label>
-            <input class="form-group__input" id="edit-example-zh" type="text"
-                   value="${word.example?.zh || ''}" placeholder="Chinese sentence" autocomplete="off" lang="zh">
-            <input class="form-group__input" id="edit-example-en" type="text" style="margin-top: var(--space-xs);"
-                   value="${word.example?.en || ''}" placeholder="English translation" autocomplete="off">
+            <div class="word-detail__input-row">
+              <input class="form-group__input" id="edit-example" type="text"
+                     value="${word.example?.zh || ''}" placeholder="e.g. ${word.character}很好" autocomplete="off" lang="zh">
+              ${word.example?.zh ? '<button class="word-detail__reset" id="btn-reset-example">↺</button>' : ''}
+            </div>
+            ${word.example?.en ? `<div class="word-detail__example-hint">${word.example.en}</div>` : ''}
           </div>
+
+          ${word.character.length > 1 ? `
+            <div class="word-detail__components">
+              <label class="form-group__label">Characters in this word</label>
+              <div class="word-detail__component-list">
+                ${[...word.character].map(c => {
+                  const comp = p.wordBank.find(w => w.character === c);
+                  return `<span class="word-detail__component ${comp ? 'word-detail__component--linked' : ''}"
+                    ${comp ? `data-comp="${c}"` : ''}>${c}</span>`;
+                }).join('')}
+              </div>
+            </div>
+          ` : ''}
 
           ${word.radical || word.etymology?.hint ? `
             <div class="word-detail__meta">
@@ -352,6 +367,21 @@ export function renderWordEditor(app, storage, navigate) {
     });
     app.querySelector('#btn-reset-pinyin')?.addEventListener('click', () => {
       app.querySelector('#edit-pinyin').value = defaultPinyin;
+    });
+
+    // Reset example
+    app.querySelector('#btn-reset-example')?.addEventListener('click', () => {
+      const defaultEx = storage.getProfile(profileId)?.wordBank.find(w => w.character === detailChar)?.example?.zh || '';
+      app.querySelector('#edit-example').value = defaultEx;
+    });
+
+    // Component word links
+    app.querySelectorAll('[data-comp]').forEach(el => {
+      el.addEventListener('click', () => {
+        saveDetailEdits();
+        detailChar = el.dataset.comp;
+        render();
+      });
     });
 
     // Star — instant with toast + undo
@@ -392,9 +422,12 @@ export function renderWordEditor(app, storage, navigate) {
     if (meaning) updates.meaning = meaning;
     if (pinyin) updates.pinyinMarked = pinyin;
 
-    const zh = exZh?.value.trim();
-    const en = exEn?.value.trim();
-    if (zh || en) updates.example = { zh: zh || '', en: en || '' };
+    const exInput = app.querySelector('#edit-example');
+    if (exInput) {
+      const zh = exInput.value.trim();
+      const existingEn = storage.getProfile(profileId)?.wordBank.find(w => w.character === detailChar)?.example?.en || '';
+      if (zh) updates.example = { zh, en: existingEn };
+    }
 
     if (Object.keys(updates).length > 0) {
       storage.updateWordInProfile(profileId, detailChar, updates);
@@ -518,11 +551,44 @@ export function renderWordEditor(app, storage, navigate) {
       });
     });
 
-    // Confirm
-    app.querySelector('#btn-confirm-add')?.addEventListener('click', () => {
+    // Confirm — also auto-add component characters for compounds
+    app.querySelector('#btn-confirm-add')?.addEventListener('click', async () => {
       if (enrichedQueue.length === 0) return;
-      storage.addWordsToProfile(profileId, enrichedQueue);
-      showToast(`Added ${enrichedQueue.length} word${enrichedQueue.length !== 1 ? 's' : ''}`);
+
+      const btn = app.querySelector('#btn-confirm-add');
+      btn.disabled = true;
+      btn.textContent = 'Adding...';
+
+      // Collect component chars from compounds that aren't already in bank or queue
+      const existing = new Set((storage.getProfile(profileId)?.wordBank || []).map(w => w.character));
+      const queueChars = new Set(enrichedQueue.map(e => e.character));
+      const componentChars = new Set();
+
+      for (const word of enrichedQueue) {
+        if (word.character.length > 1) {
+          for (const c of word.character) {
+            if (!existing.has(c) && !queueChars.has(c) && !componentChars.has(c)) {
+              componentChars.add(c);
+            }
+          }
+        }
+      }
+
+      // Enrich and add component characters
+      let allWords = [...enrichedQueue];
+      if (componentChars.size > 0) {
+        try {
+          const { enrichCharacters } = await import('../enrichment.js');
+          const components = await enrichCharacters([...componentChars]);
+          allWords = [...allWords, ...components.map(e => ({ ...e, meaning: e.meanings?.[0] || '' }))];
+        } catch (err) {
+          console.error('Component enrichment error:', err);
+        }
+      }
+
+      storage.addWordsToProfile(profileId, allWords);
+      const count = allWords.length;
+      showToast(`Added ${count} word${count !== 1 ? 's' : ''}${componentChars.size > 0 ? ` (including ${componentChars.size} component${componentChars.size !== 1 ? 's' : ''})` : ''}`);
       view = 'list'; enrichedQueue = []; addInput = '';
       render();
     });
