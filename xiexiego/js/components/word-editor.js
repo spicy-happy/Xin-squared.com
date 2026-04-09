@@ -153,9 +153,6 @@ export function renderWordEditor(app, storage, navigate) {
           </button>
         </div>
 
-        <button class="btn word-editor__delete-profile" id="btn-delete-profile">
-          Delete profile
-        </button>
       </div>
     `;
 
@@ -172,22 +169,6 @@ export function renderWordEditor(app, storage, navigate) {
       });
     });
 
-    // Delete profile
-    let delProfileClicked = false;
-    app.querySelector('#btn-delete-profile').addEventListener('click', () => {
-      const btn = app.querySelector('#btn-delete-profile');
-      if (!delProfileClicked) {
-        delProfileClicked = true;
-        btn.textContent = 'Tap again to confirm';
-        btn.classList.add('word-editor__delete-profile--confirm');
-        setTimeout(() => { delProfileClicked = false; btn.textContent = 'Delete profile'; btn.classList.remove('word-editor__delete-profile--confirm'); }, 3000);
-        return;
-      }
-      const profiles = storage.getProfiles().filter(p => p.id !== profileId);
-      storage.saveProfiles(profiles);
-      storage.setActiveProfileId(null);
-      navigate('profiles');
-    });
 
     // Swipe + tap on word rows
     app.querySelectorAll('.word-row-wrap').forEach(wrap => {
