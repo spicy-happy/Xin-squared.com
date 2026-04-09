@@ -11,6 +11,18 @@ import { renderSession } from './session.js';
 const storage = new StorageAdapter();
 const app = document.getElementById('app');
 
+// Prevent scroll-ending touches from triggering clicks on mobile.
+// Tracks whether a touch involved significant movement (scrolling);
+// if so, swallows the synthetic click the browser fires after touchend.
+(function installScrollClickGuard() {
+  let touchMoved = false;
+  document.addEventListener('touchstart', () => { touchMoved = false; }, { passive: true });
+  document.addEventListener('touchmove', () => { touchMoved = true; }, { passive: true });
+  document.addEventListener('click', (e) => {
+    if (touchMoved) { e.preventDefault(); e.stopPropagation(); touchMoved = false; }
+  }, true); // capture phase so it fires before any handler
+})();
+
 /** Navigate to a named screen by updating the hash. */
 function navigate(screen) {
   window.location.hash = screen;
