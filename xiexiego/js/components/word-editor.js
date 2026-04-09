@@ -41,10 +41,9 @@ function showToast(message, undoFn) {
       b.style.transition = 'bottom 0.25s ease';
       b.style.bottom = toastH + 'px';
     });
-    // Also increase word list bottom padding
-    document.querySelectorAll('.word-list').forEach(l => {
-      l.style.paddingBottom = (100 + toastH) + 'px';
-    });
+    // Add bottom padding to page so content isn't hidden behind toast + button
+    const screen = document.querySelector('.screen');
+    if (screen) screen.style.paddingBottom = (toastH + 80) + 'px';
   });
 
   const dismiss = () => {
@@ -53,9 +52,8 @@ function showToast(message, undoFn) {
       b.style.bottom = '';
       b.style.transition = '';
     });
-    document.querySelectorAll('.word-list').forEach(l => {
-      l.style.paddingBottom = '';
-    });
+    const screen = document.querySelector('.screen');
+    if (screen) screen.style.paddingBottom = '';
     setTimeout(() => el.remove(), 300);
   };
 
