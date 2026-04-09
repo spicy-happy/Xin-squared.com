@@ -462,7 +462,7 @@ export function renderWordEditor(app, storage, navigate) {
 
         <div class="add-word-form">
           <p class="add-word-form__hint" style="margin-bottom: var(--space-md);">
-            Type or paste Chinese characters. Compounds like 蝴蝶 are auto-detected.
+            Type or paste Chinese characters. Put different words on separate lines. Compounds like 蝴蝶 are auto-detected.
           </p>
           <textarea class="add-word-form__textarea" id="add-input"
                     placeholder="e.g. 大山水学校蝴蝶" lang="zh">${addInput}</textarea>

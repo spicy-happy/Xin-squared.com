@@ -517,7 +517,7 @@ input {
 /* === Word Bank Editor === */
 .word-editor {
   padding-top: 0;
-  gap: 0;
+  gap: 0 !important;
 }
 
 .word-editor__header {
@@ -576,9 +576,6 @@ input {
   z-index: 10;
 }
 
-.word-list {
-  padding-bottom: 100px; /* space for fixed button */
-}
 
 .word-editor__add-btn {
   width: 100%;
@@ -640,11 +637,10 @@ input {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  margin-bottom: 0;
 }
 
-.word-list + .word-editor__alpha-jump {
-  margin-top: var(--space-xs);
+.word-list:last-of-type {
+  padding-bottom: 100px; /* space for fixed Add button */
 }
 
 /* Swipe wrapper */
