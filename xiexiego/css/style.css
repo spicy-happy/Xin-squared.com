@@ -161,6 +161,32 @@ input {
   font-weight: 600;
 }
 
+.profile-card-wrap {
+  position: relative;
+}
+
+.profile-card__edit {
+  position: absolute;
+  top: var(--space-xs);
+  right: var(--space-xs);
+  font-size: 0.85rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-round);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-light);
+  z-index: 1;
+}
+
+.profile-card__edit:active {
+  background: var(--color-primary-light);
+  color: white;
+}
+
 .profile-card--add {
   border: 2px dashed var(--color-border);
   background: transparent;
@@ -1254,10 +1280,37 @@ input {
   text-align: center;
 }
 
+.activity__pinyin {
+  font-size: 1.1rem;
+  color: var(--color-text-light);
+  letter-spacing: 1px;
+}
+
 .activity__meaning {
   font-size: 1.4rem;
   font-weight: 600;
   color: var(--color-text);
+}
+
+/* Character animations */
+.activity__character-area--pop {
+  animation: charPop 0.4s ease-out;
+}
+
+.activity__character-area--pulse {
+  animation: charPulse 0.5s ease-in-out;
+}
+
+@keyframes charPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes charPulse {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 
 .activity__example {
@@ -1289,8 +1342,19 @@ input {
   padding: var(--space-lg) 0 var(--space-xl);
 }
 
+.activity__btn-row {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.activity__replay {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: var(--space-sm) var(--space-md);
+}
+
 .activity__continue {
-  width: 100%;
+  flex: 1;
 }
 
 /* === Celebration === */

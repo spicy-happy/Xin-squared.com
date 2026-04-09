@@ -1,10 +1,10 @@
 /**
  * Exposure Activity — Stage 1 introduction to a character.
- * Shows character large, animates strokes, plays audio, shows meaning.
- * No assessment — purely introduction.
+ * Shows character large, animates strokes slowly, plays audio sequence,
+ * shows meaning + pinyin + example. Replay button to repeat.
  */
 
-import { playAudio } from '../enrichment.js';
+import { playAudio, speakExposureSequence } from '../enrichment.js';
 
 /**
  * Render the exposure activity for a single word.
@@ -15,6 +15,7 @@ import { playAudio } from '../enrichment.js';
  */
 export function renderExposure(container, word, onComplete) {
   const meaning = word.meaning || word.meanings?.[0] || '';
+  const pinyin = word.pinyinMarked || word.pinyin || '';
   const example = word.example;
   const hasComponents = word.components && word.components.length > 0;
 
@@ -26,6 +27,7 @@ export function renderExposure(container, word, onComplete) {
         </div>
 
         <div class="activity__info">
+          ${pinyin ? `<div class="activity__pinyin">${pinyin}</div>` : ''}
           <div class="activity__meaning">${meaning}</div>
           ${example ? `
             <div class="activity__example">
@@ -40,9 +42,14 @@ export function renderExposure(container, word, onComplete) {
       </div>
 
       <div class="activity__actions">
-        <button class="btn btn--primary activity__continue" id="btn-continue" style="visibility: hidden;">
-          Continue
-        </button>
+        <div class="activity__btn-row">
+          <button class="btn btn--secondary activity__replay" id="btn-replay">
+            ↻ Replay
+          </button>
+          <button class="btn btn--primary activity__continue" id="btn-continue" style="visibility: hidden;">
+            Continue
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -50,62 +57,61 @@ export function renderExposure(container, word, onComplete) {
   // Initialize HanziWriter
   let writer = null;
   const target = container.querySelector('#hanzi-target');
+  const charArea = container.querySelector('#exposure-char-area');
 
-  // For compound words, show characters side by side without HanziWriter animation
+  function runAnimation() {
+    if (word.character.length > 1) {
+      // Compound: pulse animation
+      charArea.classList.remove('activity__character-area--pulse');
+      void charArea.offsetWidth; // force reflow
+      charArea.classList.add('activity__character-area--pulse');
+      speakExposureSequence(word);
+    } else if (writer) {
+      writer.hideCharacter();
+      writer.animateCharacter({
+        onComplete: () => {
+          writer.showCharacter();
+          // Grow animation for fun
+          charArea.classList.remove('activity__character-area--pop');
+          void charArea.offsetWidth;
+          charArea.classList.add('activity__character-area--pop');
+        }
+      });
+      speakExposureSequence(word);
+    } else {
+      speakExposureSequence(word);
+    }
+  }
+
+  // For compound words, show characters as text
   if (word.character.length > 1) {
     target.innerHTML = `<span class="activity__compound-chars">${word.character}</span>`;
-    target.querySelector('.activity__compound-chars').addEventListener('click', () => {
-      playAudio(word.character, word.audioFile);
-    });
   } else if (word.hasStrokeData !== false) {
     try {
       writer = HanziWriter.create(target, word.character, {
-        width: 200,
-        height: 200,
+        width: 220,
+        height: 220,
         padding: 10,
-        strokeAnimationSpeed: 1,
-        delayBetweenStrokes: 150,
+        strokeAnimationSpeed: 0.5,       // Slower strokes
+        delayBetweenStrokes: 300,        // More pause between strokes
         strokeColor: '#2D3436',
         radicalColor: '#4A90D9',
         showOutline: true,
         showCharacter: false,
       });
-
-      // Animate strokes on load
-      setTimeout(() => {
-        writer.animateCharacter({
-          onComplete: () => {
-            // Show full character after animation
-            writer.showCharacter();
-          }
-        });
-      }, 300);
-
-      // Tap to replay animation + audio
-      target.addEventListener('click', () => {
-        writer.hideCharacter();
-        writer.animateCharacter({
-          onComplete: () => writer.showCharacter()
-        });
-        playAudio(word.character, word.audioFile);
-      });
     } catch (err) {
       console.error('HanziWriter error:', err);
-      // Fallback: show character as text
       target.innerHTML = `<span class="activity__fallback-char">${word.character}</span>`;
     }
   } else {
-    // No stroke data available
     target.innerHTML = `<span class="activity__fallback-char">${word.character}</span>`;
-    target.addEventListener('click', () => {
-      playAudio(word.character, word.audioFile);
-    });
   }
 
-  // Auto-play audio
-  setTimeout(() => {
-    playAudio(word.character, word.audioFile);
-  }, 500);
+  // Tap character area → replay
+  charArea.addEventListener('click', () => runAnimation());
+
+  // Auto-play on load
+  setTimeout(() => runAnimation(), 400);
 
   // Show Continue button after delay
   setTimeout(() => {
@@ -116,12 +122,15 @@ export function renderExposure(container, word, onComplete) {
     }
   }, 3000);
 
+  // Replay button
+  container.querySelector('#btn-replay')?.addEventListener('click', () => {
+    runAnimation();
+  });
+
   // Continue button
   container.querySelector('#btn-continue')?.addEventListener('click', () => {
-    // Clean up HanziWriter
-    if (writer) {
-      try { writer.hideCharacter(); } catch {}
-    }
+    if (writer) { try { writer.hideCharacter(); } catch {} }
+    window.speechSynthesis?.cancel();
     onComplete();
   });
 }

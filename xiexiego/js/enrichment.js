@@ -304,7 +304,16 @@ export async function parseAndEnrich(text) {
  * @param {string} text - Chinese text to speak
  * @returns {Promise<void>}
  */
-export function speakChinese(text) {
+/** Find a Chinese female voice if available. */
+function getChineseVoice() {
+  const voices = window.speechSynthesis?.getVoices() || [];
+  // Prefer female Chinese voice
+  const female = voices.find(v => v.lang.startsWith('zh') && /female|ting|xiaoxiao/i.test(v.name));
+  const any = voices.find(v => v.lang.startsWith('zh'));
+  return female || any || null;
+}
+
+export function speakChinese(text, rate = 0.65) {
   return new Promise((resolve, reject) => {
     if (!('speechSynthesis' in window)) {
       reject(new Error('Speech synthesis not supported'));
@@ -313,11 +322,30 @@ export function speakChinese(text) {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'zh-CN';
-    utterance.rate = 0.8; // Slightly slower for children
+    utterance.rate = rate;
+    const voice = getChineseVoice();
+    if (voice) utterance.voice = voice;
     utterance.onend = resolve;
     utterance.onerror = reject;
     window.speechSynthesis.speak(utterance);
   });
+}
+
+/**
+ * Speak an exposure sequence: character... pause... example.
+ * E.g. "大" ... pause ... "大象"
+ */
+export async function speakExposureSequence(word) {
+  // Say the character slowly
+  await speakChinese(word.character, 0.5);
+
+  // Pause
+  await new Promise(r => setTimeout(r, 600));
+
+  // Say example if available
+  if (word.example?.zh) {
+    await speakChinese(word.example.zh, 0.6);
+  }
 }
 
 /**

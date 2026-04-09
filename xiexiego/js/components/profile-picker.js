@@ -31,10 +31,13 @@ export function renderProfilePicker(app, storage, navigate) {
       <p class="profile-picker__subtitle">Who's practicing today?</p>
       <div class="profile-grid">
         ${profiles.map(p => `
-          <button class="profile-card" data-id="${p.id}">
-            <span class="profile-card__avatar">${p.avatar}</span>
-            <span class="profile-card__name">${p.name}</span>
-          </button>
+          <div class="profile-card-wrap">
+            <button class="profile-card" data-id="${p.id}">
+              <span class="profile-card__avatar">${p.avatar}</span>
+              <span class="profile-card__name">${p.name}</span>
+            </button>
+            <button class="profile-card__edit" data-edit="${p.id}">✎</button>
+          </div>
         `).join('')}
         <button class="profile-card profile-card--add" id="btn-add-profile">
           <span class="profile-card__avatar">+</span>
@@ -49,6 +52,15 @@ export function renderProfilePicker(app, storage, navigate) {
     card.addEventListener('click', () => {
       storage.setActiveProfileId(card.dataset.id);
       navigate('session');
+    });
+  });
+
+  // Edit words for a profile
+  app.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      storage.setActiveProfileId(btn.dataset.edit);
+      navigate('words');
     });
   });
 
