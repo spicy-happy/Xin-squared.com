@@ -1,0 +1,57 @@
+# XieXie Go — Project Context for Claude Code
+
+This is a phone-first web app for Chinese dictation practice, ages 4–10.
+It lives in the xiexiego/ subfolder of the xin-squared.com repo and
+is deployed to xin-squared.com/xiexiego automatically.
+
+## Required reading before any work
+Read SPEC.md in this directory in full before starting any task. It
+contains the complete product specification, including pedagogical
+principles, data model, activity specifications, and technical
+architecture.
+
+## Non-negotiable principles
+- NO PINYIN on any child-facing screen. Ever. Research-backed.
+- Errors are NEVER labeled "wrong." Use "not yet" language from the
+  encouragement bank in Appendix B.
+- Hints are explicitly framed as smart problem-solving, never punished.
+- Phone-first. All UI must work on a 375px-wide mobile viewport.
+- Large tap targets (minimum 60pt) everywhere.
+- Vanilla JS only. No React, Vue, or other frameworks.
+- NO BUILD STEP. Use native ES modules and CDN-loaded libraries.
+- Store all data in localStorage with `xxg_` key prefix.
+- Firebase only for optional sharing features, not core data.
+
+## Hosting context
+- App lives at xin-squared.com/xiexiego/
+- Deployed automatically when code is pushed to the xin-squared.com repo
+- ALL ASSET PATHS MUST BE RELATIVE (e.g. `./js/app.js`, not `/js/app.js`)
+- localStorage keys must use `xxg_` prefix to avoid collision with
+  other apps on the same domain
+
+## Stack
+- Vanilla JavaScript with native ES modules (<script type="module">)
+- HanziWriter.js for character rendering (from CDN)
+- LZ-string for URL compression (from CDN)
+- jsPDF for printable worksheets (from CDN, loaded on demand)
+- qrcode.js for QR generation (from CDN, loaded on demand)
+- NO bundler, NO transpiler, NO framework
+
+## File structure
+See Section 8 of SPEC.md for the complete file structure.
+
+## Local testing
+From the parent repo root:
+    npx serve . --host
+Then open http://<your-ip>:3000/xiexiego/ on your phone.
+
+Or from within xiexiego/:
+    python3 -m http.server 8000
+Then open http://<your-ip>:8000/ on your phone.
+
+## Development approach
+- Work in small, testable increments — one phase per session
+- Test each feature on an actual mobile device
+- Commit frequently with clear messages
+- After each phase, verify the app still runs end-to-end
+- Ask before making design decisions not covered in SPEC.md
