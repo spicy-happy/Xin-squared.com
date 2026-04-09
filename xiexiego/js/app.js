@@ -59,6 +59,9 @@ function renderPlaceholderSession() {
       <button class="btn btn--primary" id="btn-edit-words" style="width:100%">
         Edit Words
       </button>
+      <button class="btn word-editor__delete-profile" id="btn-delete-profile">
+        Delete profile
+      </button>
       <button class="btn btn--secondary" id="btn-back-profiles">
         ← Back to profiles
       </button>
@@ -69,6 +72,22 @@ function renderPlaceholderSession() {
     navigate('words');
   });
   app.querySelector('#btn-back-profiles').addEventListener('click', () => {
+    navigate('profiles');
+  });
+
+  let delClicked = false;
+  app.querySelector('#btn-delete-profile').addEventListener('click', () => {
+    const btn = app.querySelector('#btn-delete-profile');
+    if (!delClicked) {
+      delClicked = true;
+      btn.textContent = 'Tap again to confirm';
+      btn.classList.add('word-editor__delete-profile--confirm');
+      setTimeout(() => { delClicked = false; btn.textContent = 'Delete profile'; btn.classList.remove('word-editor__delete-profile--confirm'); }, 3000);
+      return;
+    }
+    const profiles = storage.getProfiles().filter(p => p.id !== profile.id);
+    storage.saveProfiles(profiles);
+    storage.setActiveProfileId(null);
     navigate('profiles');
   });
 }

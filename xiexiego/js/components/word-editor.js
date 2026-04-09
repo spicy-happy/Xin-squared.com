@@ -111,12 +111,12 @@ export function renderWordEditor(app, storage, navigate) {
             <div class="empty-state__desc">Tap "+ Add Words" to get started.</div>
           </div>
         ` : `
-          <div class="word-list">
-            ${starred.length > 0 ? `
+          ${starred.length > 0 ? `
+            <div class="word-list">
               <div class="word-list__section-label">★ Starred</div>
               ${starred.map(w => renderWordRow(w)).join('')}
-            ` : ''}
-          </div>
+            </div>
+          ` : ''}
 
           ${letters.length > 3 ? `
             <div class="word-editor__alpha-jump">
