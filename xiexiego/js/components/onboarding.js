@@ -29,7 +29,7 @@ function getWordsForAge(data, age) {
 
 export function renderOnboarding(app, storage, navigate, { skipWelcome = false } = {}) {
   let step = skipWelcome ? 1 : 0;
-  let profileData = { name: '', avatar: AVATARS[0], age: '5' };
+  let profileData = { name: '', avatar: AVATARS[0], age: null };
   let selectedWords = new Set();
 
   function render() {
@@ -133,7 +133,7 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
     const btnNext = app.querySelector('#btn-next');
 
     function updateNextState() {
-      btnNext.disabled = !profileData.name;
+      btnNext.disabled = !profileData.name || !profileData.age;
     }
 
     nameInput.addEventListener('input', () => {
@@ -157,6 +157,7 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
         profileData.age = btn.dataset.age;
         app.querySelectorAll('.age-chip').forEach(b => b.classList.remove('age-chip--selected'));
         btn.classList.add('age-chip--selected');
+        updateNextState();
       });
     });
 
@@ -192,7 +193,7 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
                 <button class="word-chip ${selectedWords.has(w.character) ? 'word-chip--selected' : ''}"
                         data-char="${w.character}">
                   <span class="word-chip__char">${w.character}</span>
-                  <span class="word-chip__meaning">${w.emoji} ${w.meaning}</span>
+                  <span class="word-chip__meaning">${w.meaning}</span>
                 </button>
               `).join('')}
             </div>
