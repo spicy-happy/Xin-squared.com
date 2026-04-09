@@ -1049,28 +1049,30 @@ input {
   flex-shrink: 0;
 }
 
-/* === Toast === */
+/* === Toast (footer banner) === */
 .toast {
   position: fixed;
-  bottom: var(--space-xl);
-  left: 50%;
-  transform: translateX(-50%) translateY(100px);
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: var(--color-text);
   color: white;
-  padding: var(--space-sm) var(--space-lg);
-  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
   font-size: 0.9rem;
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  box-shadow: var(--shadow-lg);
+  gap: var(--space-sm);
   z-index: 1000;
+  transform: translateY(100%);
   transition: transform 0.25s ease;
-  max-width: calc(100vw - 48px);
 }
 
 .toast--visible {
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
+}
+
+.toast__message {
+  flex: 1;
 }
 
 .toast__undo {
@@ -1082,6 +1084,20 @@ input {
   padding: var(--space-xs) var(--space-sm);
   cursor: pointer;
   white-space: nowrap;
+}
+
+.toast__dismiss {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.1rem;
+  padding: var(--space-xs);
+  cursor: pointer;
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* === Add Words Textarea === */

@@ -18,7 +18,7 @@ const MASTERY = {
   3: { label: 'Mastered', color: '#4CAF50', cls: 'mastery--mastered' },
 };
 
-// ─── Toast helper ───
+// ─── Toast helper (footer banner with undo + dismiss) ───
 let toastTimer = null;
 function showToast(message, undoFn) {
   clearTimeout(toastTimer);
@@ -26,23 +26,34 @@ function showToast(message, undoFn) {
 
   const el = document.createElement('div');
   el.className = 'toast';
-  el.innerHTML = `<span>${message}</span>${undoFn ? '<button class="toast__undo">Undo</button>' : ''}`;
+  el.innerHTML = `
+    <span class="toast__message">${message}</span>
+    ${undoFn ? '<button class="toast__undo">Undo</button>' : ''}
+    <button class="toast__dismiss">×</button>
+  `;
   document.body.appendChild(el);
 
+  // Push page content up so toast doesn't cover it
+  document.body.style.paddingBottom = '52px';
+
   requestAnimationFrame(() => el.classList.add('toast--visible'));
+
+  const dismiss = () => {
+    el.classList.remove('toast--visible');
+    document.body.style.paddingBottom = '';
+    setTimeout(() => el.remove(), 300);
+  };
+
+  el.querySelector('.toast__dismiss').addEventListener('click', dismiss);
 
   if (undoFn) {
     el.querySelector('.toast__undo').addEventListener('click', () => {
       undoFn();
-      el.classList.remove('toast--visible');
-      setTimeout(() => el.remove(), 300);
+      dismiss();
     });
   }
 
-  toastTimer = setTimeout(() => {
-    el.classList.remove('toast--visible');
-    setTimeout(() => el.remove(), 300);
-  }, 4000);
+  toastTimer = setTimeout(dismiss, 10000);
 }
 
 export function renderWordEditor(app, storage, navigate) {
