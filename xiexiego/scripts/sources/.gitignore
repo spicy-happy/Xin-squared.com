@@ -1,0 +1,3 @@
+# Raw source data files — downloaded by build scripts, not committed
+cedict_ts.u8
+dictionary.txt

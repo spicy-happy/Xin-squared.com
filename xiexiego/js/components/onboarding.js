@@ -5,6 +5,8 @@
  *   3. Add first words from starter list
  */
 
+import { enrichCharacters } from '../enrichment.js';
+
 const AVATARS = ['🐼', '🐉', '🌸', '🎋', '🏮', '🦊', '🐯', '🐰', '🌈', '🦋', '🐬', '🌻'];
 const AGES = [4, 5, 6, 7, 8, 9, 10];
 
@@ -180,15 +182,44 @@ export function renderOnboarding(app, storage, navigate) {
       });
     });
 
-    // Start
-    app.querySelector('#btn-start').addEventListener('click', () => {
+    // Start — enrich selected words before saving
+    app.querySelector('#btn-start').addEventListener('click', async () => {
       if (selectedWords.size === 0) return;
 
-      const profile = storage.addProfile(profileData);
-      const chosenWords = words.filter(w => selectedWords.has(w.character));
-      storage.addWordsToProfile(profile.id, chosenWords);
-      storage.setActiveProfileId(profile.id);
-      navigate('session');
+      const btn = app.querySelector('#btn-start');
+      btn.textContent = 'Setting up...';
+      btn.disabled = true;
+
+      try {
+        const profile = storage.addProfile(profileData);
+        const chosenChars = [...selectedWords];
+
+        // Run enrichment pipeline on selected characters
+        const enriched = await enrichCharacters(chosenChars);
+
+        // Merge enrichment data with starter-words metadata (emoji, meaning)
+        const enrichedWords = enriched.map(e => {
+          const starter = words.find(w => w.character === e.character);
+          return {
+            ...e,
+            // Keep starter-words emoji; use enriched meaning if starter is generic
+            emoji: starter?.emoji || null,
+            meaning: starter?.meaning || e.meanings[0] || null,
+          };
+        });
+
+        storage.addWordsToProfile(profile.id, enrichedWords);
+        storage.setActiveProfileId(profile.id);
+        navigate('session');
+      } catch (err) {
+        console.error('Enrichment failed, saving without enrichment:', err);
+        // Fallback: save words without enrichment data
+        const profile = storage.addProfile(profileData);
+        const chosenWords = words.filter(w => selectedWords.has(w.character));
+        storage.addWordsToProfile(profile.id, chosenWords);
+        storage.setActiveProfileId(profile.id);
+        navigate('session');
+      }
     });
 
     app.querySelector('#btn-back').addEventListener('click', () => { step = 1; render(); });
