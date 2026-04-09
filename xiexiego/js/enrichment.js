@@ -116,8 +116,33 @@ const EXAMPLES = {
   '家': { zh: '回家', en: 'go home' },
 };
 
+/**
+ * Get an example for a character. Tries hardcoded table first,
+ * then auto-generates from compounds index.
+ */
 function getExample(char) {
-  return EXAMPLES[char] || null;
+  if (EXAMPLES[char]) return EXAMPLES[char];
+
+  // Auto-generate: find a common 2-char compound containing this character
+  if (compoundsIndex && char.length === 1) {
+    // Look for compounds starting with this char
+    for (const key of Object.keys(compoundsIndex)) {
+      if (key.startsWith(char) && key.length === 2) {
+        const comp = compoundsIndex[key];
+        const meaning = (comp.d || []).map(cleanDefinition).filter(Boolean)[0];
+        if (meaning) return { zh: key, en: meaning };
+      }
+    }
+    // Look for compounds ending with this char
+    for (const key of Object.keys(compoundsIndex)) {
+      if (key.endsWith(char) && key.length === 2) {
+        const comp = compoundsIndex[key];
+        const meaning = (comp.d || []).map(cleanDefinition).filter(Boolean)[0];
+        if (meaning) return { zh: key, en: meaning };
+      }
+    }
+  }
+  return null;
 }
 
 /**
@@ -148,6 +173,7 @@ async function checkStrokeData(char) {
  */
 export async function enrichCharacter(char) {
   await ensureIndices();
+  await ensureCompounds(); // needed for auto-generating examples
 
   const cedict = cedictIndex[char];
   const mmah = mmahIndex[char];
