@@ -576,6 +576,20 @@ input {
   width: 100%;
 }
 
+.word-editor__delete-profile {
+  width: 100%;
+  min-height: 44px;
+  background: transparent;
+  color: var(--color-text-light);
+  font-size: 0.85rem;
+  margin-top: var(--space-xl);
+}
+
+.word-editor__delete-profile--confirm {
+  color: #E53935;
+  font-weight: 600;
+}
+
 /* Word list */
 .word-list {
   display: flex;
@@ -751,7 +765,8 @@ input {
 }
 
 .word-detail__action-btn--delete {
-  font-size: 1.1rem;
+  font-size: 0.85rem;
+  color: #E53935;
 }
 
 .word-detail__action-btn--confirm {
@@ -984,6 +999,61 @@ input {
   min-width: 32px;
   min-height: 32px;
   flex-shrink: 0;
+}
+
+/* === Toast === */
+.toast {
+  position: fixed;
+  bottom: var(--space-xl);
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--color-text);
+  color: white;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  transition: transform 0.25s ease;
+  max-width: calc(100vw - 48px);
+}
+
+.toast--visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast__undo {
+  background: none;
+  border: none;
+  color: var(--color-primary-light);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: var(--space-xs) var(--space-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* === Add Words Textarea === */
+.add-word-form__textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--space-md);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-chinese);
+  font-size: 1.3rem;
+  line-height: 1.8;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.add-word-form__textarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
 }
 
 /* === Utilities === */
