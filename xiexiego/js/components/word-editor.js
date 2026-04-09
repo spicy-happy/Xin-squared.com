@@ -35,9 +35,15 @@ function showToast(message, undoFn) {
 
   requestAnimationFrame(() => {
     el.classList.add('toast--visible');
-    // Bump up any fixed bottom elements (e.g. Add Words button)
+    // Bump fixed bottom elements above the toast
+    const toastH = el.offsetHeight;
     document.querySelectorAll('.word-editor__bottom').forEach(b => {
-      b.style.bottom = el.offsetHeight + 'px';
+      b.style.transition = 'bottom 0.25s ease';
+      b.style.bottom = toastH + 'px';
+    });
+    // Also increase word list bottom padding
+    document.querySelectorAll('.word-list').forEach(l => {
+      l.style.paddingBottom = (100 + toastH) + 'px';
     });
   });
 
@@ -45,6 +51,10 @@ function showToast(message, undoFn) {
     el.classList.remove('toast--visible');
     document.querySelectorAll('.word-editor__bottom').forEach(b => {
       b.style.bottom = '';
+      b.style.transition = '';
+    });
+    document.querySelectorAll('.word-list').forEach(l => {
+      l.style.paddingBottom = '';
     });
     setTimeout(() => el.remove(), 300);
   };

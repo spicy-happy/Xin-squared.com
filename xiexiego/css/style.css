@@ -640,6 +640,11 @@ input {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+  margin-bottom: 0;
+}
+
+.word-list + .word-editor__alpha-jump {
+  margin-top: var(--space-xs);
 }
 
 /* Swipe wrapper */
