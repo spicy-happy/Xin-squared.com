@@ -203,7 +203,7 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
         <div class="onboarding__actions">
           <div class="onboarding__nav-row">
             <button class="btn btn--secondary" id="btn-back">Back</button>
-            <button class="btn btn--primary" id="btn-start">Start Practicing!</button>
+            <button class="btn btn--primary" id="btn-start">Let's Start!</button>
           </div>
         </div>
       </div>

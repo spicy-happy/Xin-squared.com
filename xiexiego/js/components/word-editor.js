@@ -3,7 +3,7 @@
  * Views: list, add (multi-char), detail (edit/star/delete per word).
  */
 
-import { enrichCharacter } from '../enrichment.js';
+import { enrichCharacter, parseAndEnrich } from '../enrichment.js';
 
 const MASTERY = {
   1: { label: 'Learning', color: '#FF9800', cls: 'mastery--learning' },
@@ -157,8 +157,9 @@ export function renderWordEditor(app, storage, navigate) {
         <div class="word-row__action word-row__action--delete">Delete</div>
         <div class="word-row ${mastery.cls}">
           <span class="word-row__char">${word.character}</span>
-          <span class="word-row__desc">${meaning}${pinyin ? ' · ' + pinyin : ''}</span>
+          <span class="word-row__desc">${pinyin ? pinyin + ' · ' : ''}${meaning}</span>
           ${isStarred ? '<span class="word-row__star-dot">★</span>' : ''}
+          <span class="word-row__chevron">›</span>
         </div>
       </div>
     `;
@@ -176,11 +177,7 @@ export function renderWordEditor(app, storage, navigate) {
     const defaultMeaning = word.meanings?.[0] || '';
     const defaultPinyin = word.pinyinMarked || '';
 
-    const stats = {
-      correct: word.consecutiveCorrect || 0,
-      total: word.totalAttempts || 0,
-      added: word.addedAt ? new Date(word.addedAt).toLocaleDateString() : '—',
-    };
+    const addedDate = word.addedAt ? new Date(word.addedAt).toLocaleDateString() : '';
 
     app.innerHTML = `
       <div class="screen word-editor">
@@ -189,63 +186,55 @@ export function renderWordEditor(app, storage, navigate) {
           <div class="word-editor__profile">
             <span class="word-editor__name">${word.character}</span>
           </div>
+          <div class="word-detail__top-actions">
+            <button class="word-detail__action-btn ${isStarred ? 'word-detail__action-btn--star' : ''}" id="btn-detail-star">
+              ${isStarred ? '★' : '☆'}
+            </button>
+            <button class="word-detail__action-btn word-detail__action-btn--delete" id="btn-detail-delete">
+              🗑
+            </button>
+          </div>
         </div>
 
         <div class="word-detail">
           <div class="word-detail__char">${word.character}</div>
 
-          <div class="word-detail__section">
-            <div class="word-detail__section-title">Progress</div>
-            <div class="word-detail__stats">
-              <div class="word-detail__stat">
-                <span class="word-detail__stat-value" style="color: ${mastery.color}">${mastery.label}</span>
-                <span class="word-detail__stat-label">Status</span>
-              </div>
-              <div class="word-detail__stat">
-                <span class="word-detail__stat-value">${stats.correct}</span>
-                <span class="word-detail__stat-label">In a row</span>
-              </div>
-              <div class="word-detail__stat">
-                <span class="word-detail__stat-value">${stats.added}</span>
-                <span class="word-detail__stat-label">Added</span>
-              </div>
+          <div class="word-detail__stats">
+            <div class="word-detail__stat">
+              <span class="word-detail__stat-value" style="color: ${mastery.color}">${mastery.label}</span>
+              <span class="word-detail__stat-label">Status</span>
+            </div>
+            <div class="word-detail__stat">
+              <span class="word-detail__stat-value">${addedDate}</span>
+              <span class="word-detail__stat-label">Added</span>
             </div>
           </div>
 
-          <div class="word-detail__section">
-            <div class="word-detail__section-title">Details</div>
-            <div class="form-group">
-              <label class="form-group__label">Definition</label>
+          <div class="form-group">
+            <label class="form-group__label">Definition</label>
+            <div class="word-detail__input-row">
               <input class="form-group__input" id="edit-meaning" type="text"
                      value="${word.meaning || defaultMeaning}" autocomplete="off">
+              ${defaultMeaning ? '<button class="word-detail__reset" id="btn-reset-meaning">↺</button>' : ''}
             </div>
-            <div class="form-group">
-              <label class="form-group__label">Pinyin</label>
-              <input class="form-group__input" id="edit-pinyin" type="text"
-                     value="${word.pinyinMarked || word.pinyin || ''}" autocomplete="off">
-            </div>
-            ${word.radical || word.etymology?.hint ? `
-              <div class="word-detail__meta">
-                ${word.radical ? `<span>Radical: ${word.radical}</span>` : ''}
-                ${word.strokeCount ? `<span>Strokes: ${word.strokeCount}</span>` : ''}
-                ${word.etymology?.hint ? `<span>${word.etymology.hint}</span>` : ''}
-              </div>
-            ` : ''}
           </div>
 
-          <div class="word-detail__actions">
-            ${defaultMeaning || defaultPinyin ? `
-              <button class="btn btn--outline" id="btn-reset-defaults">
-                Reset to defaults
-              </button>
-            ` : ''}
-            <button class="btn btn--outline ${isStarred ? 'btn--star-active' : ''}" id="btn-detail-star">
-              ${isStarred ? '★ Starred' : '☆ Star for priority'}
-            </button>
-            <button class="btn btn--danger" id="btn-detail-delete">
-              Delete word
-            </button>
+          <div class="form-group">
+            <label class="form-group__label">Pinyin</label>
+            <div class="word-detail__input-row">
+              <input class="form-group__input" id="edit-pinyin" type="text"
+                     value="${word.pinyinMarked || word.pinyin || ''}" autocomplete="off">
+              ${defaultPinyin ? '<button class="word-detail__reset" id="btn-reset-pinyin">↺</button>' : ''}
+            </div>
           </div>
+
+          ${word.radical || word.etymology?.hint ? `
+            <div class="word-detail__meta">
+              ${word.radical ? `<span>Radical: ${word.radical}</span>` : ''}
+              ${word.strokeCount ? `<span>· ${word.strokeCount} strokes</span>` : ''}
+              ${word.etymology?.hint ? `<span>· ${word.etymology.hint}</span>` : ''}
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
@@ -257,28 +246,31 @@ export function renderWordEditor(app, storage, navigate) {
       render();
     });
 
-    // Reset to defaults
-    app.querySelector('#btn-reset-defaults')?.addEventListener('click', () => {
-      if (defaultMeaning) app.querySelector('#edit-meaning').value = defaultMeaning;
-      if (defaultPinyin) app.querySelector('#edit-pinyin').value = defaultPinyin;
+    // Reset buttons (↺ next to each input)
+    app.querySelector('#btn-reset-meaning')?.addEventListener('click', () => {
+      app.querySelector('#edit-meaning').value = defaultMeaning;
+    });
+    app.querySelector('#btn-reset-pinyin')?.addEventListener('click', () => {
+      app.querySelector('#edit-pinyin').value = defaultPinyin;
     });
 
-    // Star toggle
+    // Star toggle (in header)
     app.querySelector('#btn-detail-star').addEventListener('click', () => {
       const isNowStarred = storage.toggleStarWord(profileId, detailChar);
       const btn = app.querySelector('#btn-detail-star');
-      btn.textContent = isNowStarred ? '★ Starred' : '☆ Star for priority practice';
-      btn.classList.toggle('word-detail__star-btn--active', isNowStarred);
+      btn.textContent = isNowStarred ? '★' : '☆';
+      btn.classList.toggle('word-detail__action-btn--star', isNowStarred);
     });
 
-    // Delete
+    // Delete (in header) — double tap to confirm
     let deleteClicked = false;
     app.querySelector('#btn-detail-delete').addEventListener('click', () => {
       const btn = app.querySelector('#btn-detail-delete');
       if (!deleteClicked) {
         deleteClicked = true;
-        btn.textContent = 'Tap again to confirm delete';
-        btn.classList.add('word-detail__delete-btn--confirm');
+        btn.textContent = '⚠️';
+        btn.classList.add('word-detail__action-btn--confirm');
+        setTimeout(() => { deleteClicked = false; btn.textContent = '🗑'; btn.classList.remove('word-detail__action-btn--confirm'); }, 3000);
         return;
       }
       storage.removeWordFromProfile(profileId, detailChar);
@@ -318,41 +310,13 @@ export function renderWordEditor(app, storage, navigate) {
 
         <div class="add-word-form">
           <input class="form-group__input add-word-form__input" id="add-input"
-                 type="text" placeholder="Type characters (e.g. 学花鸟)"
+                 type="text" placeholder="Type characters (e.g. 学 蝴蝶)"
                  value="${addInput}" autocomplete="off" lang="zh">
-
-          ${isEnriching ? `
-            <div class="add-word-form__preview add-word-form__preview--loading">
-              Looking up characters...
-            </div>
-          ` : ''}
-
-          ${enrichedQueue.length > 0 && !isEnriching ? `
-            <div class="add-word-form__queue">
-              ${enrichedQueue.map((e, i) => `
-                <div class="add-word-form__queue-item">
-                  <span class="add-word-form__queue-char">${e.character}</span>
-                  <div class="add-word-form__queue-details">
-                    <span class="add-word-form__queue-meaning">${e.meaning || e.meanings?.[0] || '?'}</span>
-                    ${e.pinyinMarked ? `<span class="add-word-form__queue-pinyin">${e.pinyinMarked}</span>` : ''}
-                  </div>
-                  <button class="add-word-form__queue-remove" data-remove-idx="${i}">×</button>
-                </div>
-              `).join('')}
-            </div>
-          ` : ''}
-
-          ${duplicates.length > 0 ? `
-            <div class="add-word-form__hint add-word-form__hint--warn">
-              Already in list: ${duplicates.join(' ')}
-            </div>
-          ` : ''}
-
-          ${!addInput && !isEnriching ? `
+          <div id="add-preview">
             <div class="add-word-form__hint">
-              Type Chinese characters — meaning and pinyin will appear automatically.
+              Type Chinese characters — meaning and pinyin added automatically.
             </div>
-          ` : ''}
+          </div>
         </div>
 
         <div class="add-word-form__actions" style="margin-top: auto; padding: var(--space-md) 0 var(--space-xl);">
@@ -373,53 +337,92 @@ export function renderWordEditor(app, storage, navigate) {
     app.querySelector('#btn-cancel-add').addEventListener('click', cancelAdd);
     app.querySelector('#btn-cancel-add-bottom').addEventListener('click', cancelAdd);
 
-    // Input — debounced enrichment
+    // Input — debounced enrichment, updates preview without re-rendering input
     let enrichTimer = null;
-    app.querySelector('#add-input').addEventListener('input', (e) => {
+    const inputEl = app.querySelector('#add-input');
+    inputEl.addEventListener('input', (e) => {
       addInput = e.target.value;
       clearTimeout(enrichTimer);
 
-      const chars = [...addInput].filter(c => c.charCodeAt(0) >= 0x4E00 && c.charCodeAt(0) <= 0x9FFF);
-      if (chars.length === 0) {
+      const hasCJK = [...addInput].some(c => c.charCodeAt(0) >= 0x4E00 && c.charCodeAt(0) <= 0x9FFF);
+      if (!hasCJK) {
         enrichedQueue = [];
-        isEnriching = false;
-        return;
-      }
-
-      const existingChars = new Set((storage.getProfile(profileId)?.wordBank || []).map(w => w.character));
-      const uniqueChars = [...new Set(chars)];
-      duplicates = uniqueChars.filter(c => existingChars.has(c));
-      const newChars = uniqueChars.filter(c => !existingChars.has(c));
-
-      if (newChars.length === 0) {
-        enrichedQueue = [];
-        isEnriching = false;
-        render();
+        duplicates = [];
+        updatePreview();
         return;
       }
 
       isEnriching = true;
+      updatePreview();
+
       enrichTimer = setTimeout(async () => {
         try {
-          const results = await Promise.all(newChars.map(c => enrichCharacter(c)));
-          enrichedQueue = results.map(e => ({ ...e, meaning: e.meanings?.[0] || '' }));
+          const results = await parseAndEnrich(addInput);
+          // Filter out words already in bank
+          const existing = new Set((storage.getProfile(profileId)?.wordBank || []).map(w => w.character));
+          duplicates = results.filter(e => existing.has(e.character)).map(e => e.character);
+          enrichedQueue = results
+            .filter(e => !existing.has(e.character))
+            .map(e => ({ ...e, meaning: e.meanings?.[0] || '' }));
         } catch (err) {
           console.error('Enrichment error:', err);
-          enrichedQueue = newChars.map(c => ({ character: c, meanings: [], meaning: '', enrichmentStatus: 'manual' }));
+          enrichedQueue = [];
         }
         isEnriching = false;
-        render();
-      }, 400);
+        updatePreview();
+      }, 500);
     });
 
-    // Remove from queue
-    app.querySelectorAll('[data-remove-idx]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        enrichedQueue.splice(parseInt(btn.dataset.removeIdx), 1);
-        if (enrichedQueue.length === 0) addInput = '';
-        render();
+    /** Update only the preview area, keeping input focused. */
+    function updatePreview() {
+      const previewEl = app.querySelector('#add-preview');
+      const btnEl = app.querySelector('#btn-confirm-add');
+      if (!previewEl) return;
+
+      let html = '';
+      if (isEnriching) {
+        html = '<div class="add-word-form__preview add-word-form__preview--loading">Looking up words...</div>';
+      } else if (enrichedQueue.length > 0) {
+        html = '<div class="add-word-form__queue">' +
+          enrichedQueue.map((e, i) => `
+            <div class="add-word-form__queue-item">
+              <span class="add-word-form__queue-char">${e.character}</span>
+              <div class="add-word-form__queue-details">
+                <span class="add-word-form__queue-meaning">${e.meaning || e.meanings?.[0] || '?'}</span>
+                ${e.pinyinMarked ? `<span class="add-word-form__queue-pinyin">${e.pinyinMarked}</span>` : ''}
+              </div>
+              <button class="add-word-form__queue-remove" data-remove-idx="${i}">×</button>
+            </div>
+          `).join('') + '</div>';
+      }
+
+      if (duplicates.length > 0) {
+        html += `<div class="add-word-form__hint add-word-form__hint--warn">Already in list: ${duplicates.join(' ')}</div>`;
+      }
+
+      if (!addInput && !isEnriching) {
+        html = '<div class="add-word-form__hint">Type Chinese characters — meaning and pinyin added automatically.</div>';
+      }
+
+      previewEl.innerHTML = html;
+
+      // Update button state
+      if (btnEl) {
+        btnEl.disabled = enrichedQueue.length === 0;
+        btnEl.textContent = enrichedQueue.length > 0
+          ? `Add ${enrichedQueue.length} word${enrichedQueue.length !== 1 ? 's' : ''}`
+          : 'Add words';
+      }
+
+      // Re-bind remove buttons
+      previewEl.querySelectorAll('[data-remove-idx]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          enrichedQueue.splice(parseInt(btn.dataset.removeIdx), 1);
+          if (enrichedQueue.length === 0) addInput = '';
+          updatePreview();
+        });
       });
-    });
+    }
 
     // Confirm add
     app.querySelector('#btn-confirm-add')?.addEventListener('click', () => {

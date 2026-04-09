@@ -52,7 +52,8 @@
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
-  overflow-y: scroll; /* always show scrollbar gutter to prevent layout shift */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -457,6 +458,7 @@ input {
   flex-wrap: wrap;
   gap: var(--space-sm);
   margin-bottom: var(--space-lg);
+  justify-content: center;
 }
 
 .word-chip {
@@ -635,6 +637,12 @@ input {
   font-size: 0.7rem;
   color: #FFB300;
   flex-shrink: 0;
+}
+
+.word-row__chevron {
+  font-size: 1.2rem;
+  color: var(--color-border);
+  flex-shrink: 0;
   margin-left: auto;
 }
 
@@ -712,6 +720,65 @@ input {
 .word-detail__stat-label {
   font-size: 0.7rem;
   color: var(--color-text-light);
+}
+
+.word-detail__top-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.word-detail__action-btn {
+  font-size: 1.3rem;
+  background: none;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-light);
+}
+
+.word-detail__action-btn:active {
+  background: var(--color-border);
+}
+
+.word-detail__action-btn--star {
+  color: #FFB300;
+}
+
+.word-detail__action-btn--delete {
+  font-size: 1.1rem;
+}
+
+.word-detail__action-btn--confirm {
+  background: #FFEBEE;
+}
+
+.word-detail__input-row {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.word-detail__input-row .form-group__input {
+  flex: 1;
+}
+
+.word-detail__reset {
+  font-size: 1.2rem;
+  background: none;
+  color: var(--color-text-light);
+  min-width: 40px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+
+.word-detail__reset:active {
+  background: var(--color-border);
 }
 
 .word-detail__meta {

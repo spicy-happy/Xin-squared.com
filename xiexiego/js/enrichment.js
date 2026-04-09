@@ -15,6 +15,7 @@
 
 let cedictIndex = null;
 let mmahIndex = null;
+let compoundsIndex = null;
 
 /** Load an index JSON file. Returns the parsed object. */
 async function loadIndex(url) {
@@ -33,6 +34,30 @@ async function ensureIndices() {
   ]);
   cedictIndex = cedict;
   mmahIndex = mmah;
+}
+
+/** Lazy-load compounds index on demand. */
+async function ensureCompounds() {
+  if (compoundsIndex) return;
+  try {
+    compoundsIndex = await loadIndex('./js/data/cedict-compounds.json');
+  } catch {
+    compoundsIndex = {};
+  }
+}
+
+/**
+ * Clean a CC-CEDICT definition string.
+ * Removes: CL classifiers, bracketed pinyin refs, "variant of", "surname", etc.
+ */
+function cleanDefinition(def) {
+  if (!def) return def;
+  return def
+    .replace(/\s*\(CL:[^)]*\)/g, '')           // Remove (CL:...) classifiers
+    .replace(/\s*\[[\w\d\s]+\]/g, '')           // Remove [pinyin] refs like [hu2 die2]
+    .replace(/^(used in|variant of|see also)\s+\S+\s*/i, '') // Remove "used in X" prefixes
+    .replace(/^(surname|abbr\. for)\s+.*/i, '') // Remove surname/abbr entries
+    .trim();
 }
 
 /**
@@ -72,9 +97,12 @@ export async function enrichCharacter(char) {
     cedict && mmah && hasStrokeData ? 'complete' :
     cedict || mmah ? 'partial' : 'manual';
 
+  const rawMeanings = cedict?.d || [];
+  const meanings = rawMeanings.map(cleanDefinition).filter(Boolean);
+
   return {
     character: char,
-    meanings: cedict?.d || [],
+    meanings,
     pinyin: cedict?.p || null,
     pinyinMarked: cedict?.m || null,
     tone: cedict?.n || null,
@@ -100,6 +128,69 @@ export async function enrichCharacter(char) {
 export async function enrichCharacters(chars) {
   await ensureIndices();
   return Promise.all(chars.map(c => enrichCharacter(c)));
+}
+
+/**
+ * Parse a string of Chinese text into words (detecting compounds)
+ * and enrich each word. E.g. "蝴蝶大" → [蝴蝶 (butterfly), 大 (big)].
+ *
+ * Greedy left-to-right: tries 2-char compound first, falls back to single char.
+ *
+ * @param {string} text - Raw Chinese text input
+ * @returns {Promise<Object[]>} Array of enriched word objects
+ */
+export async function parseAndEnrich(text) {
+  await ensureIndices();
+  await ensureCompounds();
+
+  // Extract only CJK characters
+  const cjk = [...text].filter(c => c.charCodeAt(0) >= 0x4E00 && c.charCodeAt(0) <= 0x9FFF);
+  if (cjk.length === 0) return [];
+
+  // Greedy left-to-right compound detection
+  const words = [];
+  let i = 0;
+  while (i < cjk.length) {
+    if (i + 1 < cjk.length) {
+      const pair = cjk[i] + cjk[i + 1];
+      if (compoundsIndex[pair]) {
+        words.push(pair);
+        i += 2;
+        continue;
+      }
+    }
+    words.push(cjk[i]);
+    i++;
+  }
+
+  // Deduplicate while preserving order
+  const seen = new Set();
+  const unique = words.filter(w => { if (seen.has(w)) return false; seen.add(w); return true; });
+
+  // Enrich each word
+  return Promise.all(unique.map(async (w) => {
+    if (w.length === 1) {
+      return enrichCharacter(w);
+    }
+    // Compound: use compounds index for definition/pinyin
+    const compound = compoundsIndex[w];
+    const meanings = (compound?.d || []).map(cleanDefinition).filter(Boolean);
+    // Check stroke data for first character (compounds use HanziWriter per-char)
+    const hasStrokeData = await checkStrokeData(w[0]);
+    return {
+      character: w,
+      meanings,
+      pinyin: compound?.p || null,
+      pinyinMarked: compound?.m || null,
+      tone: compound?.n || null,
+      traditional: compound?.t || null,
+      isCompound: true,
+      components: [...w],
+      hasStrokeData,
+      enrichmentStatus: compound ? 'complete' : 'manual',
+      audioFile: compound ? `./audio/${compound.p}.mp3` : null,
+    };
+  }));
 }
 
 /**
