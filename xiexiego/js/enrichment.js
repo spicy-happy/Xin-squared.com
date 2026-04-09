@@ -46,12 +46,17 @@ async function ensureCompounds() {
   }
 }
 
+// Block vulgar/inappropriate content — this is a kids' app
+const INAPPROPRIATE = /\bpenis\b|\bvagina\b|\bvulva\b|\bfuck\b|\bshit\b|\bdick\b|\bcock\b|\bprostitut\b|\bcopulat\b|\btesticle\b|\borgasm\b|\bmasturbat\b|\bejaculat\b|\bsemen\b|\bscrotum\b|\bphallus\b|\bclitoris\b|\bslut\b|\bwhore\b|\berotic\b|\bpornograph\b/i;
+
 /**
  * Clean a CC-CEDICT definition string.
  * Removes: CL classifiers, bracketed pinyin refs, "variant of", "surname", etc.
+ * Also filters out vulgar/inappropriate content.
  */
 function cleanDefinition(def) {
   if (!def) return '';
+  if (INAPPROPRIATE.test(def)) return '';
   let cleaned = def
     .replace(/\s*\(CL:[^)]*\)/g, '')           // Remove (CL:...) classifiers
     .replace(/\s*\[[\w\d\s]+\]/g, '')           // Remove [pinyin] refs
