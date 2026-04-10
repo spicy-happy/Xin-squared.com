@@ -147,20 +147,31 @@ export function playSparkle() {
 export function playLevelUp() {
   try {
     const ctx = getCtx();
-    // Quick two-note ascending ding
-    [698, 880].forEach((freq, i) => {
+    // Bright three-note ascending ding (C-E-G)
+    [523, 659, 784].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
       osc.connect(gain);
       gain.connect(ctx.destination);
-      const t = ctx.currentTime + i * 0.08;
+      const t = ctx.currentTime + i * 0.07;
       osc.frequency.setValueAtTime(freq, t);
-      gain.gain.setValueAtTime(0.15, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      gain.gain.setValueAtTime(0.18, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
       osc.start(t);
-      osc.stop(t + 0.25);
+      osc.stop(t + 0.3);
     });
+    // Subtle high harmonic shimmer on top
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.frequency.setValueAtTime(1568, ctx.currentTime + 0.14);
+    gain2.gain.setValueAtTime(0.08, ctx.currentTime + 0.14);
+    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc2.start(ctx.currentTime + 0.14);
+    osc2.stop(ctx.currentTime + 0.5);
   } catch {}
 }
 

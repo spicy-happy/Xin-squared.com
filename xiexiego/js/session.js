@@ -233,16 +233,25 @@ export function renderSession(app, storage, navigate) {
       </div>
     `;
 
-    // Animate progress bar and play level-up sound
+    // Animate progress bar and play level-up sound.
+    // Double-rAF ensures browser paints the "before" width first,
+    // then the CSS transition animates to the "after" width.
     if (currentIndex > prevIndex) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const fill = app.querySelector('#progress-fill');
+          if (fill) {
+            fill.style.width = newPct + '%';
+            fill.classList.add('session__progress-fill--pop');
+          }
+        });
+      });
+      playLevelUp();
+    } else {
       requestAnimationFrame(() => {
         const fill = app.querySelector('#progress-fill');
         if (fill) fill.style.width = newPct + '%';
       });
-      playLevelUp();
-    } else {
-      const fill = app.querySelector('#progress-fill');
-      if (fill) fill.style.width = newPct + '%';
     }
     prevIndex = currentIndex;
 
