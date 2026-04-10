@@ -19,6 +19,7 @@ export async function renderAudioRecognition(container, word, distractors, onRes
   let attempts = 0;
   let resolved = false;
   let aborted = false;
+  let hintUsed = false;
 
   function abort() {
     aborted = true;
@@ -27,6 +28,7 @@ export async function renderAudioRecognition(container, word, distractors, onRes
 
   container.innerHTML = `
     <div class="activity activity--quiz">
+      ${meaning ? `<button class="quiz__hint-toggle" id="quiz-hint">Hint</button>` : ''}
       <div class="activity__body">
         <p class="quiz__instruction">Which character did you hear?</p>
         <button class="quiz__speaker" id="quiz-speaker">
@@ -49,6 +51,19 @@ export async function renderAudioRecognition(container, word, distractors, onRes
   const speakerBtn = container.querySelector('#quiz-speaker');
   const feedbackEl = container.querySelector('#quiz-feedback');
   const optionBtns = container.querySelectorAll('.quiz__option');
+  const hintBtn = container.querySelector('#quiz-hint');
+
+  // Hint: show English meaning (penalty — only partial credit)
+  if (hintBtn) {
+    hintBtn.addEventListener('click', () => {
+      if (aborted || resolved) return;
+      playClick();
+      hintUsed = true;
+      hintBtn.textContent = meaning;
+      hintBtn.classList.add('quiz__hint-toggle--revealed');
+      hintBtn.disabled = true;
+    });
+  }
 
   // Play audio on load
   setTimeout(async () => {
@@ -72,13 +87,17 @@ export async function renderAudioRecognition(container, word, distractors, onRes
       if (chosen === word.character) {
         // Correct!
         resolved = true;
+        // Disable all buttons immediately
+        optionBtns.forEach(b => { b.disabled = true; });
+        speakerBtn.disabled = true;
+        if (hintBtn) hintBtn.disabled = true;
         btn.classList.add('quiz__option--correct');
         playSparkle();
         await new Promise(r => setTimeout(r, 300));
         if (!aborted) await speakChinese(word.character, 0.5);
         if (!aborted && meaning) { await new Promise(r => setTimeout(r, 300)); await speakEnglish(meaning); }
         await new Promise(r => setTimeout(r, 1200));
-        if (!aborted) onResult({ correct: attempts === 0, attempts });
+        if (!aborted) onResult({ correct: attempts === 0 && !hintUsed, attempts });
       } else {
         // Wrong
         attempts++;

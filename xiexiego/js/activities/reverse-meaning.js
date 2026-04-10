@@ -4,7 +4,7 @@
  */
 
 import { speakChinese, speakEnglish } from '../enrichment.js';
-import { playSparkle, playBoop } from '../sounds.js';
+import { playSparkle, playBoop, playClick } from '../sounds.js';
 
 function formatMeaning(meaning) {
   if (!meaning) return '';
@@ -21,6 +21,7 @@ export async function renderReverseMeaning(container, word, distractors, onResul
   let attempts = 0;
   let resolved = false;
   let aborted = false;
+  let hintUsed = false;
 
   function abort() {
     aborted = true;
@@ -29,6 +30,7 @@ export async function renderReverseMeaning(container, word, distractors, onResul
 
   container.innerHTML = `
     <div class="activity activity--quiz">
+      <button class="quiz__hint-toggle" id="quiz-hint">🔊 Hint</button>
       <div class="activity__body">
         <p class="quiz__instruction">Which character means:</p>
         <div class="quiz__prompt quiz__prompt--meaning">
@@ -50,6 +52,20 @@ export async function renderReverseMeaning(container, word, distractors, onResul
 
   const feedbackEl = container.querySelector('#quiz-feedback');
   const optionBtns = container.querySelectorAll('.quiz__option');
+  const hintBtn = container.querySelector('#quiz-hint');
+
+  // Hint: say the Chinese word (penalty — only partial credit)
+  if (hintBtn) {
+    hintBtn.addEventListener('click', () => {
+      if (aborted || resolved) return;
+      playClick();
+      hintUsed = true;
+      hintBtn.classList.add('quiz__hint-toggle--revealed');
+      hintBtn.textContent = '🔊 Hint used';
+      hintBtn.disabled = true;
+      speakChinese(word.character, 0.5);
+    });
+  }
 
   // Speak the meaning on load
   setTimeout(async () => {
@@ -63,13 +79,16 @@ export async function renderReverseMeaning(container, word, distractors, onResul
 
       if (chosen === word.character) {
         resolved = true;
+        // Disable all buttons immediately
+        optionBtns.forEach(b => { b.disabled = true; });
+        if (hintBtn) hintBtn.disabled = true;
         btn.classList.add('quiz__option--correct');
         playSparkle();
         await new Promise(r => setTimeout(r, 300));
         if (!aborted) await speakChinese(word.character, 0.5);
         if (!aborted && meaning) { await new Promise(r => setTimeout(r, 300)); await speakEnglish(meaning); }
         await new Promise(r => setTimeout(r, 1200));
-        if (!aborted) onResult({ correct: attempts === 0, attempts });
+        if (!aborted) onResult({ correct: attempts === 0 && !hintUsed, attempts });
       } else {
         attempts++;
         btn.classList.add('quiz__option--wrong');

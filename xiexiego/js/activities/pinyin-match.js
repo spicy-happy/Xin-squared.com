@@ -81,13 +81,16 @@ export async function renderPinyinMatch(container, word, distractors, onResult) 
 
       if (isCorrect) {
         resolved = true;
+        // Disable all buttons immediately
+        optionBtns.forEach(b => { b.disabled = true; });
+        if (hintBtn) hintBtn.disabled = true;
         btn.classList.add('quiz__option--correct');
         playSparkle();
         await new Promise(r => setTimeout(r, 300));
         if (!aborted) await speakChinese(word.character, 0.5);
         if (!aborted && meaning) { await new Promise(r => setTimeout(r, 300)); await speakEnglish(meaning); }
         await new Promise(r => setTimeout(r, 1200));
-        if (!aborted) onResult({ correct: attempts === 0, attempts });
+        if (!aborted) onResult({ correct: attempts === 0 && !hintShown, attempts });
       } else {
         attempts++;
         btn.classList.add('quiz__option--wrong');

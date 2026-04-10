@@ -11,27 +11,29 @@
  * where level (1-4) adjusts HanziWriter leniency and hint thresholds per spec Section 9.
  */
 
-import { speakChinese } from '../enrichment.js';
+import { speakChinese, speakEnglish } from '../enrichment.js';
 import { playSparkle, playChime, playClick } from '../sounds.js';
 
 function formatMeaning(m) {
   return (m || '').replace(/\s*\/\s*/g, ' or ');
 }
 
-/** Level-specific HanziWriter settings per spec Section 9. */
+/** Level-specific HanziWriter settings per spec Section 9.
+ *  High leniency values — kids on phones have shaky fingers. */
 const LEVEL_SETTINGS = {
-  1: { leniency: 1.5, hintAfterMisses: 2 },
-  2: { leniency: 1.4, hintAfterMisses: 2 },
-  3: { leniency: 1.3, hintAfterMisses: 3 },
-  4: { leniency: 1.2, hintAfterMisses: 3 },
+  1: { leniency: 2.0, hintAfterMisses: 3 },
+  2: { leniency: 1.8, hintAfterMisses: 3 },
+  3: { leniency: 1.6, hintAfterMisses: 3 },
+  4: { leniency: 1.4, hintAfterMisses: 4 },
 };
 
-/** Pass criteria per mode (max mistakes to count as correct). */
+/** Pass criteria per mode (max mistakes to count as correct).
+ *  Generous — we want kids to feel successful. */
 const PASS_CRITERIA = {
-  guided: 3,   // Stroke tracing: ≤3 mistakes
-  outline: 2,  // Free trace: ≤2 mistakes, no hints
-  flash: 2,    // Flash and write: ≤2 mistakes
-  memory: 1,   // Free write: ≤1 mistake, no hints
+  guided: 6,   // Stroke tracing: very forgiving
+  outline: 4,  // Free trace: ≤4 mistakes, no hints
+  flash: 4,    // Flash and write: ≤4 mistakes
+  memory: 3,   // Free write: ≤3 mistakes, no hints
 };
 
 /**
@@ -50,6 +52,14 @@ async function renderWrite(container, word, mode, level, onResult) {
     aborted = true;
     window.speechSynthesis?.cancel();
   }
+
+  // Track which character indices are duplicates (same char already written earlier)
+  const seenChars = new Set();
+  const isDuplicate = chars.map(ch => {
+    if (seenChars.has(ch)) return true;
+    seenChars.add(ch);
+    return false;
+  });
 
   // Sizing
   const singleSize = 280;
@@ -75,14 +85,18 @@ async function renderWrite(container, word, mode, level, onResult) {
         </button>
         ${showMeaning ? `<p class="stroke__meaning">${meaning}</p>` : ''}
         <div class="stroke__area" id="stroke-area">
-          ${chars.map((_, i) => `
+          ${chars.map((ch, i) => isDuplicate[i] ? `
+            <div class="stroke__slot stroke__slot--static" id="stroke-slot-${i}">
+              <span class="stroke__static-char" style="font-size:${writerSize * 0.55}px">${ch}</span>
+            </div>
+          ` : `
             <div class="stroke__slot ${i === 0 ? 'stroke__slot--active' : ''}" id="stroke-slot-${i}">
               <div id="stroke-writer-${i}" class="stroke__writer stroke__writer--grid"></div>
             </div>
           `).join('')}
         </div>
         <div class="stroke__progress" id="stroke-progress">
-          ${isCompound ? chars.map((_, i) => `<span class="stroke__dot" id="stroke-dot-${i}"></span>`).join('') : ''}
+          ${isCompound ? chars.filter((_, i) => !isDuplicate[i]).map((_, i) => `<span class="stroke__dot" id="stroke-dot-${i}"></span>`).join('') : ''}
         </div>
         <div class="stroke__pencils" id="stroke-pencils">
           ${['#2D3436','#E53935','#E91E63','#4CAF50','#FF9800','#9C27B0'].map((c, i) => `
@@ -114,19 +128,20 @@ async function renderWrite(container, word, mode, level, onResult) {
     speakChinese(word.character, 0.5);
   });
 
-  // Pencil color picker
+  // Pencil color picker — pick once, then it disappears
+  const pencilBar = container.querySelector('#stroke-pencils');
   const pencilBtns = container.querySelectorAll('.stroke__pencil');
   pencilBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       drawingColor = btn.dataset.color;
-      pencilBtns.forEach(b => b.classList.remove('stroke__pencil--selected'));
-      btn.classList.add('stroke__pencil--selected');
       playClick();
       writers.forEach(w => {
         if (w) {
           try { w.updateColor('drawingColor', drawingColor); } catch {}
         }
       });
+      // Hide the palette entirely
+      if (pencilBar) pencilBar.remove();
     });
   });
 
@@ -142,7 +157,7 @@ async function renderWrite(container, word, mode, level, onResult) {
       showCharacter: true,
       showHintAfterMisses: 0, // Always show blue next-stroke hint
       highlightOnComplete: true,
-      leniency: lvl.leniency,
+      leniency: Math.max(lvl.leniency, 2.0), // Extra forgiving for guided tracing
       strokeHighlightSpeed: 0.5,
     },
     outline: {
@@ -172,9 +187,19 @@ async function renderWrite(container, word, mode, level, onResult) {
 
   const opts = quizOpts[mode];
 
-  // Create HanziWriter instances
+  // Create HanziWriter instances (skip duplicates — they're static text)
   const writers = [];
   for (let i = 0; i < chars.length; i++) {
+    if (isDuplicate[i]) {
+      writers.push(null); // No writer for duplicate chars
+      continue;
+    }
+
+    // For compound words, only the first character starts visible
+    const isFirst = i === 0;
+    const showOutlineForThis = isFirst ? opts.showOutline : false;
+    const showCharForThis = isFirst ? opts.showCharacter : false;
+
     try {
       const w = HanziWriter.create(
         container.querySelector(`#stroke-writer-${i}`),
@@ -183,13 +208,14 @@ async function renderWrite(container, word, mode, level, onResult) {
           width: writerSize,
           height: writerSize,
           padding: 10,
-          showOutline: opts.showOutline,
-          showCharacter: opts.showCharacter,
+          showOutline: showOutlineForThis,
+          showCharacter: showCharForThis,
           strokeColor: '#2D3436',
           radicalColor: '#2D3436',
           highlightColor: '#4A90D9',
           drawingColor: drawingColor,
-          drawingWidth: 30,
+          drawingWidth: 36,
+          acceptBackwardsStrokes: true,  // Kids draw strokes in any direction
           showHintAfterMisses: opts.showHintAfterMisses,
           highlightOnComplete: opts.highlightOnComplete,
           strokeHighlightSpeed: opts.strokeHighlightSpeed || 1,
@@ -202,25 +228,24 @@ async function renderWrite(container, word, mode, level, onResult) {
     }
   }
 
-  // Flash mode: animate stroke order, keep visible ~3s total, then hide
-  if (mode === 'flash') {
-    // Show character first, then animate stroke order
-    writers.forEach(w => { if (w) w.showCharacter(); });
-    const animations = writers.map(w => {
-      if (!w) return Promise.resolve();
-      return new Promise(resolve => {
-        w.animateCharacter({ onComplete: resolve });
-      });
+  // For compound words, hide upcoming non-duplicate slots (no grid, dimmed)
+  if (isCompound) {
+    container.querySelectorAll('.stroke__slot').forEach((slot, j) => {
+      if (j > 0 && !isDuplicate[j]) slot.classList.add('stroke__slot--upcoming');
     });
-    await Promise.all(animations);
-    if (aborted) return;
+  }
 
-    // Brief pause after animation completes (~3s total display)
+  // Flash mode: animate stroke order for the FIRST character only, then hide.
+  // Subsequent characters get flashed when their slot becomes active.
+  if (mode === 'flash' && writers[0]) {
+    writers[0].showCharacter();
+    await new Promise(resolve => {
+      writers[0].animateCharacter({ onComplete: resolve });
+    });
+    if (aborted) return;
     await new Promise(r => setTimeout(r, 1000));
     if (aborted) return;
-
-    // Hide character — canvas becomes blank (outline already off)
-    writers.forEach(w => { if (w) w.hideCharacter(); });
+    writers[0].hideCharacter();
     await new Promise(r => setTimeout(r, 300));
     if (aborted) return;
   }
@@ -240,20 +265,48 @@ async function renderWrite(container, word, mode, level, onResult) {
     });
   }
 
-  // Quiz each character sequentially
+  // Quiz each character sequentially (skip duplicates)
+  let dotIndex = 0;
   for (let i = 0; i < chars.length; i++) {
     if (aborted) return;
+
+    // Skip duplicate characters — they're already shown statically
+    if (isDuplicate[i]) continue;
+
     const w = writers[i];
 
-    // Highlight active slot
+    // Highlight active slot, reveal it, hide upcoming
     container.querySelectorAll('.stroke__slot').forEach((slot, j) => {
+      if (isDuplicate[j]) return; // static slots stay as-is
       slot.classList.toggle('stroke__slot--active', j === i);
       slot.classList.toggle('stroke__slot--done', j < i);
+      slot.classList.toggle('stroke__slot--upcoming', j > i && !isDuplicate[j]);
     });
 
+    // Reveal this character when it becomes active
+    if (w && i > 0) {
+      if (mode === 'flash') {
+        // Flash mode: animate stroke order for this character, then hide
+        w.showCharacter();
+        await new Promise(resolve => {
+          w.animateCharacter({ onComplete: resolve });
+        });
+        if (aborted) return;
+        await new Promise(r => setTimeout(r, 800));
+        if (aborted) return;
+        w.hideCharacter();
+        await new Promise(r => setTimeout(r, 200));
+        if (aborted) return;
+      } else {
+        if (opts.showOutline) w.showOutline();
+        if (opts.showCharacter) w.showCharacter();
+      }
+    }
+
     if (!w) {
-      const dot = container.querySelector(`#stroke-dot-${i}`);
+      const dot = container.querySelector(`#stroke-dot-${dotIndex}`);
       if (dot) dot.classList.add('stroke__dot--done');
+      dotIndex++;
       continue;
     }
 
@@ -268,8 +321,9 @@ async function renderWrite(container, word, mode, level, onResult) {
     if (aborted) return;
 
     // Mark this character done
-    const dot = container.querySelector(`#stroke-dot-${i}`);
+    const dot = container.querySelector(`#stroke-dot-${dotIndex}`);
     if (dot) dot.classList.add('stroke__dot--done');
+    dotIndex++;
     playChime();
 
     // For compounds, say the individual character
@@ -306,7 +360,11 @@ async function renderWrite(container, word, mode, level, onResult) {
 
   await new Promise(r => setTimeout(r, 400));
   if (!aborted) await speakChinese(word.character, 0.5);
-  await new Promise(r => setTimeout(r, 1200));
+  if (!aborted && meaning) {
+    await new Promise(r => setTimeout(r, 300));
+    await speakEnglish(meaning);
+  }
+  await new Promise(r => setTimeout(r, 800));
   if (!aborted) onResult({ correct: passed, attempts: totalMistakes });
 }
 

@@ -17,6 +17,17 @@ let cedictIndex = null;
 let mmahIndex = null;
 let compoundsIndex = null;
 
+/**
+ * Fix malformed pinyin marked strings like "lu:4 sè" → "lǜ sè".
+ * CEDICT uses "u:" for ü and sometimes leaves tone numbers unconverted.
+ */
+const U_TONE_MAP = { 'u:1': 'ǖ', 'u:2': 'ǘ', 'u:3': 'ǚ', 'u:4': 'ǜ', 'u:5': 'ü', 'u:': 'ü' };
+function fixPinyinMarked(s) {
+  if (!s) return s;
+  // Replace u: + tone number patterns
+  return s.replace(/u:[1-5]?/g, match => U_TONE_MAP[match] || match);
+}
+
 /** Load an index JSON file. Returns the parsed object. */
 async function loadIndex(url) {
   const resp = await fetch(url);
@@ -318,7 +329,7 @@ export async function enrichCharacter(char) {
     character: char,
     meanings,
     pinyin: cedict?.p || null,
-    pinyinMarked: cedict?.m || null,
+    pinyinMarked: fixPinyinMarked(cedict?.m) || null,
     tone: cedict?.n || null,
     traditional: cedict?.t || null,
     radical: mmah?.r || null,
@@ -412,7 +423,7 @@ export async function parseAndEnrich(text) {
       character: w,
       meanings,
       pinyin: compound?.p || null,
-      pinyinMarked: compound?.m || null,
+      pinyinMarked: fixPinyinMarked(compound?.m) || null,
       tone: compound?.n || null,
       traditional: compound?.t || null,
       isCompound: true,
@@ -534,7 +545,8 @@ export function speakEnglish(text) {
     if (!('speechSynthesis' in window)) { resolve(); return; }
     await waitForVoices();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    // Lowercase so speech synthesis doesn't say "capital I" for standalone "I"
+    const utterance = new SpeechSynthesisUtterance(text.toLowerCase());
     utterance.lang = 'en-US';
     utterance.rate = 0.85;
     const voice = getEnglishVoice();

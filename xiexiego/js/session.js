@@ -52,7 +52,7 @@ const QUIZ_TYPES = [
  * Returns array of distractor word objects (without the target).
  */
 function pickDistractors(targetWord, wordBank, count = 3) {
-  const others = wordBank.filter(w => w.character !== targetWord.character && w.meaning);
+  const others = wordBank.filter(w => w.character !== targetWord.character && (w.meaning || w.meanings?.length));
   const targetLen = targetWord.character.length;
   // Prefer same-length words as distractors
   const sameLen = others.filter(w => w.character.length === targetLen);
@@ -77,7 +77,7 @@ function pickQuizForWord(word) {
   const canWrite = word.hasStrokeData !== false;
 
   // Writing probability increases with box level
-  const writeChance = box <= 1 ? 0.3 : box <= 2 ? 0.4 : 0.5;
+  const writeChance = box <= 1 ? 0.2 : box <= 2 ? 0.3 : 0.45;
 
   if (canWrite && Math.random() < writeChance) {
     if (box <= 1) return WRITING_TYPES.strokeWriting;
@@ -112,9 +112,13 @@ export function renderSession(app, storage, navigate) {
   // Session persistence key
   const SESSION_KEY = 'session_' + profileId;
 
+  // Session plan version — bump when plan logic changes to invalidate old saved sessions
+  const SESSION_VERSION = 3;
+
   /** Save current session state so it survives page refresh */
   function saveSessionState() {
     storage.set(SESSION_KEY, {
+      version: SESSION_VERSION,
       currentIndex,
       plan: sessionPlan.map(p => ({
         character: p.word.character,
@@ -144,6 +148,8 @@ export function renderSession(app, storage, navigate) {
   function restoreSession() {
     const saved = storage.get(SESSION_KEY);
     if (!saved || !saved.plan || !saved.plan.length) return false;
+    // Discard sessions from older plan versions
+    if ((saved.version || 0) < SESSION_VERSION) return false;
 
     const freshProfile = storage.getProfile(profileId);
     const wordMap = {};
@@ -196,52 +202,73 @@ export function renderSession(app, storage, navigate) {
       shuffle(picked);
     }
 
-    // Build plan: mix of exposure + quizzes.
-    // New words get exposure first, then a quiz right after.
-    // Seen words get quizzes based on their box level.
-    // Goal: never more than 2 exposures in a row, always interleave.
-    const exposures = [];
-    const quizzes = [];
+    // Build plan: each word appears 2× with DIFFERENT activity types.
+    // New words: exposure first, then a quiz later.
+    // Seen words: two different quiz types.
+    // This reinforces each word through varied practice.
+
+    const entries = [];  // All activity entries before ordering
     let exposureCount = 0;
 
     for (const word of picked) {
       const isNew = !word.lastSeen;
+      const usedTypes = new Set();
+
+      // First activity for this word
       if (isNew && exposureCount < MAX_EXPOSURES) {
-        // New word: exposure + follow-up quiz on the same word
-        exposures.push({ word, activityType: 'exposure', render: null });
-        // Add a simple quiz right after (meaning match or audio recognition)
-        const easyQuiz = MC_QUIZ_TYPES[Math.floor(Math.random() * 2)]; // audioRecognition or meaningMatch
-        quizzes.push({ word, activityType: easyQuiz.name, render: easyQuiz.render });
+        entries.push({ word, activityType: 'exposure', render: null, pass: 1 });
+        usedTypes.add('exposure');
         exposureCount++;
       } else {
-        // Seen word or overflow new: quiz based on level
         const quiz = pickQuizForWord(word);
-        quizzes.push({ word, activityType: quiz.name, render: quiz.render });
+        entries.push({ word, activityType: quiz.name, render: quiz.render, pass: 1 });
+        usedTypes.add(quiz.name);
       }
+
+      // Second activity for this word — always a different type
+      let secondQuiz = pickQuizForWord(word);
+      let attempts = 0;
+      while (usedTypes.has(secondQuiz.name) && attempts < 10) {
+        secondQuiz = MC_QUIZ_TYPES[Math.floor(Math.random() * MC_QUIZ_TYPES.length)];
+        attempts++;
+      }
+      entries.push({ word, activityType: secondQuiz.name, render: secondQuiz.render, pass: 2 });
     }
 
-    // Interleave: exposure, quiz, exposure, quiz, remaining quizzes
-    const plan = [];
-    let ei = 0, qi = 0;
-    while (ei < exposures.length || qi < quizzes.length) {
-      if (ei < exposures.length) plan.push(exposures[ei++]);
-      if (qi < quizzes.length) plan.push(quizzes[qi++]);
-      if (qi < quizzes.length) plan.push(quizzes[qi++]); // 2 quizzes per exposure
+    // Separate into pass 1 and pass 2, shuffle each, then interleave
+    const pass1 = entries.filter(e => e.pass === 1);
+    const pass2 = entries.filter(e => e.pass === 2);
+    shuffle(pass1);
+    shuffle(pass2);
+
+    // Build plan: all pass-1 activities first, then pass-2
+    // This ensures kids see each word once before seeing any word a second time
+    const plan = [...pass1, ...pass2];
+
+    // Trim to session size (keep it manageable)
+    if (plan.length > sessionSize * 2) {
+      plan.length = sessionSize * 2;
     }
 
-    // Trim to session size (interleaving may have added follow-up quizzes)
-    if (plan.length > sessionSize + MAX_EXPOSURES) {
-      plan.length = sessionSize + MAX_EXPOSURES;
-    }
-
-    // Never allow 2 of the same activity type in a row — swap with a different one
+    // Never allow same word twice in a row or same activity type twice in a row
     for (let i = 1; i < plan.length; i++) {
-      if (plan[i].activityType === plan[i-1].activityType &&
-          plan[i].activityType !== 'exposure') {
-        const others = MC_QUIZ_TYPES.filter(q => q.name !== plan[i].activityType);
-        const alt = others[Math.floor(Math.random() * others.length)];
-        plan[i].activityType = alt.name;
-        plan[i].render = alt.render;
+      const sameWord = plan[i].word.character === plan[i-1].word.character;
+      const sameType = plan[i].activityType === plan[i-1].activityType;
+
+      if (sameWord || sameType) {
+        // Find a good swap candidate further ahead
+        for (let j = i + 1; j < plan.length; j++) {
+          const wouldFixWord = plan[j].word.character !== plan[i-1].word.character;
+          const wouldFixType = plan[j].activityType !== plan[i-1].activityType;
+          // Also check it won't create a new conflict at position j
+          const safeAtJ = (i + 1 >= plan.length) ||
+            (plan[i].word.character !== plan[i+1]?.word?.character &&
+             plan[i].activityType !== plan[i+1]?.activityType);
+          if (wouldFixWord && wouldFixType) {
+            [plan[i], plan[j]] = [plan[j], plan[i]];
+            break;
+          }
+        }
       }
     }
 
@@ -372,16 +399,28 @@ export function renderSession(app, storage, navigate) {
       const isWriting = WRITING_NAMES.has(activityType);
       const distractors = isWriting ? [] : pickDistractors(word, freshProfile.wordBank);
 
-      // Need at least 1 distractor for MC quizzes; fall back to exposure
+      // Need at least 1 distractor for MC quizzes; fall back to stroke writing
       if (!isWriting && distractors.length === 0) {
-        renderExposure(container, word, () => {
-          storage.updateWordInProfile(profileId, word.character, {
-            box: Math.min((word.box || 1) + 1, 5),
-            lastSeen: Date.now(),
+        if (word.hasStrokeData !== false) {
+          // Fall back to guided stroke writing instead of exposure
+          renderStrokeWriting(container, word, [], (result) => {
+            storage.updateWordInProfile(profileId, word.character, {
+              box: Math.min((word.box || 1) + 1, 5),
+              lastSeen: Date.now(),
+            });
+            currentIndex++;
+            render();
+          }, profile.level);
+        } else {
+          renderExposure(container, word, () => {
+            storage.updateWordInProfile(profileId, word.character, {
+              box: Math.min((word.box || 1) + 1, 5),
+              lastSeen: Date.now(),
+            });
+            currentIndex++;
+            render();
           });
-          currentIndex++;
-          render();
-        });
+        }
         return;
       }
 
