@@ -109,6 +109,65 @@ export function renderSession(app, storage, navigate) {
   let sessionPlan = []; // Array of { word, activityType, render }
   let currentIndex = 0;
 
+  // Session persistence key
+  const SESSION_KEY = 'session_' + profileId;
+
+  /** Save current session state so it survives page refresh */
+  function saveSessionState() {
+    storage.set(SESSION_KEY, {
+      currentIndex,
+      plan: sessionPlan.map(p => ({
+        character: p.word.character,
+        activityType: p.activityType,
+      })),
+    });
+  }
+
+  /** Clear saved session state */
+  function clearSessionState() {
+    storage.remove(SESSION_KEY);
+  }
+
+  /** Map an activity type name back to its render function */
+  function getRenderer(activityType) {
+    if (activityType === 'exposure') return null;
+    const mc = MC_QUIZ_TYPES.find(q => q.name === activityType);
+    if (mc) return mc.render;
+    const wt = WRITING_TYPES[activityType];
+    if (wt) return wt.render;
+    // Fallback: try QUIZ_TYPES
+    const qt = QUIZ_TYPES.find(q => q.name === activityType);
+    return qt?.render || null;
+  }
+
+  /** Try to restore a saved session. Returns true if restored. */
+  function restoreSession() {
+    const saved = storage.get(SESSION_KEY);
+    if (!saved || !saved.plan || !saved.plan.length) return false;
+
+    const freshProfile = storage.getProfile(profileId);
+    const wordMap = {};
+    for (const w of freshProfile.wordBank) wordMap[w.character] = w;
+
+    // Rebuild plan from saved state
+    const plan = [];
+    for (const entry of saved.plan) {
+      const word = wordMap[entry.character];
+      if (!word) continue; // word was deleted since session was saved
+      plan.push({
+        word,
+        activityType: entry.activityType,
+        render: getRenderer(entry.activityType),
+      });
+    }
+
+    if (plan.length === 0) return false;
+
+    sessionPlan = plan;
+    currentIndex = Math.min(saved.currentIndex || 0, plan.length - 1);
+    return true;
+  }
+
   /** Pick fresh session words and build a session plan */
   function buildSessionPlan() {
     const now = Date.now();
@@ -165,9 +224,13 @@ export function renderSession(app, storage, navigate) {
     }
 
     sessionPlan = plan;
+    saveSessionState();
   }
 
-  buildSessionPlan();
+  // Try to restore a saved session; if none, build a fresh one
+  if (!restoreSession()) {
+    buildSessionPlan();
+  }
 
   /** Abort current activity audio */
   function abortCurrentActivity() {
@@ -208,9 +271,13 @@ export function renderSession(app, storage, navigate) {
 
   function render() {
     if (currentIndex >= sessionPlan.length) {
+      clearSessionState();
       renderCelebration();
       return;
     }
+
+    // Persist progress so page refresh resumes here
+    saveSessionState();
 
     const { word, activityType, render: renderActivity } = sessionPlan[currentIndex];
     const total = sessionPlan.length;
