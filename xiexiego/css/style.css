@@ -1900,6 +1900,30 @@ input {
   transform: scale(1.15);
 }
 
+/* === Session Resume === */
+.session-resume {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.session-resume__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.session-resume__emoji {
+  font-size: 4rem;
+  font-family: var(--font-chinese);
+}
+
+.session-resume__text {
+  font-size: 1.2rem;
+  color: var(--color-text-light);
+}
+
 /* === Celebration === */
 .session-celebration {
   justify-content: center;

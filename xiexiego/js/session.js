@@ -228,8 +228,11 @@ export function renderSession(app, storage, navigate) {
   }
 
   // Try to restore a saved session; if none, build a fresh one
+  let isRestored = false;
   if (!restoreSession()) {
     buildSessionPlan();
+  } else {
+    isRestored = true;
   }
 
   /** Abort current activity audio */
@@ -457,5 +460,25 @@ export function renderSession(app, storage, navigate) {
     });
   }
 
-  render();
+  // On restored sessions, show a resume prompt so the user taps first.
+  // This user gesture unlocks audio on mobile browsers.
+  if (isRestored) {
+    const word = sessionPlan[currentIndex]?.word;
+    app.innerHTML = `
+      <div class="screen session-resume">
+        <div class="session-resume__content">
+          <div class="session-resume__emoji">${word?.character || '📝'}</div>
+          <p class="session-resume__text">Ready to keep going?</p>
+          <button class="btn btn--primary" id="btn-resume">Continue practicing</button>
+        </div>
+      </div>
+    `;
+    app.querySelector('#btn-resume').addEventListener('click', () => {
+      playClick();
+      isRestored = false;
+      render();
+    });
+  } else {
+    render();
+  }
 }
