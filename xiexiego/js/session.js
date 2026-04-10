@@ -267,7 +267,7 @@ export function renderSession(app, storage, navigate) {
   window.addEventListener('keydown', onKeyDown);
   function cleanupKeyboard() { window.removeEventListener('keydown', onKeyDown); }
 
-  let prevIndex = 0; // Track previous index for progress animation
+  let prevIndex = currentIndex; // Start at current so first render doesn't animate
 
   function render() {
     if (currentIndex >= sessionPlan.length) {

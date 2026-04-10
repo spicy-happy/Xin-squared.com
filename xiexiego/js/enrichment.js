@@ -473,11 +473,8 @@ function getEnglishVoice() {
 }
 
 export function speakChinese(text, rate = 0.65) {
-  return new Promise(async (resolve, reject) => {
-    if (!('speechSynthesis' in window)) {
-      reject(new Error('Speech synthesis not supported'));
-      return;
-    }
+  return new Promise(async (resolve) => {
+    if (!('speechSynthesis' in window)) { resolve(); return; }
     await waitForVoices();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -486,7 +483,11 @@ export function speakChinese(text, rate = 0.65) {
     const voice = getChineseVoice();
     if (voice) utterance.voice = voice;
     utterance.onend = resolve;
-    utterance.onerror = reject;
+    utterance.onerror = resolve; // don't block on error
+    // Safety timeout — some browsers never fire onend/onerror
+    const timeout = setTimeout(resolve, 5000);
+    utterance.onend = () => { clearTimeout(timeout); resolve(); };
+    utterance.onerror = () => { clearTimeout(timeout); resolve(); };
     window.speechSynthesis.speak(utterance);
   });
 }
@@ -538,8 +539,10 @@ export function speakEnglish(text) {
     utterance.rate = 0.85;
     const voice = getEnglishVoice();
     if (voice) utterance.voice = voice;
-    utterance.onend = resolve;
-    utterance.onerror = resolve; // don't block on error
+    // Safety timeout — some browsers never fire onend/onerror
+    const timeout = setTimeout(resolve, 5000);
+    utterance.onend = () => { clearTimeout(timeout); resolve(); };
+    utterance.onerror = () => { clearTimeout(timeout); resolve(); };
     window.speechSynthesis.speak(utterance);
   });
 }
