@@ -40,6 +40,9 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
     app.innerHTML = `
       <div class="screen onboarding">
         <div class="onboarding__content">
+          <div class="onboarding__warning">
+            This app is still in testing mode and is actively being improved. Some features may change.
+          </div>
           <h1 class="onboarding__title" style="font-size: 1.5rem;">How it works</h1>
           <div class="how-it-works">
             <div class="how-step">
