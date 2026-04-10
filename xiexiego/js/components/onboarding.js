@@ -1,12 +1,11 @@
 /**
- * Onboarding — four-screen flow:
+ * Onboarding — three-screen flow:
  *   1. Welcome + testing warning
  *   2. Create profile (name, avatar, age)
- *   3. Pick a word pack
- *   4. Select categories from the pack
+ *   3. Pick a word pack → loads all words from it
  */
 
-import { enrichCharacters, parseAndEnrich } from '../enrichment.js';
+import { parseAndEnrich } from '../enrichment.js';
 import { playClick } from '../sounds.js';
 
 const AVATARS = ['🐼', '🐉', '🌸', '🎋', '🏮', '🦊', '🐯', '🐰', '🌈', '🦋', '🐬', '🌻'];
@@ -25,14 +24,12 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
   let step = skipWelcome ? 1 : 0;
   let profileData = { name: '', avatar: AVATARS[0], age: null };
   let selectedPack = null;
-  let selectedCategories = new Set();
 
   function render() {
     switch (step) {
       case 0: renderWelcome(); break;
       case 1: renderCreateProfile(); break;
       case 2: renderPickPack(); break;
-      case 3: renderPickCategories(); break;
     }
   }
 
@@ -188,126 +185,46 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
           </p>
 
           <div class="pack-grid">
-            ${packs.map(p => `
+            ${packs.map(p => {
+              const totalWords = p.categories.reduce((sum, c) => sum + c.words.length, 0);
+              return `
               <button class="pack-card ${selectedPack?.id === p.id ? 'pack-card--selected' : ''}" data-pack-id="${p.id}">
                 <span class="pack-card__icon">${p.icon}</span>
                 <div class="pack-card__info">
                   <strong class="pack-card__name">${p.name}</strong>
                   <span class="pack-card__desc">${p.description}</span>
-                  <span class="pack-card__meta">Ages ${p.ageRange} · ${p.categories.length} categories</span>
+                  <span class="pack-card__meta">Ages ${p.ageRange} · ${totalWords} words</span>
                 </div>
               </button>
-            `).join('')}
+            `}).join('')}
           </div>
         </div>
 
         <div class="onboarding__actions">
           <div class="onboarding__nav-row">
             <button class="btn btn--secondary" id="btn-back">Back</button>
-            <button class="btn btn--primary" id="btn-next" ${!selectedPack ? 'disabled' : ''}>Next</button>
-          </div>
-        </div>
-      </div>
-    `;
-
-    const btnNext = app.querySelector('#btn-next');
-
-    app.querySelectorAll('.pack-card').forEach(card => {
-      card.addEventListener('click', () => {
-        playClick();
-        const packId = card.dataset.packId;
-        selectedPack = packs.find(p => p.id === packId);
-        selectedCategories = new Set();
-        app.querySelectorAll('.pack-card').forEach(c => c.classList.remove('pack-card--selected'));
-        card.classList.add('pack-card--selected');
-        btnNext.disabled = false;
-      });
-    });
-
-    btnNext.addEventListener('click', () => {
-      playClick();
-      step = 3;
-      render();
-    });
-    app.querySelector('#btn-back').addEventListener('click', () => {
-      playClick();
-      step = 1;
-      render();
-    });
-  }
-
-  async function renderPickCategories() {
-    if (!selectedPack) { step = 2; render(); return; }
-
-    // Pre-select first 3 categories if nothing selected yet
-    if (selectedCategories.size === 0) {
-      selectedPack.categories.slice(0, 3).forEach(c => selectedCategories.add(c.name));
-    }
-
-    const totalWords = selectedPack.categories
-      .filter(c => selectedCategories.has(c.name))
-      .reduce((sum, c) => sum + c.words.length, 0);
-
-    app.innerHTML = `
-      <div class="screen onboarding">
-        <div class="onboarding__content">
-          <h1 class="onboarding__title">${selectedPack.icon} ${selectedPack.name}</h1>
-          <p class="onboarding__desc">
-            Pick categories for ${profileData.name || 'your child'} to start with.
-            <strong id="word-count">${totalWords} words selected</strong>
-          </p>
-
-          <div class="category-list">
-            ${selectedPack.categories.map(cat => `
-              <button class="category-chip ${selectedCategories.has(cat.name) ? 'category-chip--selected' : ''}"
-                      data-category="${cat.name}">
-                <span class="category-chip__name">${cat.name}</span>
-                <span class="category-chip__count">${cat.words.length}</span>
-              </button>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="onboarding__actions">
-          <div class="onboarding__nav-row">
-            <button class="btn btn--secondary" id="btn-back">Back</button>
-            <button class="btn btn--primary" id="btn-start" ${selectedCategories.size === 0 ? 'disabled' : ''}>
-              Let's Start!
-            </button>
+            <button class="btn btn--primary" id="btn-start" ${!selectedPack ? 'disabled' : ''}>Let's Start!</button>
           </div>
         </div>
       </div>
     `;
 
     const startBtn = app.querySelector('#btn-start');
-    const wordCountEl = app.querySelector('#word-count');
 
-    function updateCount() {
-      const count = selectedPack.categories
-        .filter(c => selectedCategories.has(c.name))
-        .reduce((sum, c) => sum + c.words.length, 0);
-      wordCountEl.textContent = `${count} words selected`;
-      startBtn.disabled = selectedCategories.size === 0;
-    }
-
-    app.querySelectorAll('.category-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
+    app.querySelectorAll('.pack-card').forEach(card => {
+      card.addEventListener('click', () => {
         playClick();
-        const name = chip.dataset.category;
-        if (selectedCategories.has(name)) {
-          selectedCategories.delete(name);
-          chip.classList.remove('category-chip--selected');
-        } else {
-          selectedCategories.add(name);
-          chip.classList.add('category-chip--selected');
-        }
-        updateCount();
+        const packId = card.dataset.packId;
+        selectedPack = packs.find(p => p.id === packId);
+        app.querySelectorAll('.pack-card').forEach(c => c.classList.remove('pack-card--selected'));
+        card.classList.add('pack-card--selected');
+        startBtn.disabled = false;
       });
     });
 
-    // Start — collect words from selected categories, enrich, and save
+    // Start — collect ALL words from selected pack, enrich, and save
     startBtn.addEventListener('click', async () => {
-      if (selectedCategories.size === 0) return;
+      if (!selectedPack) return;
       playClick();
 
       startBtn.textContent = 'Setting up...';
@@ -316,11 +233,10 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
       try {
         const profile = storage.addProfile(profileData);
 
-        // Collect all words from selected categories (deduplicated)
+        // Collect all words from all categories (deduplicated)
         const seen = new Set();
         const allWords = [];
         for (const cat of selectedPack.categories) {
-          if (!selectedCategories.has(cat.name)) continue;
           for (const w of cat.words) {
             if (!seen.has(w)) {
               seen.add(w);
@@ -337,12 +253,10 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
         navigate('session');
       } catch (err) {
         console.error('Enrichment failed:', err);
-        // Fallback: save words without enrichment
         const profile = storage.addProfile(profileData);
         const words = [];
         const seen = new Set();
         for (const cat of selectedPack.categories) {
-          if (!selectedCategories.has(cat.name)) continue;
           for (const w of cat.words) {
             if (!seen.has(w)) {
               seen.add(w);
@@ -358,7 +272,7 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
 
     app.querySelector('#btn-back').addEventListener('click', () => {
       playClick();
-      step = 2;
+      step = 1;
       render();
     });
   }
