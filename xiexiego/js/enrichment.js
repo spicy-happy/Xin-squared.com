@@ -150,10 +150,99 @@ const EXAMPLES = {
   '再见': { zh: '说再见', en: 'say goodbye' },
   '家': { zh: '回家', en: 'go home' },
   '耳': { zh: '耳朵', en: 'ear' },
+  // Body & appearance
+  '脸': { zh: '洗脸', en: 'wash face' },
+  '头': { zh: '头发', en: 'hair' },
+  '眼': { zh: '眼睛', en: 'eyes' },
+  '鼻': { zh: '鼻子', en: 'nose' },
+  '嘴': { zh: '嘴巴', en: 'mouth' },
+  '牙': { zh: '牙齿', en: 'teeth' },
+  '身': { zh: '身体', en: 'body' },
+  '发': { zh: '头发', en: 'hair' },
+  '足': { zh: '手足', en: 'hands and feet' },
+  // Animals
+  '猫': { zh: '小猫', en: 'kitten' },
+  '狗': { zh: '小狗', en: 'puppy' },
+  '鱼': { zh: '小鱼', en: 'little fish' },
+  '羊': { zh: '小羊', en: 'little lamb' },
+  '虫': { zh: '小虫', en: 'little bug' },
+  '草': { zh: '小草', en: 'little grass' },
+  // Colors
+  '黑': { zh: '黑色', en: 'black color' },
+  '黄': { zh: '黄色', en: 'yellow color' },
+  '蓝': { zh: '蓝色', en: 'blue color' },
+  '绿': { zh: '绿色', en: 'green color' },
+  '紫': { zh: '紫色', en: 'purple color' },
+  // Food
+  '饭': { zh: '吃饭', en: 'eat rice' },
+  '米': { zh: '米饭', en: 'rice' },
+  '肉': { zh: '鸡肉', en: 'chicken meat' },
+  '蛋': { zh: '鸡蛋', en: 'egg' },
+  '茶': { zh: '喝茶', en: 'drink tea' },
+  '奶': { zh: '牛奶', en: 'milk' },
+  // Nature
+  '石': { zh: '石头', en: 'rock' },
+  '田': { zh: '田地', en: 'field' },
+  '树': { zh: '大树', en: 'big tree' },
+  // Actions
+  '走': { zh: '走路', en: 'walk' },
+  '跑': { zh: '跑步', en: 'run' },
+  '飞': { zh: '飞机', en: 'airplane' },
+  '看': { zh: '看书', en: 'read a book' },
+  '听': { zh: '听话', en: 'listen well' },
+  '吃': { zh: '吃饭', en: 'eat' },
+  '喝': { zh: '喝水', en: 'drink water' },
+  '写': { zh: '写字', en: 'write characters' },
+  '读': { zh: '读书', en: 'study' },
+  '画': { zh: '画画', en: 'draw pictures' },
+  '玩': { zh: '玩耍', en: 'play' },
+  '睡': { zh: '睡觉', en: 'sleep' },
+  '坐': { zh: '坐下', en: 'sit down' },
+  '站': { zh: '站起来', en: 'stand up' },
+  '开': { zh: '开门', en: 'open the door' },
+  '关': { zh: '关门', en: 'close the door' },
+  '买': { zh: '买东西', en: 'buy things' },
+  '穿': { zh: '穿衣服', en: 'put on clothes' },
+  '洗': { zh: '洗手', en: 'wash hands' },
+  // Feelings
+  '笑': { zh: '大笑', en: 'laugh' },
+  '哭': { zh: '哭了', en: 'cried' },
+  '爱': { zh: '爱你', en: 'love you' },
+  '想': { zh: '想你', en: 'miss you' },
+  // Family
+  '爸': { zh: '爸爸', en: 'dad' },
+  '妈': { zh: '妈妈', en: 'mom' },
+  '哥': { zh: '哥哥', en: 'big brother' },
+  '姐': { zh: '姐姐', en: 'big sister' },
+  '弟': { zh: '弟弟', en: 'little brother' },
+  '妹': { zh: '妹妹', en: 'little sister' },
+  '爷': { zh: '爷爷', en: 'grandpa' },
+  // School
+  '书': { zh: '看书', en: 'read a book' },
+  '笔': { zh: '铅笔', en: 'pencil' },
+  '课': { zh: '上课', en: 'class time' },
+  '校': { zh: '学校', en: 'school' },
+  // Misc
+  '门': { zh: '开门', en: 'open the door' },
+  '车': { zh: '汽车', en: 'car' },
+  '路': { zh: '走路', en: 'walk on the road' },
+  '星': { zh: '星星', en: 'stars' },
+  '心': { zh: '开心', en: 'happy' },
+  '春': { zh: '春天', en: 'spring' },
+  '夏': { zh: '夏天', en: 'summer' },
+  '秋': { zh: '秋天', en: 'autumn' },
+  '冬': { zh: '冬天', en: 'winter' },
+  '雪': { zh: '下雪', en: 'snowing' },
+  '晴': { zh: '晴天', en: 'sunny day' },
 };
 
-// Blocklist for violent/inappropriate compound words — kids' app
-const BLOCKED_EXAMPLES = new Set(['耳光', '打人', '杀', '死', '杀人', '打死', '杀死']);
+// Blocklist for violent/inappropriate/weird compound words — kids' app
+const BLOCKED_EXAMPLES = new Set([
+  '耳光', '打人', '杀', '死', '杀人', '打死', '杀死',
+  '脸厚', '厚脸', '脸红', '脸皮', '牙疼', '头疼', '肚疼',
+  '打架', '吵架', '骂人', '恨', '怒', '毒', '血', '伤',
+  '醉', '酒', '烟', '赌', '偷', '抢', '骗',
+]);
 
 /**
  * Get an example for a character. Tries hardcoded table first,
@@ -169,7 +258,7 @@ function getExample(char) {
       if (key.startsWith(char) && key.length === 2 && !BLOCKED_EXAMPLES.has(key)) {
         const comp = compoundsIndex[key];
         const meaning = (comp.d || []).map(cleanDefinition).filter(Boolean)[0];
-        if (meaning) return { zh: key, en: meaning };
+        if (meaning && !INAPPROPRIATE.test(meaning)) return { zh: key, en: meaning };
       }
     }
     // Look for compounds ending with this char
@@ -177,7 +266,7 @@ function getExample(char) {
       if (key.endsWith(char) && key.length === 2 && !BLOCKED_EXAMPLES.has(key)) {
         const comp = compoundsIndex[key];
         const meaning = (comp.d || []).map(cleanDefinition).filter(Boolean)[0];
-        if (meaning) return { zh: key, en: meaning };
+        if (meaning && !INAPPROPRIATE.test(meaning)) return { zh: key, en: meaning };
       }
     }
   }
