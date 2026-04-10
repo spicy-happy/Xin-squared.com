@@ -52,7 +52,28 @@ const QUIZ_TYPES = [
  * Returns array of distractor word objects (without the target).
  */
 function pickDistractors(targetWord, wordBank, count = 3) {
-  const others = wordBank.filter(w => w.character !== targetWord.character && (w.meaning || w.meanings?.length));
+  const targetMeaning = (targetWord.meaning || targetWord.meanings?.[0] || '').toLowerCase();
+  const targetWords = targetMeaning.split(/\s*[\/,]\s*/).filter(Boolean);
+
+  const others = wordBank.filter(w => {
+    if (w.character === targetWord.character) return false;
+    const m = w.meaning || w.meanings?.[0];
+    if (!m) return false;
+    // Exclude words with overlapping meaning to avoid confusing options
+    const wMeaning = m.toLowerCase();
+    const wWords = wMeaning.split(/\s*[\/,]\s*/).filter(Boolean);
+    // Check if any meaning word overlaps (e.g. both have "eye")
+    for (const tw of targetWords) {
+      for (const ww of wWords) {
+        if (tw === ww) return false;
+        // Also check if one contains the other (e.g. "eye" vs "eyebrow")
+        if (tw.length > 2 && ww.startsWith(tw)) return false;
+        if (ww.length > 2 && tw.startsWith(ww)) return false;
+      }
+    }
+    return true;
+  });
+
   const targetLen = targetWord.character.length;
   // Prefer same-length words as distractors
   const sameLen = others.filter(w => w.character.length === targetLen);
