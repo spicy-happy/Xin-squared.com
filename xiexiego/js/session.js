@@ -474,6 +474,7 @@ export function renderSession(app, storage, navigate) {
       playClick();
       buildSessionPlan();
       currentIndex = 0;
+      prevIndex = 0;
       render();
     });
     app.querySelector('#btn-done').addEventListener('click', () => {
