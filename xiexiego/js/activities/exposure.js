@@ -123,11 +123,11 @@ export async function renderExposure(container, word, onComplete) {
     if (skipBtn) skipBtn.style.display = 'none';
     if (replayBtn) {
       replayBtn.style.visibility = 'visible';
-      replayBtn.style.animation = 'fadeIn 0.3s ease-out';
+      replayBtn.style.opacity = '1';
     }
     if (continueBtn) {
       continueBtn.style.visibility = 'visible';
-      continueBtn.style.animation = 'fadeIn 0.3s ease-out';
+      continueBtn.style.opacity = '1';
     }
   }
 

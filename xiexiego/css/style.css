@@ -1581,10 +1581,14 @@ input {
 
 .activity__replay {
   flex: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
 }
 
 .activity__continue {
   flex: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
 }
 
 /* === Quiz Activities === */
