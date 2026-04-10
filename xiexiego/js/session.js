@@ -493,6 +493,7 @@ export function renderSession(app, storage, navigate) {
           <div class="session-resume__emoji">${word?.character || '📝'}</div>
           <p class="session-resume__text">Ready to keep going?</p>
           <button class="btn btn--primary" id="btn-resume">Continue practicing</button>
+          <button class="btn btn--secondary" id="btn-quit" style="margin-top: 8px;">Quit session</button>
         </div>
       </div>
     `;
@@ -500,6 +501,12 @@ export function renderSession(app, storage, navigate) {
       playClick();
       isRestored = false;
       render();
+    });
+    app.querySelector('#btn-quit').addEventListener('click', () => {
+      playClick();
+      clearSessionState();
+      cleanupKeyboard();
+      navigate('profiles');
     });
   } else {
     render();
