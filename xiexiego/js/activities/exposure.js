@@ -120,7 +120,7 @@ export async function renderExposure(container, word, onComplete) {
 
   /** Show buttons and hide skip */
   function showButtons() {
-    if (skipBtn) skipBtn.style.display = 'none';
+    if (skipBtn) skipBtn.style.visibility = 'hidden';
     if (replayBtn) {
       replayBtn.style.visibility = 'visible';
       replayBtn.style.opacity = '1';
