@@ -196,22 +196,45 @@ export function renderSession(app, storage, navigate) {
       shuffle(picked);
     }
 
-    // Build plan: exposure for new words, box-level-appropriate quiz for seen words
-    const plan = [];
+    // Build plan: mix of exposure + quizzes.
+    // New words get exposure first, then a quiz right after.
+    // Seen words get quizzes based on their box level.
+    // Goal: never more than 2 exposures in a row, always interleave.
+    const exposures = [];
+    const quizzes = [];
     let exposureCount = 0;
 
     for (const word of picked) {
       const isNew = !word.lastSeen;
       if (isNew && exposureCount < MAX_EXPOSURES) {
-        plan.push({ word, activityType: 'exposure', render: null });
+        // New word: exposure + follow-up quiz on the same word
+        exposures.push({ word, activityType: 'exposure', render: null });
+        // Add a simple quiz right after (meaning match or audio recognition)
+        const easyQuiz = MC_QUIZ_TYPES[Math.floor(Math.random() * 2)]; // audioRecognition or meaningMatch
+        quizzes.push({ word, activityType: easyQuiz.name, render: easyQuiz.render });
         exposureCount++;
       } else {
+        // Seen word or overflow new: quiz based on level
         const quiz = pickQuizForWord(word);
-        plan.push({ word, activityType: quiz.name, render: quiz.render });
+        quizzes.push({ word, activityType: quiz.name, render: quiz.render });
       }
     }
 
-    // Avoid 3+ of the same activity type in a row — swap with an MC quiz
+    // Interleave: exposure, quiz, exposure, quiz, remaining quizzes
+    const plan = [];
+    let ei = 0, qi = 0;
+    while (ei < exposures.length || qi < quizzes.length) {
+      if (ei < exposures.length) plan.push(exposures[ei++]);
+      if (qi < quizzes.length) plan.push(quizzes[qi++]);
+      if (qi < quizzes.length) plan.push(quizzes[qi++]); // 2 quizzes per exposure
+    }
+
+    // Trim to session size (interleaving may have added follow-up quizzes)
+    if (plan.length > sessionSize + MAX_EXPOSURES) {
+      plan.length = sessionSize + MAX_EXPOSURES;
+    }
+
+    // Avoid 3+ of the same activity type in a row — swap with a different MC quiz
     for (let i = 2; i < plan.length; i++) {
       if (plan[i].activityType === plan[i-1].activityType &&
           plan[i].activityType === plan[i-2].activityType &&
