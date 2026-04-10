@@ -118,9 +118,9 @@ export async function renderExposure(container, word, onComplete) {
     setTimeout(() => el.classList.remove('activity__highlight'), 1500);
   }
 
-  /** Show buttons (keep skip visible — tapping again acts as Continue) */
+  /** Show buttons and hide skip */
   function showButtons() {
-    if (skipBtn) skipBtn.textContent = 'skip ››';
+    if (skipBtn) skipBtn.style.display = 'none';
     if (replayBtn) {
       replayBtn.style.visibility = 'visible';
       replayBtn.style.animation = 'fadeIn 0.3s ease-out';
