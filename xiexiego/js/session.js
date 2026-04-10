@@ -234,13 +234,12 @@ export function renderSession(app, storage, navigate) {
       plan.length = sessionSize + MAX_EXPOSURES;
     }
 
-    // Avoid 3+ of the same activity type in a row — swap with a different MC quiz
-    for (let i = 2; i < plan.length; i++) {
+    // Never allow 2 of the same activity type in a row — swap with a different one
+    for (let i = 1; i < plan.length; i++) {
       if (plan[i].activityType === plan[i-1].activityType &&
-          plan[i].activityType === plan[i-2].activityType &&
           plan[i].activityType !== 'exposure') {
-        const mc = MC_QUIZ_TYPES.filter(q => q.name !== plan[i].activityType);
-        const alt = mc[Math.floor(Math.random() * mc.length)];
+        const others = MC_QUIZ_TYPES.filter(q => q.name !== plan[i].activityType);
+        const alt = others[Math.floor(Math.random() * others.length)];
         plan[i].activityType = alt.name;
         plan[i].render = alt.render;
       }
