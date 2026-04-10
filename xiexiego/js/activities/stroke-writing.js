@@ -1,46 +1,50 @@
 /**
- * Stroke Writing Activity — 4 difficulty modes:
- *   1. guided:     Outline + highlighted next stroke, trace stroke by stroke
- *   2. outline:    Outline only, write with no guide strokes
- *   3. flash:      Flash the character briefly, then write from memory
- *   4. memory:     Hear it, write from scratch (no visual help)
+ * Writing Activities — Phase 11
+ * Four writing modes, each exported as a separate renderer:
+ *   1. renderStrokeWriting  — Guided: outline + highlighted next stroke (Stage 3)
+ *   2. renderFreeTrace      — Outline only, write freely (Stage 3-4)
+ *   3. renderFlashWrite     — Flash character with stroke animation, write from memory (Stage 4)
+ *   4. renderFreeWrite      — Audio only, blank canvas dictation (Stage 4-5)
  *
- * For compound words, all characters shown side by side,
- * one active writing area at a time.
+ * All renderers share the signature:
+ *   (container, word, distractors, onResult, level)
+ * where level (1-4) adjusts HanziWriter leniency and hint thresholds per spec Section 9.
  */
 
-import { speakChinese, speakEnglish } from '../enrichment.js';
+import { speakChinese } from '../enrichment.js';
 import { playSparkle, playChime, playClick } from '../sounds.js';
 
 function formatMeaning(m) {
   return (m || '').replace(/\s*\/\s*/g, ' or ');
 }
 
-/**
- * Pick writing mode based on Leitner box.
- */
-function pickMode(word) {
-  const box = word.box || 1;
-  if (box <= 1) return 'guided';
-  if (box <= 2) return 'outline';
-  if (box <= 3) return 'flash';
-  // Memory mode requires box 5 — kids need lots of practice before
-  // writing with zero visual help. Box 4 still gets flash mode.
-  if (box <= 4) return 'flash';
-  return 'memory';
-}
+/** Level-specific HanziWriter settings per spec Section 9. */
+const LEVEL_SETTINGS = {
+  1: { leniency: 1.5, hintAfterMisses: 2 },
+  2: { leniency: 1.4, hintAfterMisses: 2 },
+  3: { leniency: 1.3, hintAfterMisses: 3 },
+  4: { leniency: 1.2, hintAfterMisses: 3 },
+};
+
+/** Pass criteria per mode (max mistakes to count as correct). */
+const PASS_CRITERIA = {
+  guided: 3,   // Stroke tracing: ≤3 mistakes
+  outline: 2,  // Free trace: ≤2 mistakes, no hints
+  flash: 2,    // Flash and write: ≤2 mistakes
+  memory: 1,   // Free write: ≤1 mistake, no hints
+};
 
 /**
- * Render the stroke writing activity.
+ * Core writing activity renderer shared by all modes.
  */
-export async function renderStrokeWriting(container, word, distractors, onResult) {
-  const mode = pickMode(word);
+async function renderWrite(container, word, mode, level, onResult) {
+  const lvl = LEVEL_SETTINGS[level] || LEVEL_SETTINGS[2];
   const meaning = formatMeaning(word.meaning || word.meanings?.[0] || '');
   const chars = word.character.split('');
   const isCompound = chars.length > 1;
   let totalMistakes = 0;
+  let hintUsed = false;
   let aborted = false;
-  let resolved = false;
 
   function abort() {
     aborted = true;
@@ -55,9 +59,12 @@ export async function renderStrokeWriting(container, word, distractors, onResult
   const modeLabels = {
     guided: 'Trace the strokes',
     outline: 'Write the character',
-    flash: 'Write from memory',
-    memory: 'Write from memory',
+    flash: 'Watch, then write!',
+    memory: 'Listen and write',
   };
+
+  // Memory mode: no meaning shown — audio only per spec
+  const showMeaning = mode !== 'memory' && meaning;
 
   container.innerHTML = `
     <div class="activity activity--stroke">
@@ -66,11 +73,11 @@ export async function renderStrokeWriting(container, word, distractors, onResult
         <button class="quiz__speaker quiz__speaker--small" id="stroke-speaker">
           <svg class="quiz__speaker-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         </button>
-        ${meaning && mode !== 'memory' ? `<p class="stroke__meaning">${meaning}</p>` : ''}
+        ${showMeaning ? `<p class="stroke__meaning">${meaning}</p>` : ''}
         <div class="stroke__area" id="stroke-area">
           ${chars.map((_, i) => `
             <div class="stroke__slot ${i === 0 ? 'stroke__slot--active' : ''}" id="stroke-slot-${i}">
-              <div id="stroke-writer-${i}" class="stroke__writer"></div>
+              <div id="stroke-writer-${i}" class="stroke__writer stroke__writer--grid"></div>
             </div>
           `).join('')}
         </div>
@@ -82,6 +89,11 @@ export async function renderStrokeWriting(container, word, distractors, onResult
             <button class="stroke__pencil ${i === 0 ? 'stroke__pencil--selected' : ''}" data-color="${c}" style="background:${c}"></button>
           `).join('')}
         </div>
+        ${mode === 'memory' ? `
+          <button class="btn btn--secondary stroke__hint-btn" id="stroke-hint">
+            Show hint
+          </button>
+        ` : ''}
         <div class="quiz__feedback" id="stroke-feedback"></div>
       </div>
     </div>
@@ -91,6 +103,7 @@ export async function renderStrokeWriting(container, word, distractors, onResult
 
   const speakerBtn = container.querySelector('#stroke-speaker');
   const feedbackEl = container.querySelector('#stroke-feedback');
+  const hintBtn = container.querySelector('#stroke-hint');
   let drawingColor = '#2D3436';
 
   // Speaker button
@@ -109,7 +122,6 @@ export async function renderStrokeWriting(container, word, distractors, onResult
       pencilBtns.forEach(b => b.classList.remove('stroke__pencil--selected'));
       btn.classList.add('stroke__pencil--selected');
       playClick();
-      // Update drawing color on all writers
       writers.forEach(w => {
         if (w) {
           try { w.updateColor('drawingColor', drawingColor); } catch {}
@@ -123,38 +135,38 @@ export async function renderStrokeWriting(container, word, distractors, onResult
     if (!aborted) speakChinese(word.character, 0.5);
   }, 300);
 
-  // HanziWriter quiz options per mode
+  // HanziWriter quiz options per mode, adjusted for level
   const quizOpts = {
     guided: {
       showOutline: true,
       showCharacter: true,
-      showHintAfterMisses: 0, // Always show the blue next-stroke hint
+      showHintAfterMisses: 0, // Always show blue next-stroke hint
       highlightOnComplete: true,
-      leniency: 1.5,
+      leniency: lvl.leniency,
       strokeHighlightSpeed: 0.5,
     },
     outline: {
       showOutline: true,
       showCharacter: false,
-      showHintAfterMisses: 3,
+      showHintAfterMisses: lvl.hintAfterMisses,
       highlightOnComplete: true,
-      leniency: 1.2,
+      leniency: lvl.leniency,
     },
     flash: {
-      showOutline: true,
+      // Per spec: showOutline: false after flash — kid writes on blank canvas
+      showOutline: false,
       showCharacter: false,
-      showHintAfterMisses: 3,
+      showHintAfterMisses: lvl.hintAfterMisses,
       highlightOnComplete: true,
-      leniency: 1.0,
+      leniency: lvl.leniency,
     },
     memory: {
-      // Show outline so the screen is never blank — kid still needs
-      // to recall stroke order but has the shape as a guide
-      showOutline: true,
+      // Per spec: completely blank canvas with only grid
+      showOutline: false,
       showCharacter: false,
-      showHintAfterMisses: 3,
+      showHintAfterMisses: lvl.hintAfterMisses,
       highlightOnComplete: true,
-      leniency: 1.0,
+      leniency: lvl.leniency,
     },
   };
 
@@ -190,17 +202,42 @@ export async function renderStrokeWriting(container, word, distractors, onResult
     }
   }
 
-  // Guided mode: character stays visible (showCharacter: true),
-  // no need for a show/hide dance — just go straight to quiz.
-
-  // Flash mode: show character briefly then hide
+  // Flash mode: animate stroke order, keep visible ~3s total, then hide
   if (mode === 'flash') {
+    // Show character first, then animate stroke order
     writers.forEach(w => { if (w) w.showCharacter(); });
-    await new Promise(r => setTimeout(r, 2000));
+    const animations = writers.map(w => {
+      if (!w) return Promise.resolve();
+      return new Promise(resolve => {
+        w.animateCharacter({ onComplete: resolve });
+      });
+    });
+    await Promise.all(animations);
     if (aborted) return;
+
+    // Brief pause after animation completes (~3s total display)
+    await new Promise(r => setTimeout(r, 1000));
+    if (aborted) return;
+
+    // Hide character — canvas becomes blank (outline already off)
     writers.forEach(w => { if (w) w.hideCharacter(); });
     await new Promise(r => setTimeout(r, 300));
     if (aborted) return;
+  }
+
+  // Hint button for memory/dictation mode — reveals outline briefly
+  if (hintBtn) {
+    hintBtn.addEventListener('click', () => {
+      if (aborted) return;
+      hintUsed = true;
+      playClick();
+      writers.forEach(w => { if (w) w.showOutline(); });
+      hintBtn.disabled = true;
+      hintBtn.textContent = 'Hint used';
+      setTimeout(() => {
+        if (!aborted) writers.forEach(w => { if (w) w.hideOutline(); });
+      }, 1500);
+    });
   }
 
   // Quiz each character sequentially
@@ -223,12 +260,8 @@ export async function renderStrokeWriting(container, word, distractors, onResult
     // Run HanziWriter quiz for this character
     await new Promise((resolve) => {
       w.quiz({
-        onMistake: () => {
-          totalMistakes++;
-        },
-        onComplete: () => {
-          resolve();
-        }
+        onMistake: () => { totalMistakes++; },
+        onComplete: () => { resolve(); }
       });
     });
 
@@ -249,7 +282,6 @@ export async function renderStrokeWriting(container, word, distractors, onResult
   }
 
   if (aborted) return;
-  resolved = true;
 
   // Mark all slots done
   container.querySelectorAll('.stroke__slot').forEach(slot => {
@@ -257,12 +289,47 @@ export async function renderStrokeWriting(container, word, distractors, onResult
     slot.classList.add('stroke__slot--done');
   });
 
-  // Celebration
+  // Determine pass based on mode-specific criteria
+  const maxMistakes = PASS_CRITERIA[mode];
+  const noHintRequired = mode === 'outline' || mode === 'memory';
+  const passed = totalMistakes <= maxMistakes && (!noHintRequired || !hintUsed);
+
+  // Feedback
   playSparkle();
-  feedbackEl.textContent = totalMistakes === 0 ? 'Perfect!' : 'Well done!';
+  if (passed && totalMistakes === 0) {
+    feedbackEl.textContent = 'Perfect!';
+  } else if (passed) {
+    feedbackEl.textContent = 'Well done!';
+  } else {
+    feedbackEl.textContent = 'Good effort! Keep practicing!';
+  }
 
   await new Promise(r => setTimeout(r, 400));
   if (!aborted) await speakChinese(word.character, 0.5);
   await new Promise(r => setTimeout(r, 1200));
-  if (!aborted) onResult({ correct: totalMistakes === 0, attempts: totalMistakes });
+  if (!aborted) onResult({ correct: passed, attempts: totalMistakes });
+}
+
+// --- Exported renderers ---
+// All share (container, word, distractors, onResult, level) signature.
+// distractors is unused by writing activities but kept for uniform interface.
+
+/** Guided stroke tracing — Stage 3. Outline + next-stroke highlight. */
+export async function renderStrokeWriting(container, word, distractors, onResult, level) {
+  return renderWrite(container, word, 'guided', level || 2, onResult);
+}
+
+/** Free trace — Stage 3-4. Faded outline only, no stroke highlighting. */
+export async function renderFreeTrace(container, word, distractors, onResult, level) {
+  return renderWrite(container, word, 'outline', level || 2, onResult);
+}
+
+/** Flash and write — Stage 4. Animated stroke order for 3s, then write from memory. */
+export async function renderFlashWrite(container, word, distractors, onResult, level) {
+  return renderWrite(container, word, 'flash', level || 2, onResult);
+}
+
+/** Free write / dictation — Stage 4-5. Audio only, blank canvas with hint button. */
+export async function renderFreeWrite(container, word, distractors, onResult, level) {
+  return renderWrite(container, word, 'memory', level || 2, onResult);
 }

@@ -9,7 +9,7 @@ import { renderAudioRecognition } from './activities/audio-recognition.js';
 import { renderMeaningMatch } from './activities/meaning-match.js';
 import { renderPinyinMatch } from './activities/pinyin-match.js';
 import { renderReverseMeaning } from './activities/reverse-meaning.js';
-import { renderStrokeWriting } from './activities/stroke-writing.js';
+import { renderStrokeWriting, renderFreeTrace, renderFlashWrite, renderFreeWrite } from './activities/stroke-writing.js';
 import { speakChinese } from './enrichment.js';
 import { playCelebration, playClick, playLevelUp } from './sounds.js';
 
@@ -22,8 +22,7 @@ function shuffle(arr) {
   return arr;
 }
 
-/** Quiz activity renderers */
-/** Quiz types that need distractors */
+/** Multiple-choice quiz types (need distractors) */
 const MC_QUIZ_TYPES = [
   { name: 'audioRecognition', render: renderAudioRecognition },
   { name: 'meaningMatch', render: renderMeaningMatch },
@@ -31,10 +30,20 @@ const MC_QUIZ_TYPES = [
   { name: 'reverseMeaning', render: renderReverseMeaning },
 ];
 
-/** All quiz types including stroke writing */
+/** Writing activity types by stage (no distractors needed) */
+const WRITING_TYPES = {
+  strokeWriting: { name: 'strokeWriting', render: renderStrokeWriting },
+  freeTrace:     { name: 'freeTrace',     render: renderFreeTrace },
+  flashWrite:    { name: 'flashWrite',    render: renderFlashWrite },
+  freeWrite:     { name: 'freeWrite',     render: renderFreeWrite },
+};
+
+const WRITING_NAMES = new Set(Object.keys(WRITING_TYPES));
+
+/** All quiz types (MC + guided stroke writing for backward compat) */
 const QUIZ_TYPES = [
   ...MC_QUIZ_TYPES,
-  { name: 'strokeWriting', render: renderStrokeWriting },
+  WRITING_TYPES.strokeWriting,
 ];
 
 /**
@@ -55,31 +64,29 @@ function pickDistractors(targetWord, wordBank, count = 3) {
 }
 
 /**
- * Decide what activity type to use for a word.
- * - Never seen (no lastSeen): exposure
- * - Box 2-3: 40% stroke writing, 60% multiple choice quiz
- * - Box 4+: equal weight across all types
- * - Only use stroke writing for words with stroke data
+ * Pick a quiz activity for a seen word based on its Leitner box.
+ * Writing activities get harder as box advances per 5-stage mastery:
+ *   Box 1:   guided stroke tracing (Stage 3)
+ *   Box 2:   free trace — outline only (Stage 3-4)
+ *   Box 3:   flash and write — from memory (Stage 4)
+ *   Box 4-5: free write / dictation (Stage 4-5)
+ * Writing activities are mixed with MC quizzes at increasing rates.
  */
-function selectActivity(word) {
-  if (!word.lastSeen) {
-    return { type: 'exposure' };
-  }
+function pickQuizForWord(word) {
   const box = word.box || 1;
   const canWrite = word.hasStrokeData !== false;
 
-  // Weight stroke writing higher for intermediate boxes
-  if (canWrite && box >= 2 && box <= 3 && Math.random() < 0.4) {
-    return { type: 'strokeWriting', render: renderStrokeWriting };
+  // Writing probability increases with box level
+  const writeChance = box <= 1 ? 0.3 : box <= 2 ? 0.4 : 0.5;
+
+  if (canWrite && Math.random() < writeChance) {
+    if (box <= 1) return WRITING_TYPES.strokeWriting;
+    if (box <= 2) return WRITING_TYPES.freeTrace;
+    if (box <= 3) return WRITING_TYPES.flashWrite;
+    return WRITING_TYPES.freeWrite;
   }
 
-  const quiz = QUIZ_TYPES[Math.floor(Math.random() * QUIZ_TYPES.length)];
-  // If stroke writing was picked but no stroke data, pick MC instead
-  if (quiz.name === 'strokeWriting' && !canWrite) {
-    const mc = MC_QUIZ_TYPES[Math.floor(Math.random() * MC_QUIZ_TYPES.length)];
-    return { type: mc.name, render: mc.render };
-  }
-  return { type: quiz.name, render: quiz.render };
+  return MC_QUIZ_TYPES[Math.floor(Math.random() * MC_QUIZ_TYPES.length)];
 }
 
 /**
@@ -130,7 +137,7 @@ export function renderSession(app, storage, navigate) {
       shuffle(picked);
     }
 
-    // Build plan: exposure for new words, quiz for seen words
+    // Build plan: exposure for new words, box-level-appropriate quiz for seen words
     const plan = [];
     let exposureCount = 0;
 
@@ -140,19 +147,18 @@ export function renderSession(app, storage, navigate) {
         plan.push({ word, activityType: 'exposure', render: null });
         exposureCount++;
       } else {
-        // Quiz — pick a random quiz type
-        const quiz = QUIZ_TYPES[Math.floor(Math.random() * QUIZ_TYPES.length)];
+        const quiz = pickQuizForWord(word);
         plan.push({ word, activityType: quiz.name, render: quiz.render });
       }
     }
 
-    // Avoid 3+ of the same activity type in a row — swap if needed
+    // Avoid 3+ of the same activity type in a row — swap with an MC quiz
     for (let i = 2; i < plan.length; i++) {
       if (plan[i].activityType === plan[i-1].activityType &&
           plan[i].activityType === plan[i-2].activityType &&
           plan[i].activityType !== 'exposure') {
-        const others = QUIZ_TYPES.filter(q => q.name !== plan[i].activityType);
-        const alt = others[Math.floor(Math.random() * others.length)];
+        const mc = MC_QUIZ_TYPES.filter(q => q.name !== plan[i].activityType);
+        const alt = mc[Math.floor(Math.random() * mc.length)];
         plan[i].activityType = alt.name;
         plan[i].render = alt.render;
       }
@@ -262,11 +268,11 @@ export function renderSession(app, storage, navigate) {
       });
     } else {
       // Quiz activity
-      const needsDistractors = activityType !== 'strokeWriting';
-      const distractors = needsDistractors ? pickDistractors(word, freshProfile.wordBank) : [];
+      const isWriting = WRITING_NAMES.has(activityType);
+      const distractors = isWriting ? [] : pickDistractors(word, freshProfile.wordBank);
 
       // Need at least 1 distractor for MC quizzes; fall back to exposure
-      if (needsDistractors && distractors.length === 0) {
+      if (!isWriting && distractors.length === 0) {
         renderExposure(container, word, () => {
           storage.updateWordInProfile(profileId, word.character, {
             box: Math.min((word.box || 1) + 1, 5),
@@ -305,7 +311,7 @@ export function renderSession(app, storage, navigate) {
 
         currentIndex++;
         render();
-      });
+      }, profile.level);
     }
   }
 

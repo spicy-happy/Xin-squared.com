@@ -1826,6 +1826,26 @@ input {
   touch-action: none;
 }
 
+/* 田字格 grid overlay for writing canvas */
+.stroke__writer--grid {
+  position: relative;
+  background:
+    linear-gradient(to right, transparent calc(50% - 0.5px), #e0e0e0 calc(50% - 0.5px), #e0e0e0 calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom, transparent calc(50% - 0.5px), #e0e0e0 calc(50% - 0.5px), #e0e0e0 calc(50% + 0.5px), transparent calc(50% + 0.5px));
+}
+
+/* Hint button for free-write / dictation mode */
+.stroke__hint-btn {
+  margin-top: var(--space-sm);
+  font-size: 0.85rem;
+  padding: var(--space-xs) var(--space-md);
+}
+
+.stroke__hint-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .stroke__progress {
   display: flex;
   gap: var(--space-sm);
