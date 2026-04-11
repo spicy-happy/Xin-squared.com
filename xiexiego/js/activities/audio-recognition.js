@@ -5,6 +5,7 @@
 
 import { speakChinese, speakEnglish } from '../enrichment.js';
 import { playSparkle, playBoop, playClick } from '../sounds.js';
+import { t } from '../i18n.js';
 
 /**
  * Render the audio recognition quiz.
@@ -20,6 +21,7 @@ export async function renderAudioRecognition(container, word, distractors, onRes
   let resolved = false;
   let aborted = false;
   let hintUsed = false;
+  const startTime = Date.now();
 
   function abort() {
     aborted = true;
@@ -28,9 +30,9 @@ export async function renderAudioRecognition(container, word, distractors, onRes
 
   container.innerHTML = `
     <div class="activity activity--quiz">
-      ${meaning ? `<button class="quiz__hint-toggle" id="quiz-hint">Hint</button>` : ''}
+      ${meaning ? `<button class="quiz__hint-toggle" id="quiz-hint">${t('activity.hint')}</button>` : ''}
       <div class="activity__body">
-        <p class="quiz__instruction">Which character did you hear?</p>
+        <p class="quiz__instruction">${t('quiz.whichChar')}</p>
         <button class="quiz__speaker" id="quiz-speaker">
           <svg class="quiz__speaker-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
         </button>
@@ -53,7 +55,7 @@ export async function renderAudioRecognition(container, word, distractors, onRes
   const optionBtns = container.querySelectorAll('.quiz__option');
   const hintBtn = container.querySelector('#quiz-hint');
 
-  // Hint: show English meaning (penalty — only partial credit)
+  // Hint: show English meaning + speak it (penalty — only partial credit, can re-press)
   if (hintBtn) {
     hintBtn.addEventListener('click', () => {
       if (aborted || resolved) return;
@@ -61,7 +63,9 @@ export async function renderAudioRecognition(container, word, distractors, onRes
       hintUsed = true;
       hintBtn.textContent = meaning;
       hintBtn.classList.add('quiz__hint-toggle--revealed');
-      hintBtn.disabled = true;
+      window.speechSynthesis?.cancel();
+      // Small delay after cancel to prevent audio cutoff on short words
+      setTimeout(() => speakEnglish(meaning), 80);
     });
   }
 
@@ -97,7 +101,7 @@ export async function renderAudioRecognition(container, word, distractors, onRes
         if (!aborted) await speakChinese(word.character, 0.5);
         if (!aborted && meaning) { await new Promise(r => setTimeout(r, 300)); await speakEnglish(meaning); }
         await new Promise(r => setTimeout(r, 1200));
-        if (!aborted) onResult({ correct: attempts === 0 && !hintUsed, attempts });
+        if (!aborted) onResult({ correct: attempts === 0 && !hintUsed, attempts, hintUsed, responseTimeMs: Date.now() - startTime });
       } else {
         // Wrong
         attempts++;
@@ -105,7 +109,7 @@ export async function renderAudioRecognition(container, word, distractors, onRes
         playBoop();
         btn.disabled = true;
 
-        const encouragements = ['Try again!', 'Almost!', 'Keep trying!'];
+        const encouragements = [t('quiz.tryAgain'), t('quiz.almost'), t('quiz.keepTrying')];
         feedbackEl.textContent = encouragements[Math.min(attempts - 1, 2)];
 
         // After 2 wrong attempts, hint the correct answer with a subtle glow

@@ -6,7 +6,9 @@
  * mmah-index.json: Make Me a Hanzi lookup (~1.6 MB)
  *
  * Key format in cedict-index.json:
- *   { t: traditional, p: pinyin, m: marked pinyin, n: tone, d: [definitions] }
+ *   { t: traditional, p: pinyin, m: marked pinyin, n: tone, d: [definitions],
+ *     ex: example word, r: kangxi radical number (if char IS a radical),
+ *     rv: radical variant (traditional form) }
  *
  * Key format in mmah-index.json:
  *   { c: char, r: radical, k: strokeCount, d: decomposition,
@@ -138,6 +140,13 @@ const EXAMPLES = {
   '一': { zh: '一个', en: 'one (of something)' },
   '二': { zh: '二月', en: 'February' },
   '三': { zh: '三个', en: 'three (of something)' },
+  '四': { zh: '四月', en: 'April' },
+  '五': { zh: '五个', en: 'five (of something)' },
+  '六': { zh: '六月', en: 'June' },
+  '七': { zh: '七月', en: 'July' },
+  '八': { zh: '八月', en: 'August' },
+  '九': { zh: '九月', en: 'September' },
+  '十': { zh: '十个', en: 'ten (of something)' },
   '上': { zh: '上学', en: 'go to school' },
   '下': { zh: '下雨', en: 'rain' },
   '白': { zh: '白云', en: 'white cloud' },
@@ -285,13 +294,20 @@ function getExample(char) {
 }
 
 /**
- * Check if HanziWriter has stroke data for a character on the CDN.
- * Caches results to avoid repeated network requests.
+ * Check if HanziWriter has stroke data for a character.
+ * Tries local bundle first, then CDN. Caches results.
  */
 const strokeCache = {};
 async function checkStrokeData(char) {
   if (char in strokeCache) return strokeCache[char];
 
+  // Try local stroke data first
+  try {
+    const localResp = await fetch(`./js/data/strokes/${encodeURIComponent(char)}.json`, { method: 'HEAD' });
+    if (localResp.ok) { strokeCache[char] = true; return true; }
+  } catch {}
+
+  // Fall back to CDN
   try {
     const resp = await fetch(
       `https://cdn.jsdelivr.net/npm/hanzi-writer-data@2/${encodeURIComponent(char)}.json`,
@@ -302,6 +318,31 @@ async function checkStrokeData(char) {
     strokeCache[char] = false;
   }
   return strokeCache[char];
+}
+
+/**
+ * Trigger stroke pre-caching for new characters via service worker.
+ */
+export function precacheNewStrokes(characters) {
+  if (navigator.serviceWorker?.controller && characters.length > 0) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'PRECACHE_STROKES',
+      characters,
+    });
+  }
+}
+
+/**
+ * Custom charDataLoader for HanziWriter — tries local stroke data first,
+ * then falls back to CDN. Use this in all HanziWriter.create() calls.
+ */
+export function localCharDataLoader(char) {
+  return fetch(`./js/data/strokes/${encodeURIComponent(char)}.json`)
+    .then(r => { if (r.ok) return r.json(); throw new Error('not local'); })
+    .catch(() =>
+      fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data@2/${encodeURIComponent(char)}.json`)
+        .then(r => r.json())
+    );
 }
 
 /**
@@ -337,9 +378,12 @@ export async function enrichCharacter(char) {
     decomposition: mmah?.d || null,
     components: mmah?.o || null,
     etymology: mmah?.e || null,
+    isRadical: cedict?.r != null,
+    radicalNumber: cedict?.r || null,
+    radicalVariant: cedict?.rv || null,
     hasStrokeData,
     enrichmentStatus,
-    example: getExample(char),
+    example: getExample(char) || (cedict?.ex ? { zh: cedict.ex, en: '' } : null),
     audioFile: cedict ? `./audio/${cedict.p}.mp3` : null,
   };
 }
@@ -364,6 +408,51 @@ export async function enrichCharacters(chars) {
  * @param {string} text - Raw Chinese text input
  * @returns {Promise<Object[]>} Array of enriched word objects
  */
+/**
+ * Detect if a token looks like pinyin (romanized Chinese with optional tone marks/numbers).
+ * Matches: dà, xué, xiào, da4, xue2, nǐ, hǎo, lǜ, etc.
+ */
+const PINYIN_RE = /^[a-zA-ZüÜāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]+[1-5]?$/;
+const TONE_CHARS = /[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/;
+function isPinyinToken(token) {
+  if (!token || token.length > 10) return false;
+  return PINYIN_RE.test(token) && (TONE_CHARS.test(token) || /[1-5]$/.test(token));
+}
+
+/**
+ * Parse a line that may contain CJK + pinyin + English.
+ * E.g. "大 dà big" → { chars: "大", pinyin: "dà", meaning: "big" }
+ * E.g. "学校 xué xiào school" → { chars: "学校", pinyin: "xué xiào", meaning: "school" }
+ * Returns null if no CJK found.
+ */
+function parseAnnotatedLine(line) {
+  const tokens = line.trim().split(/\s+/);
+  if (tokens.length === 0) return null;
+
+  // Collect CJK runs, pinyin tokens, and remaining English
+  let chars = '';
+  const pinyinParts = [];
+  const meaningParts = [];
+
+  for (const token of tokens) {
+    const hasCJK = [...token].some(c => c.charCodeAt(0) >= 0x4E00 && c.charCodeAt(0) <= 0x9FFF);
+    if (hasCJK) {
+      chars += [...token].filter(c => c.charCodeAt(0) >= 0x4E00 && c.charCodeAt(0) <= 0x9FFF).join('');
+    } else if (isPinyinToken(token)) {
+      pinyinParts.push(token);
+    } else if (/[a-zA-Z]/.test(token)) {
+      meaningParts.push(token);
+    }
+  }
+
+  if (!chars) return null;
+  return {
+    chars,
+    pinyin: pinyinParts.join(' ') || null,
+    meaning: meaningParts.join(' ') || null,
+  };
+}
+
 export async function parseAndEnrich(text) {
   // Sanitize: limit length, strip anything dangerous
   if (!text || typeof text !== 'string') return [];
@@ -372,24 +461,72 @@ export async function parseAndEnrich(text) {
   await ensureIndices();
   await ensureCompounds();
 
-  // Split by lines/commas/spaces — each segment is treated as a separate word group
+  // Try line-by-line annotated parsing first (e.g. "大 dà big")
+  const lines = text.split(/[\n\r]+/).filter(l => l.trim());
+  const hasAnnotations = lines.some(line => {
+    const parsed = parseAnnotatedLine(line);
+    return parsed && (parsed.pinyin || parsed.meaning);
+  });
+
+  // Store user-provided overrides per character
+  const overrides = {};
+
+  if (hasAnnotations) {
+    // Parse each line as potentially annotated
+    const words = [];
+    for (const line of lines) {
+      const parsed = parseAnnotatedLine(line);
+      if (!parsed) continue;
+      const cjk = parsed.chars;
+
+      // Check if it's a known compound
+      if (cjk.length >= 2 && cjk.length <= 4 && compoundsIndex[cjk]) {
+        words.push(cjk);
+        if (parsed.pinyin || parsed.meaning) overrides[cjk] = parsed;
+      } else {
+        // Greedy compound detection within the chars
+        const chars = [...cjk];
+        let i = 0;
+        while (i < chars.length) {
+          if (i + 1 < chars.length) {
+            const pair = chars[i] + chars[i + 1];
+            if (compoundsIndex[pair]) {
+              words.push(pair);
+              i += 2;
+              continue;
+            }
+          }
+          words.push(chars[i]);
+          i++;
+        }
+        // Apply overrides to single chars or detected compounds
+        if (parsed.pinyin || parsed.meaning) {
+          if (words.length > 0) overrides[words[words.length - 1]] = parsed;
+        }
+      }
+    }
+
+    // Deduplicate
+    const seen = new Set();
+    const unique = words.filter(w => { if (seen.has(w)) return false; seen.add(w); return true; });
+
+    return Promise.all(unique.map(w => enrichWord(w, overrides[w])));
+  }
+
+  // Fallback: original CJK-only parsing (no annotations detected)
   const segments = text.split(/[\n\r,，、;；\s]+/).filter(Boolean);
 
   const words = [];
   for (const segment of segments) {
-    // Extract only CJK characters from this segment
     const cjk = [...segment].filter(c => c.charCodeAt(0) >= 0x4E00 && c.charCodeAt(0) <= 0x9FFF);
     if (cjk.length === 0) continue;
 
-    // If entire segment is CJK (e.g. 蝴蝶 on its own line), treat as one word
-    // if it's a known compound OR has 2+ chars with no non-CJK separators
     const cjkStr = cjk.join('');
     if (cjk.length >= 2 && cjk.length <= 4 && compoundsIndex[cjkStr]) {
       words.push(cjkStr);
       continue;
     }
 
-    // Otherwise: greedy left-to-right compound detection within segment
     let i = 0;
     while (i < cjk.length) {
       if (i + 1 < cjk.length) {
@@ -405,21 +542,24 @@ export async function parseAndEnrich(text) {
     }
   }
 
-  // Deduplicate while preserving order
   const seen = new Set();
   const unique = words.filter(w => { if (seen.has(w)) return false; seen.add(w); return true; });
 
-  // Enrich each word
-  return Promise.all(unique.map(async (w) => {
-    if (w.length === 1) {
-      return enrichCharacter(w);
-    }
-    // Compound: use compounds index for definition/pinyin
+  return Promise.all(unique.map(w => enrichWord(w)));
+}
+
+/**
+ * Enrich a word (single char or compound), optionally applying user overrides.
+ */
+async function enrichWord(w, override) {
+  let result;
+  if (w.length === 1) {
+    result = await enrichCharacter(w);
+  } else {
     const compound = compoundsIndex[w];
     const meanings = (compound?.d || []).map(cleanDefinition).filter(Boolean);
-    // Check stroke data for first character (compounds use HanziWriter per-char)
     const hasStrokeData = await checkStrokeData(w[0]);
-    return {
+    result = {
       character: w,
       meanings,
       pinyin: compound?.p || null,
@@ -433,7 +573,20 @@ export async function parseAndEnrich(text) {
       example: getExample(w),
       audioFile: compound ? `./audio/${compound.p}.mp3` : null,
     };
-  }));
+  }
+
+  // Apply user-provided overrides (pinyin/meaning from pasted text)
+  if (override) {
+    if (override.pinyin) {
+      result.pinyinMarked = override.pinyin;
+      result.pinyin = override.pinyin;
+    }
+    if (override.meaning) {
+      result.meanings = [override.meaning, ...(result.meanings || [])];
+    }
+  }
+
+  return result;
 }
 
 /**

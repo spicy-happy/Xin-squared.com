@@ -1,0 +1,3013 @@
+{
+  "id": "top_500_frequent",
+  "version": 1,
+  "title": "Top 500 Characters",
+  "titleZh": "最常用500字",
+  "description": "Most common 500 characters. For serious readers.",
+  "source": "Character sequence from Jun Da's Modern Chinese Character Frequency List (lingua.mtsu.edu/chinese-computing), via the ruddfawcett/hanziDB.csv dataset on GitHub. Used for educational purposes. Individual characters are standard Chinese.",
+  "sequenced": true,
+  "totalWords": 500,
+  "notes": "This pack is the long-form expansion of the Top 100 Frequent pack — same source, same sequencing principle, just five times bigger. The first 100 entries are identical to the Top 100 pack, so kids who already practiced that pack will see those words merge without losing progress. Frequency-ordered means grammar particles and function words come first, with concrete nouns and verbs distributed throughout. For a kid working ~5 new characters per week, this pack is a roughly 2-year curriculum. Pairs well with thematic packs (YCT, Sagebooks) for variety.",
+  "words": [
+    {
+      "character": "的",
+      "sequence": 1,
+      "pinyin": "de",
+      "meaning": "possessive, adjectival suffix"
+    },
+    {
+      "character": "一",
+      "sequence": 2,
+      "pinyin": "yī",
+      "meaning": "one; a, an; alone"
+    },
+    {
+      "character": "是",
+      "sequence": 3,
+      "pinyin": "shì",
+      "meaning": "to be; is; yes"
+    },
+    {
+      "character": "不",
+      "sequence": 4,
+      "pinyin": "bù",
+      "meaning": "no, not; negative prefix"
+    },
+    {
+      "character": "了",
+      "sequence": 5,
+      "pinyin": "le",
+      "meaning": "completed action particle; finish"
+    },
+    {
+      "character": "在",
+      "sequence": 6,
+      "pinyin": "zài",
+      "meaning": "at, in, on; exist"
+    },
+    {
+      "character": "人",
+      "sequence": 7,
+      "pinyin": "rén",
+      "meaning": "person; people"
+    },
+    {
+      "character": "有",
+      "sequence": 8,
+      "pinyin": "yǒu",
+      "meaning": "to have; there is"
+    },
+    {
+      "character": "我",
+      "sequence": 9,
+      "pinyin": "wǒ",
+      "meaning": "I; me"
+    },
+    {
+      "character": "他",
+      "sequence": 10,
+      "pinyin": "tā",
+      "meaning": "he; him"
+    },
+    {
+      "character": "这",
+      "sequence": 11,
+      "pinyin": "zhè",
+      "meaning": "this; these; here"
+    },
+    {
+      "character": "个",
+      "sequence": 12,
+      "pinyin": "gè",
+      "meaning": "measure word; individual"
+    },
+    {
+      "character": "们",
+      "sequence": 13,
+      "pinyin": "men",
+      "meaning": "plural marker"
+    },
+    {
+      "character": "中",
+      "sequence": 14,
+      "pinyin": "zhōng",
+      "meaning": "middle; center; China"
+    },
+    {
+      "character": "来",
+      "sequence": 15,
+      "pinyin": "lái",
+      "meaning": "to come"
+    },
+    {
+      "character": "上",
+      "sequence": 16,
+      "pinyin": "shàng",
+      "meaning": "up; on; above"
+    },
+    {
+      "character": "大",
+      "sequence": 17,
+      "pinyin": "dà",
+      "meaning": "big; large"
+    },
+    {
+      "character": "为",
+      "sequence": 18,
+      "pinyin": "wèi",
+      "meaning": "for; to do; act as"
+    },
+    {
+      "character": "和",
+      "sequence": 19,
+      "pinyin": "hé",
+      "meaning": "and; with; peace"
+    },
+    {
+      "character": "国",
+      "sequence": 20,
+      "pinyin": "guó",
+      "meaning": "country; nation"
+    },
+    {
+      "character": "地",
+      "sequence": 21,
+      "pinyin": "de",
+      "meaning": "earth; ground; -ly suffix"
+    },
+    {
+      "character": "到",
+      "sequence": 22,
+      "pinyin": "dào",
+      "meaning": "to arrive; to reach"
+    },
+    {
+      "character": "以",
+      "sequence": 23,
+      "pinyin": "yǐ",
+      "meaning": "to use; by means of"
+    },
+    {
+      "character": "说",
+      "sequence": 24,
+      "pinyin": "shuō",
+      "meaning": "to speak; to say"
+    },
+    {
+      "character": "时",
+      "sequence": 25,
+      "pinyin": "shí",
+      "meaning": "time; hour; season"
+    },
+    {
+      "character": "要",
+      "sequence": 26,
+      "pinyin": "yào",
+      "meaning": "to want; to need"
+    },
+    {
+      "character": "就",
+      "sequence": 27,
+      "pinyin": "jiù",
+      "meaning": "at once; then"
+    },
+    {
+      "character": "出",
+      "sequence": 28,
+      "pinyin": "chū",
+      "meaning": "to go out; to come out"
+    },
+    {
+      "character": "会",
+      "sequence": 29,
+      "pinyin": "huì",
+      "meaning": "can; meeting; to assemble"
+    },
+    {
+      "character": "可",
+      "sequence": 30,
+      "pinyin": "kě",
+      "meaning": "can; may; able to"
+    },
+    {
+      "character": "也",
+      "sequence": 31,
+      "pinyin": "yě",
+      "meaning": "also; too"
+    },
+    {
+      "character": "你",
+      "sequence": 32,
+      "pinyin": "nǐ",
+      "meaning": "you"
+    },
+    {
+      "character": "对",
+      "sequence": 33,
+      "pinyin": "duì",
+      "meaning": "correct; right; to face"
+    },
+    {
+      "character": "生",
+      "sequence": 34,
+      "pinyin": "shēng",
+      "meaning": "to be born; life"
+    },
+    {
+      "character": "能",
+      "sequence": 35,
+      "pinyin": "néng",
+      "meaning": "can; to be able"
+    },
+    {
+      "character": "而",
+      "sequence": 36,
+      "pinyin": "ér",
+      "meaning": "and; but"
+    },
+    {
+      "character": "子",
+      "sequence": 37,
+      "pinyin": "zǐ",
+      "meaning": "child; seed"
+    },
+    {
+      "character": "那",
+      "sequence": 38,
+      "pinyin": "nà",
+      "meaning": "that; those"
+    },
+    {
+      "character": "得",
+      "sequence": 39,
+      "pinyin": "dé",
+      "meaning": "to obtain; to get"
+    },
+    {
+      "character": "于",
+      "sequence": 40,
+      "pinyin": "yú",
+      "meaning": "in; at; to; from"
+    },
+    {
+      "character": "着",
+      "sequence": 41,
+      "pinyin": "zhe",
+      "meaning": "-ing (progressive marker)"
+    },
+    {
+      "character": "下",
+      "sequence": 42,
+      "pinyin": "xià",
+      "meaning": "down; below; under"
+    },
+    {
+      "character": "自",
+      "sequence": 43,
+      "pinyin": "zì",
+      "meaning": "self; from"
+    },
+    {
+      "character": "之",
+      "sequence": 44,
+      "pinyin": "zhī",
+      "meaning": "(literary particle); it"
+    },
+    {
+      "character": "年",
+      "sequence": 45,
+      "pinyin": "nián",
+      "meaning": "year"
+    },
+    {
+      "character": "过",
+      "sequence": 46,
+      "pinyin": "guò",
+      "meaning": "to pass; experienced"
+    },
+    {
+      "character": "发",
+      "sequence": 47,
+      "pinyin": "fā",
+      "meaning": "to send out; to issue; hair"
+    },
+    {
+      "character": "后",
+      "sequence": 48,
+      "pinyin": "hòu",
+      "meaning": "behind; after; later"
+    },
+    {
+      "character": "作",
+      "sequence": 49,
+      "pinyin": "zuò",
+      "meaning": "to make; to do"
+    },
+    {
+      "character": "里",
+      "sequence": 50,
+      "pinyin": "lǐ",
+      "meaning": "inside; within"
+    },
+    {
+      "character": "用",
+      "sequence": 51,
+      "pinyin": "yòng",
+      "meaning": "to use"
+    },
+    {
+      "character": "道",
+      "sequence": 52,
+      "pinyin": "dào",
+      "meaning": "road; way; method"
+    },
+    {
+      "character": "行",
+      "sequence": 53,
+      "pinyin": "xíng",
+      "meaning": "to walk; to go; okay"
+    },
+    {
+      "character": "所",
+      "sequence": 54,
+      "pinyin": "suǒ",
+      "meaning": "place; location"
+    },
+    {
+      "character": "然",
+      "sequence": 55,
+      "pinyin": "rán",
+      "meaning": "so; like that"
+    },
+    {
+      "character": "家",
+      "sequence": 56,
+      "pinyin": "jiā",
+      "meaning": "home; family; house"
+    },
+    {
+      "character": "种",
+      "sequence": 57,
+      "pinyin": "zhǒng",
+      "meaning": "kind; type; seed"
+    },
+    {
+      "character": "事",
+      "sequence": 58,
+      "pinyin": "shì",
+      "meaning": "matter; thing; affair"
+    },
+    {
+      "character": "成",
+      "sequence": 59,
+      "pinyin": "chéng",
+      "meaning": "to become; to finish"
+    },
+    {
+      "character": "方",
+      "sequence": 60,
+      "pinyin": "fāng",
+      "meaning": "square; direction; side"
+    },
+    {
+      "character": "多",
+      "sequence": 61,
+      "pinyin": "duō",
+      "meaning": "many; much"
+    },
+    {
+      "character": "经",
+      "sequence": 62,
+      "pinyin": "jīng",
+      "meaning": "classic; to pass through"
+    },
+    {
+      "character": "么",
+      "sequence": 63,
+      "pinyin": "me",
+      "meaning": "interrogative suffix"
+    },
+    {
+      "character": "去",
+      "sequence": 64,
+      "pinyin": "qù",
+      "meaning": "to go; to leave"
+    },
+    {
+      "character": "法",
+      "sequence": 65,
+      "pinyin": "fǎ",
+      "meaning": "law; method"
+    },
+    {
+      "character": "学",
+      "sequence": 66,
+      "pinyin": "xué",
+      "meaning": "to study; to learn"
+    },
+    {
+      "character": "如",
+      "sequence": 67,
+      "pinyin": "rú",
+      "meaning": "as if; like"
+    },
+    {
+      "character": "都",
+      "sequence": 68,
+      "pinyin": "dōu",
+      "meaning": "all; both"
+    },
+    {
+      "character": "同",
+      "sequence": 69,
+      "pinyin": "tóng",
+      "meaning": "same; together"
+    },
+    {
+      "character": "现",
+      "sequence": 70,
+      "pinyin": "xiàn",
+      "meaning": "now; present; to appear"
+    },
+    {
+      "character": "当",
+      "sequence": 71,
+      "pinyin": "dāng",
+      "meaning": "to be; to serve as; when"
+    },
+    {
+      "character": "没",
+      "sequence": 72,
+      "pinyin": "méi",
+      "meaning": "not; have not"
+    },
+    {
+      "character": "动",
+      "sequence": 73,
+      "pinyin": "dòng",
+      "meaning": "to move; movement"
+    },
+    {
+      "character": "面",
+      "sequence": 74,
+      "pinyin": "miàn",
+      "meaning": "face; surface; side"
+    },
+    {
+      "character": "起",
+      "sequence": 75,
+      "pinyin": "qǐ",
+      "meaning": "to rise; to get up"
+    },
+    {
+      "character": "看",
+      "sequence": 76,
+      "pinyin": "kàn",
+      "meaning": "to look; to see"
+    },
+    {
+      "character": "定",
+      "sequence": 77,
+      "pinyin": "dìng",
+      "meaning": "to decide; to fix"
+    },
+    {
+      "character": "天",
+      "sequence": 78,
+      "pinyin": "tiān",
+      "meaning": "sky; day; heaven"
+    },
+    {
+      "character": "分",
+      "sequence": 79,
+      "pinyin": "fēn",
+      "meaning": "to divide; minute; part"
+    },
+    {
+      "character": "还",
+      "sequence": 80,
+      "pinyin": "hái",
+      "meaning": "still; also; yet"
+    },
+    {
+      "character": "进",
+      "sequence": 81,
+      "pinyin": "jìn",
+      "meaning": "to enter; to advance"
+    },
+    {
+      "character": "好",
+      "sequence": 82,
+      "pinyin": "hǎo",
+      "meaning": "good; well"
+    },
+    {
+      "character": "小",
+      "sequence": 83,
+      "pinyin": "xiǎo",
+      "meaning": "small; little"
+    },
+    {
+      "character": "部",
+      "sequence": 84,
+      "pinyin": "bù",
+      "meaning": "part; section; department"
+    },
+    {
+      "character": "其",
+      "sequence": 85,
+      "pinyin": "qí",
+      "meaning": "his; her; its; their"
+    },
+    {
+      "character": "些",
+      "sequence": 86,
+      "pinyin": "xiē",
+      "meaning": "some; a few"
+    },
+    {
+      "character": "主",
+      "sequence": 87,
+      "pinyin": "zhǔ",
+      "meaning": "main; host; owner"
+    },
+    {
+      "character": "样",
+      "sequence": 88,
+      "pinyin": "yàng",
+      "meaning": "shape; form; kind"
+    },
+    {
+      "character": "理",
+      "sequence": 89,
+      "pinyin": "lǐ",
+      "meaning": "reason; logic; to manage"
+    },
+    {
+      "character": "心",
+      "sequence": 90,
+      "pinyin": "xīn",
+      "meaning": "heart; mind"
+    },
+    {
+      "character": "她",
+      "sequence": 91,
+      "pinyin": "tā",
+      "meaning": "she; her"
+    },
+    {
+      "character": "本",
+      "sequence": 92,
+      "pinyin": "běn",
+      "meaning": "root; book; measure word"
+    },
+    {
+      "character": "前",
+      "sequence": 93,
+      "pinyin": "qián",
+      "meaning": "front; before; ago"
+    },
+    {
+      "character": "开",
+      "sequence": 94,
+      "pinyin": "kāi",
+      "meaning": "to open; to start"
+    },
+    {
+      "character": "但",
+      "sequence": 95,
+      "pinyin": "dàn",
+      "meaning": "but; however"
+    },
+    {
+      "character": "因",
+      "sequence": 96,
+      "pinyin": "yīn",
+      "meaning": "cause; reason; because"
+    },
+    {
+      "character": "只",
+      "sequence": 97,
+      "pinyin": "zhǐ",
+      "meaning": "only; just"
+    },
+    {
+      "character": "从",
+      "sequence": 98,
+      "pinyin": "cóng",
+      "meaning": "from; since"
+    },
+    {
+      "character": "想",
+      "sequence": 99,
+      "pinyin": "xiǎng",
+      "meaning": "to think; to want"
+    },
+    {
+      "character": "实",
+      "sequence": 100,
+      "pinyin": "shí",
+      "meaning": "real; true; honest"
+    },
+    {
+      "character": "日",
+      "sequence": 101,
+      "pinyin": "rì",
+      "meaning": "sun; day; daytime"
+    },
+    {
+      "character": "军",
+      "sequence": 102,
+      "pinyin": "jūn",
+      "meaning": "army; military"
+    },
+    {
+      "character": "者",
+      "sequence": 103,
+      "pinyin": "zhě",
+      "meaning": "-er (one who does)"
+    },
+    {
+      "character": "意",
+      "sequence": 104,
+      "pinyin": "yì",
+      "meaning": "thought; idea; meaning"
+    },
+    {
+      "character": "无",
+      "sequence": 105,
+      "pinyin": "wú",
+      "meaning": "not; without"
+    },
+    {
+      "character": "力",
+      "sequence": 106,
+      "pinyin": "lì",
+      "meaning": "power; strength"
+    },
+    {
+      "character": "它",
+      "sequence": 107,
+      "pinyin": "tā",
+      "meaning": "it"
+    },
+    {
+      "character": "与",
+      "sequence": 108,
+      "pinyin": "yǔ",
+      "meaning": "and; with; to give"
+    },
+    {
+      "character": "长",
+      "sequence": 109,
+      "pinyin": "zhǎng",
+      "meaning": "long; to grow; chief"
+    },
+    {
+      "character": "把",
+      "sequence": 110,
+      "pinyin": "bǎ",
+      "meaning": "to hold; (object marker)"
+    },
+    {
+      "character": "机",
+      "sequence": 111,
+      "pinyin": "jī",
+      "meaning": "machine; opportunity"
+    },
+    {
+      "character": "十",
+      "sequence": 112,
+      "pinyin": "shí",
+      "meaning": "ten"
+    },
+    {
+      "character": "民",
+      "sequence": 113,
+      "pinyin": "mín",
+      "meaning": "people; citizens"
+    },
+    {
+      "character": "第",
+      "sequence": 114,
+      "pinyin": "dì",
+      "meaning": "sequence; ordinal prefix"
+    },
+    {
+      "character": "公",
+      "sequence": 115,
+      "pinyin": "gōng",
+      "meaning": "public; fair; duke"
+    },
+    {
+      "character": "此",
+      "sequence": 116,
+      "pinyin": "cǐ",
+      "meaning": "this; these"
+    },
+    {
+      "character": "已",
+      "sequence": 117,
+      "pinyin": "yǐ",
+      "meaning": "already"
+    },
+    {
+      "character": "工",
+      "sequence": 118,
+      "pinyin": "gōng",
+      "meaning": "work; worker"
+    },
+    {
+      "character": "使",
+      "sequence": 119,
+      "pinyin": "shǐ",
+      "meaning": "to cause; to use"
+    },
+    {
+      "character": "情",
+      "sequence": 120,
+      "pinyin": "qíng",
+      "meaning": "feeling; emotion"
+    },
+    {
+      "character": "明",
+      "sequence": 121,
+      "pinyin": "míng",
+      "meaning": "bright; clear; to understand"
+    },
+    {
+      "character": "性",
+      "sequence": 122,
+      "pinyin": "xìng",
+      "meaning": "nature; gender; -ness"
+    },
+    {
+      "character": "知",
+      "sequence": 123,
+      "pinyin": "zhī",
+      "meaning": "to know"
+    },
+    {
+      "character": "全",
+      "sequence": 124,
+      "pinyin": "quán",
+      "meaning": "all; whole; complete"
+    },
+    {
+      "character": "三",
+      "sequence": 125,
+      "pinyin": "sān",
+      "meaning": "three"
+    },
+    {
+      "character": "又",
+      "sequence": 126,
+      "pinyin": "yòu",
+      "meaning": "also; again"
+    },
+    {
+      "character": "关",
+      "sequence": 127,
+      "pinyin": "guān",
+      "meaning": "to close; relation"
+    },
+    {
+      "character": "点",
+      "sequence": 128,
+      "pinyin": "diǎn",
+      "meaning": "point; o'clock; dot"
+    },
+    {
+      "character": "正",
+      "sequence": 129,
+      "pinyin": "zhèng",
+      "meaning": "correct; just; upright"
+    },
+    {
+      "character": "业",
+      "sequence": 130,
+      "pinyin": "yè",
+      "meaning": "profession; business"
+    },
+    {
+      "character": "外",
+      "sequence": 131,
+      "pinyin": "wài",
+      "meaning": "outside; foreign"
+    },
+    {
+      "character": "将",
+      "sequence": 132,
+      "pinyin": "jiāng",
+      "meaning": "will; future; general"
+    },
+    {
+      "character": "两",
+      "sequence": 133,
+      "pinyin": "liǎng",
+      "meaning": "two; both; pair"
+    },
+    {
+      "character": "高",
+      "sequence": 134,
+      "pinyin": "gāo",
+      "meaning": "high; tall"
+    },
+    {
+      "character": "间",
+      "sequence": 135,
+      "pinyin": "jiān",
+      "meaning": "between; among; space"
+    },
+    {
+      "character": "由",
+      "sequence": 136,
+      "pinyin": "yóu",
+      "meaning": "from; cause; reason"
+    },
+    {
+      "character": "问",
+      "sequence": 137,
+      "pinyin": "wèn",
+      "meaning": "to ask"
+    },
+    {
+      "character": "很",
+      "sequence": 138,
+      "pinyin": "hěn",
+      "meaning": "very"
+    },
+    {
+      "character": "最",
+      "sequence": 139,
+      "pinyin": "zuì",
+      "meaning": "most; -est"
+    },
+    {
+      "character": "重",
+      "sequence": 140,
+      "pinyin": "zhòng",
+      "meaning": "heavy; important"
+    },
+    {
+      "character": "并",
+      "sequence": 141,
+      "pinyin": "bìng",
+      "meaning": "and; furthermore"
+    },
+    {
+      "character": "物",
+      "sequence": 142,
+      "pinyin": "wù",
+      "meaning": "thing; object"
+    },
+    {
+      "character": "手",
+      "sequence": 143,
+      "pinyin": "shǒu",
+      "meaning": "hand"
+    },
+    {
+      "character": "应",
+      "sequence": 144,
+      "pinyin": "yīng",
+      "meaning": "should; ought to"
+    },
+    {
+      "character": "战",
+      "sequence": 145,
+      "pinyin": "zhàn",
+      "meaning": "war; battle; fight"
+    },
+    {
+      "character": "向",
+      "sequence": 146,
+      "pinyin": "xiàng",
+      "meaning": "toward; direction"
+    },
+    {
+      "character": "头",
+      "sequence": 147,
+      "pinyin": "tóu",
+      "meaning": "head; first; chief"
+    },
+    {
+      "character": "文",
+      "sequence": 148,
+      "pinyin": "wén",
+      "meaning": "language; culture; writing"
+    },
+    {
+      "character": "体",
+      "sequence": 149,
+      "pinyin": "tǐ",
+      "meaning": "body; form; style"
+    },
+    {
+      "character": "政",
+      "sequence": 150,
+      "pinyin": "zhèng",
+      "meaning": "government; politics"
+    },
+    {
+      "character": "美",
+      "sequence": 151,
+      "pinyin": "měi",
+      "meaning": "beautiful; America"
+    },
+    {
+      "character": "相",
+      "sequence": 152,
+      "pinyin": "xiāng",
+      "meaning": "each other; mutually"
+    },
+    {
+      "character": "见",
+      "sequence": 153,
+      "pinyin": "jiàn",
+      "meaning": "to see; to meet"
+    },
+    {
+      "character": "被",
+      "sequence": 154,
+      "pinyin": "bèi",
+      "meaning": "by (passive marker); blanket"
+    },
+    {
+      "character": "利",
+      "sequence": 155,
+      "pinyin": "lì",
+      "meaning": "profit; advantage"
+    },
+    {
+      "character": "什",
+      "sequence": 156,
+      "pinyin": "shén",
+      "meaning": "what (in 什么)"
+    },
+    {
+      "character": "二",
+      "sequence": 157,
+      "pinyin": "èr",
+      "meaning": "two"
+    },
+    {
+      "character": "等",
+      "sequence": 158,
+      "pinyin": "děng",
+      "meaning": "to wait; class; etc."
+    },
+    {
+      "character": "产",
+      "sequence": 159,
+      "pinyin": "chǎn",
+      "meaning": "to produce; products"
+    },
+    {
+      "character": "或",
+      "sequence": 160,
+      "pinyin": "huò",
+      "meaning": "or; perhaps"
+    },
+    {
+      "character": "新",
+      "sequence": 161,
+      "pinyin": "xīn",
+      "meaning": "new"
+    },
+    {
+      "character": "己",
+      "sequence": 162,
+      "pinyin": "jǐ",
+      "meaning": "self; oneself"
+    },
+    {
+      "character": "制",
+      "sequence": 163,
+      "pinyin": "zhì",
+      "meaning": "to make; system"
+    },
+    {
+      "character": "身",
+      "sequence": 164,
+      "pinyin": "shēn",
+      "meaning": "body; person"
+    },
+    {
+      "character": "果",
+      "sequence": 165,
+      "pinyin": "guǒ",
+      "meaning": "fruit; result"
+    },
+    {
+      "character": "加",
+      "sequence": 166,
+      "pinyin": "jiā",
+      "meaning": "to add; plus"
+    },
+    {
+      "character": "西",
+      "sequence": 167,
+      "pinyin": "xī",
+      "meaning": "west"
+    },
+    {
+      "character": "斯",
+      "sequence": 168,
+      "pinyin": "sī",
+      "meaning": "this (literary); transliteration"
+    },
+    {
+      "character": "月",
+      "sequence": 169,
+      "pinyin": "yuè",
+      "meaning": "moon; month"
+    },
+    {
+      "character": "话",
+      "sequence": 170,
+      "pinyin": "huà",
+      "meaning": "speech; words; talk"
+    },
+    {
+      "character": "合",
+      "sequence": 171,
+      "pinyin": "hé",
+      "meaning": "to combine; to join"
+    },
+    {
+      "character": "回",
+      "sequence": 172,
+      "pinyin": "huí",
+      "meaning": "to return; time (occasion)"
+    },
+    {
+      "character": "特",
+      "sequence": 173,
+      "pinyin": "tè",
+      "meaning": "special"
+    },
+    {
+      "character": "代",
+      "sequence": 174,
+      "pinyin": "dài",
+      "meaning": "to replace; era; generation"
+    },
+    {
+      "character": "内",
+      "sequence": 175,
+      "pinyin": "nèi",
+      "meaning": "inside"
+    },
+    {
+      "character": "信",
+      "sequence": 176,
+      "pinyin": "xìn",
+      "meaning": "to believe; letter"
+    },
+    {
+      "character": "表",
+      "sequence": 177,
+      "pinyin": "biǎo",
+      "meaning": "to show; surface; watch"
+    },
+    {
+      "character": "化",
+      "sequence": 178,
+      "pinyin": "huà",
+      "meaning": "to change; -ize"
+    },
+    {
+      "character": "老",
+      "sequence": 179,
+      "pinyin": "lǎo",
+      "meaning": "old"
+    },
+    {
+      "character": "给",
+      "sequence": 180,
+      "pinyin": "gěi",
+      "meaning": "to give; for"
+    },
+    {
+      "character": "世",
+      "sequence": 181,
+      "pinyin": "shì",
+      "meaning": "world; generation; era"
+    },
+    {
+      "character": "位",
+      "sequence": 182,
+      "pinyin": "wèi",
+      "meaning": "position; (measure word for people)"
+    },
+    {
+      "character": "次",
+      "sequence": 183,
+      "pinyin": "cì",
+      "meaning": "order; time (occurrence)"
+    },
+    {
+      "character": "度",
+      "sequence": 184,
+      "pinyin": "dù",
+      "meaning": "degree; measure"
+    },
+    {
+      "character": "门",
+      "sequence": 185,
+      "pinyin": "mén",
+      "meaning": "door; gate"
+    },
+    {
+      "character": "任",
+      "sequence": 186,
+      "pinyin": "rèn",
+      "meaning": "to appoint; duty"
+    },
+    {
+      "character": "常",
+      "sequence": 187,
+      "pinyin": "cháng",
+      "meaning": "often; common; constant"
+    },
+    {
+      "character": "先",
+      "sequence": 188,
+      "pinyin": "xiān",
+      "meaning": "first; previous"
+    },
+    {
+      "character": "海",
+      "sequence": 189,
+      "pinyin": "hǎi",
+      "meaning": "sea; ocean"
+    },
+    {
+      "character": "通",
+      "sequence": 190,
+      "pinyin": "tōng",
+      "meaning": "to go through; common"
+    },
+    {
+      "character": "教",
+      "sequence": 191,
+      "pinyin": "jiào",
+      "meaning": "to teach; teaching"
+    },
+    {
+      "character": "儿",
+      "sequence": 192,
+      "pinyin": "ér",
+      "meaning": "son; child; suffix"
+    },
+    {
+      "character": "原",
+      "sequence": 193,
+      "pinyin": "yuán",
+      "meaning": "original; source"
+    },
+    {
+      "character": "东",
+      "sequence": 194,
+      "pinyin": "dōng",
+      "meaning": "east"
+    },
+    {
+      "character": "声",
+      "sequence": 195,
+      "pinyin": "shēng",
+      "meaning": "sound; voice"
+    },
+    {
+      "character": "提",
+      "sequence": 196,
+      "pinyin": "tí",
+      "meaning": "to lift; to mention"
+    },
+    {
+      "character": "立",
+      "sequence": 197,
+      "pinyin": "lì",
+      "meaning": "to stand; to set up"
+    },
+    {
+      "character": "及",
+      "sequence": 198,
+      "pinyin": "jí",
+      "meaning": "to reach; and"
+    },
+    {
+      "character": "比",
+      "sequence": 199,
+      "pinyin": "bǐ",
+      "meaning": "to compare; than"
+    },
+    {
+      "character": "员",
+      "sequence": 200,
+      "pinyin": "yuán",
+      "meaning": "member; person"
+    },
+    {
+      "character": "解",
+      "sequence": 201,
+      "pinyin": "jiě",
+      "meaning": "to untie; to explain"
+    },
+    {
+      "character": "水",
+      "sequence": 202,
+      "pinyin": "shuǐ",
+      "meaning": "water"
+    },
+    {
+      "character": "名",
+      "sequence": 203,
+      "pinyin": "míng",
+      "meaning": "name"
+    },
+    {
+      "character": "真",
+      "sequence": 204,
+      "pinyin": "zhēn",
+      "meaning": "real; true"
+    },
+    {
+      "character": "论",
+      "sequence": 205,
+      "pinyin": "lùn",
+      "meaning": "to discuss; theory"
+    },
+    {
+      "character": "处",
+      "sequence": 206,
+      "pinyin": "chù",
+      "meaning": "place; to handle"
+    },
+    {
+      "character": "走",
+      "sequence": 207,
+      "pinyin": "zǒu",
+      "meaning": "to walk; to go"
+    },
+    {
+      "character": "义",
+      "sequence": 208,
+      "pinyin": "yì",
+      "meaning": "meaning; righteousness"
+    },
+    {
+      "character": "各",
+      "sequence": 209,
+      "pinyin": "gè",
+      "meaning": "each; every"
+    },
+    {
+      "character": "入",
+      "sequence": 210,
+      "pinyin": "rù",
+      "meaning": "to enter"
+    },
+    {
+      "character": "几",
+      "sequence": 211,
+      "pinyin": "jǐ",
+      "meaning": "how many; several"
+    },
+    {
+      "character": "口",
+      "sequence": 212,
+      "pinyin": "kǒu",
+      "meaning": "mouth; opening"
+    },
+    {
+      "character": "认",
+      "sequence": 213,
+      "pinyin": "rèn",
+      "meaning": "to recognize"
+    },
+    {
+      "character": "条",
+      "sequence": 214,
+      "pinyin": "tiáo",
+      "meaning": "strip; (measure word for long things)"
+    },
+    {
+      "character": "平",
+      "sequence": 215,
+      "pinyin": "píng",
+      "meaning": "flat; level; peaceful"
+    },
+    {
+      "character": "系",
+      "sequence": 216,
+      "pinyin": "xì",
+      "meaning": "system; connection"
+    },
+    {
+      "character": "气",
+      "sequence": 217,
+      "pinyin": "qì",
+      "meaning": "air; gas; energy"
+    },
+    {
+      "character": "题",
+      "sequence": 218,
+      "pinyin": "tí",
+      "meaning": "topic; problem; subject"
+    },
+    {
+      "character": "活",
+      "sequence": 219,
+      "pinyin": "huó",
+      "meaning": "to live; alive"
+    },
+    {
+      "character": "尔",
+      "sequence": 220,
+      "pinyin": "ěr",
+      "meaning": "you (literary); thus"
+    },
+    {
+      "character": "更",
+      "sequence": 221,
+      "pinyin": "gèng",
+      "meaning": "more; even more"
+    },
+    {
+      "character": "别",
+      "sequence": 222,
+      "pinyin": "bié",
+      "meaning": "other; do not; to part"
+    },
+    {
+      "character": "打",
+      "sequence": 223,
+      "pinyin": "dǎ",
+      "meaning": "to hit; to play"
+    },
+    {
+      "character": "女",
+      "sequence": 224,
+      "pinyin": "nǚ",
+      "meaning": "woman; female"
+    },
+    {
+      "character": "变",
+      "sequence": 225,
+      "pinyin": "biàn",
+      "meaning": "to change"
+    },
+    {
+      "character": "四",
+      "sequence": 226,
+      "pinyin": "sì",
+      "meaning": "four"
+    },
+    {
+      "character": "神",
+      "sequence": 227,
+      "pinyin": "shén",
+      "meaning": "god; spirit"
+    },
+    {
+      "character": "总",
+      "sequence": 228,
+      "pinyin": "zǒng",
+      "meaning": "always; total; chief"
+    },
+    {
+      "character": "何",
+      "sequence": 229,
+      "pinyin": "hé",
+      "meaning": "what; how; why"
+    },
+    {
+      "character": "电",
+      "sequence": 230,
+      "pinyin": "diàn",
+      "meaning": "electric; electricity"
+    },
+    {
+      "character": "数",
+      "sequence": 231,
+      "pinyin": "shù",
+      "meaning": "number; to count"
+    },
+    {
+      "character": "安",
+      "sequence": 232,
+      "pinyin": "ān",
+      "meaning": "peace; safe"
+    },
+    {
+      "character": "少",
+      "sequence": 233,
+      "pinyin": "shǎo",
+      "meaning": "few; little"
+    },
+    {
+      "character": "报",
+      "sequence": 234,
+      "pinyin": "bào",
+      "meaning": "to report; newspaper"
+    },
+    {
+      "character": "才",
+      "sequence": 235,
+      "pinyin": "cái",
+      "meaning": "only then; talent"
+    },
+    {
+      "character": "结",
+      "sequence": 236,
+      "pinyin": "jié",
+      "meaning": "to tie; knot"
+    },
+    {
+      "character": "反",
+      "sequence": 237,
+      "pinyin": "fǎn",
+      "meaning": "opposite; anti-"
+    },
+    {
+      "character": "受",
+      "sequence": 238,
+      "pinyin": "shòu",
+      "meaning": "to receive; to suffer"
+    },
+    {
+      "character": "目",
+      "sequence": 239,
+      "pinyin": "mù",
+      "meaning": "eye; item"
+    },
+    {
+      "character": "太",
+      "sequence": 240,
+      "pinyin": "tài",
+      "meaning": "too; very; greatest"
+    },
+    {
+      "character": "量",
+      "sequence": 241,
+      "pinyin": "liàng",
+      "meaning": "quantity; measure"
+    },
+    {
+      "character": "再",
+      "sequence": 242,
+      "pinyin": "zài",
+      "meaning": "again; once more"
+    },
+    {
+      "character": "感",
+      "sequence": 243,
+      "pinyin": "gǎn",
+      "meaning": "to feel; emotion"
+    },
+    {
+      "character": "建",
+      "sequence": 244,
+      "pinyin": "jiàn",
+      "meaning": "to build; to establish"
+    },
+    {
+      "character": "务",
+      "sequence": 245,
+      "pinyin": "wù",
+      "meaning": "affair; business"
+    },
+    {
+      "character": "做",
+      "sequence": 246,
+      "pinyin": "zuò",
+      "meaning": "to do; to make"
+    },
+    {
+      "character": "接",
+      "sequence": 247,
+      "pinyin": "jiē",
+      "meaning": "to receive; to connect"
+    },
+    {
+      "character": "必",
+      "sequence": 248,
+      "pinyin": "bì",
+      "meaning": "must; certainly"
+    },
+    {
+      "character": "场",
+      "sequence": 249,
+      "pinyin": "chǎng",
+      "meaning": "place; field; (measure word)"
+    },
+    {
+      "character": "件",
+      "sequence": 250,
+      "pinyin": "jiàn",
+      "meaning": "item; (measure word for items)"
+    },
+    {
+      "character": "计",
+      "sequence": 251,
+      "pinyin": "jì",
+      "meaning": "to count; plan"
+    },
+    {
+      "character": "管",
+      "sequence": 252,
+      "pinyin": "guǎn",
+      "meaning": "to manage; tube"
+    },
+    {
+      "character": "期",
+      "sequence": 253,
+      "pinyin": "qī",
+      "meaning": "period; date"
+    },
+    {
+      "character": "市",
+      "sequence": 254,
+      "pinyin": "shì",
+      "meaning": "city; market"
+    },
+    {
+      "character": "直",
+      "sequence": 255,
+      "pinyin": "zhí",
+      "meaning": "straight; direct"
+    },
+    {
+      "character": "德",
+      "sequence": 256,
+      "pinyin": "dé",
+      "meaning": "virtue; ethics; Germany"
+    },
+    {
+      "character": "资",
+      "sequence": 257,
+      "pinyin": "zī",
+      "meaning": "resources; capital"
+    },
+    {
+      "character": "命",
+      "sequence": 258,
+      "pinyin": "mìng",
+      "meaning": "life; fate; order"
+    },
+    {
+      "character": "山",
+      "sequence": 259,
+      "pinyin": "shān",
+      "meaning": "mountain; hill"
+    },
+    {
+      "character": "金",
+      "sequence": 260,
+      "pinyin": "jīn",
+      "meaning": "gold; metal; money"
+    },
+    {
+      "character": "指",
+      "sequence": 261,
+      "pinyin": "zhǐ",
+      "meaning": "finger; to point"
+    },
+    {
+      "character": "克",
+      "sequence": 262,
+      "pinyin": "kè",
+      "meaning": "gram; to overcome"
+    },
+    {
+      "character": "许",
+      "sequence": 263,
+      "pinyin": "xǔ",
+      "meaning": "to allow; to permit"
+    },
+    {
+      "character": "统",
+      "sequence": 264,
+      "pinyin": "tǒng",
+      "meaning": "to unite; system"
+    },
+    {
+      "character": "区",
+      "sequence": 265,
+      "pinyin": "qū",
+      "meaning": "area; district"
+    },
+    {
+      "character": "保",
+      "sequence": 266,
+      "pinyin": "bǎo",
+      "meaning": "to protect; to keep"
+    },
+    {
+      "character": "至",
+      "sequence": 267,
+      "pinyin": "zhì",
+      "meaning": "until; to reach; very"
+    },
+    {
+      "character": "队",
+      "sequence": 268,
+      "pinyin": "duì",
+      "meaning": "team; group"
+    },
+    {
+      "character": "形",
+      "sequence": 269,
+      "pinyin": "xíng",
+      "meaning": "form; shape"
+    },
+    {
+      "character": "社",
+      "sequence": 270,
+      "pinyin": "shè",
+      "meaning": "society; group"
+    },
+    {
+      "character": "便",
+      "sequence": 271,
+      "pinyin": "biàn",
+      "meaning": "convenient; then"
+    },
+    {
+      "character": "空",
+      "sequence": 272,
+      "pinyin": "kōng",
+      "meaning": "empty; sky; air"
+    },
+    {
+      "character": "决",
+      "sequence": 273,
+      "pinyin": "jué",
+      "meaning": "to decide"
+    },
+    {
+      "character": "治",
+      "sequence": 274,
+      "pinyin": "zhì",
+      "meaning": "to govern; to cure"
+    },
+    {
+      "character": "展",
+      "sequence": 275,
+      "pinyin": "zhǎn",
+      "meaning": "to spread out; to exhibit"
+    },
+    {
+      "character": "马",
+      "sequence": 276,
+      "pinyin": "mǎ",
+      "meaning": "horse"
+    },
+    {
+      "character": "科",
+      "sequence": 277,
+      "pinyin": "kē",
+      "meaning": "branch of study; science"
+    },
+    {
+      "character": "司",
+      "sequence": 278,
+      "pinyin": "sī",
+      "meaning": "to manage; company"
+    },
+    {
+      "character": "五",
+      "sequence": 279,
+      "pinyin": "wǔ",
+      "meaning": "five"
+    },
+    {
+      "character": "基",
+      "sequence": 280,
+      "pinyin": "jī",
+      "meaning": "base; foundation"
+    },
+    {
+      "character": "眼",
+      "sequence": 281,
+      "pinyin": "yǎn",
+      "meaning": "eye"
+    },
+    {
+      "character": "书",
+      "sequence": 282,
+      "pinyin": "shū",
+      "meaning": "book"
+    },
+    {
+      "character": "非",
+      "sequence": 283,
+      "pinyin": "fēi",
+      "meaning": "not; non-"
+    },
+    {
+      "character": "则",
+      "sequence": 284,
+      "pinyin": "zé",
+      "meaning": "rule; then"
+    },
+    {
+      "character": "听",
+      "sequence": 285,
+      "pinyin": "tīng",
+      "meaning": "to listen"
+    },
+    {
+      "character": "白",
+      "sequence": 286,
+      "pinyin": "bái",
+      "meaning": "white; clear"
+    },
+    {
+      "character": "却",
+      "sequence": 287,
+      "pinyin": "què",
+      "meaning": "but; however"
+    },
+    {
+      "character": "界",
+      "sequence": 288,
+      "pinyin": "jiè",
+      "meaning": "boundary; world"
+    },
+    {
+      "character": "达",
+      "sequence": 289,
+      "pinyin": "dá",
+      "meaning": "to reach; to attain"
+    },
+    {
+      "character": "光",
+      "sequence": 290,
+      "pinyin": "guāng",
+      "meaning": "light; bright"
+    },
+    {
+      "character": "放",
+      "sequence": 291,
+      "pinyin": "fàng",
+      "meaning": "to put; to release"
+    },
+    {
+      "character": "强",
+      "sequence": 292,
+      "pinyin": "qiáng",
+      "meaning": "strong; powerful"
+    },
+    {
+      "character": "即",
+      "sequence": 293,
+      "pinyin": "jí",
+      "meaning": "namely; immediately"
+    },
+    {
+      "character": "像",
+      "sequence": 294,
+      "pinyin": "xiàng",
+      "meaning": "to resemble; image"
+    },
+    {
+      "character": "难",
+      "sequence": 295,
+      "pinyin": "nán",
+      "meaning": "difficult"
+    },
+    {
+      "character": "且",
+      "sequence": 296,
+      "pinyin": "qiě",
+      "meaning": "moreover; and"
+    },
+    {
+      "character": "权",
+      "sequence": 297,
+      "pinyin": "quán",
+      "meaning": "power; right; authority"
+    },
+    {
+      "character": "思",
+      "sequence": 298,
+      "pinyin": "sī",
+      "meaning": "to think; thought"
+    },
+    {
+      "character": "王",
+      "sequence": 299,
+      "pinyin": "wáng",
+      "meaning": "king; surname Wang"
+    },
+    {
+      "character": "象",
+      "sequence": 300,
+      "pinyin": "xiàng",
+      "meaning": "elephant; image; to resemble"
+    },
+    {
+      "character": "完",
+      "sequence": 301,
+      "pinyin": "wán",
+      "meaning": "to finish; complete"
+    },
+    {
+      "character": "设",
+      "sequence": 302,
+      "pinyin": "shè",
+      "meaning": "to set up; to establish"
+    },
+    {
+      "character": "式",
+      "sequence": 303,
+      "pinyin": "shì",
+      "meaning": "style; type; pattern"
+    },
+    {
+      "character": "色",
+      "sequence": 304,
+      "pinyin": "sè",
+      "meaning": "color"
+    },
+    {
+      "character": "路",
+      "sequence": 305,
+      "pinyin": "lù",
+      "meaning": "road; path; way"
+    },
+    {
+      "character": "记",
+      "sequence": 306,
+      "pinyin": "jì",
+      "meaning": "to remember; to record"
+    },
+    {
+      "character": "南",
+      "sequence": 307,
+      "pinyin": "nán",
+      "meaning": "south"
+    },
+    {
+      "character": "品",
+      "sequence": 308,
+      "pinyin": "pǐn",
+      "meaning": "product; goods"
+    },
+    {
+      "character": "住",
+      "sequence": 309,
+      "pinyin": "zhù",
+      "meaning": "to live; to stay"
+    },
+    {
+      "character": "告",
+      "sequence": 310,
+      "pinyin": "gào",
+      "meaning": "to tell; to announce"
+    },
+    {
+      "character": "类",
+      "sequence": 311,
+      "pinyin": "lèi",
+      "meaning": "kind; type; category"
+    },
+    {
+      "character": "求",
+      "sequence": 312,
+      "pinyin": "qiú",
+      "meaning": "to seek; to request"
+    },
+    {
+      "character": "据",
+      "sequence": 313,
+      "pinyin": "jù",
+      "meaning": "according to; evidence"
+    },
+    {
+      "character": "程",
+      "sequence": 314,
+      "pinyin": "chéng",
+      "meaning": "journey; rule; procedure"
+    },
+    {
+      "character": "北",
+      "sequence": 315,
+      "pinyin": "běi",
+      "meaning": "north"
+    },
+    {
+      "character": "边",
+      "sequence": 316,
+      "pinyin": "biān",
+      "meaning": "side; edge; border"
+    },
+    {
+      "character": "死",
+      "sequence": 317,
+      "pinyin": "sǐ",
+      "meaning": "to die; dead"
+    },
+    {
+      "character": "张",
+      "sequence": 318,
+      "pinyin": "zhāng",
+      "meaning": "to stretch; (measure word); surname Zhang"
+    },
+    {
+      "character": "该",
+      "sequence": 319,
+      "pinyin": "gāi",
+      "meaning": "should; ought to"
+    },
+    {
+      "character": "交",
+      "sequence": 320,
+      "pinyin": "jiāo",
+      "meaning": "to hand over; to exchange"
+    },
+    {
+      "character": "规",
+      "sequence": 321,
+      "pinyin": "guī",
+      "meaning": "rule; regulation"
+    },
+    {
+      "character": "万",
+      "sequence": 322,
+      "pinyin": "wàn",
+      "meaning": "ten thousand"
+    },
+    {
+      "character": "取",
+      "sequence": 323,
+      "pinyin": "qǔ",
+      "meaning": "to take; to obtain"
+    },
+    {
+      "character": "拉",
+      "sequence": 324,
+      "pinyin": "lā",
+      "meaning": "to pull"
+    },
+    {
+      "character": "格",
+      "sequence": 325,
+      "pinyin": "gé",
+      "meaning": "pattern; standard; style"
+    },
+    {
+      "character": "望",
+      "sequence": 326,
+      "pinyin": "wàng",
+      "meaning": "to hope; to look toward"
+    },
+    {
+      "character": "觉",
+      "sequence": 327,
+      "pinyin": "jué",
+      "meaning": "to feel; to wake up"
+    },
+    {
+      "character": "术",
+      "sequence": 328,
+      "pinyin": "shù",
+      "meaning": "art; skill; technique"
+    },
+    {
+      "character": "领",
+      "sequence": 329,
+      "pinyin": "lǐng",
+      "meaning": "collar; to lead"
+    },
+    {
+      "character": "共",
+      "sequence": 330,
+      "pinyin": "gòng",
+      "meaning": "together; total"
+    },
+    {
+      "character": "确",
+      "sequence": 331,
+      "pinyin": "què",
+      "meaning": "sure; true"
+    },
+    {
+      "character": "传",
+      "sequence": 332,
+      "pinyin": "chuán",
+      "meaning": "to pass on; to transmit"
+    },
+    {
+      "character": "师",
+      "sequence": 333,
+      "pinyin": "shī",
+      "meaning": "teacher; master"
+    },
+    {
+      "character": "观",
+      "sequence": 334,
+      "pinyin": "guān",
+      "meaning": "to observe; view"
+    },
+    {
+      "character": "清",
+      "sequence": 335,
+      "pinyin": "qīng",
+      "meaning": "clear; pure"
+    },
+    {
+      "character": "今",
+      "sequence": 336,
+      "pinyin": "jīn",
+      "meaning": "now; today"
+    },
+    {
+      "character": "切",
+      "sequence": 337,
+      "pinyin": "qiè",
+      "meaning": "to cut; close to"
+    },
+    {
+      "character": "院",
+      "sequence": 338,
+      "pinyin": "yuàn",
+      "meaning": "courtyard; institution"
+    },
+    {
+      "character": "让",
+      "sequence": 339,
+      "pinyin": "ràng",
+      "meaning": "to let; to allow"
+    },
+    {
+      "character": "识",
+      "sequence": 340,
+      "pinyin": "shí",
+      "meaning": "to know; knowledge"
+    },
+    {
+      "character": "候",
+      "sequence": 341,
+      "pinyin": "hòu",
+      "meaning": "to wait; time"
+    },
+    {
+      "character": "带",
+      "sequence": 342,
+      "pinyin": "dài",
+      "meaning": "to bring; belt; zone"
+    },
+    {
+      "character": "导",
+      "sequence": 343,
+      "pinyin": "dǎo",
+      "meaning": "to lead; to guide"
+    },
+    {
+      "character": "争",
+      "sequence": 344,
+      "pinyin": "zhēng",
+      "meaning": "to compete; to struggle"
+    },
+    {
+      "character": "运",
+      "sequence": 345,
+      "pinyin": "yùn",
+      "meaning": "to transport; luck; fortune"
+    },
+    {
+      "character": "笑",
+      "sequence": 346,
+      "pinyin": "xiào",
+      "meaning": "to laugh; to smile"
+    },
+    {
+      "character": "飞",
+      "sequence": 347,
+      "pinyin": "fēi",
+      "meaning": "to fly"
+    },
+    {
+      "character": "风",
+      "sequence": 348,
+      "pinyin": "fēng",
+      "meaning": "wind; style"
+    },
+    {
+      "character": "步",
+      "sequence": 349,
+      "pinyin": "bù",
+      "meaning": "step; pace"
+    },
+    {
+      "character": "改",
+      "sequence": 350,
+      "pinyin": "gǎi",
+      "meaning": "to change; to alter"
+    },
+    {
+      "character": "收",
+      "sequence": 351,
+      "pinyin": "shōu",
+      "meaning": "to receive; to collect"
+    },
+    {
+      "character": "根",
+      "sequence": 352,
+      "pinyin": "gēn",
+      "meaning": "root; basis"
+    },
+    {
+      "character": "干",
+      "sequence": 353,
+      "pinyin": "gàn",
+      "meaning": "to do; dry"
+    },
+    {
+      "character": "造",
+      "sequence": 354,
+      "pinyin": "zào",
+      "meaning": "to build; to make"
+    },
+    {
+      "character": "言",
+      "sequence": 355,
+      "pinyin": "yán",
+      "meaning": "speech; words"
+    },
+    {
+      "character": "联",
+      "sequence": 356,
+      "pinyin": "lián",
+      "meaning": "to join; to unite"
+    },
+    {
+      "character": "持",
+      "sequence": 357,
+      "pinyin": "chí",
+      "meaning": "to hold; to support"
+    },
+    {
+      "character": "组",
+      "sequence": 358,
+      "pinyin": "zǔ",
+      "meaning": "group; to organize"
+    },
+    {
+      "character": "每",
+      "sequence": 359,
+      "pinyin": "měi",
+      "meaning": "each; every"
+    },
+    {
+      "character": "济",
+      "sequence": 360,
+      "pinyin": "jì",
+      "meaning": "to help; to aid"
+    },
+    {
+      "character": "车",
+      "sequence": 361,
+      "pinyin": "chē",
+      "meaning": "vehicle; car"
+    },
+    {
+      "character": "亲",
+      "sequence": 362,
+      "pinyin": "qīn",
+      "meaning": "parent; relative; close"
+    },
+    {
+      "character": "极",
+      "sequence": 363,
+      "pinyin": "jí",
+      "meaning": "extreme; pole"
+    },
+    {
+      "character": "林",
+      "sequence": 364,
+      "pinyin": "lín",
+      "meaning": "forest; surname Lin"
+    },
+    {
+      "character": "服",
+      "sequence": 365,
+      "pinyin": "fú",
+      "meaning": "clothes; to serve"
+    },
+    {
+      "character": "快",
+      "sequence": 366,
+      "pinyin": "kuài",
+      "meaning": "fast; quick"
+    },
+    {
+      "character": "办",
+      "sequence": 367,
+      "pinyin": "bàn",
+      "meaning": "to handle; to manage"
+    },
+    {
+      "character": "议",
+      "sequence": 368,
+      "pinyin": "yì",
+      "meaning": "to discuss; opinion"
+    },
+    {
+      "character": "往",
+      "sequence": 369,
+      "pinyin": "wǎng",
+      "meaning": "toward; in the past"
+    },
+    {
+      "character": "元",
+      "sequence": 370,
+      "pinyin": "yuán",
+      "meaning": "first; dollar; yuan"
+    },
+    {
+      "character": "英",
+      "sequence": 371,
+      "pinyin": "yīng",
+      "meaning": "English; brave; flower"
+    },
+    {
+      "character": "士",
+      "sequence": 372,
+      "pinyin": "shì",
+      "meaning": "scholar; gentleman"
+    },
+    {
+      "character": "证",
+      "sequence": 373,
+      "pinyin": "zhèng",
+      "meaning": "to prove; certificate"
+    },
+    {
+      "character": "近",
+      "sequence": 374,
+      "pinyin": "jìn",
+      "meaning": "near; close"
+    },
+    {
+      "character": "失",
+      "sequence": 375,
+      "pinyin": "shī",
+      "meaning": "to lose; to fail"
+    },
+    {
+      "character": "转",
+      "sequence": 376,
+      "pinyin": "zhuǎn",
+      "meaning": "to turn; to change"
+    },
+    {
+      "character": "夫",
+      "sequence": 377,
+      "pinyin": "fū",
+      "meaning": "husband; man"
+    },
+    {
+      "character": "令",
+      "sequence": 378,
+      "pinyin": "lìng",
+      "meaning": "to order; command"
+    },
+    {
+      "character": "准",
+      "sequence": 379,
+      "pinyin": "zhǔn",
+      "meaning": "to allow; standard; accurate"
+    },
+    {
+      "character": "布",
+      "sequence": 380,
+      "pinyin": "bù",
+      "meaning": "cloth; to spread"
+    },
+    {
+      "character": "始",
+      "sequence": 381,
+      "pinyin": "shǐ",
+      "meaning": "to begin; only then"
+    },
+    {
+      "character": "怎",
+      "sequence": 382,
+      "pinyin": "zěn",
+      "meaning": "how; why"
+    },
+    {
+      "character": "呢",
+      "sequence": 383,
+      "pinyin": "ne",
+      "meaning": "(question particle)"
+    },
+    {
+      "character": "存",
+      "sequence": 384,
+      "pinyin": "cún",
+      "meaning": "to exist; to store"
+    },
+    {
+      "character": "未",
+      "sequence": 385,
+      "pinyin": "wèi",
+      "meaning": "not yet"
+    },
+    {
+      "character": "远",
+      "sequence": 386,
+      "pinyin": "yuǎn",
+      "meaning": "far; distant"
+    },
+    {
+      "character": "叫",
+      "sequence": 387,
+      "pinyin": "jiào",
+      "meaning": "to call; to shout"
+    },
+    {
+      "character": "台",
+      "sequence": 388,
+      "pinyin": "tái",
+      "meaning": "platform; Taiwan"
+    },
+    {
+      "character": "单",
+      "sequence": 389,
+      "pinyin": "dān",
+      "meaning": "single; alone; list"
+    },
+    {
+      "character": "影",
+      "sequence": 390,
+      "pinyin": "yǐng",
+      "meaning": "shadow; image; movie"
+    },
+    {
+      "character": "具",
+      "sequence": 391,
+      "pinyin": "jù",
+      "meaning": "tool; to possess"
+    },
+    {
+      "character": "罗",
+      "sequence": 392,
+      "pinyin": "luó",
+      "meaning": "net; surname Luo"
+    },
+    {
+      "character": "字",
+      "sequence": 393,
+      "pinyin": "zì",
+      "meaning": "character; word"
+    },
+    {
+      "character": "爱",
+      "sequence": 394,
+      "pinyin": "ài",
+      "meaning": "to love"
+    },
+    {
+      "character": "击",
+      "sequence": 395,
+      "pinyin": "jī",
+      "meaning": "to hit; to strike"
+    },
+    {
+      "character": "流",
+      "sequence": 396,
+      "pinyin": "liú",
+      "meaning": "to flow; current"
+    },
+    {
+      "character": "备",
+      "sequence": 397,
+      "pinyin": "bèi",
+      "meaning": "to prepare"
+    },
+    {
+      "character": "兵",
+      "sequence": 398,
+      "pinyin": "bīng",
+      "meaning": "soldier; troops"
+    },
+    {
+      "character": "连",
+      "sequence": 399,
+      "pinyin": "lián",
+      "meaning": "to connect; even"
+    },
+    {
+      "character": "调",
+      "sequence": 400,
+      "pinyin": "diào",
+      "meaning": "to adjust; tone"
+    },
+    {
+      "character": "深",
+      "sequence": 401,
+      "pinyin": "shēn",
+      "meaning": "deep"
+    },
+    {
+      "character": "商",
+      "sequence": 402,
+      "pinyin": "shāng",
+      "meaning": "commerce; business"
+    },
+    {
+      "character": "算",
+      "sequence": 403,
+      "pinyin": "suàn",
+      "meaning": "to calculate; to count"
+    },
+    {
+      "character": "质",
+      "sequence": 404,
+      "pinyin": "zhì",
+      "meaning": "matter; quality"
+    },
+    {
+      "character": "团",
+      "sequence": 405,
+      "pinyin": "tuán",
+      "meaning": "group; ball; round"
+    },
+    {
+      "character": "集",
+      "sequence": 406,
+      "pinyin": "jí",
+      "meaning": "to gather; collection"
+    },
+    {
+      "character": "百",
+      "sequence": 407,
+      "pinyin": "bǎi",
+      "meaning": "hundred"
+    },
+    {
+      "character": "需",
+      "sequence": 408,
+      "pinyin": "xū",
+      "meaning": "to need; necessity"
+    },
+    {
+      "character": "价",
+      "sequence": 409,
+      "pinyin": "jià",
+      "meaning": "price; value"
+    },
+    {
+      "character": "花",
+      "sequence": 410,
+      "pinyin": "huā",
+      "meaning": "flower; to spend"
+    },
+    {
+      "character": "党",
+      "sequence": 411,
+      "pinyin": "dǎng",
+      "meaning": "party (political); gang"
+    },
+    {
+      "character": "华",
+      "sequence": 412,
+      "pinyin": "huá",
+      "meaning": "Chinese; magnificent"
+    },
+    {
+      "character": "城",
+      "sequence": 413,
+      "pinyin": "chéng",
+      "meaning": "city; town"
+    },
+    {
+      "character": "石",
+      "sequence": 414,
+      "pinyin": "shí",
+      "meaning": "stone; rock"
+    },
+    {
+      "character": "级",
+      "sequence": 415,
+      "pinyin": "jí",
+      "meaning": "level; rank"
+    },
+    {
+      "character": "整",
+      "sequence": 416,
+      "pinyin": "zhěng",
+      "meaning": "whole; orderly"
+    },
+    {
+      "character": "府",
+      "sequence": 417,
+      "pinyin": "fǔ",
+      "meaning": "government; mansion"
+    },
+    {
+      "character": "离",
+      "sequence": 418,
+      "pinyin": "lí",
+      "meaning": "to leave; from"
+    },
+    {
+      "character": "况",
+      "sequence": 419,
+      "pinyin": "kuàng",
+      "meaning": "situation; condition"
+    },
+    {
+      "character": "亚",
+      "sequence": 420,
+      "pinyin": "yà",
+      "meaning": "Asia; second"
+    },
+    {
+      "character": "请",
+      "sequence": 421,
+      "pinyin": "qǐng",
+      "meaning": "please; to invite"
+    },
+    {
+      "character": "技",
+      "sequence": 422,
+      "pinyin": "jì",
+      "meaning": "skill; technique"
+    },
+    {
+      "character": "际",
+      "sequence": 423,
+      "pinyin": "jì",
+      "meaning": "border; between; among"
+    },
+    {
+      "character": "约",
+      "sequence": 424,
+      "pinyin": "yuē",
+      "meaning": "about; to make appointment"
+    },
+    {
+      "character": "示",
+      "sequence": 425,
+      "pinyin": "shì",
+      "meaning": "to show; to demonstrate"
+    },
+    {
+      "character": "复",
+      "sequence": 426,
+      "pinyin": "fù",
+      "meaning": "to repeat; again"
+    },
+    {
+      "character": "病",
+      "sequence": 427,
+      "pinyin": "bìng",
+      "meaning": "illness; disease"
+    },
+    {
+      "character": "息",
+      "sequence": 428,
+      "pinyin": "xī",
+      "meaning": "breath; news; rest"
+    },
+    {
+      "character": "究",
+      "sequence": 429,
+      "pinyin": "jiū",
+      "meaning": "to investigate; after all"
+    },
+    {
+      "character": "线",
+      "sequence": 430,
+      "pinyin": "xiàn",
+      "meaning": "line; thread; wire"
+    },
+    {
+      "character": "似",
+      "sequence": 431,
+      "pinyin": "sì",
+      "meaning": "similar; to seem"
+    },
+    {
+      "character": "官",
+      "sequence": 432,
+      "pinyin": "guān",
+      "meaning": "official; government"
+    },
+    {
+      "character": "火",
+      "sequence": 433,
+      "pinyin": "huǒ",
+      "meaning": "fire"
+    },
+    {
+      "character": "断",
+      "sequence": 434,
+      "pinyin": "duàn",
+      "meaning": "to break; to judge"
+    },
+    {
+      "character": "精",
+      "sequence": 435,
+      "pinyin": "jīng",
+      "meaning": "essence; refined"
+    },
+    {
+      "character": "满",
+      "sequence": 436,
+      "pinyin": "mǎn",
+      "meaning": "full; to fill"
+    },
+    {
+      "character": "支",
+      "sequence": 437,
+      "pinyin": "zhī",
+      "meaning": "to support; branch"
+    },
+    {
+      "character": "视",
+      "sequence": 438,
+      "pinyin": "shì",
+      "meaning": "to look at; vision"
+    },
+    {
+      "character": "消",
+      "sequence": 439,
+      "pinyin": "xiāo",
+      "meaning": "to disappear; to consume"
+    },
+    {
+      "character": "越",
+      "sequence": 440,
+      "pinyin": "yuè",
+      "meaning": "to exceed; the more"
+    },
+    {
+      "character": "器",
+      "sequence": 441,
+      "pinyin": "qì",
+      "meaning": "tool; instrument"
+    },
+    {
+      "character": "容",
+      "sequence": 442,
+      "pinyin": "róng",
+      "meaning": "to contain; appearance"
+    },
+    {
+      "character": "照",
+      "sequence": 443,
+      "pinyin": "zhào",
+      "meaning": "to shine; according to"
+    },
+    {
+      "character": "须",
+      "sequence": 444,
+      "pinyin": "xū",
+      "meaning": "must; necessary"
+    },
+    {
+      "character": "九",
+      "sequence": 445,
+      "pinyin": "jiǔ",
+      "meaning": "nine"
+    },
+    {
+      "character": "增",
+      "sequence": 446,
+      "pinyin": "zēng",
+      "meaning": "to increase"
+    },
+    {
+      "character": "研",
+      "sequence": 447,
+      "pinyin": "yán",
+      "meaning": "to research; to grind"
+    },
+    {
+      "character": "写",
+      "sequence": 448,
+      "pinyin": "xiě",
+      "meaning": "to write"
+    },
+    {
+      "character": "称",
+      "sequence": 449,
+      "pinyin": "chēng",
+      "meaning": "to call; to weigh"
+    },
+    {
+      "character": "企",
+      "sequence": 450,
+      "pinyin": "qǐ",
+      "meaning": "to plan; enterprise"
+    },
+    {
+      "character": "八",
+      "sequence": 451,
+      "pinyin": "bā",
+      "meaning": "eight"
+    },
+    {
+      "character": "功",
+      "sequence": 452,
+      "pinyin": "gōng",
+      "meaning": "merit; achievement"
+    },
+    {
+      "character": "吗",
+      "sequence": 453,
+      "pinyin": "ma",
+      "meaning": "(question particle)"
+    },
+    {
+      "character": "包",
+      "sequence": 454,
+      "pinyin": "bāo",
+      "meaning": "to wrap; bag; package"
+    },
+    {
+      "character": "片",
+      "sequence": 455,
+      "pinyin": "piàn",
+      "meaning": "slice; piece; film"
+    },
+    {
+      "character": "史",
+      "sequence": 456,
+      "pinyin": "shǐ",
+      "meaning": "history"
+    },
+    {
+      "character": "委",
+      "sequence": 457,
+      "pinyin": "wěi",
+      "meaning": "to appoint; committee"
+    },
+    {
+      "character": "乎",
+      "sequence": 458,
+      "pinyin": "hū",
+      "meaning": "(literary final particle)"
+    },
+    {
+      "character": "查",
+      "sequence": 459,
+      "pinyin": "chá",
+      "meaning": "to check; to investigate"
+    },
+    {
+      "character": "轻",
+      "sequence": 460,
+      "pinyin": "qīng",
+      "meaning": "light (weight); easy"
+    },
+    {
+      "character": "易",
+      "sequence": 461,
+      "pinyin": "yì",
+      "meaning": "easy; to change"
+    },
+    {
+      "character": "早",
+      "sequence": 462,
+      "pinyin": "zǎo",
+      "meaning": "early; morning"
+    },
+    {
+      "character": "曾",
+      "sequence": 463,
+      "pinyin": "céng",
+      "meaning": "once; previously"
+    },
+    {
+      "character": "除",
+      "sequence": 464,
+      "pinyin": "chú",
+      "meaning": "to remove; except"
+    },
+    {
+      "character": "农",
+      "sequence": 465,
+      "pinyin": "nóng",
+      "meaning": "agriculture; farmer"
+    },
+    {
+      "character": "找",
+      "sequence": 466,
+      "pinyin": "zhǎo",
+      "meaning": "to look for; to find"
+    },
+    {
+      "character": "装",
+      "sequence": 467,
+      "pinyin": "zhuāng",
+      "meaning": "to install; clothing"
+    },
+    {
+      "character": "广",
+      "sequence": 468,
+      "pinyin": "guǎng",
+      "meaning": "wide; broad"
+    },
+    {
+      "character": "显",
+      "sequence": 469,
+      "pinyin": "xiǎn",
+      "meaning": "obvious; to show"
+    },
+    {
+      "character": "吧",
+      "sequence": 470,
+      "pinyin": "ba",
+      "meaning": "(suggestion particle)"
+    },
+    {
+      "character": "阿",
+      "sequence": 471,
+      "pinyin": "ā",
+      "meaning": "(prefix to names); ah"
+    },
+    {
+      "character": "李",
+      "sequence": 472,
+      "pinyin": "lǐ",
+      "meaning": "plum; surname Li"
+    },
+    {
+      "character": "标",
+      "sequence": 473,
+      "pinyin": "biāo",
+      "meaning": "mark; sign; standard"
+    },
+    {
+      "character": "谈",
+      "sequence": 474,
+      "pinyin": "tán",
+      "meaning": "to talk; to discuss"
+    },
+    {
+      "character": "吃",
+      "sequence": 475,
+      "pinyin": "chī",
+      "meaning": "to eat"
+    },
+    {
+      "character": "图",
+      "sequence": 476,
+      "pinyin": "tú",
+      "meaning": "picture; chart; map"
+    },
+    {
+      "character": "念",
+      "sequence": 477,
+      "pinyin": "niàn",
+      "meaning": "to read aloud; to think of"
+    },
+    {
+      "character": "六",
+      "sequence": 478,
+      "pinyin": "liù",
+      "meaning": "six"
+    },
+    {
+      "character": "引",
+      "sequence": 479,
+      "pinyin": "yǐn",
+      "meaning": "to lead; to attract"
+    },
+    {
+      "character": "历",
+      "sequence": 480,
+      "pinyin": "lì",
+      "meaning": "history; calendar"
+    },
+    {
+      "character": "首",
+      "sequence": 481,
+      "pinyin": "shǒu",
+      "meaning": "head; first; (measure word for songs)"
+    },
+    {
+      "character": "医",
+      "sequence": 482,
+      "pinyin": "yī",
+      "meaning": "medicine; doctor"
+    },
+    {
+      "character": "局",
+      "sequence": 483,
+      "pinyin": "jú",
+      "meaning": "bureau; office; situation"
+    },
+    {
+      "character": "突",
+      "sequence": 484,
+      "pinyin": "tū",
+      "meaning": "sudden; to break through"
+    },
+    {
+      "character": "专",
+      "sequence": 485,
+      "pinyin": "zhuān",
+      "meaning": "specialized; expert"
+    },
+    {
+      "character": "费",
+      "sequence": 486,
+      "pinyin": "fèi",
+      "meaning": "fee; to spend"
+    },
+    {
+      "character": "号",
+      "sequence": 487,
+      "pinyin": "hào",
+      "meaning": "number; mark; date"
+    },
+    {
+      "character": "尽",
+      "sequence": 488,
+      "pinyin": "jǐn",
+      "meaning": "to the utmost; exhausted"
+    },
+    {
+      "character": "另",
+      "sequence": 489,
+      "pinyin": "lìng",
+      "meaning": "another; other"
+    },
+    {
+      "character": "周",
+      "sequence": 490,
+      "pinyin": "zhōu",
+      "meaning": "week; circumference; surname Zhou"
+    },
+    {
+      "character": "较",
+      "sequence": 491,
+      "pinyin": "jiào",
+      "meaning": "to compare; comparatively"
+    },
+    {
+      "character": "注",
+      "sequence": 492,
+      "pinyin": "zhù",
+      "meaning": "to focus; to note"
+    },
+    {
+      "character": "语",
+      "sequence": 493,
+      "pinyin": "yǔ",
+      "meaning": "language; speech"
+    },
+    {
+      "character": "仅",
+      "sequence": 494,
+      "pinyin": "jǐn",
+      "meaning": "only; merely"
+    },
+    {
+      "character": "考",
+      "sequence": 495,
+      "pinyin": "kǎo",
+      "meaning": "to test; to examine"
+    },
+    {
+      "character": "落",
+      "sequence": 496,
+      "pinyin": "luò",
+      "meaning": "to fall; to drop"
+    },
+    {
+      "character": "青",
+      "sequence": 497,
+      "pinyin": "qīng",
+      "meaning": "green; blue; young"
+    },
+    {
+      "character": "随",
+      "sequence": 498,
+      "pinyin": "suí",
+      "meaning": "to follow"
+    },
+    {
+      "character": "选",
+      "sequence": 499,
+      "pinyin": "xuǎn",
+      "meaning": "to choose; to select"
+    },
+    {
+      "character": "列",
+      "sequence": 500,
+      "pinyin": "liè",
+      "meaning": "to arrange; row; series"
+    }
+  ]
+}

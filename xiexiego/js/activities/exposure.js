@@ -4,8 +4,14 @@
  * shows meaning + pinyin + example. Each part reveals as narrator reads it.
  */
 
-import { playAudio, speakChinese, speakEnglish, enrichCharacter, getIllustration } from '../enrichment.js';
+import { playAudio, speakChinese, speakEnglish, enrichCharacter, getIllustration, localCharDataLoader } from '../enrichment.js';
 import { playPop, playChime, playWhoosh, playClick } from '../sounds.js';
+import { t } from '../i18n.js';
+
+/** Get stroke color based on current theme */
+function getStrokeColor() {
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? '#E8E8F0' : '#2D3436';
+}
 
 /**
  * Format meaning for display: replace " / " with " or ".
@@ -32,10 +38,12 @@ export async function renderExposure(container, word, onComplete) {
   const pinyin = word.pinyinMarked || word.pinyin || '';
   const example = word.example;
   const illustration = getIllustration(word.character);
+  const isRadical = word.isRadical;
 
   container.innerHTML = `
     <div class="activity activity--exposure">
       <div class="activity__body">
+        ${isRadical ? `<div class="activity__radical-badge">${t('activity.radical')}</div>` : ''}
         <div class="activity__character-area" id="exposure-char-area">
           <div id="hanzi-target"></div>
         </div>
@@ -53,13 +61,13 @@ export async function renderExposure(container, word, onComplete) {
       </div>
 
       <div class="activity__actions">
-        <button class="activity__skip" id="btn-skip">skip ›</button>
+        <button class="activity__skip" id="btn-skip">${t('activity.skip')}</button>
         <div class="activity__btn-row">
           <button class="btn btn--secondary activity__replay" id="btn-replay" style="visibility: hidden;">
-            ↻ Replay
+            ${t('activity.replay')}
           </button>
           <button class="btn btn--primary activity__continue" id="btn-continue" style="visibility: hidden;">
-            Continue
+            ${t('activity.continue')}
           </button>
         </div>
       </div>
@@ -277,13 +285,14 @@ export async function renderExposure(container, word, onComplete) {
     word.character.split('').forEach((ch, i) => {
       try {
         const w = HanziWriter.create(target.querySelector(`#hanzi-compound-${i}`), ch, {
+          charDataLoader: localCharDataLoader,
           width: charSize,
           height: charSize,
           padding: 5,
           strokeAnimationSpeed: 2.0,
           delayBetweenStrokes: 60,
-          strokeColor: '#2D3436',
-          radicalColor: '#2D3436',
+          strokeColor: getStrokeColor(),
+          radicalColor: getStrokeColor(),
           showOutline: true,
           showCharacter: false,
         });
@@ -298,13 +307,14 @@ export async function renderExposure(container, word, onComplete) {
   } else if (word.hasStrokeData !== false) {
     try {
       writer = HanziWriter.create(target, word.character, {
+        charDataLoader: localCharDataLoader,
         width: 220,
         height: 220,
         padding: 10,
         strokeAnimationSpeed: 1.5,
         delayBetweenStrokes: 100,
-        strokeColor: '#2D3436',
-        radicalColor: '#2D3436',
+        strokeColor: getStrokeColor(),
+        radicalColor: getStrokeColor(),
         showOutline: true,
         showCharacter: false,
       });

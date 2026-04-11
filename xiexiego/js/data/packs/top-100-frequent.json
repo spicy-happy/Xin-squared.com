@@ -1,0 +1,613 @@
+{
+  "id": "top_100_frequent",
+  "version": 1,
+  "title": "Top 100 Characters",
+  "titleZh": "最常用100字",
+  "description": "Most common 100 characters. Good for any age.",
+  "source": "Character sequence from Jun Da's Modern Chinese Character Frequency List (lingua.mtsu.edu/chinese-computing). Used for educational purposes. Individual characters are standard Chinese.",
+  "sequenced": true,
+  "totalWords": 100,
+  "notes": "This pack introduces characters in frequency order — the most common first. Many of these are grammatical particles and function words that kids encounter constantly but may not immediately recognize as 'vocabulary.' Pairs well with other themed packs that add concrete nouns and verbs.",
+  "words": [
+    {
+      "character": "的",
+      "sequence": 1,
+      "pinyin": "de",
+      "meaning": "possessive particle; of"
+    },
+    {
+      "character": "一",
+      "sequence": 2,
+      "pinyin": "yī",
+      "meaning": "one"
+    },
+    {
+      "character": "是",
+      "sequence": 3,
+      "pinyin": "shì",
+      "meaning": "to be; is; yes"
+    },
+    {
+      "character": "不",
+      "sequence": 4,
+      "pinyin": "bù",
+      "meaning": "not; no"
+    },
+    {
+      "character": "了",
+      "sequence": 5,
+      "pinyin": "le",
+      "meaning": "completed action marker"
+    },
+    {
+      "character": "在",
+      "sequence": 6,
+      "pinyin": "zài",
+      "meaning": "at; in; on; exist"
+    },
+    {
+      "character": "人",
+      "sequence": 7,
+      "pinyin": "rén",
+      "meaning": "person; people"
+    },
+    {
+      "character": "有",
+      "sequence": 8,
+      "pinyin": "yǒu",
+      "meaning": "to have; there is"
+    },
+    {
+      "character": "我",
+      "sequence": 9,
+      "pinyin": "wǒ",
+      "meaning": "I; me"
+    },
+    {
+      "character": "他",
+      "sequence": 10,
+      "pinyin": "tā",
+      "meaning": "he; him"
+    },
+    {
+      "character": "这",
+      "sequence": 11,
+      "pinyin": "zhè",
+      "meaning": "this; these"
+    },
+    {
+      "character": "个",
+      "sequence": 12,
+      "pinyin": "gè",
+      "meaning": "measure word; individual"
+    },
+    {
+      "character": "们",
+      "sequence": 13,
+      "pinyin": "men",
+      "meaning": "plural marker"
+    },
+    {
+      "character": "中",
+      "sequence": 14,
+      "pinyin": "zhōng",
+      "meaning": "middle; center; China"
+    },
+    {
+      "character": "来",
+      "sequence": 15,
+      "pinyin": "lái",
+      "meaning": "to come"
+    },
+    {
+      "character": "上",
+      "sequence": 16,
+      "pinyin": "shàng",
+      "meaning": "up; on; above"
+    },
+    {
+      "character": "大",
+      "sequence": 17,
+      "pinyin": "dà",
+      "meaning": "big; large"
+    },
+    {
+      "character": "为",
+      "sequence": 18,
+      "pinyin": "wèi",
+      "meaning": "for; to do; act as"
+    },
+    {
+      "character": "和",
+      "sequence": 19,
+      "pinyin": "hé",
+      "meaning": "and; with; peace"
+    },
+    {
+      "character": "国",
+      "sequence": 20,
+      "pinyin": "guó",
+      "meaning": "country; nation"
+    },
+    {
+      "character": "地",
+      "sequence": 21,
+      "pinyin": "de",
+      "meaning": "earth; ground; -ly"
+    },
+    {
+      "character": "到",
+      "sequence": 22,
+      "pinyin": "dào",
+      "meaning": "to arrive; to reach"
+    },
+    {
+      "character": "以",
+      "sequence": 23,
+      "pinyin": "yǐ",
+      "meaning": "to use; by means of"
+    },
+    {
+      "character": "说",
+      "sequence": 24,
+      "pinyin": "shuō",
+      "meaning": "to speak; to say"
+    },
+    {
+      "character": "时",
+      "sequence": 25,
+      "pinyin": "shí",
+      "meaning": "time; hour"
+    },
+    {
+      "character": "要",
+      "sequence": 26,
+      "pinyin": "yào",
+      "meaning": "to want; to need"
+    },
+    {
+      "character": "就",
+      "sequence": 27,
+      "pinyin": "jiù",
+      "meaning": "at once; then"
+    },
+    {
+      "character": "出",
+      "sequence": 28,
+      "pinyin": "chū",
+      "meaning": "to go out; to come out"
+    },
+    {
+      "character": "会",
+      "sequence": 29,
+      "pinyin": "huì",
+      "meaning": "can; meeting; to assemble"
+    },
+    {
+      "character": "可",
+      "sequence": 30,
+      "pinyin": "kě",
+      "meaning": "can; may; able to"
+    },
+    {
+      "character": "也",
+      "sequence": 31,
+      "pinyin": "yě",
+      "meaning": "also; too"
+    },
+    {
+      "character": "你",
+      "sequence": 32,
+      "pinyin": "nǐ",
+      "meaning": "you"
+    },
+    {
+      "character": "对",
+      "sequence": 33,
+      "pinyin": "duì",
+      "meaning": "correct; right; to face"
+    },
+    {
+      "character": "生",
+      "sequence": 34,
+      "pinyin": "shēng",
+      "meaning": "to be born; life"
+    },
+    {
+      "character": "能",
+      "sequence": 35,
+      "pinyin": "néng",
+      "meaning": "can; to be able"
+    },
+    {
+      "character": "而",
+      "sequence": 36,
+      "pinyin": "ér",
+      "meaning": "and; but"
+    },
+    {
+      "character": "子",
+      "sequence": 37,
+      "pinyin": "zǐ",
+      "meaning": "child; seed"
+    },
+    {
+      "character": "那",
+      "sequence": 38,
+      "pinyin": "nà",
+      "meaning": "that; those"
+    },
+    {
+      "character": "得",
+      "sequence": 39,
+      "pinyin": "dé",
+      "meaning": "to obtain; to get"
+    },
+    {
+      "character": "于",
+      "sequence": 40,
+      "pinyin": "yú",
+      "meaning": "in; at; to; from"
+    },
+    {
+      "character": "着",
+      "sequence": 41,
+      "pinyin": "zhe",
+      "meaning": "-ing (progressive action marker)"
+    },
+    {
+      "character": "下",
+      "sequence": 42,
+      "pinyin": "xià",
+      "meaning": "down; below; under"
+    },
+    {
+      "character": "自",
+      "sequence": 43,
+      "pinyin": "zì",
+      "meaning": "self; from"
+    },
+    {
+      "character": "之",
+      "sequence": 44,
+      "pinyin": "zhī",
+      "meaning": "(literary particle); it"
+    },
+    {
+      "character": "年",
+      "sequence": 45,
+      "pinyin": "nián",
+      "meaning": "year"
+    },
+    {
+      "character": "过",
+      "sequence": 46,
+      "pinyin": "guò",
+      "meaning": "to pass; experienced"
+    },
+    {
+      "character": "发",
+      "sequence": 47,
+      "pinyin": "fā",
+      "meaning": "to send out; to issue; hair"
+    },
+    {
+      "character": "后",
+      "sequence": 48,
+      "pinyin": "hòu",
+      "meaning": "behind; after; later"
+    },
+    {
+      "character": "作",
+      "sequence": 49,
+      "pinyin": "zuò",
+      "meaning": "to make; to do"
+    },
+    {
+      "character": "里",
+      "sequence": 50,
+      "pinyin": "lǐ",
+      "meaning": "inside; within"
+    },
+    {
+      "character": "用",
+      "sequence": 51,
+      "pinyin": "yòng",
+      "meaning": "to use"
+    },
+    {
+      "character": "道",
+      "sequence": 52,
+      "pinyin": "dào",
+      "meaning": "road; way; method"
+    },
+    {
+      "character": "行",
+      "sequence": 53,
+      "pinyin": "xíng",
+      "meaning": "to walk; to go; okay"
+    },
+    {
+      "character": "所",
+      "sequence": 54,
+      "pinyin": "suǒ",
+      "meaning": "place; location"
+    },
+    {
+      "character": "然",
+      "sequence": 55,
+      "pinyin": "rán",
+      "meaning": "so; like that"
+    },
+    {
+      "character": "家",
+      "sequence": 56,
+      "pinyin": "jiā",
+      "meaning": "home; family; house"
+    },
+    {
+      "character": "种",
+      "sequence": 57,
+      "pinyin": "zhǒng",
+      "meaning": "kind; type; seed"
+    },
+    {
+      "character": "事",
+      "sequence": 58,
+      "pinyin": "shì",
+      "meaning": "matter; thing; affair"
+    },
+    {
+      "character": "成",
+      "sequence": 59,
+      "pinyin": "chéng",
+      "meaning": "to become; to finish"
+    },
+    {
+      "character": "方",
+      "sequence": 60,
+      "pinyin": "fāng",
+      "meaning": "square; direction; side"
+    },
+    {
+      "character": "多",
+      "sequence": 61,
+      "pinyin": "duō",
+      "meaning": "many; much"
+    },
+    {
+      "character": "经",
+      "sequence": 62,
+      "pinyin": "jīng",
+      "meaning": "classic; to pass through"
+    },
+    {
+      "character": "么",
+      "sequence": 63,
+      "pinyin": "me",
+      "meaning": "interrogative suffix"
+    },
+    {
+      "character": "去",
+      "sequence": 64,
+      "pinyin": "qù",
+      "meaning": "to go; to leave"
+    },
+    {
+      "character": "法",
+      "sequence": 65,
+      "pinyin": "fǎ",
+      "meaning": "law; method"
+    },
+    {
+      "character": "学",
+      "sequence": 66,
+      "pinyin": "xué",
+      "meaning": "to study; to learn"
+    },
+    {
+      "character": "如",
+      "sequence": 67,
+      "pinyin": "rú",
+      "meaning": "as if; like"
+    },
+    {
+      "character": "都",
+      "sequence": 68,
+      "pinyin": "dōu",
+      "meaning": "all; both"
+    },
+    {
+      "character": "同",
+      "sequence": 69,
+      "pinyin": "tóng",
+      "meaning": "same; together"
+    },
+    {
+      "character": "现",
+      "sequence": 70,
+      "pinyin": "xiàn",
+      "meaning": "now; present; to appear"
+    },
+    {
+      "character": "当",
+      "sequence": 71,
+      "pinyin": "dāng",
+      "meaning": "to be; to serve as; when"
+    },
+    {
+      "character": "没",
+      "sequence": 72,
+      "pinyin": "méi",
+      "meaning": "not; have not"
+    },
+    {
+      "character": "动",
+      "sequence": 73,
+      "pinyin": "dòng",
+      "meaning": "to move; movement"
+    },
+    {
+      "character": "面",
+      "sequence": 74,
+      "pinyin": "miàn",
+      "meaning": "face; surface; side"
+    },
+    {
+      "character": "起",
+      "sequence": 75,
+      "pinyin": "qǐ",
+      "meaning": "to rise; to get up"
+    },
+    {
+      "character": "看",
+      "sequence": 76,
+      "pinyin": "kàn",
+      "meaning": "to look; to see"
+    },
+    {
+      "character": "定",
+      "sequence": 77,
+      "pinyin": "dìng",
+      "meaning": "to decide; to fix"
+    },
+    {
+      "character": "天",
+      "sequence": 78,
+      "pinyin": "tiān",
+      "meaning": "sky; day; heaven"
+    },
+    {
+      "character": "分",
+      "sequence": 79,
+      "pinyin": "fēn",
+      "meaning": "to divide; minute; part"
+    },
+    {
+      "character": "还",
+      "sequence": 80,
+      "pinyin": "hái",
+      "meaning": "still; also; yet"
+    },
+    {
+      "character": "进",
+      "sequence": 81,
+      "pinyin": "jìn",
+      "meaning": "to enter; to advance"
+    },
+    {
+      "character": "好",
+      "sequence": 82,
+      "pinyin": "hǎo",
+      "meaning": "good; well"
+    },
+    {
+      "character": "小",
+      "sequence": 83,
+      "pinyin": "xiǎo",
+      "meaning": "small; little"
+    },
+    {
+      "character": "部",
+      "sequence": 84,
+      "pinyin": "bù",
+      "meaning": "part; section; department"
+    },
+    {
+      "character": "其",
+      "sequence": 85,
+      "pinyin": "qí",
+      "meaning": "his; her; its; their"
+    },
+    {
+      "character": "些",
+      "sequence": 86,
+      "pinyin": "xiē",
+      "meaning": "some; a few"
+    },
+    {
+      "character": "主",
+      "sequence": 87,
+      "pinyin": "zhǔ",
+      "meaning": "main; host; owner"
+    },
+    {
+      "character": "样",
+      "sequence": 88,
+      "pinyin": "yàng",
+      "meaning": "shape; form; kind"
+    },
+    {
+      "character": "理",
+      "sequence": 89,
+      "pinyin": "lǐ",
+      "meaning": "reason; logic; to manage"
+    },
+    {
+      "character": "心",
+      "sequence": 90,
+      "pinyin": "xīn",
+      "meaning": "heart; mind"
+    },
+    {
+      "character": "她",
+      "sequence": 91,
+      "pinyin": "tā",
+      "meaning": "she; her"
+    },
+    {
+      "character": "本",
+      "sequence": 92,
+      "pinyin": "běn",
+      "meaning": "root; origin; book; measure word"
+    },
+    {
+      "character": "前",
+      "sequence": 93,
+      "pinyin": "qián",
+      "meaning": "front; before; ago"
+    },
+    {
+      "character": "开",
+      "sequence": 94,
+      "pinyin": "kāi",
+      "meaning": "to open; to start"
+    },
+    {
+      "character": "但",
+      "sequence": 95,
+      "pinyin": "dàn",
+      "meaning": "but; however"
+    },
+    {
+      "character": "因",
+      "sequence": 96,
+      "pinyin": "yīn",
+      "meaning": "cause; reason; because"
+    },
+    {
+      "character": "只",
+      "sequence": 97,
+      "pinyin": "zhǐ",
+      "meaning": "only; just"
+    },
+    {
+      "character": "从",
+      "sequence": 98,
+      "pinyin": "cóng",
+      "meaning": "from; since"
+    },
+    {
+      "character": "想",
+      "sequence": 99,
+      "pinyin": "xiǎng",
+      "meaning": "to think; to want"
+    },
+    {
+      "character": "实",
+      "sequence": 100,
+      "pinyin": "shí",
+      "meaning": "real; true; honest"
+    }
+  ]
+}

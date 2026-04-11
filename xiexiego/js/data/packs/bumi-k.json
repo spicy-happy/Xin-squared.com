@@ -1,0 +1,421 @@
+{
+  "id": "bumi_k",
+  "version": 1,
+  "title": "BUMI Kindergarten",
+  "titleZh": "幼儿园全年汉字",
+  "description": "Characters from Liulaoshi's BUMI 2025-2026 Kindergarten class.",
+  "source": "Teacher Aoxue Liu weekly newsletters, BUMI Kindergarten 2025–2026",
+  "sequenced": true,
+  "totalWords": 68,
+  "notes": "Characters are sequenced roughly in the order they were introduced across the school year: fall semester first, then winter, then spring. Star the current week's dictation list for targeted practice.",
+  "words": [
+    {
+      "character": "一",
+      "sequence": 1,
+      "pinyin": "yī",
+      "meaning": "one"
+    },
+    {
+      "character": "二",
+      "sequence": 2,
+      "pinyin": "èr",
+      "meaning": "two"
+    },
+    {
+      "character": "三",
+      "sequence": 3,
+      "pinyin": "sān",
+      "meaning": "three"
+    },
+    {
+      "character": "八",
+      "sequence": 4,
+      "pinyin": "bā",
+      "meaning": "eight"
+    },
+    {
+      "character": "人",
+      "sequence": 5,
+      "pinyin": "rén",
+      "meaning": "person; people"
+    },
+    {
+      "character": "六",
+      "sequence": 6,
+      "pinyin": "liù",
+      "meaning": "six"
+    },
+    {
+      "character": "七",
+      "sequence": 7,
+      "pinyin": "qī",
+      "meaning": "seven"
+    },
+    {
+      "character": "九",
+      "sequence": 8,
+      "pinyin": "jiǔ",
+      "meaning": "nine"
+    },
+    {
+      "character": "口",
+      "sequence": 9,
+      "pinyin": "kǒu",
+      "meaning": "mouth"
+    },
+    {
+      "character": "四",
+      "sequence": 10,
+      "pinyin": "sì",
+      "meaning": "four"
+    },
+    {
+      "character": "五",
+      "sequence": 11,
+      "pinyin": "wǔ",
+      "meaning": "five"
+    },
+    {
+      "character": "日",
+      "sequence": 12,
+      "pinyin": "rì",
+      "meaning": "sun; day"
+    },
+    {
+      "character": "手",
+      "sequence": 13,
+      "pinyin": "shǒu",
+      "meaning": "hand"
+    },
+    {
+      "character": "十",
+      "sequence": 14,
+      "pinyin": "shí",
+      "meaning": "ten"
+    },
+    {
+      "character": "大",
+      "sequence": 15,
+      "pinyin": "dà",
+      "meaning": "big; large"
+    },
+    {
+      "character": "小",
+      "sequence": 16,
+      "pinyin": "xiǎo",
+      "meaning": "small; little"
+    },
+    {
+      "character": "上",
+      "sequence": 17,
+      "pinyin": "shàng",
+      "meaning": "up; on; above"
+    },
+    {
+      "character": "下",
+      "sequence": 18,
+      "pinyin": "xià",
+      "meaning": "down; below; under"
+    },
+    {
+      "character": "月",
+      "sequence": 19,
+      "pinyin": "yuè",
+      "meaning": "moon; month"
+    },
+    {
+      "character": "天",
+      "sequence": 20,
+      "pinyin": "tiān",
+      "meaning": "sky; day; heaven"
+    },
+    {
+      "character": "白",
+      "sequence": 21,
+      "pinyin": "bái",
+      "meaning": "white"
+    },
+    {
+      "character": "生",
+      "sequence": 22,
+      "pinyin": "shēng",
+      "meaning": "life; birth"
+    },
+    {
+      "character": "早",
+      "sequence": 23,
+      "pinyin": "zǎo",
+      "meaning": "morning; early"
+    },
+    {
+      "character": "山",
+      "sequence": 24,
+      "pinyin": "shān",
+      "meaning": "mountain"
+    },
+    {
+      "character": "心",
+      "sequence": 25,
+      "pinyin": "xīn",
+      "meaning": "heart; mind"
+    },
+    {
+      "character": "工",
+      "sequence": 26,
+      "pinyin": "gōng",
+      "meaning": "work; labor"
+    },
+    {
+      "character": "力",
+      "sequence": 27,
+      "pinyin": "lì",
+      "meaning": "strength; effort"
+    },
+    {
+      "character": "明",
+      "sequence": 28,
+      "pinyin": "míng",
+      "meaning": "bright; clear"
+    },
+    {
+      "character": "男",
+      "sequence": 29,
+      "pinyin": "nán",
+      "meaning": "male; boy"
+    },
+    {
+      "character": "女",
+      "sequence": 30,
+      "pinyin": "nǚ",
+      "meaning": "female; girl"
+    },
+    {
+      "character": "有",
+      "sequence": 31,
+      "pinyin": "yǒu",
+      "meaning": "to have; there is"
+    },
+    {
+      "character": "几",
+      "sequence": 32,
+      "pinyin": "jǐ",
+      "meaning": "how many; several"
+    },
+    {
+      "character": "个",
+      "sequence": 33,
+      "pinyin": "gè",
+      "meaning": "classifier for people and things"
+    },
+    {
+      "character": "今",
+      "sequence": 34,
+      "pinyin": "jīn",
+      "meaning": "now; present; today"
+    },
+    {
+      "character": "了",
+      "sequence": 35,
+      "pinyin": "le",
+      "meaning": "completed action marker"
+    },
+    {
+      "character": "也",
+      "sequence": 36,
+      "pinyin": "yě",
+      "meaning": "also; too"
+    },
+    {
+      "character": "在",
+      "sequence": 37,
+      "pinyin": "zài",
+      "meaning": "at; in; located"
+    },
+    {
+      "character": "左",
+      "sequence": 38,
+      "pinyin": "zuǒ",
+      "meaning": "left"
+    },
+    {
+      "character": "右",
+      "sequence": 39,
+      "pinyin": "yòu",
+      "meaning": "right"
+    },
+    {
+      "character": "中",
+      "sequence": 40,
+      "pinyin": "zhōng",
+      "meaning": "middle; center"
+    },
+    {
+      "character": "你",
+      "sequence": 41,
+      "pinyin": "nǐ",
+      "meaning": "you"
+    },
+    {
+      "character": "他",
+      "sequence": 42,
+      "pinyin": "tā",
+      "meaning": "he; him"
+    },
+    {
+      "character": "和",
+      "sequence": 43,
+      "pinyin": "hé",
+      "meaning": "and; with"
+    },
+    {
+      "character": "去",
+      "sequence": 44,
+      "pinyin": "qù",
+      "meaning": "to go"
+    },
+    {
+      "character": "不",
+      "sequence": 45,
+      "pinyin": "bù",
+      "meaning": "not; no"
+    },
+    {
+      "character": "多",
+      "sequence": 46,
+      "pinyin": "duō",
+      "meaning": "many; much"
+    },
+    {
+      "character": "少",
+      "sequence": 47,
+      "pinyin": "shǎo",
+      "meaning": "few; little"
+    },
+    {
+      "character": "水",
+      "sequence": 48,
+      "pinyin": "shuǐ",
+      "meaning": "water"
+    },
+    {
+      "character": "名",
+      "sequence": 49,
+      "pinyin": "míng",
+      "meaning": "name"
+    },
+    {
+      "character": "我",
+      "sequence": 50,
+      "pinyin": "wǒ",
+      "meaning": "I; me"
+    },
+    {
+      "character": "她",
+      "sequence": 51,
+      "pinyin": "tā",
+      "meaning": "she; her"
+    },
+    {
+      "character": "的",
+      "sequence": 52,
+      "pinyin": "de",
+      "meaning": "possessive particle; of"
+    },
+    {
+      "character": "太",
+      "sequence": 53,
+      "pinyin": "tài",
+      "meaning": "too; very; extremely"
+    },
+    {
+      "character": "星",
+      "sequence": 54,
+      "pinyin": "xīng",
+      "meaning": "star"
+    },
+    {
+      "character": "是",
+      "sequence": 55,
+      "pinyin": "shì",
+      "meaning": "to be; is; am; are"
+    },
+    {
+      "character": "可",
+      "sequence": 56,
+      "pinyin": "kě",
+      "meaning": "can; may"
+    },
+    {
+      "character": "以",
+      "sequence": 57,
+      "pinyin": "yǐ",
+      "meaning": "to use; by means of"
+    },
+    {
+      "character": "只",
+      "sequence": 58,
+      "pinyin": "zhī",
+      "meaning": "classifier for animals"
+    },
+    {
+      "character": "它",
+      "sequence": 59,
+      "pinyin": "tā",
+      "meaning": "it (objects and animals)"
+    },
+    {
+      "character": "头",
+      "sequence": 60,
+      "pinyin": "tóu",
+      "meaning": "head"
+    },
+    {
+      "character": "儿",
+      "sequence": 61,
+      "pinyin": "ér",
+      "meaning": "child; diminutive suffix"
+    },
+    {
+      "character": "耳",
+      "sequence": 62,
+      "pinyin": "ěr",
+      "meaning": "ear"
+    },
+    {
+      "character": "马",
+      "sequence": 63,
+      "pinyin": "mǎ",
+      "meaning": "horse"
+    },
+    {
+      "character": "木",
+      "sequence": 64,
+      "pinyin": "mù",
+      "meaning": "wood; tree"
+    },
+    {
+      "character": "土",
+      "sequence": 65,
+      "pinyin": "tǔ",
+      "meaning": "soil; earth"
+    },
+    {
+      "character": "叶",
+      "sequence": 66,
+      "pinyin": "yè",
+      "meaning": "leaf"
+    },
+    {
+      "character": "地",
+      "sequence": 67,
+      "pinyin": "dì",
+      "meaning": "ground; earth"
+    },
+    {
+      "character": "云",
+      "sequence": 68,
+      "pinyin": "yún",
+      "meaning": "cloud"
+    }
+  ]
+}

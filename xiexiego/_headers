@@ -1,0 +1,19 @@
+# Cloudflare Pages headers
+# Cache static assets aggressively, let service worker handle updates
+
+/js/lib/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/js/data/*
+  Cache-Control: public, max-age=86400
+
+/css/*
+  Cache-Control: public, max-age=3600
+
+/sw.js
+  Cache-Control: no-cache
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin

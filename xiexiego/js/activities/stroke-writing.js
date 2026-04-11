@@ -11,8 +11,9 @@
  * where level (1-4) adjusts HanziWriter leniency and hint thresholds per spec Section 9.
  */
 
-import { speakChinese, speakEnglish } from '../enrichment.js';
+import { speakChinese, speakEnglish, localCharDataLoader } from '../enrichment.js';
 import { playSparkle, playChime, playClick } from '../sounds.js';
+import { t } from '../i18n.js';
 
 function formatMeaning(m) {
   return (m || '').replace(/\s*\/\s*/g, ' or ');
@@ -47,6 +48,7 @@ async function renderWrite(container, word, mode, level, onResult) {
   let totalMistakes = 0;
   let hintUsed = false;
   let aborted = false;
+  const startTime = Date.now();
 
   function abort() {
     aborted = true;
@@ -67,10 +69,17 @@ async function renderWrite(container, word, mode, level, onResult) {
   const writerSize = isCompound ? compoundSize : singleSize;
 
   const modeLabels = {
-    guided: 'Trace the strokes',
-    outline: 'Write the character',
-    flash: 'Watch, then write!',
-    memory: 'Listen and write',
+    guided: t('write.trace'),
+    outline: t('write.write'),
+    flash: t('write.watchWrite'),
+    memory: t('write.listenWrite'),
+  };
+
+  const modeHints = {
+    guided: t('write.traceHint'),
+    outline: t('write.writeHint'),
+    flash: t('write.watchHint'),
+    memory: t('write.listenHint'),
   };
 
   // Memory mode: no meaning shown — audio only per spec
@@ -80,6 +89,7 @@ async function renderWrite(container, word, mode, level, onResult) {
     <div class="activity activity--stroke">
       <div class="activity__body">
         <p class="quiz__instruction">${modeLabels[mode]}</p>
+        <p class="quiz__instruction-hint">${modeHints[mode]}</p>
         <button class="quiz__speaker quiz__speaker--small" id="stroke-speaker">
           <svg class="quiz__speaker-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         </button>
@@ -105,7 +115,7 @@ async function renderWrite(container, word, mode, level, onResult) {
         </div>
         ${mode === 'memory' ? `
           <button class="btn btn--secondary stroke__hint-btn" id="stroke-hint">
-            Show hint
+            ${t('write.showHint')}
           </button>
         ` : ''}
         <div class="quiz__feedback" id="stroke-feedback"></div>
@@ -140,8 +150,9 @@ async function renderWrite(container, word, mode, level, onResult) {
           try { w.updateColor('drawingColor', drawingColor); } catch {}
         }
       });
-      // Hide the palette entirely
-      if (pencilBar) pencilBar.remove();
+      // Update selection highlight — keep palette visible for colorful strokes
+      pencilBtns.forEach(b => b.classList.remove('stroke__pencil--selected'));
+      btn.classList.add('stroke__pencil--selected');
     });
   });
 
@@ -205,6 +216,7 @@ async function renderWrite(container, word, mode, level, onResult) {
         container.querySelector(`#stroke-writer-${i}`),
         chars[i],
         {
+          charDataLoader: localCharDataLoader,
           width: writerSize,
           height: writerSize,
           padding: 10,
@@ -243,7 +255,8 @@ async function renderWrite(container, word, mode, level, onResult) {
       writers[0].animateCharacter({ onComplete: resolve });
     });
     if (aborted) return;
-    await new Promise(r => setTimeout(r, 1000));
+    // Hold the character visible longer so kids can study it
+    await new Promise(r => setTimeout(r, 2500));
     if (aborted) return;
     writers[0].hideCharacter();
     await new Promise(r => setTimeout(r, 300));
@@ -258,7 +271,7 @@ async function renderWrite(container, word, mode, level, onResult) {
       playClick();
       writers.forEach(w => { if (w) w.showOutline(); });
       hintBtn.disabled = true;
-      hintBtn.textContent = 'Hint used';
+      hintBtn.textContent = t('write.hintUsed');
       setTimeout(() => {
         if (!aborted) writers.forEach(w => { if (w) w.hideOutline(); });
       }, 1500);
@@ -292,7 +305,7 @@ async function renderWrite(container, word, mode, level, onResult) {
           w.animateCharacter({ onComplete: resolve });
         });
         if (aborted) return;
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 2500));
         if (aborted) return;
         w.hideCharacter();
         await new Promise(r => setTimeout(r, 200));
@@ -351,11 +364,11 @@ async function renderWrite(container, word, mode, level, onResult) {
   // Feedback
   playSparkle();
   if (passed && totalMistakes === 0) {
-    feedbackEl.textContent = 'Perfect!';
+    feedbackEl.textContent = t('write.perfect');
   } else if (passed) {
-    feedbackEl.textContent = 'Well done!';
+    feedbackEl.textContent = t('write.wellDone');
   } else {
-    feedbackEl.textContent = 'Good effort! Keep practicing!';
+    feedbackEl.textContent = t('write.goodEffort');
   }
 
   await new Promise(r => setTimeout(r, 400));
@@ -365,7 +378,7 @@ async function renderWrite(container, word, mode, level, onResult) {
     await speakEnglish(meaning);
   }
   await new Promise(r => setTimeout(r, 800));
-  if (!aborted) onResult({ correct: passed, attempts: totalMistakes });
+  if (!aborted) onResult({ correct: passed, attempts: totalMistakes, hintUsed, responseTimeMs: Date.now() - startTime });
 }
 
 // --- Exported renderers ---

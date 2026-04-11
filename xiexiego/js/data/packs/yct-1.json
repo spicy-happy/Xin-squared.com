@@ -1,0 +1,647 @@
+{
+  "id": "yct_1",
+  "version": 1,
+  "title": "YCT Level 1",
+  "titleZh": "YCT 一级",
+  "description": "Youth Chinese Test prep. 80 beginner words.",
+  "source": "Vocabulary list from Hanban's official Youth Chinese Test (YCT) Level 1 curriculum. YCT is a free international standard published by the Chinese government's Center for Language Education and Cooperation.",
+  "sequenced": true,
+  "totalWords": 80,
+  "subsets": [
+    {
+      "id": "pronouns",
+      "title": "People & Pronouns",
+      "characterCount": 8,
+      "wordCount": 8
+    },
+    {
+      "id": "basic_verbs",
+      "title": "Basic Verbs",
+      "characterCount": 8,
+      "wordCount": 8
+    },
+    {
+      "id": "numbers",
+      "title": "Numbers 1-10",
+      "characterCount": 10,
+      "wordCount": 10
+    },
+    {
+      "id": "family",
+      "title": "Family & People",
+      "characterCount": 7,
+      "wordCount": 7
+    },
+    {
+      "id": "body",
+      "title": "Body Parts",
+      "characterCount": 7,
+      "wordCount": 7
+    },
+    {
+      "id": "animals",
+      "title": "Animals",
+      "characterCount": 4,
+      "wordCount": 4
+    },
+    {
+      "id": "food",
+      "title": "Food & Drink",
+      "characterCount": 7,
+      "wordCount": 7
+    },
+    {
+      "id": "time",
+      "title": "Time & Date",
+      "characterCount": 7,
+      "wordCount": 7
+    },
+    {
+      "id": "adjectives",
+      "title": "Descriptive Words",
+      "characterCount": 7,
+      "wordCount": 7
+    },
+    {
+      "id": "question_words",
+      "title": "Question Words",
+      "characterCount": 4,
+      "wordCount": 4
+    },
+    {
+      "id": "places",
+      "title": "Places",
+      "characterCount": 3,
+      "wordCount": 3
+    },
+    {
+      "id": "grammar",
+      "title": "Grammar Words",
+      "characterCount": 8,
+      "wordCount": 8
+    }
+  ],
+  "notes": "Words are sequenced starting with basics kids already know or can quickly learn: pronouns, the verb 'to be,' greetings, and numbers. Then progresses to concrete vocabulary (family, body, animals, food) and finishes with time expressions, adjectives, and grammar particles. Compound discovery will fire on many of these: 爸爸, 妈妈, 哥哥, 姐姐, 学校, 老师, 眼睛, 头发, 耳朵, 鼻子, 苹果, 牛奶, 面条, 米饭, 今天, 明天, 现在, 星期, 中国人, 我们, 高兴, 认识, 喜欢, 再见, 谢谢.",
+  "words": [
+    {
+      "character": "我",
+      "sequence": 1,
+      "subset": "pronouns",
+      "pinyin": "wǒ",
+      "meaning": "I; me"
+    },
+    {
+      "character": "你",
+      "sequence": 2,
+      "subset": "pronouns",
+      "pinyin": "nǐ",
+      "meaning": "you"
+    },
+    {
+      "character": "他",
+      "sequence": 3,
+      "subset": "pronouns",
+      "pinyin": "tā",
+      "meaning": "he; him"
+    },
+    {
+      "character": "她",
+      "sequence": 4,
+      "subset": "pronouns",
+      "pinyin": "tā",
+      "meaning": "she; her"
+    },
+    {
+      "character": "我们",
+      "sequence": 5,
+      "subset": "pronouns",
+      "pinyin": "wǒmen",
+      "meaning": "we; us"
+    },
+    {
+      "character": "是",
+      "sequence": 6,
+      "subset": "pronouns",
+      "pinyin": "shì",
+      "meaning": "to be; is"
+    },
+    {
+      "character": "不",
+      "sequence": 7,
+      "subset": "pronouns",
+      "pinyin": "bù",
+      "meaning": "not; no"
+    },
+    {
+      "character": "的",
+      "sequence": 8,
+      "subset": "pronouns",
+      "pinyin": "de",
+      "meaning": "possessive particle"
+    },
+    {
+      "character": "好",
+      "sequence": 9,
+      "subset": "basic_verbs",
+      "pinyin": "hǎo",
+      "meaning": "good; well"
+    },
+    {
+      "character": "谢谢",
+      "sequence": 10,
+      "subset": "basic_verbs",
+      "pinyin": "xièxie",
+      "meaning": "thank you"
+    },
+    {
+      "character": "再见",
+      "sequence": 11,
+      "subset": "basic_verbs",
+      "pinyin": "zàijiàn",
+      "meaning": "goodbye"
+    },
+    {
+      "character": "叫",
+      "sequence": 12,
+      "subset": "basic_verbs",
+      "pinyin": "jiào",
+      "meaning": "to be called; to call"
+    },
+    {
+      "character": "有",
+      "sequence": 13,
+      "subset": "basic_verbs",
+      "pinyin": "yǒu",
+      "meaning": "to have"
+    },
+    {
+      "character": "去",
+      "sequence": 14,
+      "subset": "basic_verbs",
+      "pinyin": "qù",
+      "meaning": "to go"
+    },
+    {
+      "character": "看",
+      "sequence": 15,
+      "subset": "basic_verbs",
+      "pinyin": "kàn",
+      "meaning": "to see; to watch"
+    },
+    {
+      "character": "认识",
+      "sequence": 16,
+      "subset": "basic_verbs",
+      "pinyin": "rènshi",
+      "meaning": "to know; to recognize"
+    },
+    {
+      "character": "一",
+      "sequence": 17,
+      "subset": "numbers",
+      "pinyin": "yī",
+      "meaning": "one"
+    },
+    {
+      "character": "二",
+      "sequence": 18,
+      "subset": "numbers",
+      "pinyin": "èr",
+      "meaning": "two"
+    },
+    {
+      "character": "三",
+      "sequence": 19,
+      "subset": "numbers",
+      "pinyin": "sān",
+      "meaning": "three"
+    },
+    {
+      "character": "四",
+      "sequence": 20,
+      "subset": "numbers",
+      "pinyin": "sì",
+      "meaning": "four"
+    },
+    {
+      "character": "五",
+      "sequence": 21,
+      "subset": "numbers",
+      "pinyin": "wǔ",
+      "meaning": "five"
+    },
+    {
+      "character": "六",
+      "sequence": 22,
+      "subset": "numbers",
+      "pinyin": "liù",
+      "meaning": "six"
+    },
+    {
+      "character": "七",
+      "sequence": 23,
+      "subset": "numbers",
+      "pinyin": "qī",
+      "meaning": "seven"
+    },
+    {
+      "character": "八",
+      "sequence": 24,
+      "subset": "numbers",
+      "pinyin": "bā",
+      "meaning": "eight"
+    },
+    {
+      "character": "九",
+      "sequence": 25,
+      "subset": "numbers",
+      "pinyin": "jiǔ",
+      "meaning": "nine"
+    },
+    {
+      "character": "十",
+      "sequence": 26,
+      "subset": "numbers",
+      "pinyin": "shí",
+      "meaning": "ten"
+    },
+    {
+      "character": "爸爸",
+      "sequence": 27,
+      "subset": "family",
+      "pinyin": "bàba",
+      "meaning": "dad; father"
+    },
+    {
+      "character": "妈妈",
+      "sequence": 28,
+      "subset": "family",
+      "pinyin": "māma",
+      "meaning": "mom; mother"
+    },
+    {
+      "character": "哥哥",
+      "sequence": 29,
+      "subset": "family",
+      "pinyin": "gēge",
+      "meaning": "older brother"
+    },
+    {
+      "character": "姐姐",
+      "sequence": 30,
+      "subset": "family",
+      "pinyin": "jiějie",
+      "meaning": "older sister"
+    },
+    {
+      "character": "老师",
+      "sequence": 31,
+      "subset": "family",
+      "pinyin": "lǎoshī",
+      "meaning": "teacher"
+    },
+    {
+      "character": "中国人",
+      "sequence": 32,
+      "subset": "family",
+      "pinyin": "Zhōngguórén",
+      "meaning": "Chinese person"
+    },
+    {
+      "character": "岁",
+      "sequence": 33,
+      "subset": "family",
+      "pinyin": "suì",
+      "meaning": "years of age"
+    },
+    {
+      "character": "手",
+      "sequence": 34,
+      "subset": "body",
+      "pinyin": "shǒu",
+      "meaning": "hand"
+    },
+    {
+      "character": "口",
+      "sequence": 35,
+      "subset": "body",
+      "pinyin": "kǒu",
+      "meaning": "mouth"
+    },
+    {
+      "character": "眼睛",
+      "sequence": 36,
+      "subset": "body",
+      "pinyin": "yǎnjīng",
+      "meaning": "eye"
+    },
+    {
+      "character": "耳朵",
+      "sequence": 37,
+      "subset": "body",
+      "pinyin": "ěrduo",
+      "meaning": "ear"
+    },
+    {
+      "character": "鼻子",
+      "sequence": 38,
+      "subset": "body",
+      "pinyin": "bízi",
+      "meaning": "nose"
+    },
+    {
+      "character": "头发",
+      "sequence": 39,
+      "subset": "body",
+      "pinyin": "tóufa",
+      "meaning": "hair"
+    },
+    {
+      "character": "个子",
+      "sequence": 40,
+      "subset": "body",
+      "pinyin": "gèzi",
+      "meaning": "height; build"
+    },
+    {
+      "character": "猫",
+      "sequence": 41,
+      "subset": "animals",
+      "pinyin": "māo",
+      "meaning": "cat"
+    },
+    {
+      "character": "狗",
+      "sequence": 42,
+      "subset": "animals",
+      "pinyin": "gǒu",
+      "meaning": "dog"
+    },
+    {
+      "character": "鸟",
+      "sequence": 43,
+      "subset": "animals",
+      "pinyin": "niǎo",
+      "meaning": "bird"
+    },
+    {
+      "character": "鱼",
+      "sequence": 44,
+      "subset": "animals",
+      "pinyin": "yú",
+      "meaning": "fish"
+    },
+    {
+      "character": "吃",
+      "sequence": 45,
+      "subset": "food",
+      "pinyin": "chī",
+      "meaning": "to eat"
+    },
+    {
+      "character": "喝",
+      "sequence": 46,
+      "subset": "food",
+      "pinyin": "hē",
+      "meaning": "to drink"
+    },
+    {
+      "character": "水",
+      "sequence": 47,
+      "subset": "food",
+      "pinyin": "shuǐ",
+      "meaning": "water"
+    },
+    {
+      "character": "牛奶",
+      "sequence": 48,
+      "subset": "food",
+      "pinyin": "niúnǎi",
+      "meaning": "milk"
+    },
+    {
+      "character": "米饭",
+      "sequence": 49,
+      "subset": "food",
+      "pinyin": "mǐfàn",
+      "meaning": "rice (cooked)"
+    },
+    {
+      "character": "面条",
+      "sequence": 50,
+      "subset": "food",
+      "pinyin": "miàntiáo",
+      "meaning": "noodles"
+    },
+    {
+      "character": "苹果",
+      "sequence": 51,
+      "subset": "food",
+      "pinyin": "píngguǒ",
+      "meaning": "apple"
+    },
+    {
+      "character": "今天",
+      "sequence": 52,
+      "subset": "time",
+      "pinyin": "jīntiān",
+      "meaning": "today"
+    },
+    {
+      "character": "明天",
+      "sequence": 53,
+      "subset": "time",
+      "pinyin": "míngtiān",
+      "meaning": "tomorrow"
+    },
+    {
+      "character": "现在",
+      "sequence": 54,
+      "subset": "time",
+      "pinyin": "xiànzài",
+      "meaning": "now"
+    },
+    {
+      "character": "月",
+      "sequence": 55,
+      "subset": "time",
+      "pinyin": "yuè",
+      "meaning": "month; moon"
+    },
+    {
+      "character": "星期",
+      "sequence": 56,
+      "subset": "time",
+      "pinyin": "xīngqī",
+      "meaning": "week"
+    },
+    {
+      "character": "号",
+      "sequence": 57,
+      "subset": "time",
+      "pinyin": "hào",
+      "meaning": "date; number"
+    },
+    {
+      "character": "点",
+      "sequence": 58,
+      "subset": "time",
+      "pinyin": "diǎn",
+      "meaning": "o'clock; dot; point"
+    },
+    {
+      "character": "大",
+      "sequence": 59,
+      "subset": "adjectives",
+      "pinyin": "dà",
+      "meaning": "big; large"
+    },
+    {
+      "character": "小",
+      "sequence": 60,
+      "subset": "adjectives",
+      "pinyin": "xiǎo",
+      "meaning": "small; little"
+    },
+    {
+      "character": "多",
+      "sequence": 61,
+      "subset": "adjectives",
+      "pinyin": "duō",
+      "meaning": "many; much"
+    },
+    {
+      "character": "高",
+      "sequence": 62,
+      "subset": "adjectives",
+      "pinyin": "gāo",
+      "meaning": "tall; high"
+    },
+    {
+      "character": "长",
+      "sequence": 63,
+      "subset": "adjectives",
+      "pinyin": "cháng",
+      "meaning": "long"
+    },
+    {
+      "character": "高兴",
+      "sequence": 64,
+      "subset": "adjectives",
+      "pinyin": "gāoxìng",
+      "meaning": "happy; glad"
+    },
+    {
+      "character": "很",
+      "sequence": 65,
+      "subset": "adjectives",
+      "pinyin": "hěn",
+      "meaning": "very"
+    },
+    {
+      "character": "什么",
+      "sequence": 66,
+      "subset": "question_words",
+      "pinyin": "shénme",
+      "meaning": "what"
+    },
+    {
+      "character": "谁",
+      "sequence": 67,
+      "subset": "question_words",
+      "pinyin": "shéi",
+      "meaning": "who"
+    },
+    {
+      "character": "哪",
+      "sequence": 68,
+      "subset": "question_words",
+      "pinyin": "nǎ",
+      "meaning": "which; where"
+    },
+    {
+      "character": "几",
+      "sequence": 69,
+      "subset": "question_words",
+      "pinyin": "jǐ",
+      "meaning": "how many; several"
+    },
+    {
+      "character": "家",
+      "sequence": 70,
+      "subset": "places",
+      "pinyin": "jiā",
+      "meaning": "home; family"
+    },
+    {
+      "character": "学校",
+      "sequence": 71,
+      "subset": "places",
+      "pinyin": "xuéxiào",
+      "meaning": "school"
+    },
+    {
+      "character": "商店",
+      "sequence": 72,
+      "subset": "places",
+      "pinyin": "shāngdiàn",
+      "meaning": "store; shop"
+    },
+    {
+      "character": "这",
+      "sequence": 73,
+      "subset": "grammar",
+      "pinyin": "zhè",
+      "meaning": "this; here"
+    },
+    {
+      "character": "那",
+      "sequence": 74,
+      "subset": "grammar",
+      "pinyin": "nà",
+      "meaning": "that; there"
+    },
+    {
+      "character": "和",
+      "sequence": 75,
+      "subset": "grammar",
+      "pinyin": "hé",
+      "meaning": "and; with"
+    },
+    {
+      "character": "在",
+      "sequence": 76,
+      "subset": "grammar",
+      "pinyin": "zài",
+      "meaning": "at; in; on"
+    },
+    {
+      "character": "个",
+      "sequence": 77,
+      "subset": "grammar",
+      "pinyin": "gè",
+      "meaning": "general measure word"
+    },
+    {
+      "character": "吗",
+      "sequence": 78,
+      "subset": "grammar",
+      "pinyin": "ma",
+      "meaning": "question particle"
+    },
+    {
+      "character": "喜欢",
+      "sequence": 79,
+      "subset": "grammar",
+      "pinyin": "xǐhuan",
+      "meaning": "to like"
+    },
+    {
+      "character": "爱",
+      "sequence": 80,
+      "subset": "grammar",
+      "pinyin": "ài",
+      "meaning": "to love"
+    }
+  ]
+}

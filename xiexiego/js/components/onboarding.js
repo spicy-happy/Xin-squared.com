@@ -2,28 +2,33 @@
  * Onboarding — three-screen flow:
  *   1. Welcome + testing warning
  *   2. Create profile (name, avatar, age)
- *   3. Pick a word pack → loads all words from it
+ *   3. Pick a word pack → imports it
  */
 
-import { parseAndEnrich } from '../enrichment.js';
 import { playClick } from '../sounds.js';
+import { t, getLang, setLang } from '../i18n.js';
 
 const AVATARS = ['🐼', '🐉', '🌸', '🎋', '🏮', '🦊', '🐯', '🐰', '🌈', '🦋', '🐬', '🌻'];
 const AGES = ['<4', '4', '5', '6', '7', '8', '9', '10+'];
 
-let packsData = null;
+let packIndex = null;
 
-async function loadWordPacks() {
-  if (packsData) return packsData;
-  const resp = await fetch('./js/data/word-packs.json');
-  packsData = await resp.json();
-  return packsData;
+async function loadPackIndex() {
+  if (packIndex) return packIndex;
+  const resp = await fetch('./js/data/packs/index.json');
+  packIndex = await resp.json();
+  return packIndex;
+}
+
+async function loadPackFile(filename) {
+  const resp = await fetch(`./js/data/packs/${filename}`);
+  return resp.json();
 }
 
 export function renderOnboarding(app, storage, navigate, { skipWelcome = false } = {}) {
   let step = skipWelcome ? 1 : 0;
   let profileData = { name: '', avatar: AVATARS[0], age: null };
-  let selectedPack = null;
+  let selectedPackMetas = []; // multiple pack selection
 
   function render() {
     switch (step) {
@@ -34,51 +39,50 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
   }
 
   function renderWelcome() {
+    const lang = getLang();
     app.innerHTML = `
       <div class="screen onboarding">
         <div class="onboarding__content">
-          <div class="onboarding__warning">
-            This app is still in testing mode and is actively being improved. Some features may change.
-          </div>
-          <h1 class="onboarding__title" style="font-size: 1.5rem;">How it works</h1>
+          <h1 class="onboarding__title" style="font-size: 1.5rem;">${t('onboarding.howItWorks')}</h1>
           <div class="how-it-works">
             <div class="how-step">
               <span class="how-step__icon">📝</span>
               <div class="how-step__text">
-                <strong>Pick a word pack</strong>
-                <span>Choose from curated packs or add your own words</span>
+                <strong>${t('onboarding.step1.title')}</strong>
+                <span>${t('onboarding.step1.desc')}</span>
               </div>
             </div>
             <div class="how-step">
               <span class="how-step__icon">🎧</span>
               <div class="how-step__text">
-                <strong>Practice daily</strong>
-                <span>5 min sessions — hear, match, trace, and write</span>
+                <strong>${t('onboarding.step2.title')}</strong>
+                <span>${t('onboarding.step2.desc')}</span>
               </div>
             </div>
             <div class="how-step">
-              <span class="how-step__icon">✅</span>
+              <span class="how-step__icon">🧠</span>
               <div class="how-step__text">
-                <strong>Test when ready</strong>
-                <span>Mock dictation test just like in class</span>
+                <strong>${t('onboarding.step3.title')}</strong>
+                <span>${t('onboarding.step3.desc')}</span>
               </div>
             </div>
             <div class="how-step">
-              <span class="how-step__icon">🌟</span>
+              <span class="how-step__icon">✍️</span>
               <div class="how-step__text">
-                <strong>Ace the test</strong>
-                <span>Words they struggle with get extra practice</span>
+                <strong>${t('onboarding.step4.title')}</strong>
+                <span>${t('onboarding.step4.desc')}</span>
               </div>
             </div>
           </div>
         </div>
         <div class="onboarding__actions">
           <button class="btn btn--primary btn--large" id="btn-next">
-            Let's go!
+            ${t('onboarding.letsGo')}
           </button>
         </div>
       </div>
     `;
+
     app.querySelector('#btn-next').addEventListener('click', () => {
       playClick();
       step = 1;
@@ -90,16 +94,16 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
     app.innerHTML = `
       <div class="screen onboarding">
         <div class="onboarding__content">
-          <h1 class="onboarding__title">Create a profile</h1>
+          <h1 class="onboarding__title">${t('profile.create')}</h1>
 
           <div class="form-group">
-            <label class="form-group__label">Name</label>
+            <label class="form-group__label">${t('profile.name')}</label>
             <input class="form-group__input" id="input-name" type="text"
-                   placeholder="Your child's name" value="${profileData.name}" autocomplete="off">
+                   placeholder="${t('profile.namePlaceholder')}" value="${profileData.name}" autocomplete="off">
           </div>
 
           <div class="form-group">
-            <label class="form-group__label">Pick an avatar</label>
+            <label class="form-group__label">${t('profile.pickAvatar')}</label>
             <div class="avatar-grid">
               ${AVATARS.map(a => `
                 <button class="avatar-option ${a === profileData.avatar ? 'avatar-option--selected' : ''}"
@@ -109,7 +113,7 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
           </div>
 
           <div class="form-group">
-            <label class="form-group__label">Age</label>
+            <label class="form-group__label">${t('profile.age')}</label>
             <div class="age-chips">
               ${AGES.map(a => `
                 <button class="age-chip ${a === profileData.age ? 'age-chip--selected' : ''}"
@@ -121,8 +125,8 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
 
         <div class="onboarding__actions">
           <div class="onboarding__nav-row">
-            <button class="btn btn--secondary" id="btn-back">Back</button>
-            <button class="btn btn--primary" id="btn-next" disabled>Next</button>
+            <button class="btn btn--secondary" id="btn-back">${t('profile.back')}</button>
+            <button class="btn btn--primary" id="btn-next" disabled>${t('profile.next')}</button>
           </div>
         </div>
       </div>
@@ -172,28 +176,25 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
   }
 
   async function renderPickPack() {
-    const data = await loadWordPacks();
-    const packs = data.packs;
+    const index = await loadPackIndex();
+    const packs = index.packs;
 
     app.innerHTML = `
       <div class="screen onboarding">
         <div class="onboarding__content">
-          <h1 class="onboarding__title">Pick a word pack</h1>
+          <h1 class="onboarding__title">${t('pack.pickTitle')}</h1>
           <p class="onboarding__desc">
-            Choose a starting pack for ${profileData.name || 'your child'}.
-            You can always add more words later.
+            ${t('pack.pickDesc', profileData.name || 'your child')}
           </p>
 
           <div class="pack-grid">
             ${packs.map(p => {
-              const totalWords = p.categories.reduce((sum, c) => sum + c.words.length, 0);
+              const isSelected = selectedPackMetas.some(s => s.id === p.id);
               return `
-              <button class="pack-card ${selectedPack?.id === p.id ? 'pack-card--selected' : ''}" data-pack-id="${p.id}">
-                <span class="pack-card__icon">${p.icon}</span>
+              <button class="pack-card ${isSelected ? 'pack-card--selected' : ''}" data-pack-id="${p.id}" data-pack-file="${p.file}">
                 <div class="pack-card__info">
-                  <strong class="pack-card__name">${p.name}</strong>
+                  <strong class="pack-card__name">${p.title}</strong>
                   <span class="pack-card__desc">${p.description}</span>
-                  <span class="pack-card__meta">Ages ${p.ageRange} · ${totalWords} words</span>
                 </div>
               </button>
             `}).join('')}
@@ -202,8 +203,8 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
 
         <div class="onboarding__actions">
           <div class="onboarding__nav-row">
-            <button class="btn btn--secondary" id="btn-back">Back</button>
-            <button class="btn btn--primary" id="btn-start" ${!selectedPack ? 'disabled' : ''}>Let's Start!</button>
+            <button class="btn btn--secondary" id="btn-back">${t('profile.back')}</button>
+            <button class="btn btn--primary" id="btn-start" ${selectedPackMetas.length === 0 ? 'disabled' : ''}>${t('pack.letsStart')}</button>
           </div>
         </div>
       </div>
@@ -215,58 +216,57 @@ export function renderOnboarding(app, storage, navigate, { skipWelcome = false }
       card.addEventListener('click', () => {
         playClick();
         const packId = card.dataset.packId;
-        selectedPack = packs.find(p => p.id === packId);
-        app.querySelectorAll('.pack-card').forEach(c => c.classList.remove('pack-card--selected'));
-        card.classList.add('pack-card--selected');
-        startBtn.disabled = false;
+        const packMeta = packs.find(p => p.id === packId);
+        const idx = selectedPackMetas.findIndex(s => s.id === packId);
+        if (idx >= 0) {
+          // Deselect
+          selectedPackMetas.splice(idx, 1);
+          card.classList.remove('pack-card--selected');
+        } else {
+          // Select
+          selectedPackMetas.push(packMeta);
+          card.classList.add('pack-card--selected');
+        }
+        startBtn.disabled = selectedPackMetas.length === 0;
       });
     });
 
-    // Start — collect ALL words from selected pack, enrich, and save
     startBtn.addEventListener('click', async () => {
-      if (!selectedPack) return;
+      if (selectedPackMetas.length === 0) return;
       playClick();
 
-      startBtn.textContent = 'Setting up...';
+      startBtn.textContent = t('pack.settingUp');
       startBtn.disabled = true;
 
       try {
+        // Create profile
         const profile = storage.addProfile(profileData);
 
-        // Collect all words from all categories (deduplicated)
-        const seen = new Set();
-        const allWords = [];
-        for (const cat of selectedPack.categories) {
-          for (const w of cat.words) {
-            if (!seen.has(w)) {
-              seen.add(w);
-              allWords.push(w);
-            }
-          }
+        // Import all selected packs
+        for (const meta of selectedPackMetas) {
+          const packData = await loadPackFile(meta.file);
+
+          const words = (packData.words || []).filter(w => w.character).map(w => ({
+            character: w.character,
+            meaning: w.meaning || '',
+            pinyin: w.pinyin || '',
+            pinyinMarked: w.pinyin || '',
+            sequence: w.sequence || null,
+            subset: w.subset || null,
+            isCompound: w.character.length > 1,
+            components: w.character.length > 1 ? [...w.character] : undefined,
+            hasStrokeData: true,
+          }));
+
+          storage.importPack(profile.id, packData, words);
         }
 
-        // Enrich all words via parseAndEnrich (handles compounds + single chars)
-        const enriched = await parseAndEnrich(allWords.join('\n'));
-
-        storage.addWordsToProfile(profile.id, enriched);
         storage.setActiveProfileId(profile.id);
-        navigate('session');
+        navigate('profiles');
       } catch (err) {
-        console.error('Enrichment failed:', err);
-        const profile = storage.addProfile(profileData);
-        const words = [];
-        const seen = new Set();
-        for (const cat of selectedPack.categories) {
-          for (const w of cat.words) {
-            if (!seen.has(w)) {
-              seen.add(w);
-              words.push({ character: w });
-            }
-          }
-        }
-        storage.addWordsToProfile(profile.id, words);
-        storage.setActiveProfileId(profile.id);
-        navigate('session');
+        console.error('Pack import failed:', err);
+        startBtn.textContent = t('pack.errorRetry');
+        startBtn.disabled = false;
       }
     });
 

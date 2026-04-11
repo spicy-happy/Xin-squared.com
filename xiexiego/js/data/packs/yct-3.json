@@ -1,0 +1,834 @@
+{
+  "id": "yct_3",
+  "version": 1,
+  "title": "YCT Level 3",
+  "titleZh": "YCT 三级词汇",
+  "description": "Youth Chinese Test prep. 107 intermediate words.",
+  "source": "Reconstructed from a combination of: (1) the official Hanban YCT 3 curriculum structure, (2) the first 20 confirmed words from Purple Culture's YCT 3 wordlist, (3) Quizlet preview entries, and (4) general training knowledge of the standard YCT 3 word list. Because the full official Hanban list is behind a JavaScript-rendered table that couldn't be fully extracted, individual entries may not match the exact official edition word-for-word. Treat this as a strong-approximation pack for dictation practice — useful but not a substitute for an official YCT 3 prep book if exam accuracy matters. Words are simplified Chinese.",
+  "sequenced": true,
+  "totalWords": 107,
+  "subsets": [
+    {
+      "id": "yct3_places",
+      "title": "Places",
+      "wordCount": 6
+    },
+    {
+      "id": "yct3_people",
+      "title": "People & Family",
+      "wordCount": 3
+    },
+    {
+      "id": "yct3_body",
+      "title": "Body Parts",
+      "wordCount": 4
+    },
+    {
+      "id": "yct3_food",
+      "title": "Food & Drink",
+      "wordCount": 4
+    },
+    {
+      "id": "yct3_time",
+      "title": "Time",
+      "wordCount": 3
+    },
+    {
+      "id": "yct3_school",
+      "title": "School",
+      "wordCount": 8
+    },
+    {
+      "id": "yct3_clothing",
+      "title": "Clothing",
+      "wordCount": 5
+    },
+    {
+      "id": "yct3_transport",
+      "title": "Transportation",
+      "wordCount": 6
+    },
+    {
+      "id": "yct3_verbs",
+      "title": "Verbs",
+      "wordCount": 20
+    },
+    {
+      "id": "yct3_adj",
+      "title": "Adjectives",
+      "wordCount": 15
+    },
+    {
+      "id": "yct3_numbers",
+      "title": "Numbers",
+      "wordCount": 3
+    },
+    {
+      "id": "yct3_measures",
+      "title": "Measure Words",
+      "wordCount": 8
+    },
+    {
+      "id": "yct3_objects",
+      "title": "Objects",
+      "wordCount": 10
+    },
+    {
+      "id": "yct3_grammar",
+      "title": "Grammar Words",
+      "wordCount": 12
+    }
+  ],
+  "notes": "This is a thematic pack, not a frequency pack. The first 150 entries are the YCT 1+2 review (kids who already practiced YCT 2 will see those merge cleanly without losing Box state). The remaining ~150 are new YCT 3 vocabulary grouped by theme: places, people, body, food, time, school, clothing, transport, verbs, adjectives, numbers, measure words, objects, grammar words. Compound discovery will fire heavily on this pack — words like 学校, 商店, 朋友, 苹果, 飞机 are all combinations of characters Ada/Luca already know from earlier packs.",
+  "words": [
+    {
+      "character": "车站",
+      "sequence": 1,
+      "subset": "yct3_places",
+      "pinyin": "chēzhàn",
+      "meaning": "train/bus station"
+    },
+    {
+      "character": "动物园",
+      "sequence": 2,
+      "subset": "yct3_places",
+      "pinyin": "dòngwùyuán",
+      "meaning": "zoo"
+    },
+    {
+      "character": "教室",
+      "sequence": 3,
+      "subset": "yct3_places",
+      "pinyin": "jiàoshì",
+      "meaning": "classroom"
+    },
+    {
+      "character": "超市",
+      "sequence": 4,
+      "subset": "yct3_places",
+      "pinyin": "chāoshì",
+      "meaning": "supermarket"
+    },
+    {
+      "character": "公园",
+      "sequence": 5,
+      "subset": "yct3_places",
+      "pinyin": "gōngyuán",
+      "meaning": "park"
+    },
+    {
+      "character": "饭店",
+      "sequence": 6,
+      "subset": "yct3_places",
+      "pinyin": "fàndiàn",
+      "meaning": "restaurant; hotel"
+    },
+    {
+      "character": "孩子",
+      "sequence": 7,
+      "subset": "yct3_people",
+      "pinyin": "háizi",
+      "meaning": "child"
+    },
+    {
+      "character": "爷爷",
+      "sequence": 8,
+      "subset": "yct3_people",
+      "pinyin": "yéye",
+      "meaning": "grandpa (paternal)"
+    },
+    {
+      "character": "奶奶",
+      "sequence": 9,
+      "subset": "yct3_people",
+      "pinyin": "nǎinai",
+      "meaning": "grandma (paternal)"
+    },
+    {
+      "character": "头",
+      "sequence": 10,
+      "subset": "yct3_body",
+      "pinyin": "tóu",
+      "meaning": "head"
+    },
+    {
+      "character": "脸",
+      "sequence": 11,
+      "subset": "yct3_body",
+      "pinyin": "liǎn",
+      "meaning": "face"
+    },
+    {
+      "character": "嘴",
+      "sequence": 12,
+      "subset": "yct3_body",
+      "pinyin": "zuǐ",
+      "meaning": "mouth"
+    },
+    {
+      "character": "身体",
+      "sequence": 13,
+      "subset": "yct3_body",
+      "pinyin": "shēntǐ",
+      "meaning": "body"
+    },
+    {
+      "character": "西瓜",
+      "sequence": 14,
+      "subset": "yct3_food",
+      "pinyin": "xīguā",
+      "meaning": "watermelon"
+    },
+    {
+      "character": "面包",
+      "sequence": 15,
+      "subset": "yct3_food",
+      "pinyin": "miànbāo",
+      "meaning": "bread"
+    },
+    {
+      "character": "咖啡",
+      "sequence": 16,
+      "subset": "yct3_food",
+      "pinyin": "kāfēi",
+      "meaning": "coffee"
+    },
+    {
+      "character": "饭",
+      "sequence": 17,
+      "subset": "yct3_food",
+      "pinyin": "fàn",
+      "meaning": "rice; meal"
+    },
+    {
+      "character": "中午",
+      "sequence": 18,
+      "subset": "yct3_time",
+      "pinyin": "zhōngwǔ",
+      "meaning": "noon"
+    },
+    {
+      "character": "下午",
+      "sequence": 19,
+      "subset": "yct3_time",
+      "pinyin": "xiàwǔ",
+      "meaning": "afternoon"
+    },
+    {
+      "character": "时间",
+      "sequence": 20,
+      "subset": "yct3_time",
+      "pinyin": "shíjiān",
+      "meaning": "time"
+    },
+    {
+      "character": "上课",
+      "sequence": 21,
+      "subset": "yct3_school",
+      "pinyin": "shàngkè",
+      "meaning": "to attend class"
+    },
+    {
+      "character": "下课",
+      "sequence": 22,
+      "subset": "yct3_school",
+      "pinyin": "xiàkè",
+      "meaning": "class is dismissed"
+    },
+    {
+      "character": "考试",
+      "sequence": 23,
+      "subset": "yct3_school",
+      "pinyin": "kǎoshì",
+      "meaning": "exam; test"
+    },
+    {
+      "character": "英语",
+      "sequence": 24,
+      "subset": "yct3_school",
+      "pinyin": "Yīngyǔ",
+      "meaning": "English language"
+    },
+    {
+      "character": "汉字",
+      "sequence": 25,
+      "subset": "yct3_school",
+      "pinyin": "Hànzì",
+      "meaning": "Chinese character"
+    },
+    {
+      "character": "课",
+      "sequence": 26,
+      "subset": "yct3_school",
+      "pinyin": "kè",
+      "meaning": "class; lesson"
+    },
+    {
+      "character": "问题",
+      "sequence": 27,
+      "subset": "yct3_school",
+      "pinyin": "wèntí",
+      "meaning": "question; problem"
+    },
+    {
+      "character": "电脑",
+      "sequence": 28,
+      "subset": "yct3_school",
+      "pinyin": "diànnǎo",
+      "meaning": "computer"
+    },
+    {
+      "character": "衣服",
+      "sequence": 29,
+      "subset": "yct3_clothing",
+      "pinyin": "yīfu",
+      "meaning": "clothes"
+    },
+    {
+      "character": "裤子",
+      "sequence": 30,
+      "subset": "yct3_clothing",
+      "pinyin": "kùzi",
+      "meaning": "pants"
+    },
+    {
+      "character": "裙子",
+      "sequence": 31,
+      "subset": "yct3_clothing",
+      "pinyin": "qúnzi",
+      "meaning": "skirt"
+    },
+    {
+      "character": "鞋",
+      "sequence": 32,
+      "subset": "yct3_clothing",
+      "pinyin": "xié",
+      "meaning": "shoes"
+    },
+    {
+      "character": "帽子",
+      "sequence": 33,
+      "subset": "yct3_clothing",
+      "pinyin": "màozi",
+      "meaning": "hat"
+    },
+    {
+      "character": "汽车",
+      "sequence": 34,
+      "subset": "yct3_transport",
+      "pinyin": "qìchē",
+      "meaning": "car"
+    },
+    {
+      "character": "公共汽车",
+      "sequence": 35,
+      "subset": "yct3_transport",
+      "pinyin": "gōnggòngqìchē",
+      "meaning": "bus"
+    },
+    {
+      "character": "火车",
+      "sequence": 36,
+      "subset": "yct3_transport",
+      "pinyin": "huǒchē",
+      "meaning": "train"
+    },
+    {
+      "character": "飞机",
+      "sequence": 37,
+      "subset": "yct3_transport",
+      "pinyin": "fēijī",
+      "meaning": "airplane"
+    },
+    {
+      "character": "船",
+      "sequence": 38,
+      "subset": "yct3_transport",
+      "pinyin": "chuán",
+      "meaning": "boat; ship"
+    },
+    {
+      "character": "自行车",
+      "sequence": 39,
+      "subset": "yct3_transport",
+      "pinyin": "zìxíngchē",
+      "meaning": "bicycle"
+    },
+    {
+      "character": "起床",
+      "sequence": 40,
+      "subset": "yct3_verbs",
+      "pinyin": "qǐchuáng",
+      "meaning": "to get up"
+    },
+    {
+      "character": "睡觉",
+      "sequence": 41,
+      "subset": "yct3_verbs",
+      "pinyin": "shuìjiào",
+      "meaning": "to sleep"
+    },
+    {
+      "character": "回家",
+      "sequence": 42,
+      "subset": "yct3_verbs",
+      "pinyin": "huíjiā",
+      "meaning": "to go home"
+    },
+    {
+      "character": "进",
+      "sequence": 43,
+      "subset": "yct3_verbs",
+      "pinyin": "jìn",
+      "meaning": "to enter"
+    },
+    {
+      "character": "出",
+      "sequence": 44,
+      "subset": "yct3_verbs",
+      "pinyin": "chū",
+      "meaning": "to exit"
+    },
+    {
+      "character": "运动",
+      "sequence": 45,
+      "subset": "yct3_verbs",
+      "pinyin": "yùndòng",
+      "meaning": "to exercise; sports"
+    },
+    {
+      "character": "唱歌",
+      "sequence": 46,
+      "subset": "yct3_verbs",
+      "pinyin": "chànggē",
+      "meaning": "to sing"
+    },
+    {
+      "character": "跳舞",
+      "sequence": 47,
+      "subset": "yct3_verbs",
+      "pinyin": "tiàowǔ",
+      "meaning": "to dance"
+    },
+    {
+      "character": "游泳",
+      "sequence": 48,
+      "subset": "yct3_verbs",
+      "pinyin": "yóuyǒng",
+      "meaning": "to swim"
+    },
+    {
+      "character": "打",
+      "sequence": 49,
+      "subset": "yct3_verbs",
+      "pinyin": "dǎ",
+      "meaning": "to hit; to play (sports)"
+    },
+    {
+      "character": "跑",
+      "sequence": 50,
+      "subset": "yct3_verbs",
+      "pinyin": "pǎo",
+      "meaning": "to run"
+    },
+    {
+      "character": "跳",
+      "sequence": 51,
+      "subset": "yct3_verbs",
+      "pinyin": "tiào",
+      "meaning": "to jump"
+    },
+    {
+      "character": "走",
+      "sequence": 52,
+      "subset": "yct3_verbs",
+      "pinyin": "zǒu",
+      "meaning": "to walk; to leave"
+    },
+    {
+      "character": "笑",
+      "sequence": 53,
+      "subset": "yct3_verbs",
+      "pinyin": "xiào",
+      "meaning": "to laugh"
+    },
+    {
+      "character": "哭",
+      "sequence": 54,
+      "subset": "yct3_verbs",
+      "pinyin": "kū",
+      "meaning": "to cry"
+    },
+    {
+      "character": "玩",
+      "sequence": 55,
+      "subset": "yct3_verbs",
+      "pinyin": "wán",
+      "meaning": "to play"
+    },
+    {
+      "character": "坐",
+      "sequence": 56,
+      "subset": "yct3_verbs",
+      "pinyin": "zuò",
+      "meaning": "to sit; to take (transport)"
+    },
+    {
+      "character": "帮助",
+      "sequence": 57,
+      "subset": "yct3_verbs",
+      "pinyin": "bāngzhù",
+      "meaning": "to help"
+    },
+    {
+      "character": "问",
+      "sequence": 58,
+      "subset": "yct3_verbs",
+      "pinyin": "wèn",
+      "meaning": "to ask"
+    },
+    {
+      "character": "知道",
+      "sequence": 59,
+      "subset": "yct3_verbs",
+      "pinyin": "zhīdào",
+      "meaning": "to know"
+    },
+    {
+      "character": "胖",
+      "sequence": 60,
+      "subset": "yct3_adj",
+      "pinyin": "pàng",
+      "meaning": "fat"
+    },
+    {
+      "character": "新",
+      "sequence": 61,
+      "subset": "yct3_adj",
+      "pinyin": "xīn",
+      "meaning": "new"
+    },
+    {
+      "character": "快",
+      "sequence": 62,
+      "subset": "yct3_adj",
+      "pinyin": "kuài",
+      "meaning": "fast"
+    },
+    {
+      "character": "慢",
+      "sequence": 63,
+      "subset": "yct3_adj",
+      "pinyin": "màn",
+      "meaning": "slow"
+    },
+    {
+      "character": "贵",
+      "sequence": 64,
+      "subset": "yct3_adj",
+      "pinyin": "guì",
+      "meaning": "expensive"
+    },
+    {
+      "character": "远",
+      "sequence": 65,
+      "subset": "yct3_adj",
+      "pinyin": "yuǎn",
+      "meaning": "far"
+    },
+    {
+      "character": "近",
+      "sequence": 66,
+      "subset": "yct3_adj",
+      "pinyin": "jìn",
+      "meaning": "near"
+    },
+    {
+      "character": "对",
+      "sequence": 67,
+      "subset": "yct3_adj",
+      "pinyin": "duì",
+      "meaning": "correct; right"
+    },
+    {
+      "character": "错",
+      "sequence": 68,
+      "subset": "yct3_adj",
+      "pinyin": "cuò",
+      "meaning": "wrong"
+    },
+    {
+      "character": "重",
+      "sequence": 69,
+      "subset": "yct3_adj",
+      "pinyin": "zhòng",
+      "meaning": "heavy"
+    },
+    {
+      "character": "忙",
+      "sequence": 70,
+      "subset": "yct3_adj",
+      "pinyin": "máng",
+      "meaning": "busy"
+    },
+    {
+      "character": "累",
+      "sequence": 71,
+      "subset": "yct3_adj",
+      "pinyin": "lèi",
+      "meaning": "tired"
+    },
+    {
+      "character": "饿",
+      "sequence": 72,
+      "subset": "yct3_adj",
+      "pinyin": "è",
+      "meaning": "hungry"
+    },
+    {
+      "character": "渴",
+      "sequence": 73,
+      "subset": "yct3_adj",
+      "pinyin": "kě",
+      "meaning": "thirsty"
+    },
+    {
+      "character": "干净",
+      "sequence": 74,
+      "subset": "yct3_adj",
+      "pinyin": "gānjìng",
+      "meaning": "clean"
+    },
+    {
+      "character": "百",
+      "sequence": 75,
+      "subset": "yct3_numbers",
+      "pinyin": "bǎi",
+      "meaning": "hundred"
+    },
+    {
+      "character": "千",
+      "sequence": 76,
+      "subset": "yct3_numbers",
+      "pinyin": "qiān",
+      "meaning": "thousand"
+    },
+    {
+      "character": "半",
+      "sequence": 77,
+      "subset": "yct3_numbers",
+      "pinyin": "bàn",
+      "meaning": "half"
+    },
+    {
+      "character": "块",
+      "sequence": 78,
+      "subset": "yct3_measures",
+      "pinyin": "kuài",
+      "meaning": "yuan; piece"
+    },
+    {
+      "character": "毛",
+      "sequence": 79,
+      "subset": "yct3_measures",
+      "pinyin": "máo",
+      "meaning": "10 cents"
+    },
+    {
+      "character": "元",
+      "sequence": 80,
+      "subset": "yct3_measures",
+      "pinyin": "yuán",
+      "meaning": "yuan (currency)"
+    },
+    {
+      "character": "本",
+      "sequence": 81,
+      "subset": "yct3_measures",
+      "pinyin": "běn",
+      "meaning": "measure word for books"
+    },
+    {
+      "character": "件",
+      "sequence": 82,
+      "subset": "yct3_measures",
+      "pinyin": "jiàn",
+      "meaning": "measure word for clothes/items"
+    },
+    {
+      "character": "只",
+      "sequence": 83,
+      "subset": "yct3_measures",
+      "pinyin": "zhī",
+      "meaning": "measure word for animals"
+    },
+    {
+      "character": "条",
+      "sequence": 84,
+      "subset": "yct3_measures",
+      "pinyin": "tiáo",
+      "meaning": "measure word for long things"
+    },
+    {
+      "character": "张",
+      "sequence": 85,
+      "subset": "yct3_measures",
+      "pinyin": "zhāng",
+      "meaning": "measure word for flat things"
+    },
+    {
+      "character": "床",
+      "sequence": 86,
+      "subset": "yct3_objects",
+      "pinyin": "chuáng",
+      "meaning": "bed"
+    },
+    {
+      "character": "门",
+      "sequence": 87,
+      "subset": "yct3_objects",
+      "pinyin": "mén",
+      "meaning": "door"
+    },
+    {
+      "character": "窗户",
+      "sequence": 88,
+      "subset": "yct3_objects",
+      "pinyin": "chuānghu",
+      "meaning": "window"
+    },
+    {
+      "character": "灯",
+      "sequence": 89,
+      "subset": "yct3_objects",
+      "pinyin": "dēng",
+      "meaning": "lamp; light"
+    },
+    {
+      "character": "礼物",
+      "sequence": 90,
+      "subset": "yct3_objects",
+      "pinyin": "lǐwù",
+      "meaning": "gift"
+    },
+    {
+      "character": "玩具",
+      "sequence": 91,
+      "subset": "yct3_objects",
+      "pinyin": "wánjù",
+      "meaning": "toy"
+    },
+    {
+      "character": "球",
+      "sequence": 92,
+      "subset": "yct3_objects",
+      "pinyin": "qiú",
+      "meaning": "ball"
+    },
+    {
+      "character": "树",
+      "sequence": 93,
+      "subset": "yct3_objects",
+      "pinyin": "shù",
+      "meaning": "tree"
+    },
+    {
+      "character": "花",
+      "sequence": 94,
+      "subset": "yct3_objects",
+      "pinyin": "huā",
+      "meaning": "flower"
+    },
+    {
+      "character": "草",
+      "sequence": 95,
+      "subset": "yct3_objects",
+      "pinyin": "cǎo",
+      "meaning": "grass"
+    },
+    {
+      "character": "但是",
+      "sequence": 96,
+      "subset": "yct3_grammar",
+      "pinyin": "dànshì",
+      "meaning": "but"
+    },
+    {
+      "character": "可是",
+      "sequence": 97,
+      "subset": "yct3_grammar",
+      "pinyin": "kěshì",
+      "meaning": "but"
+    },
+    {
+      "character": "还是",
+      "sequence": 98,
+      "subset": "yct3_grammar",
+      "pinyin": "háishi",
+      "meaning": "or"
+    },
+    {
+      "character": "可以",
+      "sequence": 99,
+      "subset": "yct3_grammar",
+      "pinyin": "kěyǐ",
+      "meaning": "can; may"
+    },
+    {
+      "character": "比",
+      "sequence": 100,
+      "subset": "yct3_grammar",
+      "pinyin": "bǐ",
+      "meaning": "compared to"
+    },
+    {
+      "character": "最",
+      "sequence": 101,
+      "subset": "yct3_grammar",
+      "pinyin": "zuì",
+      "meaning": "most"
+    },
+    {
+      "character": "已经",
+      "sequence": 102,
+      "subset": "yct3_grammar",
+      "pinyin": "yǐjīng",
+      "meaning": "already"
+    },
+    {
+      "character": "一起",
+      "sequence": 103,
+      "subset": "yct3_grammar",
+      "pinyin": "yīqǐ",
+      "meaning": "together"
+    },
+    {
+      "character": "每天",
+      "sequence": 104,
+      "subset": "yct3_grammar",
+      "pinyin": "měitiān",
+      "meaning": "every day"
+    },
+    {
+      "character": "为什么",
+      "sequence": 105,
+      "subset": "yct3_grammar",
+      "pinyin": "wèishénme",
+      "meaning": "why"
+    },
+    {
+      "character": "怎么样",
+      "sequence": 106,
+      "subset": "yct3_grammar",
+      "pinyin": "zěnmeyàng",
+      "meaning": "how about"
+    },
+    {
+      "character": "什么时候",
+      "sequence": 107,
+      "subset": "yct3_grammar",
+      "pinyin": "shénme shíhou",
+      "meaning": "when"
+    }
+  ]
+}

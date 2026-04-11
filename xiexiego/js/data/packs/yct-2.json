@@ -1,0 +1,577 @@
+{
+  "id": "yct_2",
+  "version": 1,
+  "title": "YCT Level 2",
+  "titleZh": "YCT 二级",
+  "description": "Youth Chinese Test prep. 70 new words beyond Level 1.",
+  "source": "Vocabulary list from Hanban's official Youth Chinese Test (YCT) Level 2 curriculum. YCT is a free international standard published by the Chinese government's Center for Language Education and Cooperation.",
+  "sequenced": true,
+  "totalWords": 70,
+  "subsets": [
+    {
+      "id": "new_places",
+      "title": "New Places",
+      "characterCount": 5,
+      "wordCount": 5
+    },
+    {
+      "id": "new_people",
+      "title": "New Family & People",
+      "characterCount": 7,
+      "wordCount": 7
+    },
+    {
+      "id": "new_body",
+      "title": "New Body Parts",
+      "characterCount": 1,
+      "wordCount": 1
+    },
+    {
+      "id": "new_animals",
+      "title": "New Animals",
+      "characterCount": 1,
+      "wordCount": 1
+    },
+    {
+      "id": "new_food",
+      "title": "New Food & Drink",
+      "characterCount": 4,
+      "wordCount": 4
+    },
+    {
+      "id": "new_time",
+      "title": "New Time Words",
+      "characterCount": 5,
+      "wordCount": 5
+    },
+    {
+      "id": "school_items",
+      "title": "School & Home Items",
+      "characterCount": 7,
+      "wordCount": 7
+    },
+    {
+      "id": "language_topics",
+      "title": "Language & Topics",
+      "characterCount": 5,
+      "wordCount": 5
+    },
+    {
+      "id": "greetings",
+      "title": "Greetings & Politeness",
+      "characterCount": 5,
+      "wordCount": 5
+    },
+    {
+      "id": "new_verbs",
+      "title": "New Verbs",
+      "characterCount": 13,
+      "wordCount": 13
+    },
+    {
+      "id": "new_adjectives",
+      "title": "New Adjectives",
+      "characterCount": 8,
+      "wordCount": 8
+    },
+    {
+      "id": "new_grammar",
+      "title": "New Grammar",
+      "characterCount": 9,
+      "wordCount": 9
+    }
+  ],
+  "notes": "YCT 2 builds on YCT 1's foundation. If a kid imports this pack after already practicing YCT 1, the overlapping 80 words will merge without losing progress. Words are sequenced starting with YCT 1 review content (numbered 1-80 per the YCT 1 order), then the new YCT 2 vocabulary in thematic groups. Heavy on compounds — roughly 60% of the new words are compositional two-character words that will trigger compound discovery.",
+  "words": [
+    {
+      "character": "房间",
+      "sequence": 1,
+      "subset": "new_places",
+      "pinyin": "fángjiān",
+      "meaning": "room"
+    },
+    {
+      "character": "医院",
+      "sequence": 2,
+      "subset": "new_places",
+      "pinyin": "yīyuàn",
+      "meaning": "hospital"
+    },
+    {
+      "character": "北京",
+      "sequence": 3,
+      "subset": "new_places",
+      "pinyin": "Běijīng",
+      "meaning": "Beijing"
+    },
+    {
+      "character": "中国",
+      "sequence": 4,
+      "subset": "new_places",
+      "pinyin": "Zhōngguó",
+      "meaning": "China"
+    },
+    {
+      "character": "出租车",
+      "sequence": 5,
+      "subset": "new_places",
+      "pinyin": "chūzūchē",
+      "meaning": "taxi"
+    },
+    {
+      "character": "弟弟",
+      "sequence": 6,
+      "subset": "new_people",
+      "pinyin": "dìdi",
+      "meaning": "younger brother"
+    },
+    {
+      "character": "妹妹",
+      "sequence": 7,
+      "subset": "new_people",
+      "pinyin": "mèimei",
+      "meaning": "younger sister"
+    },
+    {
+      "character": "同学",
+      "sequence": 8,
+      "subset": "new_people",
+      "pinyin": "tóngxué",
+      "meaning": "classmate"
+    },
+    {
+      "character": "学生",
+      "sequence": 9,
+      "subset": "new_people",
+      "pinyin": "xuésheng",
+      "meaning": "student"
+    },
+    {
+      "character": "朋友",
+      "sequence": 10,
+      "subset": "new_people",
+      "pinyin": "péngyou",
+      "meaning": "friend"
+    },
+    {
+      "character": "医生",
+      "sequence": 11,
+      "subset": "new_people",
+      "pinyin": "yīshēng",
+      "meaning": "doctor"
+    },
+    {
+      "character": "名字",
+      "sequence": 12,
+      "subset": "new_people",
+      "pinyin": "míngzi",
+      "meaning": "name"
+    },
+    {
+      "character": "脚",
+      "sequence": 13,
+      "subset": "new_body",
+      "pinyin": "jiǎo",
+      "meaning": "foot"
+    },
+    {
+      "character": "熊猫",
+      "sequence": 14,
+      "subset": "new_animals",
+      "pinyin": "xióngmāo",
+      "meaning": "panda"
+    },
+    {
+      "character": "茶",
+      "sequence": 15,
+      "subset": "new_food",
+      "pinyin": "chá",
+      "meaning": "tea"
+    },
+    {
+      "character": "香蕉",
+      "sequence": 16,
+      "subset": "new_food",
+      "pinyin": "xiāngjiāo",
+      "meaning": "banana"
+    },
+    {
+      "character": "包子",
+      "sequence": 17,
+      "subset": "new_food",
+      "pinyin": "bāozi",
+      "meaning": "steamed bun"
+    },
+    {
+      "character": "鸡蛋",
+      "sequence": 18,
+      "subset": "new_food",
+      "pinyin": "jīdàn",
+      "meaning": "egg"
+    },
+    {
+      "character": "年",
+      "sequence": 19,
+      "subset": "new_time",
+      "pinyin": "nián",
+      "meaning": "year"
+    },
+    {
+      "character": "分钟",
+      "sequence": 20,
+      "subset": "new_time",
+      "pinyin": "fēnzhōng",
+      "meaning": "minute"
+    },
+    {
+      "character": "昨天",
+      "sequence": 21,
+      "subset": "new_time",
+      "pinyin": "zuótiān",
+      "meaning": "yesterday"
+    },
+    {
+      "character": "早上",
+      "sequence": 22,
+      "subset": "new_time",
+      "pinyin": "zǎoshang",
+      "meaning": "morning"
+    },
+    {
+      "character": "晚上",
+      "sequence": 23,
+      "subset": "new_time",
+      "pinyin": "wǎnshang",
+      "meaning": "evening; night"
+    },
+    {
+      "character": "铅笔",
+      "sequence": 24,
+      "subset": "school_items",
+      "pinyin": "qiānbǐ",
+      "meaning": "pencil"
+    },
+    {
+      "character": "书",
+      "sequence": 25,
+      "subset": "school_items",
+      "pinyin": "shū",
+      "meaning": "book"
+    },
+    {
+      "character": "书包",
+      "sequence": 26,
+      "subset": "school_items",
+      "pinyin": "shūbāo",
+      "meaning": "schoolbag; backpack"
+    },
+    {
+      "character": "桌子",
+      "sequence": 27,
+      "subset": "school_items",
+      "pinyin": "zhuōzi",
+      "meaning": "table; desk"
+    },
+    {
+      "character": "椅子",
+      "sequence": 28,
+      "subset": "school_items",
+      "pinyin": "yǐzi",
+      "meaning": "chair"
+    },
+    {
+      "character": "电视",
+      "sequence": 29,
+      "subset": "school_items",
+      "pinyin": "diànshì",
+      "meaning": "TV; television"
+    },
+    {
+      "character": "电话",
+      "sequence": 30,
+      "subset": "school_items",
+      "pinyin": "diànhuà",
+      "meaning": "telephone"
+    },
+    {
+      "character": "汉语",
+      "sequence": 31,
+      "subset": "language_topics",
+      "pinyin": "Hànyǔ",
+      "meaning": "Chinese language"
+    },
+    {
+      "character": "天气",
+      "sequence": 32,
+      "subset": "language_topics",
+      "pinyin": "tiānqì",
+      "meaning": "weather"
+    },
+    {
+      "character": "颜色",
+      "sequence": 33,
+      "subset": "language_topics",
+      "pinyin": "yánsè",
+      "meaning": "color"
+    },
+    {
+      "character": "钱",
+      "sequence": 34,
+      "subset": "language_topics",
+      "pinyin": "qián",
+      "meaning": "money"
+    },
+    {
+      "character": "字",
+      "sequence": 35,
+      "subset": "language_topics",
+      "pinyin": "zì",
+      "meaning": "character; word"
+    },
+    {
+      "character": "请",
+      "sequence": 36,
+      "subset": "greetings",
+      "pinyin": "qǐng",
+      "meaning": "please"
+    },
+    {
+      "character": "不客气",
+      "sequence": 37,
+      "subset": "greetings",
+      "pinyin": "búkèqi",
+      "meaning": "you're welcome"
+    },
+    {
+      "character": "对不起",
+      "sequence": 38,
+      "subset": "greetings",
+      "pinyin": "duìbuqǐ",
+      "meaning": "sorry; excuse me"
+    },
+    {
+      "character": "没关系",
+      "sequence": 39,
+      "subset": "greetings",
+      "pinyin": "méiguānxi",
+      "meaning": "it's OK; no problem"
+    },
+    {
+      "character": "喂",
+      "sequence": 40,
+      "subset": "greetings",
+      "pinyin": "wèi",
+      "meaning": "hello (on phone)"
+    },
+    {
+      "character": "读",
+      "sequence": 41,
+      "subset": "new_verbs",
+      "pinyin": "dú",
+      "meaning": "to read"
+    },
+    {
+      "character": "写",
+      "sequence": 42,
+      "subset": "new_verbs",
+      "pinyin": "xiě",
+      "meaning": "to write"
+    },
+    {
+      "character": "听",
+      "sequence": 43,
+      "subset": "new_verbs",
+      "pinyin": "tīng",
+      "meaning": "to listen"
+    },
+    {
+      "character": "说",
+      "sequence": 44,
+      "subset": "new_verbs",
+      "pinyin": "shuō",
+      "meaning": "to speak; to say"
+    },
+    {
+      "character": "来",
+      "sequence": 45,
+      "subset": "new_verbs",
+      "pinyin": "lái",
+      "meaning": "to come"
+    },
+    {
+      "character": "回",
+      "sequence": 46,
+      "subset": "new_verbs",
+      "pinyin": "huí",
+      "meaning": "to return; to go back"
+    },
+    {
+      "character": "开",
+      "sequence": 47,
+      "subset": "new_verbs",
+      "pinyin": "kāi",
+      "meaning": "to open; to drive"
+    },
+    {
+      "character": "买",
+      "sequence": 48,
+      "subset": "new_verbs",
+      "pinyin": "mǎi",
+      "meaning": "to buy"
+    },
+    {
+      "character": "做",
+      "sequence": 49,
+      "subset": "new_verbs",
+      "pinyin": "zuò",
+      "meaning": "to do; to make"
+    },
+    {
+      "character": "住",
+      "sequence": 50,
+      "subset": "new_verbs",
+      "pinyin": "zhù",
+      "meaning": "to live; to stay"
+    },
+    {
+      "character": "学",
+      "sequence": 51,
+      "subset": "new_verbs",
+      "pinyin": "xué",
+      "meaning": "to study; to learn"
+    },
+    {
+      "character": "学习",
+      "sequence": 52,
+      "subset": "new_verbs",
+      "pinyin": "xuéxí",
+      "meaning": "to study"
+    },
+    {
+      "character": "工作",
+      "sequence": 53,
+      "subset": "new_verbs",
+      "pinyin": "gōngzuò",
+      "meaning": "to work; job"
+    },
+    {
+      "character": "冷",
+      "sequence": 54,
+      "subset": "new_adjectives",
+      "pinyin": "lěng",
+      "meaning": "cold"
+    },
+    {
+      "character": "热",
+      "sequence": 55,
+      "subset": "new_adjectives",
+      "pinyin": "rè",
+      "meaning": "hot"
+    },
+    {
+      "character": "少",
+      "sequence": 56,
+      "subset": "new_adjectives",
+      "pinyin": "shǎo",
+      "meaning": "few; little"
+    },
+    {
+      "character": "漂亮",
+      "sequence": 57,
+      "subset": "new_adjectives",
+      "pinyin": "piàoliang",
+      "meaning": "pretty; beautiful"
+    },
+    {
+      "character": "红",
+      "sequence": 58,
+      "subset": "new_adjectives",
+      "pinyin": "hóng",
+      "meaning": "red"
+    },
+    {
+      "character": "白",
+      "sequence": 59,
+      "subset": "new_adjectives",
+      "pinyin": "bái",
+      "meaning": "white"
+    },
+    {
+      "character": "好吃",
+      "sequence": 60,
+      "subset": "new_adjectives",
+      "pinyin": "hǎochī",
+      "meaning": "delicious"
+    },
+    {
+      "character": "太",
+      "sequence": 61,
+      "subset": "new_adjectives",
+      "pinyin": "tài",
+      "meaning": "too; very"
+    },
+    {
+      "character": "都",
+      "sequence": 62,
+      "subset": "new_grammar",
+      "pinyin": "dōu",
+      "meaning": "all; both"
+    },
+    {
+      "character": "也",
+      "sequence": 63,
+      "subset": "new_grammar",
+      "pinyin": "yě",
+      "meaning": "also; too"
+    },
+    {
+      "character": "会",
+      "sequence": 64,
+      "subset": "new_grammar",
+      "pinyin": "huì",
+      "meaning": "can; will; be able to"
+    },
+    {
+      "character": "能",
+      "sequence": 65,
+      "subset": "new_grammar",
+      "pinyin": "néng",
+      "meaning": "can; to be able"
+    },
+    {
+      "character": "想",
+      "sequence": 66,
+      "subset": "new_grammar",
+      "pinyin": "xiǎng",
+      "meaning": "to want; to think"
+    },
+    {
+      "character": "多少",
+      "sequence": 67,
+      "subset": "new_grammar",
+      "pinyin": "duōshao",
+      "meaning": "how many; how much"
+    },
+    {
+      "character": "怎么",
+      "sequence": 68,
+      "subset": "new_grammar",
+      "pinyin": "zěnme",
+      "meaning": "how"
+    },
+    {
+      "character": "呢",
+      "sequence": 69,
+      "subset": "new_grammar",
+      "pinyin": "ne",
+      "meaning": "question particle (and you?)"
+    },
+    {
+      "character": "了",
+      "sequence": 70,
+      "subset": "new_grammar",
+      "pinyin": "le",
+      "meaning": "completed action particle"
+    }
+  ]
+}

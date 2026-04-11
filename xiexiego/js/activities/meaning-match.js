@@ -5,6 +5,7 @@
 
 import { speakChinese, speakEnglish } from '../enrichment.js';
 import { playSparkle, playBoop, playClick } from '../sounds.js';
+import { t } from '../i18n.js';
 
 /**
  * Format meaning: replace " / " with " or ".
@@ -32,6 +33,7 @@ export async function renderMeaningMatch(container, word, distractors, onResult)
   let resolved = false;
   let aborted = false;
   let hintUsed = false;
+  const startTime = Date.now();
 
   function abort() {
     aborted = true;
@@ -40,9 +42,9 @@ export async function renderMeaningMatch(container, word, distractors, onResult)
 
   container.innerHTML = `
     <div class="activity activity--quiz">
-      <button class="quiz__hint-toggle" id="quiz-hint">🔊 Hint</button>
+      <button class="quiz__hint-toggle" id="quiz-hint">${t('activity.hintAudio')}</button>
       <div class="activity__body">
-        <p class="quiz__instruction">What does this mean?</p>
+        <p class="quiz__instruction">${t('quiz.whatMeans')}</p>
         <div class="quiz__prompt">
           <span class="quiz__prompt-char" id="quiz-char">${word.character}</span>
           <button class="quiz__speaker quiz__speaker--small" id="quiz-speaker">
@@ -68,15 +70,15 @@ export async function renderMeaningMatch(container, word, distractors, onResult)
   const speakerBtn = container.querySelector('#quiz-speaker');
   const hintBtn = container.querySelector('#quiz-hint');
 
-  // Hint: say the Chinese word aloud (penalty — only partial credit)
+  // Hint: say the Chinese word aloud (penalty — only partial credit, can re-press)
   if (hintBtn) {
     hintBtn.addEventListener('click', () => {
       if (aborted || resolved) return;
       playClick();
       hintUsed = true;
       hintBtn.classList.add('quiz__hint-toggle--revealed');
-      hintBtn.textContent = '🔊 Hint used';
-      hintBtn.disabled = true;
+      hintBtn.textContent = t('activity.hintAudio');
+      window.speechSynthesis?.cancel();
       speakChinese(word.character, 0.5);
     });
   }
@@ -111,14 +113,14 @@ export async function renderMeaningMatch(container, word, distractors, onResult)
         if (!aborted) await speakChinese(word.character, 0.5);
         if (!aborted) { await new Promise(r => setTimeout(r, 300)); await speakEnglish(correctMeaning); }
         await new Promise(r => setTimeout(r, 1200));
-        if (!aborted) onResult({ correct: attempts === 0 && !hintUsed, attempts });
+        if (!aborted) onResult({ correct: attempts === 0 && !hintUsed, attempts, hintUsed, responseTimeMs: Date.now() - startTime });
       } else {
         attempts++;
         btn.classList.add('quiz__option--wrong');
         playBoop();
         btn.disabled = true;
 
-        const encouragements = ['Try again!', 'Almost!', 'Keep trying!'];
+        const encouragements = [t('quiz.tryAgain'), t('quiz.almost'), t('quiz.keepTrying')];
         feedbackEl.textContent = encouragements[Math.min(attempts - 1, 2)];
 
         // After 2 wrong attempts, hint the correct answer with a subtle glow

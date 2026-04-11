@@ -1,0 +1,2801 @@
+{
+  "id": "swkd_book1",
+  "version": 1,
+  "title": "Si Wu Kuai Du — Book 1",
+  "titleZh": "四五快读 第一册",
+  "description": "Classic primer for ages 4–5. 86 characters, 10 lessons.",
+  "source": "Content transcribed from 四五快读 第一册 by 杨其铎 (Yang Qiduo). XieXie Go is not affiliated with the publisher. If this method works for your family, buy the full 8-volume set — the physical books include illustrations and the pedagogical scaffolding that makes SWKD effective.",
+  "sequenced": true,
+  "totalWords": 86,
+  "subsets": [
+    {
+      "id": "lesson_1",
+      "title": "第一课 Lesson 1",
+      "lessonNumber": 1,
+      "characterCount": 16,
+      "wordCount": 16
+    },
+    {
+      "id": "lesson_2",
+      "title": "第二课 Lesson 2",
+      "lessonNumber": 2,
+      "characterCount": 8,
+      "wordCount": 8
+    },
+    {
+      "id": "lesson_3",
+      "title": "第三课 Lesson 3",
+      "lessonNumber": 3,
+      "characterCount": 8,
+      "wordCount": 8
+    },
+    {
+      "id": "lesson_4",
+      "title": "第四课 Lesson 4",
+      "lessonNumber": 4,
+      "characterCount": 8,
+      "wordCount": 8
+    },
+    {
+      "id": "lesson_5",
+      "title": "第五课 Lesson 5",
+      "lessonNumber": 5,
+      "characterCount": 9,
+      "wordCount": 9
+    },
+    {
+      "id": "lesson_6",
+      "title": "第六课 Lesson 6",
+      "lessonNumber": 6,
+      "characterCount": 6,
+      "wordCount": 6
+    },
+    {
+      "id": "lesson_7",
+      "title": "第七课 Lesson 7",
+      "lessonNumber": 7,
+      "characterCount": 8,
+      "wordCount": 8
+    },
+    {
+      "id": "lesson_8",
+      "title": "第八课 Lesson 8",
+      "lessonNumber": 8,
+      "characterCount": 8,
+      "wordCount": 8
+    },
+    {
+      "id": "lesson_9",
+      "title": "第九课 Lesson 9",
+      "lessonNumber": 9,
+      "characterCount": 7,
+      "wordCount": 7
+    },
+    {
+      "id": "lesson_10",
+      "title": "第十课 Lesson 10",
+      "lessonNumber": 10,
+      "characterCount": 8,
+      "wordCount": 8
+    }
+  ],
+  "lessons": [
+    {
+      "lesson": 1,
+      "title": "第一课 Lesson 1",
+      "new_characters": [
+        {
+          "character": "人",
+          "pinyin": "rén",
+          "meaning": "person; people"
+        },
+        {
+          "character": "口",
+          "pinyin": "kǒu",
+          "meaning": "mouth"
+        },
+        {
+          "character": "大",
+          "pinyin": "dà",
+          "meaning": "big; large"
+        },
+        {
+          "character": "中",
+          "pinyin": "zhōng",
+          "meaning": "middle; center"
+        },
+        {
+          "character": "小",
+          "pinyin": "xiǎo",
+          "meaning": "small; little"
+        },
+        {
+          "character": "哭",
+          "pinyin": "kū",
+          "meaning": "to cry"
+        },
+        {
+          "character": "笑",
+          "pinyin": "xiào",
+          "meaning": "to laugh; to smile"
+        },
+        {
+          "character": "一",
+          "pinyin": "yī",
+          "meaning": "one"
+        },
+        {
+          "character": "上",
+          "pinyin": "shàng",
+          "meaning": "up; above; on top"
+        },
+        {
+          "character": "下",
+          "pinyin": "xià",
+          "meaning": "down; below; under"
+        },
+        {
+          "character": "爸",
+          "pinyin": "bà",
+          "meaning": "dad; father"
+        },
+        {
+          "character": "妈",
+          "pinyin": "mā",
+          "meaning": "mom; mother"
+        },
+        {
+          "character": "天",
+          "pinyin": "tiān",
+          "meaning": "sky; day"
+        },
+        {
+          "character": "太",
+          "pinyin": "tài",
+          "meaning": "too; very; extremely"
+        },
+        {
+          "character": "月",
+          "pinyin": "yuè",
+          "meaning": "moon; month"
+        },
+        {
+          "character": "二",
+          "pinyin": "èr",
+          "meaning": "two"
+        }
+      ],
+      "words": [
+        {
+          "word": "大人",
+          "pinyin": "dàrén",
+          "meaning": "adult",
+          "components": [
+            "大",
+            "人"
+          ]
+        },
+        {
+          "word": "小人",
+          "pinyin": "xiǎorén",
+          "meaning": "small person",
+          "components": [
+            "小",
+            "人"
+          ]
+        },
+        {
+          "word": "大哭",
+          "pinyin": "dàkū",
+          "meaning": "cry loudly",
+          "components": [
+            "大",
+            "哭"
+          ]
+        },
+        {
+          "word": "大笑",
+          "pinyin": "dàxiào",
+          "meaning": "laugh loudly",
+          "components": [
+            "大",
+            "笑"
+          ]
+        },
+        {
+          "word": "大口",
+          "pinyin": "dàkǒu",
+          "meaning": "big mouth",
+          "components": [
+            "大",
+            "口"
+          ]
+        },
+        {
+          "word": "小口",
+          "pinyin": "xiǎokǒu",
+          "meaning": "small mouth",
+          "components": [
+            "小",
+            "口"
+          ]
+        },
+        {
+          "word": "爸爸",
+          "pinyin": "bàba",
+          "meaning": "dad",
+          "components": [
+            "爸",
+            "爸"
+          ]
+        },
+        {
+          "word": "妈妈",
+          "pinyin": "māma",
+          "meaning": "mom",
+          "components": [
+            "妈",
+            "妈"
+          ]
+        },
+        {
+          "word": "上天",
+          "pinyin": "shàngtiān",
+          "meaning": "heaven; up to the sky",
+          "components": [
+            "上",
+            "天"
+          ]
+        },
+        {
+          "word": "天上",
+          "pinyin": "tiānshàng",
+          "meaning": "in the sky",
+          "components": [
+            "天",
+            "上"
+          ]
+        },
+        {
+          "word": "太大",
+          "pinyin": "tàidà",
+          "meaning": "too big",
+          "components": [
+            "太",
+            "大"
+          ]
+        },
+        {
+          "word": "太小",
+          "pinyin": "tàixiǎo",
+          "meaning": "too small",
+          "components": [
+            "太",
+            "小"
+          ]
+        },
+        {
+          "word": "一天",
+          "pinyin": "yītiān",
+          "meaning": "one day",
+          "components": [
+            "一",
+            "天"
+          ]
+        },
+        {
+          "word": "一月",
+          "pinyin": "yīyuè",
+          "meaning": "January; one month",
+          "components": [
+            "一",
+            "月"
+          ]
+        },
+        {
+          "word": "二天",
+          "pinyin": "èrtiān",
+          "meaning": "two days",
+          "components": [
+            "二",
+            "天"
+          ]
+        },
+        {
+          "word": "二月",
+          "pinyin": "èryuè",
+          "meaning": "February; two months",
+          "components": [
+            "二",
+            "月"
+          ]
+        },
+        {
+          "word": "上上",
+          "pinyin": "shàngshàng",
+          "meaning": "up up",
+          "components": [
+            "上",
+            "上"
+          ]
+        },
+        {
+          "word": "下下",
+          "pinyin": "xiàxià",
+          "meaning": "down down",
+          "components": [
+            "下",
+            "下"
+          ]
+        }
+      ],
+      "sentences": []
+    },
+    {
+      "lesson": 2,
+      "title": "第二课 Lesson 2",
+      "new_characters": [
+        {
+          "character": "地",
+          "pinyin": "dì",
+          "meaning": "earth; ground; land"
+        },
+        {
+          "character": "阳",
+          "pinyin": "yáng",
+          "meaning": "sun; positive"
+        },
+        {
+          "character": "亮",
+          "pinyin": "liàng",
+          "meaning": "bright; light"
+        },
+        {
+          "character": "星",
+          "pinyin": "xīng",
+          "meaning": "star"
+        },
+        {
+          "character": "云",
+          "pinyin": "yún",
+          "meaning": "cloud"
+        },
+        {
+          "character": "火",
+          "pinyin": "huǒ",
+          "meaning": "fire"
+        },
+        {
+          "character": "水",
+          "pinyin": "shuǐ",
+          "meaning": "water"
+        },
+        {
+          "character": "三",
+          "pinyin": "sān",
+          "meaning": "three"
+        }
+      ],
+      "words": [
+        {
+          "word": "天地",
+          "pinyin": "tiāndì",
+          "meaning": "heaven and earth",
+          "components": [
+            "天",
+            "地"
+          ]
+        },
+        {
+          "word": "大地",
+          "pinyin": "dàdì",
+          "meaning": "the earth; the ground",
+          "components": [
+            "大",
+            "地"
+          ]
+        },
+        {
+          "word": "太阳",
+          "pinyin": "tàiyáng",
+          "meaning": "sun",
+          "components": [
+            "太",
+            "阳"
+          ]
+        },
+        {
+          "word": "月亮",
+          "pinyin": "yuèliàng",
+          "meaning": "moon",
+          "components": [
+            "月",
+            "亮"
+          ]
+        },
+        {
+          "word": "星星",
+          "pinyin": "xīngxīng",
+          "meaning": "star",
+          "components": [
+            "星",
+            "星"
+          ]
+        },
+        {
+          "word": "天亮",
+          "pinyin": "tiānliàng",
+          "meaning": "daybreak; dawn",
+          "components": [
+            "天",
+            "亮"
+          ]
+        },
+        {
+          "word": "大火",
+          "pinyin": "dàhuǒ",
+          "meaning": "big fire",
+          "components": [
+            "大",
+            "火"
+          ]
+        },
+        {
+          "word": "大水",
+          "pinyin": "dàshuǐ",
+          "meaning": "flood",
+          "components": [
+            "大",
+            "水"
+          ]
+        },
+        {
+          "word": "火星",
+          "pinyin": "huǒxīng",
+          "meaning": "Mars; spark",
+          "components": [
+            "火",
+            "星"
+          ]
+        },
+        {
+          "word": "水星",
+          "pinyin": "shuǐxīng",
+          "meaning": "Mercury (planet)",
+          "components": [
+            "水",
+            "星"
+          ]
+        },
+        {
+          "word": "三天",
+          "pinyin": "sāntiān",
+          "meaning": "three days",
+          "components": [
+            "三",
+            "天"
+          ]
+        },
+        {
+          "word": "三月",
+          "pinyin": "sānyuè",
+          "meaning": "March; three months",
+          "components": [
+            "三",
+            "月"
+          ]
+        },
+        {
+          "word": "下地",
+          "pinyin": "xiàdì",
+          "meaning": "go to the fields",
+          "components": [
+            "下",
+            "地"
+          ]
+        },
+        {
+          "word": "地上",
+          "pinyin": "dìshàng",
+          "meaning": "on the ground",
+          "components": [
+            "地",
+            "上"
+          ]
+        },
+        {
+          "word": "地下",
+          "pinyin": "dìxià",
+          "meaning": "underground",
+          "components": [
+            "地",
+            "下"
+          ]
+        }
+      ],
+      "sentences": []
+    },
+    {
+      "lesson": 3,
+      "title": "第三课 Lesson 3",
+      "new_characters": [
+        {
+          "character": "土",
+          "pinyin": "tǔ",
+          "meaning": "soil; earth"
+        },
+        {
+          "character": "山",
+          "pinyin": "shān",
+          "meaning": "mountain"
+        },
+        {
+          "character": "石",
+          "pinyin": "shí",
+          "meaning": "stone; rock"
+        },
+        {
+          "character": "木",
+          "pinyin": "mù",
+          "meaning": "tree; wood"
+        },
+        {
+          "character": "我",
+          "pinyin": "wǒ",
+          "meaning": "I; me"
+        },
+        {
+          "character": "好",
+          "pinyin": "hǎo",
+          "meaning": "good; well"
+        },
+        {
+          "character": "有",
+          "pinyin": "yǒu",
+          "meaning": "to have; there is"
+        },
+        {
+          "character": "田",
+          "pinyin": "tián",
+          "meaning": "field"
+        }
+      ],
+      "words": [
+        {
+          "word": "土地",
+          "pinyin": "tǔdì",
+          "meaning": "land; soil",
+          "components": [
+            "土",
+            "地"
+          ]
+        },
+        {
+          "word": "大山",
+          "pinyin": "dàshān",
+          "meaning": "big mountain",
+          "components": [
+            "大",
+            "山"
+          ]
+        },
+        {
+          "word": "小山",
+          "pinyin": "xiǎoshān",
+          "meaning": "small mountain; hill",
+          "components": [
+            "小",
+            "山"
+          ]
+        },
+        {
+          "word": "石山",
+          "pinyin": "shíshān",
+          "meaning": "rocky mountain",
+          "components": [
+            "石",
+            "山"
+          ]
+        },
+        {
+          "word": "火山",
+          "pinyin": "huǒshān",
+          "meaning": "volcano",
+          "components": [
+            "火",
+            "山"
+          ]
+        },
+        {
+          "word": "土星",
+          "pinyin": "tǔxīng",
+          "meaning": "Saturn",
+          "components": [
+            "土",
+            "星"
+          ]
+        },
+        {
+          "word": "好人",
+          "pinyin": "hǎorén",
+          "meaning": "good person",
+          "components": [
+            "好",
+            "人"
+          ]
+        },
+        {
+          "word": "水田",
+          "pinyin": "shuǐtián",
+          "meaning": "rice paddy",
+          "components": [
+            "水",
+            "田"
+          ]
+        },
+        {
+          "word": "我有",
+          "pinyin": "wǒ yǒu",
+          "meaning": "I have",
+          "components": [
+            "我",
+            "有"
+          ]
+        },
+        {
+          "word": "我爸",
+          "pinyin": "wǒ bà",
+          "meaning": "my dad",
+          "components": [
+            "我",
+            "爸"
+          ]
+        },
+        {
+          "word": "我妈",
+          "pinyin": "wǒ mā",
+          "meaning": "my mom",
+          "components": [
+            "我",
+            "妈"
+          ]
+        },
+        {
+          "word": "我哭",
+          "pinyin": "wǒ kū",
+          "meaning": "I cry",
+          "components": [
+            "我",
+            "哭"
+          ]
+        },
+        {
+          "word": "我笑",
+          "pinyin": "wǒ xiào",
+          "meaning": "I laugh",
+          "components": [
+            "我",
+            "笑"
+          ]
+        },
+        {
+          "word": "好山",
+          "pinyin": "hǎoshān",
+          "meaning": "beautiful mountain",
+          "components": [
+            "好",
+            "山"
+          ]
+        },
+        {
+          "word": "好水",
+          "pinyin": "hǎoshuǐ",
+          "meaning": "good water",
+          "components": [
+            "好",
+            "水"
+          ]
+        }
+      ],
+      "sentences": [
+        {
+          "chinese": "我有好爸爸、好妈妈。",
+          "pinyin": "Wǒ yǒu hǎo bàba, hǎo māma.",
+          "english": "I have a good dad and a good mom."
+        },
+        {
+          "chinese": "天上有太阳、月亮、星星。",
+          "pinyin": "Tiānshàng yǒu tàiyáng, yuèliàng, xīngxīng.",
+          "english": "In the sky there is the sun, the moon, and stars."
+        },
+        {
+          "chinese": "地上有土、石、山、水田。",
+          "pinyin": "Dìshàng yǒu tǔ, shí, shān, shuǐtián.",
+          "english": "On the ground there is soil, stones, mountains, and rice paddies."
+        },
+        {
+          "chinese": "爸爸上山，妈妈下山。",
+          "pinyin": "Bàba shàng shān, māma xià shān.",
+          "english": "Dad goes up the mountain, mom comes down the mountain."
+        }
+      ]
+    },
+    {
+      "lesson": 4,
+      "title": "第四课 Lesson 4",
+      "new_characters": [
+        {
+          "character": "牛",
+          "pinyin": "niú",
+          "meaning": "cow; ox"
+        },
+        {
+          "character": "羊",
+          "pinyin": "yáng",
+          "meaning": "sheep; goat"
+        },
+        {
+          "character": "聪",
+          "pinyin": "cōng",
+          "meaning": "clever; smart"
+        },
+        {
+          "character": "耳",
+          "pinyin": "ěr",
+          "meaning": "ear"
+        },
+        {
+          "character": "目",
+          "pinyin": "mù",
+          "meaning": "eye"
+        },
+        {
+          "character": "心",
+          "pinyin": "xīn",
+          "meaning": "heart"
+        },
+        {
+          "character": "和",
+          "pinyin": "hé",
+          "meaning": "and; with"
+        },
+        {
+          "character": "四",
+          "pinyin": "sì",
+          "meaning": "four"
+        }
+      ],
+      "words": [
+        {
+          "word": "大牛",
+          "pinyin": "dàniú",
+          "meaning": "big cow",
+          "components": [
+            "大",
+            "牛"
+          ]
+        },
+        {
+          "word": "小牛",
+          "pinyin": "xiǎoniú",
+          "meaning": "calf",
+          "components": [
+            "小",
+            "牛"
+          ]
+        },
+        {
+          "word": "水牛",
+          "pinyin": "shuǐniú",
+          "meaning": "water buffalo",
+          "components": [
+            "水",
+            "牛"
+          ]
+        },
+        {
+          "word": "山羊",
+          "pinyin": "shānyáng",
+          "meaning": "goat",
+          "components": [
+            "山",
+            "羊"
+          ]
+        },
+        {
+          "word": "小羊",
+          "pinyin": "xiǎoyáng",
+          "meaning": "lamb",
+          "components": [
+            "小",
+            "羊"
+          ]
+        },
+        {
+          "word": "小心",
+          "pinyin": "xiǎoxīn",
+          "meaning": "careful",
+          "components": [
+            "小",
+            "心"
+          ]
+        },
+        {
+          "word": "聪明",
+          "pinyin": "cōngmíng",
+          "meaning": "clever; smart",
+          "components": [
+            "聪",
+            "明"
+          ]
+        },
+        {
+          "word": "中心",
+          "pinyin": "zhōngxīn",
+          "meaning": "center",
+          "components": [
+            "中",
+            "心"
+          ]
+        },
+        {
+          "word": "四月",
+          "pinyin": "sìyuè",
+          "meaning": "April",
+          "components": [
+            "四",
+            "月"
+          ]
+        },
+        {
+          "word": "四天",
+          "pinyin": "sìtiān",
+          "meaning": "four days",
+          "components": [
+            "四",
+            "天"
+          ]
+        }
+      ],
+      "sentences": [
+        {
+          "chinese": "地上有小羊和大树。",
+          "pinyin": "Dìshàng yǒu xiǎoyáng hé dàshù.",
+          "english": "On the ground there is a lamb and a big tree."
+        },
+        {
+          "chinese": "草地上有水牛和小山羊。",
+          "pinyin": "Cǎodì shàng yǒu shuǐniú hé xiǎo shānyáng.",
+          "english": "On the grass there is a water buffalo and a little goat."
+        },
+        {
+          "chinese": "爸爸和妈妈心中有我。",
+          "pinyin": "Bàba hé māma xīn zhōng yǒu wǒ.",
+          "english": "Dad and mom have me in their hearts."
+        },
+        {
+          "chinese": "我心中有爸爸和妈妈。",
+          "pinyin": "Wǒ xīn zhōng yǒu bàba hé māma.",
+          "english": "I have dad and mom in my heart."
+        }
+      ]
+    },
+    {
+      "lesson": 5,
+      "title": "第五课 Lesson 5",
+      "new_characters": [
+        {
+          "character": "明",
+          "pinyin": "míng",
+          "meaning": "bright; clear; next"
+        },
+        {
+          "character": "头",
+          "pinyin": "tóu",
+          "meaning": "head"
+        },
+        {
+          "character": "眉",
+          "pinyin": "méi",
+          "meaning": "eyebrow"
+        },
+        {
+          "character": "草",
+          "pinyin": "cǎo",
+          "meaning": "grass"
+        },
+        {
+          "character": "鼻",
+          "pinyin": "bí",
+          "meaning": "nose"
+        },
+        {
+          "character": "手",
+          "pinyin": "shǒu",
+          "meaning": "hand"
+        },
+        {
+          "character": "花",
+          "pinyin": "huā",
+          "meaning": "flower"
+        },
+        {
+          "character": "树",
+          "pinyin": "shù",
+          "meaning": "tree"
+        },
+        {
+          "character": "五",
+          "pinyin": "wǔ",
+          "meaning": "five"
+        }
+      ],
+      "words": [
+        {
+          "word": "聪明",
+          "pinyin": "cōngmíng",
+          "meaning": "clever; smart",
+          "components": [
+            "聪",
+            "明"
+          ]
+        },
+        {
+          "word": "明天",
+          "pinyin": "míngtiān",
+          "meaning": "tomorrow",
+          "components": [
+            "明",
+            "天"
+          ]
+        },
+        {
+          "word": "明月",
+          "pinyin": "míngyuè",
+          "meaning": "bright moon",
+          "components": [
+            "明",
+            "月"
+          ]
+        },
+        {
+          "word": "眉头",
+          "pinyin": "méitóu",
+          "meaning": "brow",
+          "components": [
+            "眉",
+            "头"
+          ]
+        },
+        {
+          "word": "鼻头",
+          "pinyin": "bítóu",
+          "meaning": "tip of the nose",
+          "components": [
+            "鼻",
+            "头"
+          ]
+        },
+        {
+          "word": "木头",
+          "pinyin": "mùtou",
+          "meaning": "wood; log",
+          "components": [
+            "木",
+            "头"
+          ]
+        },
+        {
+          "word": "石头",
+          "pinyin": "shítou",
+          "meaning": "stone",
+          "components": [
+            "石",
+            "头"
+          ]
+        },
+        {
+          "word": "心头",
+          "pinyin": "xīntóu",
+          "meaning": "in one's heart; mind",
+          "components": [
+            "心",
+            "头"
+          ]
+        },
+        {
+          "word": "小手",
+          "pinyin": "xiǎoshǒu",
+          "meaning": "small hand",
+          "components": [
+            "小",
+            "手"
+          ]
+        },
+        {
+          "word": "小花",
+          "pinyin": "xiǎohuā",
+          "meaning": "small flower",
+          "components": [
+            "小",
+            "花"
+          ]
+        },
+        {
+          "word": "大树",
+          "pinyin": "dàshù",
+          "meaning": "big tree",
+          "components": [
+            "大",
+            "树"
+          ]
+        },
+        {
+          "word": "小树",
+          "pinyin": "xiǎoshù",
+          "meaning": "small tree",
+          "components": [
+            "小",
+            "树"
+          ]
+        },
+        {
+          "word": "树木",
+          "pinyin": "shùmù",
+          "meaning": "trees",
+          "components": [
+            "树",
+            "木"
+          ]
+        },
+        {
+          "word": "五月",
+          "pinyin": "wǔyuè",
+          "meaning": "May",
+          "components": [
+            "五",
+            "月"
+          ]
+        },
+        {
+          "word": "五天",
+          "pinyin": "wǔtiān",
+          "meaning": "five days",
+          "components": [
+            "五",
+            "天"
+          ]
+        },
+        {
+          "word": "手心",
+          "pinyin": "shǒuxīn",
+          "meaning": "palm of the hand",
+          "components": [
+            "手",
+            "心"
+          ]
+        }
+      ],
+      "sentences": [
+        {
+          "chinese": "我有小手。",
+          "pinyin": "Wǒ yǒu xiǎo shǒu.",
+          "english": "I have little hands."
+        },
+        {
+          "chinese": "头上有眉、目、耳、鼻和口。",
+          "pinyin": "Tóu shàng yǒu méi, mù, ěr, bí hé kǒu.",
+          "english": "On the head there are eyebrows, eyes, ears, nose, and mouth."
+        },
+        {
+          "chinese": "眉下有目，鼻下有口。",
+          "pinyin": "Méi xià yǒu mù, bí xià yǒu kǒu.",
+          "english": "Below the eyebrows are the eyes, below the nose is the mouth."
+        },
+        {
+          "chinese": "树上有花和叶。",
+          "pinyin": "Shù shàng yǒu huā hé yè.",
+          "english": "On the tree there are flowers and leaves."
+        }
+      ]
+    },
+    {
+      "lesson": 6,
+      "title": "第六课 Lesson 6",
+      "new_characters": [
+        {
+          "character": "叶",
+          "pinyin": "yè",
+          "meaning": "leaf"
+        },
+        {
+          "character": "日",
+          "pinyin": "rì",
+          "meaning": "sun; day"
+        },
+        {
+          "character": "的",
+          "pinyin": "de",
+          "meaning": "possessive particle"
+        },
+        {
+          "character": "风",
+          "pinyin": "fēng",
+          "meaning": "wind"
+        },
+        {
+          "character": "雨",
+          "pinyin": "yǔ",
+          "meaning": "rain"
+        },
+        {
+          "character": "六",
+          "pinyin": "liù",
+          "meaning": "six"
+        }
+      ],
+      "words": [
+        {
+          "word": "花草",
+          "pinyin": "huācǎo",
+          "meaning": "flowers and grass",
+          "components": [
+            "花",
+            "草"
+          ]
+        },
+        {
+          "word": "小草",
+          "pinyin": "xiǎocǎo",
+          "meaning": "little grass",
+          "components": [
+            "小",
+            "草"
+          ]
+        },
+        {
+          "word": "草地",
+          "pinyin": "cǎodì",
+          "meaning": "grassland; lawn",
+          "components": [
+            "草",
+            "地"
+          ]
+        },
+        {
+          "word": "树叶",
+          "pinyin": "shùyè",
+          "meaning": "tree leaf",
+          "components": [
+            "树",
+            "叶"
+          ]
+        },
+        {
+          "word": "一日",
+          "pinyin": "yīrì",
+          "meaning": "one day",
+          "components": [
+            "一",
+            "日"
+          ]
+        },
+        {
+          "word": "大风",
+          "pinyin": "dàfēng",
+          "meaning": "strong wind",
+          "components": [
+            "大",
+            "风"
+          ]
+        },
+        {
+          "word": "小雨",
+          "pinyin": "xiǎoyǔ",
+          "meaning": "light rain",
+          "components": [
+            "小",
+            "雨"
+          ]
+        },
+        {
+          "word": "下雨",
+          "pinyin": "xiàyǔ",
+          "meaning": "to rain",
+          "components": [
+            "下",
+            "雨"
+          ]
+        },
+        {
+          "word": "风雨",
+          "pinyin": "fēngyǔ",
+          "meaning": "wind and rain",
+          "components": [
+            "风",
+            "雨"
+          ]
+        },
+        {
+          "word": "雨水",
+          "pinyin": "yǔshuǐ",
+          "meaning": "rainwater",
+          "components": [
+            "雨",
+            "水"
+          ]
+        },
+        {
+          "word": "我的",
+          "pinyin": "wǒ de",
+          "meaning": "mine",
+          "components": [
+            "我",
+            "的"
+          ]
+        },
+        {
+          "word": "六月",
+          "pinyin": "liùyuè",
+          "meaning": "June",
+          "components": [
+            "六",
+            "月"
+          ]
+        },
+        {
+          "word": "六日",
+          "pinyin": "liùrì",
+          "meaning": "six days; the 6th",
+          "components": [
+            "六",
+            "日"
+          ]
+        },
+        {
+          "word": "六天",
+          "pinyin": "liùtiān",
+          "meaning": "six days",
+          "components": [
+            "六",
+            "天"
+          ]
+        }
+      ],
+      "sentences": [
+        {
+          "chinese": "天上有明亮的太阳和月亮。",
+          "pinyin": "Tiānshàng yǒu míngliàng de tàiyáng hé yuèliàng.",
+          "english": "In the sky there is the bright sun and moon."
+        },
+        {
+          "chinese": "我有爸爸和妈妈。",
+          "pinyin": "Wǒ yǒu bàba hé māma.",
+          "english": "I have a dad and a mom."
+        },
+        {
+          "chinese": "明日有大风，下大雨。",
+          "pinyin": "Míngrì yǒu dàfēng, xià dàyǔ.",
+          "english": "Tomorrow there will be strong wind and heavy rain."
+        },
+        {
+          "chinese": "石头上有小草和小花。",
+          "pinyin": "Shítou shàng yǒu xiǎocǎo hé xiǎohuā.",
+          "english": "On the stone there is little grass and little flowers."
+        }
+      ]
+    },
+    {
+      "lesson": 7,
+      "title": "第七课 Lesson 7",
+      "new_characters": [
+        {
+          "character": "白",
+          "pinyin": "bái",
+          "meaning": "white"
+        },
+        {
+          "character": "红",
+          "pinyin": "hóng",
+          "meaning": "red"
+        },
+        {
+          "character": "是",
+          "pinyin": "shì",
+          "meaning": "to be; is"
+        },
+        {
+          "character": "唱",
+          "pinyin": "chàng",
+          "meaning": "to sing"
+        },
+        {
+          "character": "家",
+          "pinyin": "jiā",
+          "meaning": "home; family"
+        },
+        {
+          "character": "多",
+          "pinyin": "duō",
+          "meaning": "many; much"
+        },
+        {
+          "character": "子",
+          "pinyin": "zi",
+          "meaning": "child; noun suffix"
+        },
+        {
+          "character": "七",
+          "pinyin": "qī",
+          "meaning": "seven"
+        }
+      ],
+      "words": [
+        {
+          "word": "白云",
+          "pinyin": "báiyún",
+          "meaning": "white cloud",
+          "components": [
+            "白",
+            "云"
+          ]
+        },
+        {
+          "word": "白天",
+          "pinyin": "báitiān",
+          "meaning": "daytime",
+          "components": [
+            "白",
+            "天"
+          ]
+        },
+        {
+          "word": "明白",
+          "pinyin": "míngbai",
+          "meaning": "to understand",
+          "components": [
+            "明",
+            "白"
+          ]
+        },
+        {
+          "word": "红花",
+          "pinyin": "hónghuā",
+          "meaning": "red flower",
+          "components": [
+            "红",
+            "花"
+          ]
+        },
+        {
+          "word": "红日",
+          "pinyin": "hóngrì",
+          "meaning": "red sun",
+          "components": [
+            "红",
+            "日"
+          ]
+        },
+        {
+          "word": "火红",
+          "pinyin": "huǒhóng",
+          "meaning": "fiery red",
+          "components": [
+            "火",
+            "红"
+          ]
+        },
+        {
+          "word": "火花",
+          "pinyin": "huǒhuā",
+          "meaning": "spark",
+          "components": [
+            "火",
+            "花"
+          ]
+        },
+        {
+          "word": "我家",
+          "pinyin": "wǒjiā",
+          "meaning": "my home",
+          "components": [
+            "我",
+            "家"
+          ]
+        },
+        {
+          "word": "大家",
+          "pinyin": "dàjiā",
+          "meaning": "everyone",
+          "components": [
+            "大",
+            "家"
+          ]
+        },
+        {
+          "word": "家人",
+          "pinyin": "jiārén",
+          "meaning": "family members",
+          "components": [
+            "家",
+            "人"
+          ]
+        },
+        {
+          "word": "孩子",
+          "pinyin": "háizi",
+          "meaning": "child",
+          "components": [
+            "孩",
+            "子"
+          ]
+        },
+        {
+          "word": "鼻子",
+          "pinyin": "bízi",
+          "meaning": "nose",
+          "components": [
+            "鼻",
+            "子"
+          ]
+        },
+        {
+          "word": "叶子",
+          "pinyin": "yèzi",
+          "meaning": "leaf",
+          "components": [
+            "叶",
+            "子"
+          ]
+        },
+        {
+          "word": "七月",
+          "pinyin": "qīyuè",
+          "meaning": "July",
+          "components": [
+            "七",
+            "月"
+          ]
+        },
+        {
+          "word": "七日",
+          "pinyin": "qīrì",
+          "meaning": "seven days; the 7th",
+          "components": [
+            "七",
+            "日"
+          ]
+        },
+        {
+          "word": "七天",
+          "pinyin": "qītiān",
+          "meaning": "seven days",
+          "components": [
+            "七",
+            "天"
+          ]
+        },
+        {
+          "word": "红太阳",
+          "pinyin": "hóng tàiyáng",
+          "meaning": "red sun",
+          "components": [
+            "红",
+            "太",
+            "阳"
+          ]
+        }
+      ],
+      "sentences": [
+        {
+          "chinese": "我是爸爸、妈妈的好孩子。",
+          "pinyin": "Wǒ shì bàba, māma de hǎo háizi.",
+          "english": "I am dad and mom's good child."
+        },
+        {
+          "chinese": "天是太阳、月亮、星星的家。",
+          "pinyin": "Tiān shì tàiyáng, yuèliàng, xīngxīng de jiā.",
+          "english": "The sky is the home of the sun, moon, and stars."
+        },
+        {
+          "chinese": "白天，天上有红太阳；",
+          "pinyin": "",
+          "english": "In the daytime, the red sun is in the sky;"
+        },
+        {
+          "chinese": "地上有红花、白花和小草。",
+          "pinyin": "",
+          "english": "on the ground there are red flowers, white flowers, and little grass."
+        },
+        {
+          "chinese": "牛和小山羊。",
+          "pinyin": "Niú hé xiǎo shānyáng.",
+          "english": "A cow and a little goat."
+        }
+      ]
+    },
+    {
+      "lesson": 8,
+      "title": "第八课 Lesson 8",
+      "new_characters": [
+        {
+          "character": "爱",
+          "pinyin": "ài",
+          "meaning": "to love"
+        },
+        {
+          "character": "爷",
+          "pinyin": "yé",
+          "meaning": "grandfather (paternal)"
+        },
+        {
+          "character": "奶",
+          "pinyin": "nǎi",
+          "meaning": "grandmother (paternal); milk"
+        },
+        {
+          "character": "歌",
+          "pinyin": "gē",
+          "meaning": "song"
+        },
+        {
+          "character": "少",
+          "pinyin": "shǎo",
+          "meaning": "few; little"
+        },
+        {
+          "character": "不",
+          "pinyin": "bù",
+          "meaning": "not; no"
+        },
+        {
+          "character": "朋",
+          "pinyin": "péng",
+          "meaning": "friend"
+        },
+        {
+          "character": "八",
+          "pinyin": "bā",
+          "meaning": "eight"
+        }
+      ],
+      "words": [
+        {
+          "word": "爷爷",
+          "pinyin": "yéye",
+          "meaning": "grandpa",
+          "components": [
+            "爷",
+            "爷"
+          ]
+        },
+        {
+          "word": "奶奶",
+          "pinyin": "nǎinai",
+          "meaning": "grandma",
+          "components": [
+            "奶",
+            "奶"
+          ]
+        },
+        {
+          "word": "多少",
+          "pinyin": "duōshao",
+          "meaning": "how many; how much",
+          "components": [
+            "多",
+            "少"
+          ]
+        },
+        {
+          "word": "爱唱歌",
+          "pinyin": "ài chàng gē",
+          "meaning": "loves to sing",
+          "components": [
+            "爱",
+            "唱",
+            "歌"
+          ]
+        },
+        {
+          "word": "爱笑",
+          "pinyin": "ài xiào",
+          "meaning": "loves to laugh",
+          "components": [
+            "爱",
+            "笑"
+          ]
+        },
+        {
+          "word": "笑不笑",
+          "pinyin": "xiào bu xiào",
+          "meaning": "laugh or not",
+          "components": [
+            "笑",
+            "不",
+            "笑"
+          ]
+        },
+        {
+          "word": "唱不唱",
+          "pinyin": "chàng bu chàng",
+          "meaning": "sing or not",
+          "components": [
+            "唱",
+            "不",
+            "唱"
+          ]
+        },
+        {
+          "word": "爱不爱",
+          "pinyin": "ài bu ài",
+          "meaning": "love or not",
+          "components": [
+            "爱",
+            "不",
+            "爱"
+          ]
+        },
+        {
+          "word": "是不是",
+          "pinyin": "shì bu shì",
+          "meaning": "is it or not",
+          "components": [
+            "是",
+            "不",
+            "是"
+          ]
+        },
+        {
+          "word": "好不好",
+          "pinyin": "hǎo bu hǎo",
+          "meaning": "good or not",
+          "components": [
+            "好",
+            "不",
+            "好"
+          ]
+        },
+        {
+          "word": "八月",
+          "pinyin": "bāyuè",
+          "meaning": "August",
+          "components": [
+            "八",
+            "月"
+          ]
+        },
+        {
+          "word": "八日",
+          "pinyin": "bārì",
+          "meaning": "eight days; the 8th",
+          "components": [
+            "八",
+            "日"
+          ]
+        },
+        {
+          "word": "八天",
+          "pinyin": "bātiān",
+          "meaning": "eight days",
+          "components": [
+            "八",
+            "天"
+          ]
+        }
+      ],
+      "sentences": [
+        {
+          "chinese": "明天多云，有小雨。",
+          "pinyin": "Míngtiān duōyún, yǒu xiǎoyǔ.",
+          "english": "Tomorrow will be cloudy with light rain."
+        },
+        {
+          "chinese": "我家有爷爷、奶奶、爸爸、妈妈和我。",
+          "pinyin": "Wǒjiā yǒu yéye, nǎinai, bàba, māma hé wǒ.",
+          "english": "My family has grandpa, grandma, dad, mom, and me."
+        },
+        {
+          "chinese": "爷爷爱我，奶奶爱我，爸爸爱我，妈妈爱我。",
+          "pinyin": "",
+          "english": "Grandpa loves me, grandma loves me, dad loves me, mom loves me."
+        },
+        {
+          "chinese": "我爱爷爷、奶奶、爸爸、妈妈。",
+          "pinyin": "",
+          "english": "I love grandpa, grandma, dad, and mom."
+        }
+      ]
+    },
+    {
+      "lesson": 9,
+      "title": "第九课 Lesson 9",
+      "new_characters": [
+        {
+          "character": "在",
+          "pinyin": "zài",
+          "meaning": "at; in; on; exist"
+        },
+        {
+          "character": "学",
+          "pinyin": "xué",
+          "meaning": "to study; to learn"
+        },
+        {
+          "character": "友",
+          "pinyin": "yǒu",
+          "meaning": "friend"
+        },
+        {
+          "character": "书",
+          "pinyin": "shū",
+          "meaning": "book"
+        },
+        {
+          "character": "游",
+          "pinyin": "yóu",
+          "meaning": "to swim; to travel"
+        },
+        {
+          "character": "儿",
+          "pinyin": "ér",
+          "meaning": "child; son"
+        },
+        {
+          "character": "九",
+          "pinyin": "jiǔ",
+          "meaning": "nine"
+        }
+      ],
+      "words": [
+        {
+          "word": "在家",
+          "pinyin": "zàijiā",
+          "meaning": "at home",
+          "components": [
+            "在",
+            "家"
+          ]
+        },
+        {
+          "word": "不在",
+          "pinyin": "búzài",
+          "meaning": "not here; not at",
+          "components": [
+            "不",
+            "在"
+          ]
+        },
+        {
+          "word": "小人书",
+          "pinyin": "xiǎorénshū",
+          "meaning": "children's picture book",
+          "components": [
+            "小",
+            "人",
+            "书"
+          ]
+        },
+        {
+          "word": "游水",
+          "pinyin": "yóushuǐ",
+          "meaning": "to swim",
+          "components": [
+            "游",
+            "水"
+          ]
+        },
+        {
+          "word": "朋友",
+          "pinyin": "péngyou",
+          "meaning": "friend",
+          "components": [
+            "朋",
+            "友"
+          ]
+        },
+        {
+          "word": "花儿",
+          "pinyin": "huār",
+          "meaning": "flower",
+          "components": [
+            "花",
+            "儿"
+          ]
+        },
+        {
+          "word": "儿子",
+          "pinyin": "érzi",
+          "meaning": "son",
+          "components": [
+            "儿",
+            "子"
+          ]
+        },
+        {
+          "word": "歌儿",
+          "pinyin": "gēr",
+          "meaning": "song",
+          "components": [
+            "歌",
+            "儿"
+          ]
+        },
+        {
+          "word": "儿歌",
+          "pinyin": "érgē",
+          "meaning": "children's song; nursery rhyme",
+          "components": [
+            "儿",
+            "歌"
+          ]
+        },
+        {
+          "word": "九月",
+          "pinyin": "jiǔyuè",
+          "meaning": "September",
+          "components": [
+            "九",
+            "月"
+          ]
+        },
+        {
+          "word": "九日",
+          "pinyin": "jiǔrì",
+          "meaning": "nine days; the 9th",
+          "components": [
+            "九",
+            "日"
+          ]
+        },
+        {
+          "word": "九天",
+          "pinyin": "jiǔtiān",
+          "meaning": "nine days",
+          "components": [
+            "九",
+            "天"
+          ]
+        }
+      ],
+      "sentences": [
+        {
+          "chinese": "我是宝宝，我在家爱唱儿歌。",
+          "pinyin": "Wǒ shì bǎobao, wǒ zàijiā ài chàng érgē.",
+          "english": "I'm a baby, at home I love to sing nursery rhymes."
+        },
+        {
+          "chinese": "我不爱哭，我爱笑。",
+          "pinyin": "Wǒ bú ài kū, wǒ ài xiào.",
+          "english": "I don't like to cry, I like to laugh."
+        },
+        {
+          "chinese": "小头爸爸和大头儿子玩游戏。",
+          "pinyin": "Xiǎotóu bàba hé Dàtóu érzi wán yóuxì.",
+          "english": "Small-Head Dad and Big-Head Son play games. (famous Chinese cartoon)"
+        }
+      ]
+    },
+    {
+      "lesson": 10,
+      "title": "第十课 Lesson 10",
+      "new_characters": [
+        {
+          "character": "贝",
+          "pinyin": "bèi",
+          "meaning": "shell; treasure"
+        },
+        {
+          "character": "生",
+          "pinyin": "shēng",
+          "meaning": "to be born; life; raw"
+        },
+        {
+          "character": "习",
+          "pinyin": "xí",
+          "meaning": "to practice; habit"
+        },
+        {
+          "character": "看",
+          "pinyin": "kàn",
+          "meaning": "to look; to watch"
+        },
+        {
+          "character": "戏",
+          "pinyin": "xì",
+          "meaning": "play; drama; game"
+        },
+        {
+          "character": "字",
+          "pinyin": "zì",
+          "meaning": "character; word"
+        },
+        {
+          "character": "气",
+          "pinyin": "qì",
+          "meaning": "air; anger; energy"
+        },
+        {
+          "character": "十",
+          "pinyin": "shí",
+          "meaning": "ten"
+        }
+      ],
+      "words": [
+        {
+          "word": "宝贝",
+          "pinyin": "bǎobèi",
+          "meaning": "treasure; darling",
+          "components": [
+            "宝",
+            "贝"
+          ]
+        },
+        {
+          "word": "生人",
+          "pinyin": "shēngrén",
+          "meaning": "stranger",
+          "components": [
+            "生",
+            "人"
+          ]
+        },
+        {
+          "word": "生水",
+          "pinyin": "shēngshuǐ",
+          "meaning": "unboiled water",
+          "components": [
+            "生",
+            "水"
+          ]
+        },
+        {
+          "word": "学习",
+          "pinyin": "xuéxí",
+          "meaning": "to study; to learn",
+          "components": [
+            "学",
+            "习"
+          ]
+        },
+        {
+          "word": "上学",
+          "pinyin": "shàngxué",
+          "meaning": "to go to school",
+          "components": [
+            "上",
+            "学"
+          ]
+        },
+        {
+          "word": "看书",
+          "pinyin": "kàn shū",
+          "meaning": "to read a book",
+          "components": [
+            "看",
+            "书"
+          ]
+        },
+        {
+          "word": "看戏",
+          "pinyin": "kàn xì",
+          "meaning": "to watch a play",
+          "components": [
+            "看",
+            "戏"
+          ]
+        },
+        {
+          "word": "游戏",
+          "pinyin": "yóuxì",
+          "meaning": "game",
+          "components": [
+            "游",
+            "戏"
+          ]
+        },
+        {
+          "word": "生字",
+          "pinyin": "shēngzì",
+          "meaning": "new character (in a lesson)",
+          "components": [
+            "生",
+            "字"
+          ]
+        },
+        {
+          "word": "生气",
+          "pinyin": "shēngqì",
+          "meaning": "angry",
+          "components": [
+            "生",
+            "气"
+          ]
+        },
+        {
+          "word": "气人",
+          "pinyin": "qìrén",
+          "meaning": "infuriating",
+          "components": [
+            "气",
+            "人"
+          ]
+        },
+        {
+          "word": "十月",
+          "pinyin": "shíyuè",
+          "meaning": "October",
+          "components": [
+            "十",
+            "月"
+          ]
+        },
+        {
+          "word": "十日",
+          "pinyin": "shírì",
+          "meaning": "ten days; the 10th",
+          "components": [
+            "十",
+            "日"
+          ]
+        },
+        {
+          "word": "十天",
+          "pinyin": "shítiān",
+          "meaning": "ten days",
+          "components": [
+            "十",
+            "天"
+          ]
+        },
+        {
+          "word": "好孩子",
+          "pinyin": "hǎo háizi",
+          "meaning": "good child",
+          "components": [
+            "好",
+            "孩",
+            "子"
+          ]
+        },
+        {
+          "word": "下雨天",
+          "pinyin": "xiàyǔtiān",
+          "meaning": "rainy day",
+          "components": [
+            "下",
+            "雨",
+            "天"
+          ]
+        },
+        {
+          "word": "好朋友",
+          "pinyin": "hǎo péngyou",
+          "meaning": "good friend",
+          "components": [
+            "好",
+            "朋",
+            "友"
+          ]
+        },
+        {
+          "word": "小朋友",
+          "pinyin": "xiǎopéngyou",
+          "meaning": "little friend; kid",
+          "components": [
+            "小",
+            "朋",
+            "友"
+          ]
+        },
+        {
+          "word": "小学生",
+          "pinyin": "xiǎoxuéshēng",
+          "meaning": "elementary school student",
+          "components": [
+            "小",
+            "学",
+            "生"
+          ]
+        },
+        {
+          "word": "中学生",
+          "pinyin": "zhōngxuéshēng",
+          "meaning": "middle school student",
+          "components": [
+            "中",
+            "学",
+            "生"
+          ]
+        },
+        {
+          "word": "大学生",
+          "pinyin": "dàxuéshēng",
+          "meaning": "college student",
+          "components": [
+            "大",
+            "学",
+            "生"
+          ]
+        },
+        {
+          "word": "唱儿歌",
+          "pinyin": "chàng érgē",
+          "meaning": "sing nursery rhymes",
+          "components": [
+            "唱",
+            "儿",
+            "歌"
+          ]
+        },
+        {
+          "word": "小红花",
+          "pinyin": "xiǎohónghuā",
+          "meaning": "little red flower (reward sticker)",
+          "components": [
+            "小",
+            "红",
+            "花"
+          ]
+        }
+      ],
+      "sentences": [
+        {
+          "chinese": "小宝宝是爱学习的好孩子。",
+          "pinyin": "Xiǎo bǎobao shì ài xuéxí de hǎo háizi.",
+          "english": "The little baby is a good child who loves to learn."
+        },
+        {
+          "chinese": "爷爷爱看书，奶奶爱看戏，爸爸爱看书，妈妈爱唱歌。",
+          "pinyin": "Yéye ài kàn shū, nǎinai ài kàn xì, bàba ài kàn shū, māma ài chàng gē.",
+          "english": "Grandpa loves reading books, grandma loves watching plays, dad loves reading books, mom loves singing."
+        },
+        {
+          "chinese": "我爱爷爷、奶奶、爸爸和妈妈。",
+          "pinyin": "",
+          "english": "I love grandpa, grandma, dad, and mom."
+        },
+        {
+          "chinese": "我是大家的好宝贝。",
+          "pinyin": "",
+          "english": "I am everyone's good treasure."
+        },
+        {
+          "chinese": "我爱看书，我爱学习。",
+          "pinyin": "Wǒ ài kàn shū, wǒ ài xuéxí.",
+          "english": "I love reading books, I love studying."
+        },
+        {
+          "chinese": "天上有太阳、月亮、星星和白云；",
+          "pinyin": "",
+          "english": "In the sky there is the sun, moon, stars, and white clouds;"
+        },
+        {
+          "chinese": "地上有土、石、山、水、花和树木。",
+          "pinyin": "",
+          "english": "on the ground there is soil, stones, mountains, water, flowers, and trees."
+        },
+        {
+          "chinese": "不爱生气、不爱哭的孩子爱笑，我是好孩子。",
+          "pinyin": "Bú ài shēngqì, bú ài kū de háizi ài xiào, wǒ shì hǎo háizi.",
+          "english": "A child who doesn't get angry and doesn't cry loves to laugh — I am a good child."
+        },
+        {
+          "chinese": "爸爸的爸爸是爷爷。",
+          "pinyin": "",
+          "english": "Dad's dad is grandpa."
+        },
+        {
+          "chinese": "爷爷的儿子是爸爸，我是爸爸的儿子。",
+          "pinyin": "",
+          "english": "Grandpa's son is dad, I am dad's son."
+        }
+      ]
+    }
+  ],
+  "notes": "Each lesson follows the authentic SWKD structure: new characters (生字), then compound words (词语) that use those characters plus earlier ones, then full sentences (句子) for reading practice. The lessons array preserves the full structure for rendering. The words array flattens to individual characters for Box/SRS state tracking. Compound discovery will fire heavily — roughly every word in every lesson is a buildable combination of characters the kid already knows. When Phase 2 Claude Code renders this pack, it should show the lesson structure (not just a flat character list) and let parents choose: practice new characters only, practice words for this lesson, or practice reading the sentences aloud.",
+  "words": [
+    {
+      "character": "人",
+      "sequence": 1,
+      "subset": "lesson_1",
+      "pinyin": "rén",
+      "meaning": "person; people"
+    },
+    {
+      "character": "口",
+      "sequence": 2,
+      "subset": "lesson_1",
+      "pinyin": "kǒu",
+      "meaning": "mouth"
+    },
+    {
+      "character": "大",
+      "sequence": 3,
+      "subset": "lesson_1",
+      "pinyin": "dà",
+      "meaning": "big; large"
+    },
+    {
+      "character": "中",
+      "sequence": 4,
+      "subset": "lesson_1",
+      "pinyin": "zhōng",
+      "meaning": "middle; center"
+    },
+    {
+      "character": "小",
+      "sequence": 5,
+      "subset": "lesson_1",
+      "pinyin": "xiǎo",
+      "meaning": "small; little"
+    },
+    {
+      "character": "哭",
+      "sequence": 6,
+      "subset": "lesson_1",
+      "pinyin": "kū",
+      "meaning": "to cry"
+    },
+    {
+      "character": "笑",
+      "sequence": 7,
+      "subset": "lesson_1",
+      "pinyin": "xiào",
+      "meaning": "to laugh; to smile"
+    },
+    {
+      "character": "一",
+      "sequence": 8,
+      "subset": "lesson_1",
+      "pinyin": "yī",
+      "meaning": "one"
+    },
+    {
+      "character": "上",
+      "sequence": 9,
+      "subset": "lesson_1",
+      "pinyin": "shàng",
+      "meaning": "up; above; on top"
+    },
+    {
+      "character": "下",
+      "sequence": 10,
+      "subset": "lesson_1",
+      "pinyin": "xià",
+      "meaning": "down; below; under"
+    },
+    {
+      "character": "爸",
+      "sequence": 11,
+      "subset": "lesson_1",
+      "pinyin": "bà",
+      "meaning": "dad; father"
+    },
+    {
+      "character": "妈",
+      "sequence": 12,
+      "subset": "lesson_1",
+      "pinyin": "mā",
+      "meaning": "mom; mother"
+    },
+    {
+      "character": "天",
+      "sequence": 13,
+      "subset": "lesson_1",
+      "pinyin": "tiān",
+      "meaning": "sky; day"
+    },
+    {
+      "character": "太",
+      "sequence": 14,
+      "subset": "lesson_1",
+      "pinyin": "tài",
+      "meaning": "too; very; extremely"
+    },
+    {
+      "character": "月",
+      "sequence": 15,
+      "subset": "lesson_1",
+      "pinyin": "yuè",
+      "meaning": "moon; month"
+    },
+    {
+      "character": "二",
+      "sequence": 16,
+      "subset": "lesson_1",
+      "pinyin": "èr",
+      "meaning": "two"
+    },
+    {
+      "character": "地",
+      "sequence": 17,
+      "subset": "lesson_2",
+      "pinyin": "dì",
+      "meaning": "earth; ground; land"
+    },
+    {
+      "character": "阳",
+      "sequence": 18,
+      "subset": "lesson_2",
+      "pinyin": "yáng",
+      "meaning": "sun; positive"
+    },
+    {
+      "character": "亮",
+      "sequence": 19,
+      "subset": "lesson_2",
+      "pinyin": "liàng",
+      "meaning": "bright; light"
+    },
+    {
+      "character": "星",
+      "sequence": 20,
+      "subset": "lesson_2",
+      "pinyin": "xīng",
+      "meaning": "star"
+    },
+    {
+      "character": "云",
+      "sequence": 21,
+      "subset": "lesson_2",
+      "pinyin": "yún",
+      "meaning": "cloud"
+    },
+    {
+      "character": "火",
+      "sequence": 22,
+      "subset": "lesson_2",
+      "pinyin": "huǒ",
+      "meaning": "fire"
+    },
+    {
+      "character": "水",
+      "sequence": 23,
+      "subset": "lesson_2",
+      "pinyin": "shuǐ",
+      "meaning": "water"
+    },
+    {
+      "character": "三",
+      "sequence": 24,
+      "subset": "lesson_2",
+      "pinyin": "sān",
+      "meaning": "three"
+    },
+    {
+      "character": "土",
+      "sequence": 25,
+      "subset": "lesson_3",
+      "pinyin": "tǔ",
+      "meaning": "soil; earth"
+    },
+    {
+      "character": "山",
+      "sequence": 26,
+      "subset": "lesson_3",
+      "pinyin": "shān",
+      "meaning": "mountain"
+    },
+    {
+      "character": "石",
+      "sequence": 27,
+      "subset": "lesson_3",
+      "pinyin": "shí",
+      "meaning": "stone; rock"
+    },
+    {
+      "character": "木",
+      "sequence": 28,
+      "subset": "lesson_3",
+      "pinyin": "mù",
+      "meaning": "tree; wood"
+    },
+    {
+      "character": "我",
+      "sequence": 29,
+      "subset": "lesson_3",
+      "pinyin": "wǒ",
+      "meaning": "I; me"
+    },
+    {
+      "character": "好",
+      "sequence": 30,
+      "subset": "lesson_3",
+      "pinyin": "hǎo",
+      "meaning": "good; well"
+    },
+    {
+      "character": "有",
+      "sequence": 31,
+      "subset": "lesson_3",
+      "pinyin": "yǒu",
+      "meaning": "to have; there is"
+    },
+    {
+      "character": "田",
+      "sequence": 32,
+      "subset": "lesson_3",
+      "pinyin": "tián",
+      "meaning": "field"
+    },
+    {
+      "character": "牛",
+      "sequence": 33,
+      "subset": "lesson_4",
+      "pinyin": "niú",
+      "meaning": "cow; ox"
+    },
+    {
+      "character": "羊",
+      "sequence": 34,
+      "subset": "lesson_4",
+      "pinyin": "yáng",
+      "meaning": "sheep; goat"
+    },
+    {
+      "character": "聪",
+      "sequence": 35,
+      "subset": "lesson_4",
+      "pinyin": "cōng",
+      "meaning": "clever; smart"
+    },
+    {
+      "character": "耳",
+      "sequence": 36,
+      "subset": "lesson_4",
+      "pinyin": "ěr",
+      "meaning": "ear"
+    },
+    {
+      "character": "目",
+      "sequence": 37,
+      "subset": "lesson_4",
+      "pinyin": "mù",
+      "meaning": "eye"
+    },
+    {
+      "character": "心",
+      "sequence": 38,
+      "subset": "lesson_4",
+      "pinyin": "xīn",
+      "meaning": "heart"
+    },
+    {
+      "character": "和",
+      "sequence": 39,
+      "subset": "lesson_4",
+      "pinyin": "hé",
+      "meaning": "and; with"
+    },
+    {
+      "character": "四",
+      "sequence": 40,
+      "subset": "lesson_4",
+      "pinyin": "sì",
+      "meaning": "four"
+    },
+    {
+      "character": "明",
+      "sequence": 41,
+      "subset": "lesson_5",
+      "pinyin": "míng",
+      "meaning": "bright; clear; next"
+    },
+    {
+      "character": "头",
+      "sequence": 42,
+      "subset": "lesson_5",
+      "pinyin": "tóu",
+      "meaning": "head"
+    },
+    {
+      "character": "眉",
+      "sequence": 43,
+      "subset": "lesson_5",
+      "pinyin": "méi",
+      "meaning": "eyebrow"
+    },
+    {
+      "character": "草",
+      "sequence": 44,
+      "subset": "lesson_5",
+      "pinyin": "cǎo",
+      "meaning": "grass"
+    },
+    {
+      "character": "鼻",
+      "sequence": 45,
+      "subset": "lesson_5",
+      "pinyin": "bí",
+      "meaning": "nose"
+    },
+    {
+      "character": "手",
+      "sequence": 46,
+      "subset": "lesson_5",
+      "pinyin": "shǒu",
+      "meaning": "hand"
+    },
+    {
+      "character": "花",
+      "sequence": 47,
+      "subset": "lesson_5",
+      "pinyin": "huā",
+      "meaning": "flower"
+    },
+    {
+      "character": "树",
+      "sequence": 48,
+      "subset": "lesson_5",
+      "pinyin": "shù",
+      "meaning": "tree"
+    },
+    {
+      "character": "五",
+      "sequence": 49,
+      "subset": "lesson_5",
+      "pinyin": "wǔ",
+      "meaning": "five"
+    },
+    {
+      "character": "叶",
+      "sequence": 50,
+      "subset": "lesson_6",
+      "pinyin": "yè",
+      "meaning": "leaf"
+    },
+    {
+      "character": "日",
+      "sequence": 51,
+      "subset": "lesson_6",
+      "pinyin": "rì",
+      "meaning": "sun; day"
+    },
+    {
+      "character": "的",
+      "sequence": 52,
+      "subset": "lesson_6",
+      "pinyin": "de",
+      "meaning": "possessive particle"
+    },
+    {
+      "character": "风",
+      "sequence": 53,
+      "subset": "lesson_6",
+      "pinyin": "fēng",
+      "meaning": "wind"
+    },
+    {
+      "character": "雨",
+      "sequence": 54,
+      "subset": "lesson_6",
+      "pinyin": "yǔ",
+      "meaning": "rain"
+    },
+    {
+      "character": "六",
+      "sequence": 55,
+      "subset": "lesson_6",
+      "pinyin": "liù",
+      "meaning": "six"
+    },
+    {
+      "character": "白",
+      "sequence": 56,
+      "subset": "lesson_7",
+      "pinyin": "bái",
+      "meaning": "white"
+    },
+    {
+      "character": "红",
+      "sequence": 57,
+      "subset": "lesson_7",
+      "pinyin": "hóng",
+      "meaning": "red"
+    },
+    {
+      "character": "是",
+      "sequence": 58,
+      "subset": "lesson_7",
+      "pinyin": "shì",
+      "meaning": "to be; is"
+    },
+    {
+      "character": "唱",
+      "sequence": 59,
+      "subset": "lesson_7",
+      "pinyin": "chàng",
+      "meaning": "to sing"
+    },
+    {
+      "character": "家",
+      "sequence": 60,
+      "subset": "lesson_7",
+      "pinyin": "jiā",
+      "meaning": "home; family"
+    },
+    {
+      "character": "多",
+      "sequence": 61,
+      "subset": "lesson_7",
+      "pinyin": "duō",
+      "meaning": "many; much"
+    },
+    {
+      "character": "子",
+      "sequence": 62,
+      "subset": "lesson_7",
+      "pinyin": "zi",
+      "meaning": "child; noun suffix"
+    },
+    {
+      "character": "七",
+      "sequence": 63,
+      "subset": "lesson_7",
+      "pinyin": "qī",
+      "meaning": "seven"
+    },
+    {
+      "character": "爱",
+      "sequence": 64,
+      "subset": "lesson_8",
+      "pinyin": "ài",
+      "meaning": "to love"
+    },
+    {
+      "character": "爷",
+      "sequence": 65,
+      "subset": "lesson_8",
+      "pinyin": "yé",
+      "meaning": "grandfather (paternal)"
+    },
+    {
+      "character": "奶",
+      "sequence": 66,
+      "subset": "lesson_8",
+      "pinyin": "nǎi",
+      "meaning": "grandmother (paternal); milk"
+    },
+    {
+      "character": "歌",
+      "sequence": 67,
+      "subset": "lesson_8",
+      "pinyin": "gē",
+      "meaning": "song"
+    },
+    {
+      "character": "少",
+      "sequence": 68,
+      "subset": "lesson_8",
+      "pinyin": "shǎo",
+      "meaning": "few; little"
+    },
+    {
+      "character": "不",
+      "sequence": 69,
+      "subset": "lesson_8",
+      "pinyin": "bù",
+      "meaning": "not; no"
+    },
+    {
+      "character": "朋",
+      "sequence": 70,
+      "subset": "lesson_8",
+      "pinyin": "péng",
+      "meaning": "friend"
+    },
+    {
+      "character": "八",
+      "sequence": 71,
+      "subset": "lesson_8",
+      "pinyin": "bā",
+      "meaning": "eight"
+    },
+    {
+      "character": "在",
+      "sequence": 72,
+      "subset": "lesson_9",
+      "pinyin": "zài",
+      "meaning": "at; in; on; exist"
+    },
+    {
+      "character": "学",
+      "sequence": 73,
+      "subset": "lesson_9",
+      "pinyin": "xué",
+      "meaning": "to study; to learn"
+    },
+    {
+      "character": "友",
+      "sequence": 74,
+      "subset": "lesson_9",
+      "pinyin": "yǒu",
+      "meaning": "friend"
+    },
+    {
+      "character": "书",
+      "sequence": 75,
+      "subset": "lesson_9",
+      "pinyin": "shū",
+      "meaning": "book"
+    },
+    {
+      "character": "游",
+      "sequence": 76,
+      "subset": "lesson_9",
+      "pinyin": "yóu",
+      "meaning": "to swim; to travel"
+    },
+    {
+      "character": "儿",
+      "sequence": 77,
+      "subset": "lesson_9",
+      "pinyin": "ér",
+      "meaning": "child; son"
+    },
+    {
+      "character": "九",
+      "sequence": 78,
+      "subset": "lesson_9",
+      "pinyin": "jiǔ",
+      "meaning": "nine"
+    },
+    {
+      "character": "贝",
+      "sequence": 79,
+      "subset": "lesson_10",
+      "pinyin": "bèi",
+      "meaning": "shell; treasure"
+    },
+    {
+      "character": "生",
+      "sequence": 80,
+      "subset": "lesson_10",
+      "pinyin": "shēng",
+      "meaning": "to be born; life; raw"
+    },
+    {
+      "character": "习",
+      "sequence": 81,
+      "subset": "lesson_10",
+      "pinyin": "xí",
+      "meaning": "to practice; habit"
+    },
+    {
+      "character": "看",
+      "sequence": 82,
+      "subset": "lesson_10",
+      "pinyin": "kàn",
+      "meaning": "to look; to watch"
+    },
+    {
+      "character": "戏",
+      "sequence": 83,
+      "subset": "lesson_10",
+      "pinyin": "xì",
+      "meaning": "play; drama; game"
+    },
+    {
+      "character": "字",
+      "sequence": 84,
+      "subset": "lesson_10",
+      "pinyin": "zì",
+      "meaning": "character; word"
+    },
+    {
+      "character": "气",
+      "sequence": 85,
+      "subset": "lesson_10",
+      "pinyin": "qì",
+      "meaning": "air; anger; energy"
+    },
+    {
+      "character": "十",
+      "sequence": 86,
+      "subset": "lesson_10",
+      "pinyin": "shí",
+      "meaning": "ten"
+    }
+  ]
+}

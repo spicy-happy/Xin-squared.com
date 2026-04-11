@@ -1,4 +1,4 @@
-# XieXieGo — Project Context for Claude Code
+# XieXie — Project Context for Claude Code
 
 This is a phone-first web app for Chinese dictation practice, ages 4–10.
 It lives in the xiexiego/ subfolder of the xin-squared.com repo and
