@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Health Tracker — dev shell</title>
+    <style>
+      :root {
+        font-family:
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        color-scheme: light dark;
+      }
+      body {
+        max-width: 720px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+        line-height: 1.4;
+      }
+      h1 {
+        font-size: 1.4rem;
+      }
+      h2 {
+        font-size: 1.05rem;
+        margin-top: 1.5rem;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 0.2rem;
+      }
+      fieldset {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        padding: 0.75rem 1rem;
+      }
+      legend {
+        padding: 0 0.25rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+      input,
+      textarea,
+      button {
+        font: inherit;
+      }
+      input[type="text"],
+      input[type="password"],
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.4rem 0.5rem;
+        margin: 0.2rem 0 0.6rem;
+        border: 1px solid #bbb;
+        border-radius: 4px;
+      }
+      button {
+        padding: 0.4rem 0.8rem;
+        margin: 0.2rem 0.25rem 0.4rem 0;
+        cursor: pointer;
+        border-radius: 4px;
+        border: 1px solid #888;
+        background: #f5f5f5;
+      }
+      button:hover {
+        background: #eee;
+      }
+      pre#log {
+        background: #111;
+        color: #ddd;
+        padding: 0.75rem;
+        border-radius: 6px;
+        max-height: 320px;
+        overflow: auto;
+        font-size: 0.85rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      small {
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Health Tracker — dev shell</h1>
+    <p>
+      Sanity check for the encryption, passkey, sync, and wipe primitives before they're wired into
+      the production UI. Point this page at a running worker (default: localhost:8787 via
+      <code>wrangler dev</code>).
+    </p>
+
+    <fieldset>
+      <legend>Backend</legend>
+      <div class="row">
+        <input id="backend" type="text" placeholder="http://localhost:8787" />
+        <button id="set-backend">Save</button>
+        <button id="health">Health check</button>
+      </div>
+      <small>The frontend rewrites the configured URL to localStorage. Empty resets to default.</small>
+    </fieldset>
+
+    <fieldset>
+      <legend>Register / Sign in</legend>
+      <input id="passphrase" type="password" placeholder="Passphrase (8+ chars)" autocomplete="new-password" />
+      <div class="row">
+        <button id="register">Register passkey + passphrase</button>
+        <button id="signin">Sign in (existing account)</button>
+        <button id="signout">Sign out (this device)</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Entries</legend>
+      <textarea id="entry-json" rows="3" placeholder='{"date":"2026-05-14","weight":175}'></textarea>
+      <div class="row">
+        <button id="write">Write entry (dirty)</button>
+        <button id="sync">Sync once (push + pull)</button>
+        <button id="list">List local entries</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Account</legend>
+      <div class="row">
+        <button id="account">GET /account</button>
+        <button id="wipe-data">Delete cloud data</button>
+        <button id="wipe-all">Wipe everything</button>
+      </div>
+    </fieldset>
+
+    <h2>Log</h2>
+    <pre id="log"></pre>
+
+    <script type="module">
+      import { getBackendUrl, setBackendUrl } from "./lib/config.js";
+      import { api, getSession } from "./lib/api.js";
+      import { register, authenticate, signOut } from "./lib/auth.js";
+      import { writeEntry, syncOnce, readAllEntriesDecrypted, uuid } from "./lib/sync.js";
+      import { deleteCloudData, wipeEverything, signOutThisDevice } from "./lib/wipe.js";
+      import { validateDayPayload } from "./lib/sanitize.js";
+
+      const $ = (id) => document.getElementById(id);
+      const logEl = $("log");
+      function log(...args) {
+        const line = args
+          .map((a) => (typeof a === "string" ? a : JSON.stringify(a, null, 2)))
+          .join(" ");
+        logEl.textContent += line + "\n";
+        logEl.scrollTop = logEl.scrollHeight;
+        console.log(...args);
+      }
+      window.addEventListener("error", (e) => log("window error:", e.message));
+      window.addEventListener("unhandledrejection", (e) =>
+        log("unhandled:", e.reason?.message ?? String(e.reason))
+      );
+
+      $("backend").value = getBackendUrl();
+      $("set-backend").addEventListener("click", () => {
+        try {
+          setBackendUrl($("backend").value);
+          log("backend set to", getBackendUrl());
+        } catch (e) {
+          log("backend error:", e.message);
+        }
+      });
+
+      $("health").addEventListener("click", async () => {
+        try {
+          const res = await fetch(`${getBackendUrl()}/healthz`);
+          log("healthz:", res.status, await res.text());
+        } catch (e) {
+          log("healthz error:", e.message);
+        }
+      });
+
+      $("register").addEventListener("click", async () => {
+        try {
+          const r = await register($("passphrase").value);
+          log("registered:", r);
+        } catch (e) {
+          log("register error:", e.message);
+        }
+      });
+
+      $("signin").addEventListener("click", async () => {
+        try {
+          const r = await authenticate($("passphrase").value);
+          log("signed in:", r);
+        } catch (e) {
+          log("signin error:", e.message);
+        }
+      });
+
+      $("signout").addEventListener("click", async () => {
+        try {
+          await signOutThisDevice();
+          log("signed out (local + server best-effort)");
+        } catch (e) {
+          log("signout error:", e.message);
+        }
+      });
+
+      $("write").addEventListener("click", async () => {
+        try {
+          const raw = $("entry-json").value.trim();
+          const obj = raw ? JSON.parse(raw) : { date: new Date().toISOString().slice(0, 10), weight: null };
+          const cleaned = validateDayPayload(obj);
+          const id = uuid();
+          await writeEntry(id, cleaned);
+          log("wrote entry", id, cleaned);
+        } catch (e) {
+          log("write error:", e.message);
+        }
+      });
+
+      $("sync").addEventListener("click", async () => {
+        try {
+          const r = await syncOnce();
+          log("sync:", r);
+        } catch (e) {
+          log("sync error:", e.message);
+        }
+      });
+
+      $("list").addEventListener("click", async () => {
+        try {
+          const all = await readAllEntriesDecrypted();
+          log(`local entries: ${all.length}`, all.slice(0, 10));
+        } catch (e) {
+          log("list error:", e.message);
+        }
+      });
+
+      $("account").addEventListener("click", async () => {
+        try {
+          const a = await api.getAccount();
+          log("account:", a);
+        } catch (e) {
+          log("account error:", e.message);
+        }
+      });
+
+      $("wipe-data").addEventListener("click", async () => {
+        if (!confirm("Delete all cloud data? Other devices will see empty next sync.")) return;
+        try {
+          await deleteCloudData({ alsoLocal: false });
+          log("cloud data deleted");
+        } catch (e) {
+          log("wipe-data error:", e.message);
+        }
+      });
+
+      $("wipe-all").addEventListener("click", async () => {
+        if (!confirm("WIPE EVERYTHING (cloud + local)? Cannot be undone.")) return;
+        try {
+          await wipeEverything();
+          log("wiped everything. Remove passkey via system Settings → Passwords.");
+        } catch (e) {
+          log("wipe-all error:", e.message);
+        }
+      });
+
+      log("ready. backend:", getBackendUrl(), "session:", getSession() ? "active" : "none");
+    </script>
+  </body>
+</html>

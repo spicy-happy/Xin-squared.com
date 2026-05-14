@@ -6,6 +6,21 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["xiexiego/_serve.js"],
       "port": 8000
+    },
+    {
+      "name": "healthtracker",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "--directory",
+        "../healthtracker/app",
+        "--bind",
+        "127.0.0.1",
+        "8788"
+      ],
+      "port": 8788,
+      "autoPort": false
     }
   ]
 }

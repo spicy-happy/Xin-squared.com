@@ -8,8 +8,6 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js" async defer></script>
     <style>
       body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
       /* Hide spinner on number inputs */
@@ -20,6 +18,45 @@
 </head>
 <body>
     <div id="root"></div>
+
+    <!-- Load the encryption + sync + auth modules as ES modules and expose
+         them on window.HT for the Babel-transpiled React app below. The
+         localStorage interceptors install synchronously so the first React
+         render sees a stable view of localStorage. -->
+    <script type="module">
+      import { installLocalStorageHooks, startBridge, stopBridge, tick, uploadInitialSnapshot } from "./lib/bridge.js";
+      import { register, authenticate, signOut, getUserId } from "./lib/auth.js";
+      import { signOutThisDevice, deleteCloudData, wipeEverything } from "./lib/wipe.js";
+      import { getBackendUrl, setBackendUrl } from "./lib/config.js";
+      import { getSession } from "./lib/api.js";
+
+      installLocalStorageHooks();
+
+      // Resume a cloud session if one was previously established on this device.
+      // Note: a valid session token doesn't imply the DEK is unlocked — the
+      // app still asks for the passphrase via the onboarding modal on each
+      // load (re-derives KEK → unwraps DEK). Skipping that would require
+      // storing the DEK at rest, which we deliberately don't do.
+
+      window.HT = {
+        register,
+        authenticate,
+        signOut,
+        getUserId,
+        signOutThisDevice,
+        deleteCloudData,
+        wipeEverything,
+        getBackendUrl,
+        setBackendUrl,
+        getSession,
+        startBridge,
+        stopBridge,
+        tick,
+        uploadInitialSnapshot,
+        ready: true,
+      };
+      window.dispatchEvent(new Event("ht-ready"));
+    </script>
 
     <script type="text/babel">
 const { useState, useEffect, useRef } = React;
@@ -326,270 +363,10 @@ function fileToBase64(file) {
   });
 }
 
-// ==========================================
-// Google Drive Sync
-// ==========================================
-const GOOGLE_CLIENT_ID = localStorage.getItem('google-client-id') || '';
-const DRIVE_FILE_NAME = 'health-tracker-data.json';
-const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
-
-const DriveSync = {
-  tokenClient: null,
-  accessToken: null,
-  fileId: null,
-  initialized: false,
-
-  async init() {
-    if (!GOOGLE_CLIENT_ID) return false;
-    return new Promise((resolve) => {
-      const checkLibs = setInterval(() => {
-        if (typeof google !== 'undefined' && google.accounts && typeof gapi !== 'undefined') {
-          clearInterval(checkLibs);
-          gapi.load('client', async () => {
-            await gapi.client.init({});
-            await gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
-            DriveSync.tokenClient = google.accounts.oauth2.initTokenClient({
-              client_id: GOOGLE_CLIENT_ID,
-              scope: DRIVE_SCOPES,
-              callback: () => {},
-            });
-            DriveSync.initialized = true;
-            resolve(true);
-          });
-        }
-      }, 100);
-      // Timeout after 10s
-      setTimeout(() => { clearInterval(checkLibs); resolve(false); }, 10000);
-    });
-  },
-
-  loadCachedToken() {
-    try {
-      const cached = localStorage.getItem('google-access-token');
-      if (cached) {
-        const { token, expiry } = JSON.parse(cached);
-        // Check if token is still valid (with 5 min buffer)
-        if (expiry && Date.now() < expiry - 300000) {
-          DriveSync.accessToken = token;
-          return true;
-        }
-      }
-    } catch(e) {}
-    return false;
-  },
-
-  cacheToken(token, expiresIn) {
-    const expiry = Date.now() + (expiresIn || 3600) * 1000;
-    localStorage.setItem('google-access-token', JSON.stringify({ token, expiry }));
-  },
-
-  requestAccess(interactive = true) {
-    // Try cached token first
-    if (DriveSync.loadCachedToken()) {
-      return Promise.resolve({ access_token: DriveSync.accessToken });
-    }
-    if (!interactive) {
-      return Promise.reject(new Error('No cached token'));
-    }
-    return new Promise((resolve, reject) => {
-      if (!DriveSync.tokenClient) { reject(new Error('Not initialized')); return; }
-      DriveSync.tokenClient.callback = (response) => {
-        if (response.error) { reject(response); return; }
-        DriveSync.accessToken = response.access_token;
-        DriveSync.cacheToken(response.access_token, response.expires_in);
-        resolve(response);
-      };
-      DriveSync.tokenClient.requestAccessToken({ prompt: '' });
-    });
-  },
-
-  async findFile() {
-    try {
-      const response = await gapi.client.drive.files.list({
-        spaces: 'appDataFolder',
-        q: `name='${DRIVE_FILE_NAME}'`,
-        fields: 'files(id, name, modifiedTime)',
-        pageSize: 1
-      });
-      if (response.result.files && response.result.files.length > 0) {
-        DriveSync.fileId = response.result.files[0].id;
-        return DriveSync.fileId;
-      }
-      return null;
-    } catch (error) {
-      console.error('Drive findFile error:', error);
-      return null;
-    }
-  },
-
-  async loadFromDrive() {
-    try {
-      if (!DriveSync.accessToken) return null;
-      let fileId = DriveSync.fileId || await DriveSync.findFile();
-      if (!fileId) return null;
-      const response = await gapi.client.drive.files.get({
-        fileId: fileId,
-        alt: 'media'
-      });
-      return typeof response.result === 'string' ? JSON.parse(response.result) : response.result;
-    } catch (error) {
-      console.error('Drive load error:', error);
-      return null;
-    }
-  },
-
-  async saveToDrive(data) {
-    try {
-      if (!DriveSync.accessToken) return false;
-      const fileContent = JSON.stringify(data);
-      const blob = new Blob([fileContent], { type: 'application/json' });
-      let fileId = DriveSync.fileId || await DriveSync.findFile();
-
-      if (fileId) {
-        // Update existing file
-        await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${DriveSync.accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: fileContent
-        });
-      } else {
-        // Create new file in appDataFolder
-        const metadata = { name: DRIVE_FILE_NAME, parents: ['appDataFolder'] };
-        const form = new FormData();
-        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        form.append('file', blob);
-        const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${DriveSync.accessToken}` },
-          body: form
-        });
-        const result = await response.json();
-        DriveSync.fileId = result.id;
-      }
-      return true;
-    } catch (error) {
-      console.error('Drive save error:', error);
-      return false;
-    }
-  }
-};
-
-// Gather all health data from localStorage into a single object
-function gatherAllData() {
-  const data = { dailyLogs: {}, meta: {} };
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith('nutrition-') && key !== 'nutrition-goals') {
-      try { data.dailyLogs[key] = JSON.parse(localStorage.getItem(key)); } catch(e) {}
-    } else if (['health-goal', 'user-profile', 'nutrition-goals', 'last-backup-date', 'backup-reminder-dismissed'].includes(key)) {
-      data.meta[key] = localStorage.getItem(key);
-    }
-  }
-  data.lastModified = new Date().toISOString();
-  return data;
-}
-
-// Restore data from Drive into localStorage (merge with conflict resolution)
-function restoreFromDriveData(driveData) {
-  if (!driveData) return false;
-  let changed = false;
-
-  // Helper: count meaningful items in a day's log
-  function logContentScore(log) {
-    let score = 0;
-    if (log.weight) score += 1;
-    if (log.isPeriod) score += 1;
-    if (log.foods && log.foods.length) score += log.foods.length;
-    if (log.exercises && log.exercises.length) score += log.exercises.length;
-    return score;
-  }
-
-  // Helper: fix UTC-shifted date keys from old toISOString bug
-  // Only corrects exactly 1-day shifts — larger gaps are not timezone issues.
-  function fixDateKey(key, value) {
-    if (!value || !value.lastModified || !value.date) return { key, value };
-    const d = new Date(value.lastModified);
-    const localDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const keyDate = key.replace('nutrition-', '');
-    const dayDiff = Math.round((new Date(keyDate) - new Date(localDate)) / (1000 * 60 * 60 * 24));
-    if (keyDate > localDate && dayDiff === 1) {
-      value.date = localDate;
-      return { key: `nutrition-${localDate}`, value };
-    }
-    return { key, value };
-  }
-
-  // Restore daily logs with merge logic
-  if (driveData.dailyLogs) {
-    for (const [origKey, driveValue] of Object.entries(driveData.dailyLogs)) {
-      const { key, value: fixedValue } = fixDateKey(origKey, driveValue);
-      const existingRaw = localStorage.getItem(key);
-      if (!existingRaw) {
-        // No local data — use Drive version
-        localStorage.setItem(key, JSON.stringify(fixedValue));
-        changed = true;
-      } else {
-        // Both exist — resolve conflict
-        try {
-          const local = JSON.parse(existingRaw);
-          const drive = fixedValue;
-
-          // If both have timestamps, use the newer one
-          if (local.lastModified && drive.lastModified) {
-            if (new Date(drive.lastModified) > new Date(local.lastModified)) {
-              localStorage.setItem(key, JSON.stringify(drive));
-              changed = true;
-            }
-          } else if (drive.lastModified && !local.lastModified) {
-            // Drive has timestamp, local doesn't — Drive is newer format, use it
-            localStorage.setItem(key, JSON.stringify(drive));
-            changed = true;
-          } else if (!drive.lastModified && !local.lastModified) {
-            // Neither has timestamp — use whichever has more data
-            if (logContentScore(drive) > logContentScore(local)) {
-              localStorage.setItem(key, JSON.stringify(drive));
-              changed = true;
-            }
-          }
-          // If local has timestamp but Drive doesn't, keep local (local is newer format)
-        } catch(e) {
-          // Parse error on local — overwrite with Drive version
-          localStorage.setItem(key, JSON.stringify(fixedValue));
-          changed = true;
-        }
-      }
-    }
-  }
-
-  // Restore meta — use Drive version if local is missing, or if Drive bundle is newer
-  if (driveData.meta) {
-    for (const [key, value] of Object.entries(driveData.meta)) {
-      if (value) {
-        const existing = localStorage.getItem(key);
-        if (!existing) {
-          localStorage.setItem(key, value);
-          changed = true;
-        } else if (key === 'user-profile' || key === 'nutrition-goals') {
-          // For profile and goals, use Drive version if Drive bundle is newer
-          // (these are updated less frequently, so top-level lastModified is fine)
-          try {
-            const localData = JSON.parse(existing);
-            const driveData2 = JSON.parse(value);
-            if (driveData.lastModified && JSON.stringify(localData) !== JSON.stringify(driveData2)) {
-              // Data differs — use Drive version if it's the more recent sync
-              localStorage.setItem(key, value);
-              changed = true;
-            }
-          } catch(e) {}
-        }
-      }
-    }
-  }
-  return changed;
-}
+// Cloud sync (encrypted) is provided by ./lib/bridge.js which wraps
+// localStorage.setItem and ticks pull/push against the worker when the user
+// has signed in. Until the user opts into cloud mode, the app behaves
+// identically to the local-only version below.
 
 function HealthTracker() {
   const [logPlaceholder] = useState(() => {
@@ -709,12 +486,13 @@ function HealthTracker() {
   const [isCalculatingGoals, setIsCalculatingGoals] = useState(false);
   const goalCalcTimeoutRef = useRef(null);
 
-  // Google Drive sync state
-  const [driveSignedIn, setDriveSignedIn] = useState(false);
-  const [driveSyncStatus, setDriveSyncStatus] = useState(''); // '', 'syncing', 'synced', 'error'
-  const [driveEnabled, setDriveEnabled] = useState(!!localStorage.getItem('google-client-id'));
-  const [googleClientIdInput, setGoogleClientIdInput] = useState(localStorage.getItem('google-client-id') || '');
-  const driveSyncTimeoutRef = useRef(null);
+  // Cloud sync UI state. The actual sync engine lives in ./lib/bridge.js.
+  // `syncStatus` mirrors what the bridge reports so the header chip shows
+  // "Syncing…" / "Synced" / "Sync error".
+  const [cloudMode, setCloudMode] = useState(() => localStorage.getItem('ht-mode') || 'unset'); // 'unset' | 'local' | 'cloud'
+  const [syncStatus, setSyncStatus] = useState(''); // '', 'syncing', 'synced', 'error'
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('ht-mode'));
+  const [showSettings, setShowSettings] = useState(false);
 
   // Load API key on mount
   useEffect(() => {
@@ -733,125 +511,15 @@ function HealthTracker() {
     }
   }, []);
 
-  // Initialize Google Drive sync on mount
+  // Subscribe to bridge status events. The bridge module emits
+  // 'ht-sync-status' on every push/pull tick with detail = 'syncing' |
+  // 'synced' | 'error'. When the user is in local-only mode the bridge is
+  // dormant and never emits — UI stays blank.
   useEffect(() => {
-    if (!driveEnabled) return;
-    const initDrive = async () => {
-      const success = await DriveSync.init();
-      if (success) {
-        // Try cached token first, then auto-prompt if user has signed in before
-        const hasSignedInBefore = localStorage.getItem('google-drive-user');
-        const mergeAndSync = async () => {
-          setDriveSyncStatus('syncing');
-          const driveData = await DriveSync.loadFromDrive();
-          const merged = driveData ? restoreFromDriveData(driveData) : false;
-          // Always push merged data back to Drive
-          const localData = gatherAllData();
-          await DriveSync.saveToDrive(localData);
-          setDriveSyncStatus('synced');
-          if (merged) {
-            window.location.reload();
-          }
-        };
-        try {
-          await DriveSync.requestAccess(false);
-          setDriveSignedIn(true);
-          await mergeAndSync();
-        } catch(e) {
-          if (hasSignedInBefore) {
-            // Token expired but user has signed in before — auto-prompt
-            try {
-              await DriveSync.requestAccess(true);
-              setDriveSignedIn(true);
-              localStorage.setItem('google-drive-user', 'true');
-              await mergeAndSync();
-            } catch(e2) {
-              setDriveSignedIn(false);
-            }
-          } else {
-            setDriveSignedIn(false);
-          }
-        }
-      }
-    };
-    initDrive();
-  }, [driveEnabled]);
-
-  // Debounced sync to Drive after any data change
-  const syncToDrive = () => {
-    if (!driveSignedIn) return;
-    if (driveSyncTimeoutRef.current) clearTimeout(driveSyncTimeoutRef.current);
-    driveSyncTimeoutRef.current = setTimeout(async () => {
-      setDriveSyncStatus('syncing');
-      try {
-        const data = gatherAllData();
-        let success = await DriveSync.saveToDrive(data);
-        if (!success && DriveSync.initialized) {
-          // Token may have expired, try refreshing
-          try {
-            await DriveSync.requestAccess(false);
-            success = await DriveSync.saveToDrive(data);
-          } catch(e) {}
-        }
-        setDriveSyncStatus(success ? 'synced' : 'error');
-      } catch(e) {
-        console.error('Sync error:', e);
-        setDriveSyncStatus('error');
-      }
-    }, 3000); // 3 second debounce
-  };
-
-  // Listen for any data changes and auto-sync
-  useEffect(() => {
-    const handler = () => syncToDrive();
-    window.addEventListener('health-data-changed', handler);
-    return () => window.removeEventListener('health-data-changed', handler);
-  }, [driveSignedIn]);
-
-  const handleDriveSignIn = async () => {
-    try {
-      await DriveSync.requestAccess(true);
-      setDriveSignedIn(true);
-      localStorage.setItem('google-drive-user', 'true');
-      // Load and merge data from Drive, then push merged data back
-      setDriveSyncStatus('syncing');
-      const driveData = await DriveSync.loadFromDrive();
-      const merged = driveData ? restoreFromDriveData(driveData) : false;
-      // Always push merged local data back to Drive
-      const localData = gatherAllData();
-      await DriveSync.saveToDrive(localData);
-      setDriveSyncStatus('synced');
-      if (merged) {
-        window.location.reload();
-      }
-    } catch(e) {
-      console.error('Sign-in error:', e);
-      alert('Failed to sign in to Google. Please try again.');
-    }
-  };
-
-  const handleDriveSignOut = () => {
-    if (DriveSync.accessToken) {
-      google.accounts.oauth2.revoke(DriveSync.accessToken);
-    }
-    DriveSync.accessToken = null;
-    DriveSync.fileId = null;
-    localStorage.removeItem('google-access-token');
-    localStorage.removeItem('google-drive-user');
-    setDriveSignedIn(false);
-    setDriveSyncStatus('');
-  };
-
-  const saveGoogleClientId = (clientId) => {
-    if (clientId.trim()) {
-      localStorage.setItem('google-client-id', clientId.trim());
-      setDriveEnabled(true);
-      window.location.reload(); // Reload to reinitialize with new client ID
-    } else {
-      localStorage.removeItem('google-client-id');
-      setDriveEnabled(false);
-    }
-  };
+    const handler = (e) => setSyncStatus(e?.detail ?? '');
+    window.addEventListener('ht-sync-status', handler);
+    return () => window.removeEventListener('ht-sync-status', handler);
+  }, []);
 
   useEffect(() => {
     if (weightSaveTimeoutRef.current) {
@@ -1106,15 +774,9 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
         }
         // NOTE: 'openai-api-key' is preserved intentionally
       });
-      // Push cleared state to Google Drive so other devices don't restore old data
-      if (DriveSync.accessToken) {
-        try {
-          const emptyData = gatherAllData(); // now returns empty since localStorage was cleared
-          await DriveSync.saveToDrive(emptyData);
-        } catch (e) {
-          console.error('Failed to clear Drive data:', e);
-        }
-      }
+      // The bridge's localStorage interceptor will turn each removeItem into a
+      // tombstone entry on the next tick, so other paired devices will see
+      // these keys disappear at their next sync.
       setShowClearConfirm(false);
       window.location.reload();
     } catch (error) {
@@ -1650,6 +1312,91 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     return predicted;
   };
 
+  // ====================================================================
+  // Cloud sync onboarding + settings modals (rendered below).
+  // The flow:
+  //   - cloudMode === 'unset'  → onboarding modal shows automatically
+  //   - cloudMode === 'local'  → bridge stays dormant; settings still works
+  //   - cloudMode === 'cloud'  → bridge is engaged after register / authenticate
+  // ====================================================================
+  const [onboardStep, setOnboardStep] = useState('choose');  // 'choose' | 'cloudNew' | 'cloudExisting' | 'busy' | 'unlock'
+  const [onboardPass, setOnboardPass] = useState('');
+  const [onboardErr, setOnboardErr] = useState('');
+  const [backendUrlInput, setBackendUrlInput] = useState('');
+
+  // Wait for ./lib/bridge.js + auth.js to attach window.HT before allowing
+  // any cloud action. The script is `type=module` so it runs deferred — on
+  // very fast first paints we may render the modal before it lands.
+  const [htReady, setHtReady] = useState(() => !!window.HT);
+  useEffect(() => {
+    if (window.HT) { setHtReady(true); return; }
+    const handler = () => setHtReady(true);
+    window.addEventListener('ht-ready', handler);
+    return () => window.removeEventListener('ht-ready', handler);
+  }, []);
+
+  // If the user picked 'cloud' on a prior visit but the DEK isn't in memory
+  // (new tab, fresh load), surface the unlock screen instead of letting them
+  // think they're signed in but with no decryption capability.
+  useEffect(() => {
+    if (!htReady) return;
+    if (cloudMode === 'cloud' && !window.HT.getUserId() && window.HT.getSession()) {
+      setShowOnboarding(true);
+      setOnboardStep('unlock');
+    }
+  }, [htReady, cloudMode]);
+
+  const chooseLocalOnly = () => {
+    localStorage.setItem('ht-mode', 'local');
+    setCloudMode('local');
+    setShowOnboarding(false);
+  };
+
+  const beginCloudNew = () => { setOnboardErr(''); setOnboardPass(''); setOnboardStep('cloudNew'); };
+  const beginCloudExisting = () => { setOnboardErr(''); setOnboardPass(''); setOnboardStep('cloudExisting'); };
+
+  const submitCloudNew = async () => {
+    if (onboardPass.length < 8) { setOnboardErr('Passphrase must be at least 8 characters.'); return; }
+    setOnboardErr(''); setOnboardStep('busy');
+    try {
+      await window.HT.register(onboardPass);
+      localStorage.setItem('ht-mode', 'cloud');
+      setCloudMode('cloud');
+      // Upload everything the user had locally so far as the initial snapshot.
+      try { await window.HT.uploadInitialSnapshot(); } catch (e) { console.warn('initial snapshot failed:', e?.message); }
+      window.HT.startBridge();
+      setShowOnboarding(false);
+      setOnboardPass('');
+    } catch (e) {
+      setOnboardStep('cloudNew');
+      setOnboardErr(e?.message === 'passkey_creation_cancelled'
+        ? 'Face ID / Touch ID was cancelled. Try again to create your passkey.'
+        : `Sign-up failed: ${e?.message ?? 'unknown error'}`);
+    }
+  };
+
+  const submitCloudExisting = async () => {
+    if (onboardPass.length === 0) { setOnboardErr('Enter your passphrase.'); return; }
+    setOnboardErr(''); setOnboardStep('busy');
+    try {
+      await window.HT.authenticate(onboardPass);
+      localStorage.setItem('ht-mode', 'cloud');
+      setCloudMode('cloud');
+      window.HT.startBridge();
+      // Immediately pull remote so any data on this account shows up.
+      try { await window.HT.tick(); } catch {}
+      setShowOnboarding(false);
+      setOnboardPass('');
+    } catch (e) {
+      setOnboardStep('cloudExisting');
+      setOnboardErr(e?.message === 'wrong_passphrase'
+        ? 'Wrong passphrase. Try again, or use a different device.'
+        : e?.message === 'passkey_assertion_cancelled'
+          ? 'Face ID / Touch ID was cancelled. Try again.'
+          : `Sign-in failed: ${e?.message ?? 'unknown error'}`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* API Key Prompt Modal */}
@@ -1700,6 +1447,214 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
             <p className="text-xs text-gray-500 mt-3 text-center">
               Get your key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" className="text-blue-600 underline">platform.openai.com/api-keys</a>
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Onboarding modal — first run, or when the user opens it from Settings */}
+      {showOnboarding && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            {!htReady && (
+              <p className="text-sm text-gray-500">Loading encryption modules…</p>
+            )}
+            {htReady && onboardStep === 'choose' && (
+              <>
+                <h2 className="text-xl font-bold mb-1">How do you want to use Health Tracker?</h2>
+                <p className="text-sm text-gray-600 mb-5">
+                  You can switch later from Settings.
+                </p>
+                <button
+                  onClick={beginCloudNew}
+                  className="w-full text-left px-4 py-3 mb-2 rounded-xl border-2 border-blue-500 bg-blue-50 hover:bg-blue-100"
+                >
+                  <div className="font-semibold text-blue-900">Sync across my devices</div>
+                  <div className="text-xs text-blue-800 mt-1">Face ID + a passphrase. End-to-end encrypted. Sign in on iPhone, Mac, anywhere.</div>
+                </button>
+                <button
+                  onClick={beginCloudExisting}
+                  className="w-full text-left px-4 py-3 mb-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+                >
+                  <div className="font-semibold">I already have an account</div>
+                  <div className="text-xs text-gray-600 mt-1">Sign in on a new device with your passphrase.</div>
+                </button>
+                <button
+                  onClick={chooseLocalOnly}
+                  className="w-full text-left px-4 py-3 rounded-xl border border-gray-300 hover:bg-gray-50"
+                >
+                  <div className="font-semibold">Just this device</div>
+                  <div className="text-xs text-gray-600 mt-1">No sign-in. Data stays in this browser only. Standard backup/restore via export still works.</div>
+                </button>
+              </>
+            )}
+            {htReady && onboardStep === 'cloudNew' && (
+              <>
+                <h2 className="text-xl font-bold mb-1">Create an account</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Pick a passphrase to encrypt your data. You'll need it again on each new device. <strong>If you lose it, your data is gone — there is no recovery.</strong>
+                </p>
+                <input
+                  type="password"
+                  autoFocus
+                  value={onboardPass}
+                  onChange={(e) => setOnboardPass(e.target.value)}
+                  placeholder="Passphrase (8+ characters)"
+                  className="w-full px-4 py-3 border rounded-xl mb-3"
+                  onKeyDown={(e) => e.key === 'Enter' && submitCloudNew()}
+                />
+                {onboardErr && <p className="text-sm text-red-600 mb-3">{onboardErr}</p>}
+                <button
+                  onClick={submitCloudNew}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold"
+                >
+                  Create passkey & encrypt
+                </button>
+                <button
+                  onClick={() => setOnboardStep('choose')}
+                  className="w-full px-6 py-2 mt-2 text-gray-500 text-sm"
+                >
+                  Back
+                </button>
+              </>
+            )}
+            {htReady && onboardStep === 'cloudExisting' && (
+              <>
+                <h2 className="text-xl font-bold mb-1">Sign in</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Face ID / Touch ID will pick the right passkey automatically. Then enter your passphrase to decrypt your data.
+                </p>
+                <input
+                  type="password"
+                  autoFocus
+                  value={onboardPass}
+                  onChange={(e) => setOnboardPass(e.target.value)}
+                  placeholder="Passphrase"
+                  className="w-full px-4 py-3 border rounded-xl mb-3"
+                  onKeyDown={(e) => e.key === 'Enter' && submitCloudExisting()}
+                />
+                {onboardErr && <p className="text-sm text-red-600 mb-3">{onboardErr}</p>}
+                <button
+                  onClick={submitCloudExisting}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold"
+                >
+                  Sign in
+                </button>
+                <button
+                  onClick={() => setOnboardStep('choose')}
+                  className="w-full px-6 py-2 mt-2 text-gray-500 text-sm"
+                >
+                  Back
+                </button>
+              </>
+            )}
+            {htReady && onboardStep === 'unlock' && (
+              <>
+                <h2 className="text-xl font-bold mb-1">Welcome back</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Enter your passphrase to decrypt your data on this device.
+                </p>
+                <input
+                  type="password"
+                  autoFocus
+                  value={onboardPass}
+                  onChange={(e) => setOnboardPass(e.target.value)}
+                  placeholder="Passphrase"
+                  className="w-full px-4 py-3 border rounded-xl mb-3"
+                  onKeyDown={(e) => e.key === 'Enter' && submitCloudExisting()}
+                />
+                {onboardErr && <p className="text-sm text-red-600 mb-3">{onboardErr}</p>}
+                <button
+                  onClick={submitCloudExisting}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold"
+                >
+                  Unlock
+                </button>
+              </>
+            )}
+            {onboardStep === 'busy' && (
+              <p className="text-sm text-gray-600">Working… (Face ID prompt may appear)</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Settings modal — sync account management, three wipe operations, backend URL */}
+      {showSettings && htReady && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold mb-4">Cloud sync settings</h2>
+            <p className="text-xs text-gray-500 mb-1">SIGNED IN</p>
+            <p className="text-sm mb-4">{window.HT.getUserId() ? window.HT.getUserId().slice(0, 16) + '…' : '(not signed in this session)'}</p>
+
+            <div className="border-t pt-4 mb-4">
+              <p className="text-xs text-gray-500 mb-2">BACKEND URL</p>
+              <input
+                type="text"
+                defaultValue={window.HT.getBackendUrl()}
+                onChange={(e) => setBackendUrlInput(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg text-sm font-mono"
+              />
+              <button
+                onClick={() => {
+                  try { window.HT.setBackendUrl(backendUrlInput || ''); alert('Backend URL updated.'); }
+                  catch (e) { alert('Invalid URL: ' + e.message); }
+                }}
+                className="text-xs text-blue-600 mt-1"
+              >
+                Save backend URL
+              </button>
+              <p className="text-xs text-gray-500 mt-2">
+                Defaults to the canonical instance. Self-hosters paste their own worker URL here.
+              </p>
+            </div>
+
+            <div className="border-t pt-4 mb-4 space-y-2">
+              <button
+                onClick={async () => {
+                  if (!confirm('Sign out of this device? Your cloud data and other devices are untouched.')) return;
+                  await window.HT.signOutThisDevice();
+                  setShowSettings(false);
+                  setShowOnboarding(true);
+                  setOnboardStep('choose');
+                }}
+                className="w-full px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-semibold text-sm"
+              >
+                Sign out (this device)
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm('Delete ALL cloud data? Other devices will see empty data on next sync. Local data on this device is kept.')) return;
+                  try {
+                    await window.HT.deleteCloudData({ alsoLocal: false });
+                    alert('Cloud data deleted.');
+                  } catch (e) { alert('Failed: ' + e.message); }
+                }}
+                className="w-full px-4 py-2.5 bg-orange-100 text-orange-700 rounded-xl font-semibold text-sm"
+              >
+                Delete cloud data
+              </button>
+              <button
+                onClick={async () => {
+                  const phrase = prompt('Type WIPE to wipe everything (cloud + local) on this account. This cannot be undone.');
+                  if (phrase !== 'WIPE') return;
+                  try {
+                    await window.HT.wipeEverything();
+                    alert("Wiped. Your passkey is still in your system Keychain — go to Settings → Passwords on your phone or Mac to delete it.");
+                    window.location.reload();
+                  } catch (e) { alert('Failed: ' + e.message); }
+                }}
+                className="w-full px-4 py-2.5 bg-red-100 text-red-700 rounded-xl font-semibold text-sm"
+              >
+                Wipe everything
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowSettings(false)}
+              className="w-full px-6 py-2 mt-2 text-gray-500 text-sm"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
@@ -2659,101 +2614,46 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
               <h2 className="text-2xl font-bold mb-4">
                 <span className="flex items-center gap-2">
                   Cloud Sync
-                  {driveSyncStatus === 'syncing' && <span className="text-sm font-normal text-blue-500">Syncing...</span>}
-                  {driveSyncStatus === 'synced' && <span className="text-sm font-normal text-green-500">Synced</span>}
-                  {driveSyncStatus === 'error' && <span className="text-sm font-normal text-red-500">Sync Error</span>}
+                  {syncStatus === 'syncing' && <span className="text-sm font-normal text-blue-500">Syncing...</span>}
+                  {syncStatus === 'synced' && <span className="text-sm font-normal text-green-500">Synced</span>}
+                  {syncStatus === 'error' && <span className="text-sm font-normal text-red-500">Sync Error</span>}
                 </span>
               </h2>
               <p className="text-sm text-gray-600 mb-4">
-                Sync your data across devices using your personal Google Drive. Data is stored in a private app folder that only this app can access.
+                Sync across your devices with end-to-end encryption. Your passphrase never leaves this device; the server only stores ciphertext.
               </p>
 
-              {!driveEnabled ? (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-bold mb-2">GOOGLE CLIENT ID</label>
-                    <input
-                      type="text"
-                      value={googleClientIdInput}
-                      onChange={(e) => setGoogleClientIdInput(e.target.value)}
-                      placeholder="xxxxx.apps.googleusercontent.com"
-                      className="w-full px-4 py-3 border rounded-xl text-sm"
-                    />
-                    <p className="text-xs text-gray-500 mt-2">
-                      Required for Google Drive sync. Follow the setup guide to get your Client ID.
-                    </p>
-                  </div>
+              {cloudMode === 'local' && (
+                <button
+                  onClick={() => setShowOnboarding(true)}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold"
+                >
+                  Enable cloud sync
+                </button>
+              )}
+              {cloudMode === 'cloud' && (
+                <div className="space-y-2">
                   <button
-                    onClick={() => saveGoogleClientId(googleClientIdInput)}
-                    disabled={!googleClientIdInput.includes('.apps.googleusercontent.com')}
-                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold disabled:opacity-50"
+                    onClick={() => window.dispatchEvent(new Event('ht-sync-now'))}
+                    className="w-full px-4 py-2.5 bg-blue-100 text-blue-700 rounded-xl font-semibold text-sm"
                   >
-                    Enable Google Drive Sync
+                    Sync now
+                  </button>
+                  <button
+                    onClick={() => setShowSettings(true)}
+                    className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold text-sm"
+                  >
+                    Account & wipe options
                   </button>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {driveSignedIn ? (
-                    <div>
-                      <button
-                        onClick={async () => {
-                          setDriveSyncStatus('syncing');
-                          // Pull from Drive and merge
-                          const driveData = await DriveSync.loadFromDrive();
-                          const merged = driveData ? restoreFromDriveData(driveData) : false;
-                          // Always push merged local data back to Drive
-                          const data = gatherAllData();
-                          await DriveSync.saveToDrive(data);
-                          setDriveSyncStatus('synced');
-                          if (merged) {
-                            window.location.reload();
-                          } else {
-                            alert('Sync complete! Data is up to date.');
-                          }
-                        }}
-                        className="w-full px-4 py-2.5 bg-blue-100 text-blue-700 rounded-xl font-semibold text-sm mb-2"
-                      >
-                        Force Sync Now
-                      </button>
-                      <button
-                        onClick={handleDriveSignOut}
-                        className="w-full px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-semibold text-sm"
-                      >
-                        Sign Out of Google
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleDriveSignIn}
-                      className="w-full px-6 py-3 bg-white border-2 border-gray-300 rounded-xl font-semibold flex items-center justify-center gap-3 hover:bg-gray-50"
-                    >
-                      <svg className="w-5 h-5" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                      </svg>
-                      Sign in with Google
-                    </button>
-                  )}
-
-                  <div className="border-t pt-3 mt-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">Client ID configured</span>
-                      <button
-                        onClick={() => {
-                          localStorage.removeItem('google-client-id');
-                          setDriveEnabled(false);
-                          setDriveSignedIn(false);
-                          setGoogleClientIdInput('');
-                        }}
-                        className="text-xs text-red-500 font-semibold"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              )}
+              {cloudMode === 'unset' && (
+                <button
+                  onClick={() => setShowOnboarding(true)}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold"
+                >
+                  Set up sync
+                </button>
               )}
             </div>
 
