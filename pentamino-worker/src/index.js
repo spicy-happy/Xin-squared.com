@@ -1,7 +1,9 @@
-// Global high-score API for Pentamino (xin-squared.com/pentamino).
+// Global high-score + analytics API for Pentabomb (xin-squared.com/pentabomb).
 // POST /token  -> { token }  (anonymous play token, issued at game start)
 // GET  /scores -> { scores: [{name, score, clears, level, date}, ...] } (top 10)
 // POST /scores {name, score, clears, level, token} -> { scores: [...], rank: 1-based | null }
+// POST /event  {type: visit|start|end, first?, score?, clears?, level?, sec?} -> { ok }
+// GET  /stats  -> { all: {...}, days: [{date, ...}, ...] }  (aggregate counters)
 //
 // Anti-cheat (friction, not proof): scores need a single-use server-issued
 // token, and are rejected unless enough real time elapsed since the token
@@ -16,6 +18,9 @@ const MAX_PTS_PER_SEC = 100; // generous ceiling on legit scoring rate
 const MIN_SCORE_GRACE = 500; // scores this small skip the rate check
 const SUBMITS_PER_HOUR = 20;
 const TOKENS_PER_HOUR = 120;
+const EVENTS_PER_HOUR = 400;
+const STAT_DAYS_SHOWN = 14;
+const STAT_DAY_TTL = 90 * 86400; // daily stat keys expire after ~3 months
 
 const ALLOWED_ORIGINS = new Set([
   'https://xin-squared.com',
@@ -61,6 +66,30 @@ function cleanName(name) {
   return cleaned.length ? cleaned : null;
 }
 
+// Aggregate analytics counters. visits = pageviews, uniques = first-ever
+// visits (client-side localStorage flag), starts/ends = games begun/finished,
+// scoreSum/secSum feed averages, best = top score of the bucket.
+// KV read-modify-write means concurrent events can occasionally drop a
+// count — fine for traction tracking, don't use for billing.
+const EMPTY_STATS = { visits: 0, uniques: 0, starts: 0, ends: 0, scoreSum: 0, secSum: 0, best: 0 };
+
+async function readStats(env, key) {
+  try {
+    const parsed = JSON.parse(await env.SCORES.get(key));
+    return { ...EMPTY_STATS, ...(parsed || {}) };
+  } catch {
+    return { ...EMPTY_STATS };
+  }
+}
+
+function withAverages(s) {
+  return {
+    ...s,
+    avgScore: s.ends ? Math.round(s.scoreSum / s.ends) : 0,
+    avgSec: s.ends ? Math.round(s.secSum / s.ends) : 0,
+  };
+}
+
 // Sliding-ish per-IP counter in KV. Races just make it slightly lenient.
 async function overLimit(env, bucket, limit) {
   const key = 'rl:' + bucket;
@@ -89,6 +118,58 @@ export default {
       const token = crypto.randomUUID();
       await env.SCORES.put('t:' + token, String(Date.now()), { expirationTtl: TOKEN_TTL });
       return json({ token }, 200, headers);
+    }
+
+    if (url.pathname === '/event' && request.method === 'POST') {
+      if (!originAllowed(origin)) return json({ error: 'forbidden' }, 403, headers);
+      // over the limit: swallow silently so a hot loop can't probe anything
+      if (await overLimit(env, ip + ':ev', EVENTS_PER_HOUR)) {
+        return json({ ok: true }, 200, headers);
+      }
+      let body;
+      try {
+        body = JSON.parse(await request.text()); // beacons send text/plain
+      } catch {
+        return json({ error: 'invalid json' }, 400, headers);
+      }
+      const type = body && body.type;
+      if (type !== 'visit' && type !== 'start' && type !== 'end') {
+        return json({ error: 'invalid type' }, 400, headers);
+      }
+      const day = new Date().toISOString().slice(0, 10);
+      for (const [key, ttl] of [['stats:all', 0], ['stats:d:' + day, STAT_DAY_TTL]]) {
+        const s = await readStats(env, key);
+        if (type === 'visit') {
+          s.visits++;
+          if (body.first === true) s.uniques++;
+        } else if (type === 'start') {
+          s.starts++;
+        } else {
+          const score = Number.isInteger(body.score) && body.score >= 0 && body.score <= MAX_SCORE ? body.score : 0;
+          const sec = Number.isInteger(body.sec) && body.sec >= 0 && body.sec <= 86400 ? body.sec : 0;
+          s.ends++;
+          s.scoreSum += score;
+          s.secSum += sec;
+          if (score > s.best) s.best = score;
+        }
+        await env.SCORES.put(key, JSON.stringify(s), ttl ? { expirationTtl: ttl } : {});
+      }
+      return json({ ok: true }, 200, headers);
+    }
+
+    if (url.pathname === '/stats' && request.method === 'GET') {
+      const days = [];
+      for (let i = 0; i < STAT_DAYS_SHOWN; i++) {
+        days.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+      }
+      const [all, ...daily] = await Promise.all([
+        readStats(env, 'stats:all'),
+        ...days.map(d => readStats(env, 'stats:d:' + d)),
+      ]);
+      return json({
+        all: withAverages(all),
+        days: days.map((d, i) => ({ date: d, ...withAverages(daily[i]) })),
+      }, 200, headers);
     }
 
     if (url.pathname !== '/scores') {

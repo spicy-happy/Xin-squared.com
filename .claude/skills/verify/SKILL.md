@@ -29,20 +29,27 @@ are phone-first.
 
 ## Gotchas
 
-- `pentamino/index.html` exposes `window.__pentaminoDebug`
-  (fillRow/setCell/cellAt/dims/state/tick) for scripted play; drive touch
-  input by dispatching synthetic `TouchEvent`s on the `#board` canvas.
+- `pentabomb/index.html` (the falling-piece game, formerly at /pentamino;
+  /pentamino and /pentris now redirect to it) exposes
+  `window.__pentabombDebug` (fillRow/setCell/cellAt/ghost/flip/newBag/dims/
+  state/tick) for scripted play; drive touch input by dispatching synthetic
+  `TouchEvent`s on the `#board` canvas.
 - Clear animations take 280ms (`CLEAR_FLASH_MS`); wait ~700ms after a lock
   before asserting grid state.
 - `window.__loopStarted === true` signals the game loop is running.
-- `pentabomb/index.html` exposes `window.__pentabombDebug`
+- `pentapuzzle/index.html` (Katamino-style free-placement puzzle, formerly
+  at /pentabomb) exposes `window.__pentapuzzleDebug`
   (dims/cellAt/pieceCount/listPieces/state/setNext/spawnNow/forceSpawn/
   removePiece/clear/movePiece/rotatePiece/tick). Its first piece spawns at
   a random spot — call `clear()` after starting for deterministic boards.
   Drive input with synthetic `PointerEvent`s on `#board` (drag = move,
   tap = rotate); the blast flash is 320ms (`BLAST_FLASH_MS`), so tick
   ~400ms past a blast before asserting grid state.
-- **Bump `GAME_VERSION` in `pentamino/index.html` and `pentabomb/index.html`
+- The game beacons analytics to the scores worker (`sendEvent` in
+  `pentabomb/index.html`, `/event` + `/stats` in `pentamino-worker/`);
+  localhost is an allowed origin, so local runs hit the live counters —
+  stub `navigator.sendBeacon`/block the worker host if that matters.
+- **Bump `GAME_VERSION` in `pentabomb/index.html` and `pentapuzzle/index.html`
   on every change to those files** — deployed pages compare it against the
   server copy to reload themselves; forgetting the bump means players keep
   the stale version.

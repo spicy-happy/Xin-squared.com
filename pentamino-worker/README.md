@@ -1,9 +1,11 @@
 # pentamino-scores worker
 
-Cloudflare Worker serving the global top-10 leaderboard for
-[/pentamino](../pentamino/index.html). Deployed at
-`https://pentamino-scores.mail-f78.workers.dev`, storage in Workers KV
-(binding `SCORES`, single key `top`).
+Cloudflare Worker serving the global top-10 leaderboard and basic analytics
+for [/pentabomb](../pentabomb/index.html) (the game formerly at /pentamino —
+the worker keeps its original name so the deployed URL never changes).
+Deployed at `https://pentamino-scores.mail-f78.workers.dev`, storage in
+Workers KV (binding `SCORES`; leaderboard under key `top`, analytics under
+`stats:*`).
 
 ## API
 
@@ -11,8 +13,22 @@ Cloudflare Worker serving the global top-10 leaderboard for
 - `GET /scores` → `{ "scores": [{ name, score, clears, level, date }, ...] }`
 - `POST /scores` with `{ name, score, clears, level, token }` → same shape plus
   `rank` (1-based position if the entry made the top 10, else `null`)
+- `POST /event` with `{ type: "visit"|"start"|"end", first?, score?, clears?,
+  level?, sec? }` → `{ ok: true }` — fired by the game as beacons
+- `GET /stats` → `{ all: {...}, days: [{ date, ... }, ...] }` — all-time and
+  last-14-days aggregates (visits, uniques, starts, ends, avgScore, avgSec,
+  best). Rendered at [/pentabomb/stats.html](../pentabomb/stats.html).
 
 CORS allows `xin-squared.com`, `www.xin-squared.com`, and localhost (for dev).
+
+## Analytics
+
+Aggregate counters only — no cookies, no per-user IDs, nothing personal
+stored. `visits` counts page loads; `uniques` counts first-ever visits per
+device (a localStorage flag client-side). Counters live in KV keys
+`stats:all` (forever) and `stats:d:<YYYY-MM-DD>` (auto-expire after ~3
+months). KV read-modify-write means two simultaneous events can occasionally
+drop a count; that's fine for tracking traction.
 
 ## Anti-cheat
 
@@ -23,7 +39,8 @@ always fake a score; real prevention would need server-side replay validation):
 - A score is rejected unless the token is old enough for the points to have
   been physically playable (100 pts/sec ceiling, 500-pt grace) — forging a
   big score means holding a fresh token for many minutes per attempt.
-- Per-IP hourly rate limits: 120 tokens, 20 submissions (`rl:*` keys in KV).
+- Per-IP hourly rate limits: 120 tokens, 20 submissions, 400 events
+  (`rl:*` keys in KV).
 - POST endpoints require an allowlisted Origin header.
 
 ## Maintenance
@@ -34,6 +51,7 @@ Run from this directory:
 npx wrangler@4 deploy                                    # redeploy after edits
 npx wrangler@4 kv key get top --binding=SCORES --remote  # view leaderboard
 npx wrangler@4 kv key delete top --binding=SCORES --remote  # wipe leaderboard
+npx wrangler@4 kv key get stats:all --binding=SCORES --remote  # raw counters
 npx wrangler@4 tail pentamino-scores                     # live request logs
 ```
 
