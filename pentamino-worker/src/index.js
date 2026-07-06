@@ -14,7 +14,11 @@ const MAX_ENTRIES = 10;
 const MAX_NAME = 16;
 const MAX_SCORE = 5_000_000;
 const TOKEN_TTL = 6 * 3600; // a game session should finish within 6h
-const MAX_PTS_PER_SEC = 100; // generous ceiling on legit scoring rate
+// Scoring scales with level (a 5x5 blast is 1000 x level, and levels keep
+// climbing), so a whole-game average of several hundred pts/sec is normal in
+// a good run — 100 pts/sec rejected a legitimate 500k game. 1000 pts/sec
+// still forces a forger to age a token ~8 min per 500k points.
+const MAX_PTS_PER_SEC = 1000;
 const MIN_SCORE_GRACE = 500; // scores this small skip the rate check
 const SUBMITS_PER_HOUR = 20;
 const TOKENS_PER_HOUR = 120;
