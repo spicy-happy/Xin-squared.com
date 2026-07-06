@@ -983,14 +983,12 @@ boardCanvas.addEventListener('touchend', e => {
   const state = touch;
   touch = null;
   if (!running || paused || !current) return;
-  // upward gestures, measured from the finger's lowest point: long swipe
-  // up = mirror flip, short-to-medium swipe up = shadow drop. Distance-based
-  // (no timing window), with a minimum of 1.5 cells so small jitters don't
-  // drop by accident. Downward drag only ever soft-drops (handled in
-  // touchmove) — it never triggers the drop.
+  // upward gesture, measured from the finger's lowest point: any swipe up
+  // of at least 1.5 cells = shadow drop (the minimum keeps small jitters
+  // from dropping by accident). Downward drag only ever soft-drops
+  // (handled in touchmove) — it never triggers the drop.
   const upDist = state.maxY - t.clientY;
   const upDx = Math.abs(t.clientX - state.xAtLow);
-  if (upDist >= cell * 4.5 && upDx < upDist) { tryFlip(); return; }
   if (upDist >= cell * 1.5 && upDx < upDist) { hardDrop(); return; }
   if (!state.consumed && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
     if (dt < 300) {
@@ -1047,8 +1045,8 @@ boardCanvas.addEventListener('contextmenu', e => e.preventDefault());
 // the pointer media query, then trust whichever input the player actually uses.
 const HELP = {
   touch: {
-    full: 'SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE &#183; HOLD = FLIP<br>SWIPE &#9650; = DROP<br>LONG SWIPE &#9650; = FLIP<br>SWIPE &#9660; SOFT DROP<br>TWO-FINGER TAP = PAUSE',
-    legend: 'SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE &#183; HOLD FLIP<br>SWIPE &#9650; DROP &#183; LONG &#9650; FLIP &#183; 2-FINGER PAUSE',
+    full: 'SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE &#183; HOLD = FLIP<br>SWIPE &#9650; = DROP<br>SWIPE &#9660; SOFT DROP<br>TWO-FINGER TAP = PAUSE',
+    legend: 'SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE &#183; HOLD FLIP<br>SWIPE &#9650; DROP &#183; 2-FINGER PAUSE',
   },
   keys: {
     full: '&#9668; &#9658; MOVE &#183; &#9660; SOFT DROP<br>Z / X / &#9650; = ROTATE<br>F OR SHIFT = FLIP<br>SPACE = DROP &#183; P = PAUSE<br>CLICK = ROTATE &#183; R-CLICK = FLIP',
