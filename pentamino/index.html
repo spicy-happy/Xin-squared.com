@@ -136,17 +136,22 @@
     align-items: center;
     gap: 5px;
   }
+  #legendRow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
   #tipLine {
-    display: block;
-    margin-top: 6px;
-    font-size: 10px;
+    font-size: 13px;
     letter-spacing: 1px;
-    text-align: center;
-    color: var(--gb-dark);
+    color: var(--gb-darkest);
     text-decoration: underline;
     cursor: pointer;
     touch-action: auto;
+    visibility: visible; /* stays up even while the rest of the legend hides */
   }
+  #hud { transition: opacity .2s; }
+  #hud.faded { opacity: .15; }
 </style>
 </head>
 <body>
@@ -177,14 +182,10 @@
       <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
       <p class="big" id="hiLine"></p>
       <button id="startBtn">START</button>
-      <button class="gbBtn" id="resetBtn">RESET HI</button>
     </div>
     <div class="overlay hidden" id="pauseOverlay">
       <h1>PAUSED</h1>
-      <p>SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>LONG SWIPE &#9660; = DROP<br>TWO-FINGER TAP = PAUSE</p>
       <button id="resumeBtn">RESUME</button>
-      <button class="gbBtn" id="restartBtn">RESTART</button>
-      <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
     </div>
     <div class="overlay hidden" id="overOverlay">
       <h1>GAME OVER</h1>
@@ -196,14 +197,16 @@
         <button class="gbBtn" id="nameOk">OK</button>
       </div>
       <button id="retryBtn">PLAY AGAIN</button>
-      <button class="gbBtn" id="resetBtn2">RESET HI</button>
     </div>
   </div>
   <div id="legend" style="visibility:hidden">
     <div>SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE<br>LONG SWIPE &#9660; DROP &#183; 2-FINGER PAUSE</div>
-    <button class="gbBtn" id="bottomRestart">RESTART</button>
+    <div id="legendRow">
+      <button class="gbBtn" id="bottomRestart">RESTART</button>
+      <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
+      <a id="tipLine" href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">LEAVE A TIP</a>
+    </div>
   </div>
-  <a id="tipLine" href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">Leave A Tip</a>
 </div>
 
 <script>
@@ -211,7 +214,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 6;
+const GAME_VERSION = 7;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -317,8 +320,12 @@ const sfx = {
 };
 
 // ---------- Piece mechanics ----------
+// The awkward pieces show up half as often: friendly ones go into the bag
+// twice, these only once.
+const RARE = new Set(['F', 'F2', 'W', 'X', 'Z', 'S']);
 function shuffledBag() {
   const b = PIECES.map((_, i) => i);
+  PIECES.forEach((p, i) => { if (!RARE.has(p.n)) b.push(i); });
   for (let i = b.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [b[i], b[j]] = [b[j], b[i]];
@@ -460,7 +467,9 @@ function lockPiece() {
   }
   updateHud();
 }
-// Any fully-filled 5x5 square of settled blocks gets destroyed.
+// Any fully-filled 5x5 square of settled blocks gets destroyed — and the
+// explosion takes everything within BLAST_RADIUS cells around it with it.
+const BLAST_RADIUS = 2;
 function find5x5Blocks() {
   const cells = new Set();
   let count = 0;
@@ -472,9 +481,14 @@ function find5x5Blocks() {
           if (!grid[y + dy][x + dx]) { solid = false; break; }
       if (solid) {
         count++;
-        for (let dy = 0; dy < 5; dy++)
-          for (let dx = 0; dx < 5; dx++)
-            cells.add((x + dx) + ',' + (y + dy));
+        const r = BLAST_RADIUS;
+        for (let dy = -r; dy < 5 + r; dy++) {
+          for (let dx = -r; dx < 5 + r; dx++) {
+            const gx = x + dx, gy = y + dy;
+            if (gx >= 0 && gx < COLS && gy >= 0 && gy < ROWS && grid[gy][gx])
+              cells.add(gx + ',' + gy);
+          }
+        }
       }
     }
   }
@@ -585,8 +599,6 @@ function hiLabel() {
 }
 function refreshHiLine() {
   $('hiLine').textContent = hi > 0 ? hiLabel() : '';
-  $('resetBtn').style.display = hi > 0 ? '' : 'none';
-  $('resetBtn2').style.display = hi > 0 ? '' : 'none';
 }
 function gameOver() {
   running = false;
@@ -663,9 +675,8 @@ function layout() {
   // reserve HUD height (~86px incl. margins) + screen padding/border (~28px)
   const hudH = $('hud').offsetHeight + 8;
   const legendH = $('legend').offsetHeight + 6;
-  const tipH = $('tipLine').offsetHeight + 6;
   const chrome = 28;
-  cell = Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - legendH - tipH - chrome) / ROWS));
+  cell = Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - legendH - chrome) / ROWS));
   cell = Math.max(10, cell);
   const w = cell * COLS, h = cell * ROWS;
   boardCanvas.style.width = w + 'px';
@@ -899,6 +910,7 @@ function newGame() {
   $('overOverlay').classList.add('hidden');
   $('pauseOverlay').classList.add('hidden');
   $('hud').style.visibility = 'visible';
+  $('hud').classList.remove('faded');
   $('legend').style.visibility = 'visible';
   running = true;
   draw();
@@ -911,10 +923,10 @@ function togglePause() {
   if (!running) return;
   paused = !paused;
   $('pauseOverlay').classList.toggle('hidden', !paused);
+  $('hud').classList.toggle('faded', paused); // score/next dim with the board
 }
 $('startBtn').addEventListener('click', newGame);
 $('retryBtn').addEventListener('click', newGame);
-$('restartBtn').addEventListener('click', newGame);
 $('resumeBtn').addEventListener('click', togglePause);
 $('bottomRestart').addEventListener('click', () => {
   $('bottomRestart').blur(); // keep Space (hard drop) from re-triggering this
@@ -932,32 +944,6 @@ $('nameInput').addEventListener('keydown', e => {
   e.stopPropagation();
   if (e.key === 'Enter') { saveName(); $('nameInput').blur(); }
 });
-// reset high score: available on both the start and game-over screens,
-// two-tap confirmation on each
-function wireResetButton(btn) {
-  let armed = false, timer = null;
-  btn.addEventListener('click', () => {
-    if (!armed) {
-      armed = true;
-      btn.textContent = 'SURE? TAP AGAIN';
-      timer = setTimeout(() => { armed = false; btn.textContent = 'RESET HI'; }, 3000);
-      return;
-    }
-    clearTimeout(timer);
-    armed = false;
-    btn.textContent = 'RESET HI';
-    hi = 0;
-    hiName = '';
-    localStorage.removeItem('pentamino.hi');
-    localStorage.removeItem('pentamino.hiName');
-    localStorage.removeItem('pentris.hi'); // legacy key still read as a fallback
-    $('newHi').textContent = '';
-    refreshHiLine();
-    updateHud();
-  });
-}
-wireResetButton($('resetBtn'));
-wireResetButton($('resetBtn2'));
 function refreshSoundBtn() {
   $('soundBtn').textContent = muted ? 'SOUND OFF' : 'SOUND ON';
 }
@@ -979,6 +965,7 @@ window.__pentaminoDebug = {
   setCell(x, y, v) { grid[y][x] = v; },
   cellAt(x, y) { return grid[y][x]; },
   ghost() { return current ? computeGhost() : null; },
+  newBag() { return shuffledBag().map(i => PIECES[i].n); },
   dims() { return { cols: COLS, rows: ROWS, cell }; },
   state() { return { score, clears, level, over, running, paused, hi, hiName, updateAvailable, next: nextQueue.map(p => p.n), piece: current ? { x: current.x, y: current.y, cells: current.cells.map(c => c.join(',')).join(' ') } : null }; },
   tick(dt) { if (running && !paused) { update(dt); draw(); } },
