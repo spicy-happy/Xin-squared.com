@@ -138,13 +138,13 @@
     <div class="overlay" id="startOverlay">
       <h1>PENTAMINO</h1>
       <p>TETRIS WITH<br>PENTOMINOES<br>ALL 18 PIECES</p>
-      <p>DRAG &#9668;&#9658; MOVE<br>TAP = ROTATE<br>DRAG &#9660; SOFT DROP<br>SWIPE &#9650; HARD DROP</p>
+      <p>DRAG &#9668;&#9658; MOVE<br>TAP = ROTATE<br>DRAG &#9660; SOFT DROP<br>FLICK &#9660; HARD DROP</p>
       <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
       <button id="startBtn">START</button>
     </div>
     <div class="overlay hidden" id="pauseOverlay">
       <h1>PAUSED</h1>
-      <p>DRAG &#9668;&#9658; MOVE<br>TAP = ROTATE<br>DRAG &#9660; SOFT DROP<br>SWIPE &#9650; HARD DROP</p>
+      <p>DRAG &#9668;&#9658; MOVE<br>TAP = ROTATE<br>DRAG &#9660; SOFT DROP<br>FLICK &#9660; HARD DROP</p>
       <button id="resumeBtn">RESUME</button>
     </div>
     <div class="overlay hidden" id="overOverlay">
@@ -154,7 +154,7 @@
       <button id="retryBtn">PLAY AGAIN</button>
     </div>
   </div>
-  <div id="legend">DRAG &#9668;&#9658; MOVE &#183; TAP ROTATE<br>DRAG &#9660; SOFT &#183; SWIPE &#9650; HARD DROP</div>
+  <div id="legend">DRAG &#9668;&#9658; MOVE &#183; TAP ROTATE<br>DRAG &#9660; SOFT &#183; FLICK &#9660; HARD DROP</div>
 </div>
 
 <script>
@@ -642,8 +642,6 @@ boardCanvas.addEventListener('touchend', e => {
   const state = touch;
   touch = null;
   if (!running || paused || !current) return;
-  // swipe up = hard drop
-  if (dy < -50 && Math.abs(dx) < Math.abs(dy)) { hardDrop(); return; }
   // fast downward flick (not a slow soft-drop drag) = hard drop
   if (dy > 80 && dt < 220 && state.movedRows <= 2 && Math.abs(dx) < Math.abs(dy)) { hardDrop(); return; }
   // tap = rotate; left third rotates CCW, rest CW
