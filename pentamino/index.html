@@ -84,6 +84,15 @@
     letter-spacing: 2px;
   }
   .overlay.hidden { display: none; }
+  /* anti-cheat: while paused, blur the board behind the overlay and the
+     HUD (incl. NEXT preview) so the field can't be studied for free */
+  #pauseOverlay {
+    background: rgba(155, 188, 15, .75);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  #screen.paused #hud { filter: blur(8px); }
+  #screen.paused #board { filter: blur(12px); }
   .overlay h1 { font-size: 28px; letter-spacing: 4px; }
   .overlay p { font-size: 12px; line-height: 1.8; }
   .overlay .big { font-size: 16px; }
@@ -180,7 +189,7 @@
     <canvas id="board"></canvas>
     <div class="overlay" id="startOverlay">
       <h1>PENTAMINO</h1>
-      <p>SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>LONG SWIPE &#9660; = DROP<br>TWO-FINGER TAP = PAUSE</p>
+      <p id="startControls"></p>
       <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
       <p class="big" id="hiLine"></p>
       <p id="worldBest"></p>
@@ -189,7 +198,7 @@
     </div>
     <div class="overlay hidden" id="pauseOverlay">
       <h1>PAUSED</h1>
-      <p>SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>LONG SWIPE &#9660; = DROP<br>TWO-FINGER TAP = PAUSE</p>
+      <p id="pauseControls"></p>
       <button id="resumeBtn">RESUME</button>
       <button class="gbBtn" id="restartBtn">RESTART</button>
       <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
@@ -212,8 +221,8 @@
     </div>
   </div>
   <div id="legend" style="visibility:hidden">
-    <div>SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE<br>LONG SWIPE &#9660; DROP &#183; 2-FINGER PAUSE</div>
-    <button class="gbBtn" id="bottomRestart">RESTART</button>
+    <div id="legendText"></div>
+    <button class="gbBtn" id="bottomPause">PAUSE</button>
   </div>
   <a id="tipLine" href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">Leave A Tip</a>
 </div>
@@ -223,7 +232,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 7;
+const GAME_VERSION = 9;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -320,6 +329,7 @@ function beep(freq, dur, vol = 0.06, delay = 0) {
 const sfx = {
   move:   () => beep(220, 0.04, 0.03),
   rotate: () => beep(440, 0.06),
+  flip:   () => beep(523, 0.06),
   soft:   () => beep(180, 0.03, 0.02),
   hard:   () => beep(140, 0.09),
   lock:   () => beep(160, 0.08),
@@ -384,6 +394,22 @@ function tryRotate(cw) {
   }
   return false;
 }
+// Mirror the piece left-right (its bounding box is unchanged, so no recenter).
+function tryFlip() {
+  const { w } = bounds(current.cells);
+  const cells = current.cells.map(([x, y]) => [w - 1 - x, y]);
+  for (const [kx, ky] of KICKS) {
+    if (!collides(cells, current.x + kx, current.y + ky)) {
+      current.cells = cells;
+      current.x += kx;
+      current.y += ky;
+      onSuccessfulShift();
+      sfx.flip();
+      return true;
+    }
+  }
+  return false;
+}
 function tryMove(dx, dy) {
   if (collides(current.cells, current.x + dx, current.y + dy)) return false;
   current.x += dx;
@@ -407,35 +433,15 @@ function ghostY() {
   while (!collides(current.cells, current.x, y + 1)) y++;
   return y;
 }
-// The ghost is the DEEPEST spot at the piece's column where it FITS and the
-// pocket still has an opening to the air above — it may "squeeze" through
-// gaps narrower than itself (impossible in regular Tetris, very satisfying).
-// Fully sealed caves stay off-limits. A drop sends the piece straight there.
-function airMap() {
-  // empty cells connected to the sky (4-directional flood from row 0)
-  const air = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
-  const stack = [];
-  for (let x = 0; x < COLS; x++) if (!grid[0][x]) { air[0][x] = true; stack.push([x, 0]); }
-  while (stack.length) {
-    const [x, y] = stack.pop();
-    for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]]) {
-      if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS || air[ny][nx] || grid[ny][nx]) continue;
-      air[ny][nx] = true;
-      stack.push([nx, ny]);
-    }
-  }
-  return air;
-}
+// The ghost is the DEEPEST spot at the piece's column where it FITS and
+// comes to rest — it may "squeeze" through gaps narrower than itself and
+// even land inside fully sealed caves (impossible in regular Tetris, very
+// satisfying). A drop sends the piece straight there.
 function computeGhost() {
-  const air = airMap();
   for (let y = ROWS - 1; y >= current.y; y--) {
     if (collides(current.cells, current.x, y)) continue;
     if (!collides(current.cells, current.x, y + 1)) continue; // must come to rest
-    const hasOpening = current.cells.some(([cx, cy]) => {
-      const gy = y + cy;
-      return gy < 0 || air[gy][current.x + cx];
-    });
-    if (hasOpening) return y;
+    return y;
   }
   return ghostY();
 }
@@ -945,15 +951,6 @@ boardCanvas.addEventListener('touchmove', e => {
     updateHud();
   }
   if (touch.accY < 0) touch.accY = Math.max(touch.accY, -cell * 4);
-  // Long swipe = drop to the ghost spot (incl. squeeze tucks). Two triggers:
-  // resting piece + finger keeps dragging (fires well before lock delay
-  // freezes the piece where gravity left it), or 8+ cells of total travel
-  // while still falling in the open.
-  if (current && ((!canFall() && touch.accY >= cell * 1.5) ||
-                  t.clientY - touch.startY > cell * 8)) {
-    touch = null;
-    hardDrop();
-  }
 }, { passive: false });
 
 boardCanvas.addEventListener('touchend', e => {
@@ -967,21 +964,31 @@ boardCanvas.addEventListener('touchend', e => {
   const state = touch;
   touch = null;
   if (!running || paused || !current) return;
-  // fast downward flick (not a slow soft-drop drag) = hard drop
-  if (dy > 80 && dt < 220 && Math.abs(dx) < Math.abs(dy)) { hardDrop(); return; }
-  // tap = rotate; left third rotates CCW, rest CW
-  if (!state.consumed && dt < 300 && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
-    const rect = boardCanvas.getBoundingClientRect();
-    const cw = (t.clientX - rect.left) > rect.width / 3;
-    tryRotate(cw);
+  // upward gestures: long swipe up = rotate, short flick up = shadow drop.
+  // Downward drag only ever soft-drops (handled in touchmove) — it never
+  // triggers the drop, so you can't drop by accident while steering down.
+  if (dy <= -cell * 3.5 && Math.abs(dx) < -dy) { tryRotate(true); return; }
+  if (dy < -30 && dt < 300 && Math.abs(dx) < -dy) { hardDrop(); return; }
+  if (!state.consumed && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+    if (dt < 300) {
+      // tap = rotate; left third rotates CCW, rest CW
+      const rect = boardCanvas.getBoundingClientRect();
+      const cw = (t.clientX - rect.left) > rect.width / 3;
+      tryRotate(cw);
+    } else {
+      // press & hold without moving = flip (mirror left-right)
+      tryFlip();
+    }
   }
 }, { passive: false });
 
 boardCanvas.addEventListener('touchcancel', () => { touch = null; }, { passive: false });
 
-// ---------- Input: keyboard (desktop testing) ----------
+// ---------- Input: keyboard ----------
 document.addEventListener('keydown', e => {
-  if (e.repeat && (e.key === ' ' || e.key === 'p' || e.key === 'P')) return;
+  setInputMode('keys');
+  if (e.repeat && (e.key === ' ' || e.key === 'p' || e.key === 'P' ||
+                   e.key === 'f' || e.key === 'F' || e.key === 'Shift')) return;
   if ((e.key === 'p' || e.key === 'P') && running) { togglePause(); return; }
   if (!running || paused || !current) return;
   switch (e.key) {
@@ -992,9 +999,53 @@ document.addEventListener('keydown', e => {
       e.preventDefault(); break;
     case 'ArrowUp': case 'x': case 'X': tryRotate(true); e.preventDefault(); break;
     case 'z': case 'Z': tryRotate(false); e.preventDefault(); break;
+    case 'f': case 'F': case 'Shift': tryFlip(); e.preventDefault(); break;
     case ' ': case 'Enter': hardDrop(); e.preventDefault(); break;
   }
 });
+
+// ---------- Input: mouse (left click rotate, right click flip) ----------
+boardCanvas.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'mouse') return;
+  setInputMode('keys');
+  if (!running || paused || !current) return;
+  e.preventDefault();
+  if (e.button === 2) { tryFlip(); return; }
+  if (e.button === 0) {
+    // same zones as tap: left third rotates CCW, the rest CW
+    const rect = boardCanvas.getBoundingClientRect();
+    tryRotate((e.clientX - rect.left) > rect.width / 3);
+  }
+});
+boardCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// ---------- Input mode: swap control hints for touch vs keyboard+mouse ----------
+// The browser can't see what's "plugged in"; best practice is to guess from
+// the pointer media query, then trust whichever input the player actually uses.
+const HELP = {
+  touch: {
+    full: 'SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE &#183; HOLD = FLIP<br>FLICK &#9650; = DROP<br>LONG SWIPE &#9650; = ROTATE<br>SWIPE &#9660; SOFT DROP<br>TWO-FINGER TAP = PAUSE',
+    legend: 'SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE &#183; HOLD FLIP<br>FLICK &#9650; DROP &#183; 2-FINGER PAUSE',
+  },
+  keys: {
+    full: '&#9668; &#9658; MOVE &#183; &#9660; SOFT DROP<br>Z / X / &#9650; = ROTATE<br>F OR SHIFT = FLIP<br>SPACE = DROP &#183; P = PAUSE<br>CLICK = ROTATE &#183; R-CLICK = FLIP',
+    legend: 'Z/X ROTATE &#183; F FLIP &#183; SPACE DROP<br>CLICK ROTATE &#183; R-CLICK FLIP &#183; P PAUSE',
+  },
+};
+let inputMode = matchMedia('(pointer: coarse)').matches ? 'touch' : 'keys';
+function refreshControlHints() {
+  $('startControls').innerHTML = HELP[inputMode].full;
+  $('pauseControls').innerHTML = HELP[inputMode].full;
+  $('legendText').innerHTML = HELP[inputMode].legend;
+}
+function setInputMode(mode) {
+  if (inputMode === mode) return;
+  inputMode = mode;
+  refreshControlHints();
+  layout(); // legend height may change, so the board size can too
+}
+window.addEventListener('touchstart', () => setInputMode('touch'), { passive: true, capture: true });
+refreshControlHints();
 
 // ---------- Buttons / overlays ----------
 function newGame() {
@@ -1015,8 +1066,10 @@ function newGame() {
   $('startOverlay').classList.add('hidden');
   $('overOverlay').classList.add('hidden');
   $('pauseOverlay').classList.add('hidden');
+  $('screen').classList.remove('paused');
   $('hud').style.visibility = 'visible';
   $('legend').style.visibility = 'visible';
+  $('bottomPause').textContent = 'PAUSE';
   running = true;
   playToken = null;
   fetchPlayToken();
@@ -1030,14 +1083,16 @@ function togglePause() {
   if (!running) return;
   paused = !paused;
   $('pauseOverlay').classList.toggle('hidden', !paused);
+  $('screen').classList.toggle('paused', paused);
+  $('bottomPause').textContent = paused ? 'RESUME' : 'PAUSE';
 }
 $('startBtn').addEventListener('click', newGame);
 $('retryBtn').addEventListener('click', newGame);
 $('restartBtn').addEventListener('click', newGame);
 $('resumeBtn').addEventListener('click', togglePause);
-$('bottomRestart').addEventListener('click', () => {
-  $('bottomRestart').blur(); // keep Space (hard drop) from re-triggering this
-  newGame();
+$('bottomPause').addEventListener('click', () => {
+  $('bottomPause').blur(); // keep Space (hard drop) from re-triggering this
+  togglePause();
 });
 function saveName() {
   hiName = $('nameInput').value.trim().slice(0, 16).toUpperCase();
@@ -1100,6 +1155,7 @@ window.__pentaminoDebug = {
   setCell(x, y, v) { grid[y][x] = v; },
   cellAt(x, y) { return grid[y][x]; },
   ghost() { return current ? computeGhost() : null; },
+  flip() { return current ? tryFlip() : false; },
   dims() { return { cols: COLS, rows: ROWS, cell }; },
   state() { return { score, clears, level, over, running, paused, hi, hiName, updateAvailable, next: nextQueue.map(p => p.n), piece: current ? { x: current.x, y: current.y, cells: current.cells.map(c => c.join(',')).join(' ') } : null }; },
   tick(dt) { if (running && !paused) { update(dt); draw(); } },
