@@ -131,6 +131,10 @@
     line-height: 1.6;
     margin-top: 6px;
     white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
   }
 </style>
 </head>
@@ -184,7 +188,10 @@
       <button id="retryBtn">PLAY AGAIN</button>
     </div>
   </div>
-  <div id="legend">SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE<br>FLICK &#9660; DROP &#183; 2-FINGER TAP PAUSE</div>
+  <div id="legend">
+    <div>SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE<br>FLICK &#9660; DROP &#183; 2-FINGER TAP PAUSE</div>
+    <button class="gbBtn" id="bottomRestart">RESTART</button>
+  </div>
 </div>
 
 <script>
@@ -192,7 +199,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 2;
+const GAME_VERSION = 3;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -231,7 +238,8 @@ const gravityMs = lvl => Math.max(180, Math.round(1000 * Math.pow(0.93, lvl - 1)
 
 // ---------- State ----------
 let grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
-let bag, current, nextPiece, hi;
+let bag, current, hi;
+let nextQueue = []; // upcoming 2 pieces, shown in the NEXT preview
 let score = 0, clears = 0, level = 1;
 let dropTimer = 0, lockTimer = -1, lockResets = 0, lastTime = 0;
 let running = false, paused = false, over = false;
@@ -516,8 +524,8 @@ function settleFloatingBlocks() {
   }
 }
 function spawn() {
-  current = makePiece(nextPiece);
-  nextPiece = takeFromBag();
+  current = makePiece(nextQueue.shift());
+  nextQueue.push(takeFromBag());
   dropTimer = 0;
   lockTimer = -1;
   lockResets = 0;
@@ -619,10 +627,10 @@ function layout() {
   boardCanvas.height = h * dpr;
   boardCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   screen.style.width = (w + chrome) + 'px';
-  const nc = Math.max(7, Math.floor(cell * 0.55));
-  nextCanvas.style.width = (nc * 5) + 'px';
+  const nc = Math.max(6, Math.floor(cell * 0.45));
+  nextCanvas.style.width = (nc * 11) + 'px';
   nextCanvas.style.height = (nc * 4) + 'px';
-  nextCanvas.width = nc * 5 * dpr;
+  nextCanvas.width = nc * 11 * dpr;
   nextCanvas.height = nc * 4 * dpr;
   nextCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   drawNext();
@@ -697,16 +705,17 @@ function draw() {
     }
   }
 }
+// Preview shows the next 2 pieces side by side (5 cells each + 1 gap = 11 wide).
 function drawNext() {
-  const s = nextCanvas.width / dpr / 5;
+  const s = nextCanvas.width / dpr / 11;
   nextCtx.fillStyle = C_LIGHTEST;
-  nextCtx.fillRect(0, 0, s * 5, s * 4);
-  if (!nextPiece) return;
-  const { w, h } = bounds(nextPiece.c);
-  const ox = (5 - w) / 2 * s, oy = (4 - h) / 2 * s;
-  for (const [x, y] of nextPiece.c) drawNextBlock(ox + x * s, oy + y * s, s, nextPiece.tex);
+  nextCtx.fillRect(0, 0, s * 11, s * 4);
+  nextQueue.forEach((p, i) => {
+    const { w, h } = bounds(p.c);
+    const ox = (i * 6 + (5 - w) / 2) * s, oy = (4 - h) / 2 * s;
+    for (const [x, y] of p.c) drawBlock(nextCtx, ox + x * s, oy + y * s, s, p.tex);
+  });
 }
-function drawNextBlock(x, y, s, tex) { drawBlock(nextCtx, x, y, s, tex); }
 
 function updateHud() {
   $('score').textContent = score;
@@ -815,13 +824,16 @@ document.addEventListener('keydown', e => {
 function newGame() {
   // a fresh deploy was spotted earlier: load it instead of starting stale
   if (updateAvailable && applyUpdate()) return;
+  // drop focus from whichever button started the game, so Space (hard
+  // drop) can't re-activate it mid-play
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
   bag = shuffledBag();
   score = 0; clears = 0; level = 1;
   over = false; paused = false;
   clearingRows = null; clearingCells = null; clearingBlockCount = 0;
   softDropping = false;
-  nextPiece = takeFromBag();
+  nextQueue = [takeFromBag(), takeFromBag()];
   spawn();
   updateHud();
   $('startOverlay').classList.add('hidden');
@@ -843,6 +855,25 @@ $('startBtn').addEventListener('click', newGame);
 $('retryBtn').addEventListener('click', newGame);
 $('restartBtn').addEventListener('click', newGame);
 $('resumeBtn').addEventListener('click', togglePause);
+// bottom restart: instant when idle, two-tap confirm mid-game so a stray
+// tap can't wipe a run
+let restartArmed = false, restartTimer = null;
+function disarmRestart() {
+  restartArmed = false;
+  clearTimeout(restartTimer);
+  $('bottomRestart').textContent = 'RESTART';
+}
+$('bottomRestart').addEventListener('click', () => {
+  $('bottomRestart').blur(); // keep Space (hard drop) from re-triggering this
+  if (running && !over && !restartArmed) {
+    restartArmed = true;
+    $('bottomRestart').textContent = 'SURE?';
+    restartTimer = setTimeout(disarmRestart, 2500);
+    return;
+  }
+  disarmRestart();
+  newGame();
+});
 function saveName() {
   hiName = $('nameInput').value.trim().slice(0, 16).toUpperCase();
   localStorage.setItem('pentamino.hiName', hiName);
@@ -898,7 +929,7 @@ window.__pentaminoDebug = {
   setCell(x, y, v) { grid[y][x] = v; },
   cellAt(x, y) { return grid[y][x]; },
   dims() { return { cols: COLS, rows: ROWS, cell }; },
-  state() { return { score, clears, level, over, running, paused, hi, hiName, updateAvailable, piece: current ? { x: current.x, y: current.y, cells: current.cells.map(c => c.join(',')).join(' ') } : null }; },
+  state() { return { score, clears, level, over, running, paused, hi, hiName, updateAvailable, next: nextQueue.map(p => p.n), piece: current ? { x: current.x, y: current.y, cells: current.cells.map(c => c.join(',')).join(' ') } : null }; },
   tick(dt) { if (running && !paused) { update(dt); draw(); } },
 };
 
