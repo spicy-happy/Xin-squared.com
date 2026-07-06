@@ -58,6 +58,19 @@ function json(body, status, headers) {
   });
 }
 
+// Same name+score is the same achievement (the seed merge already treats it
+// as identity); keep whichever copy carries the fuller stats. Collapses e.g.
+// an admin-seeded bare entry later re-submitted with real clears/level.
+function dedupeScores(list) {
+  const best = new Map();
+  for (const e of list) {
+    const k = e.name + ':' + e.score;
+    const prev = best.get(k);
+    if (!prev || (e.clears || 0) > (prev.clears || 0)) best.set(k, e);
+  }
+  return [...best.values()].sort((a, b) => b.score - a.score);
+}
+
 // Single global leaderboard object. Durable Object input gates close during
 // storage awaits, so read-sort-write here can't interleave between requests.
 export class Leaderboard {
@@ -78,12 +91,15 @@ export class Leaderboard {
         const parsed = JSON.parse(raw || '[]');
         if (Array.isArray(parsed)) legacy = parsed;
       } catch { /* unreadable legacy data: ignore it */ }
-      const seen = new Set((list || []).map(e => e.name + ':' + e.score));
-      list = (list || []).concat(legacy.filter(e => e && !seen.has(e.name + ':' + e.score)));
-      list.sort((a, b) => b.score - a.score);
-      list = list.slice(0, MAX_ENTRIES);
+      list = dedupeScores((list || []).concat(legacy.filter(e => e && typeof e === 'object'))).slice(0, MAX_ENTRIES);
       await this.state.storage.put(KEY, list);
       await this.state.storage.put(SEED_MARK, true);
+    }
+    // collapse duplicates that got in before submit-time dedup existed
+    const deduped = dedupeScores(list).slice(0, MAX_ENTRIES);
+    if (deduped.length !== list.length) {
+      list = deduped;
+      await this.state.storage.put(KEY, list);
     }
     return list;
   }
@@ -92,8 +108,7 @@ export class Leaderboard {
     if (request.method === 'POST') {
       const entry = await request.json();
       scores.push(entry);
-      scores.sort((a, b) => b.score - a.score);
-      const top = scores.slice(0, MAX_ENTRIES);
+      const top = dedupeScores(scores).slice(0, MAX_ENTRIES);
       const rank = top.indexOf(entry);
       if (rank !== -1) await this.state.storage.put(KEY, top);
       return json({ scores: top, rank: rank === -1 ? null : rank + 1 }, 200, {});

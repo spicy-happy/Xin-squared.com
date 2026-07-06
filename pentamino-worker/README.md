@@ -59,3 +59,9 @@ npx wrangler@4 tail pentamino-scores                     # live request logs
 
 To remove a single bogus entry: `kv key get`, edit the JSON, then
 `npx wrangler@4 kv key put top '<edited json>' --binding=SCORES --remote`.
+
+Duplicates (same name + same score) collapse automatically, keeping the copy
+with the most clears — so a hand-seeded placeholder disappears once the real
+run's entry is on the board. Note the seed merge only ever *adds* entries to
+the Durable Object's list; deleting one that's already on the board means
+shipping a code change or a storage edit, not just a KV edit + mark bump.
