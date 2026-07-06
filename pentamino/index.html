@@ -84,14 +84,13 @@
     letter-spacing: 2px;
   }
   .overlay.hidden { display: none; }
-  /* anti-cheat: while paused, blur the board behind the overlay and the
-     HUD (incl. NEXT preview) so the field can't be studied for free */
+  /* anti-cheat: while paused, blur the board behind the overlay (the HUD
+     dims via #hud.faded) so the field can't be studied for free */
   #pauseOverlay {
     background: rgba(155, 188, 15, .75);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
-  #screen.paused #hud { filter: blur(8px); }
   #screen.paused #board { filter: blur(12px); }
   .overlay h1 { font-size: 28px; letter-spacing: 4px; }
   .overlay p { font-size: 12px; line-height: 1.8; }
@@ -152,17 +151,22 @@
     align-items: center;
     gap: 5px;
   }
+  #legendRow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
   #tipLine {
-    display: block;
-    margin-top: 6px;
-    font-size: 10px;
+    font-size: 13px;
     letter-spacing: 1px;
-    text-align: center;
-    color: var(--gb-dark);
+    color: var(--gb-darkest);
     text-decoration: underline;
     cursor: pointer;
     touch-action: auto;
+    visibility: visible; /* stays up even while the rest of the legend hides */
   }
+  #hud { transition: opacity .2s; }
+  #hud.faded { opacity: .15; }
 </style>
 </head>
 <body>
@@ -194,14 +198,10 @@
       <p class="big" id="hiLine"></p>
       <p id="worldBest"></p>
       <button id="startBtn">START</button>
-      <button class="gbBtn" id="resetBtn">RESET HI</button>
     </div>
     <div class="overlay hidden" id="pauseOverlay">
       <h1>PAUSED</h1>
-      <p id="pauseControls"></p>
       <button id="resumeBtn">RESUME</button>
-      <button class="gbBtn" id="restartBtn">RESTART</button>
-      <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
     </div>
     <div class="overlay hidden" id="overOverlay">
       <h1>GAME OVER</h1>
@@ -217,14 +217,16 @@
         <div id="lbList"></div>
       </div>
       <button id="retryBtn">PLAY AGAIN</button>
-      <button class="gbBtn" id="resetBtn2">RESET HI</button>
     </div>
   </div>
   <div id="legend" style="visibility:hidden">
     <div id="legendText"></div>
-    <button class="gbBtn" id="bottomPause">PAUSE</button>
+    <div id="legendRow">
+      <button class="gbBtn" id="bottomRestart">RESTART</button>
+      <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
+      <a id="tipLine" href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">LEAVE A TIP</a>
+    </div>
   </div>
-  <a id="tipLine" href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">Leave A Tip</a>
 </div>
 
 <script>
@@ -232,7 +234,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 9;
+const GAME_VERSION = 10;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -339,8 +341,12 @@ const sfx = {
 };
 
 // ---------- Piece mechanics ----------
+// The awkward pieces show up half as often: friendly ones go into the bag
+// twice, these only once.
+const RARE = new Set(['F', 'F2', 'W', 'X', 'Z', 'S']);
 function shuffledBag() {
   const b = PIECES.map((_, i) => i);
+  PIECES.forEach((p, i) => { if (!RARE.has(p.n)) b.push(i); });
   for (let i = b.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [b[i], b[j]] = [b[j], b[i]];
@@ -478,7 +484,9 @@ function lockPiece() {
   }
   updateHud();
 }
-// Any fully-filled 5x5 square of settled blocks gets destroyed.
+// Any fully-filled 5x5 square of settled blocks gets destroyed — and the
+// explosion takes everything within BLAST_RADIUS cells around it with it.
+const BLAST_RADIUS = 2;
 function find5x5Blocks() {
   const cells = new Set();
   let count = 0;
@@ -490,9 +498,14 @@ function find5x5Blocks() {
           if (!grid[y + dy][x + dx]) { solid = false; break; }
       if (solid) {
         count++;
-        for (let dy = 0; dy < 5; dy++)
-          for (let dx = 0; dx < 5; dx++)
-            cells.add((x + dx) + ',' + (y + dy));
+        const r = BLAST_RADIUS;
+        for (let dy = -r; dy < 5 + r; dy++) {
+          for (let dx = -r; dx < 5 + r; dx++) {
+            const gx = x + dx, gy = y + dy;
+            if (gx >= 0 && gx < COLS && gy >= 0 && gy < ROWS && grid[gy][gx])
+              cells.add(gx + ',' + gy);
+          }
+        }
       }
     }
   }
@@ -603,8 +616,6 @@ function hiLabel() {
 }
 function refreshHiLine() {
   $('hiLine').textContent = hi > 0 ? hiLabel() : '';
-  $('resetBtn').style.display = hi > 0 ? '' : 'none';
-  $('resetBtn2').style.display = hi > 0 ? '' : 'none';
 }
 function gameOver() {
   running = false;
@@ -786,9 +797,8 @@ function layout() {
   // reserve HUD height (~86px incl. margins) + screen padding/border (~28px)
   const hudH = $('hud').offsetHeight + 8;
   const legendH = $('legend').offsetHeight + 6;
-  const tipH = $('tipLine').offsetHeight + 6;
   const chrome = 28;
-  cell = Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - legendH - tipH - chrome) / ROWS));
+  cell = Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - legendH - chrome) / ROWS));
   cell = Math.max(10, cell);
   const w = cell * COLS, h = cell * ROWS;
   boardCanvas.style.width = w + 'px';
@@ -913,6 +923,7 @@ boardCanvas.addEventListener('touchstart', e => {
     id: t.identifier,
     startX: t.clientX, startY: t.clientY,
     lastX: t.clientX, lastY: t.clientY,
+    maxY: t.clientY, xAtLow: t.clientX, tLow: performance.now(),
     startTime: performance.now(),
     movedCols: 0, movedRows: 0,
     accX: 0, accY: 0,
@@ -929,6 +940,14 @@ boardCanvas.addEventListener('touchmove', e => {
   touch.accY += t.clientY - touch.lastY;
   touch.lastX = t.clientX;
   touch.lastY = t.clientY;
+  // remember the finger's LOWEST point — upward gestures at touchend are
+  // measured from here, so a flick up right after dragging a piece down
+  // works without backtracking past the start
+  if (t.clientY > touch.maxY) {
+    touch.maxY = t.clientY;
+    touch.xAtLow = t.clientX;
+    touch.tLow = performance.now();
+  }
   // horizontal: swipe distance sets move distance — small swipe = small
   // move, big swipe = big move (one column per ~0.7 cell-widths)
   const hStep = cell * 0.7;
@@ -964,11 +983,14 @@ boardCanvas.addEventListener('touchend', e => {
   const state = touch;
   touch = null;
   if (!running || paused || !current) return;
-  // upward gestures: long swipe up = rotate, short flick up = shadow drop.
-  // Downward drag only ever soft-drops (handled in touchmove) — it never
-  // triggers the drop, so you can't drop by accident while steering down.
-  if (dy <= -cell * 3.5 && Math.abs(dx) < -dy) { tryRotate(true); return; }
-  if (dy < -30 && dt < 300 && Math.abs(dx) < -dy) { hardDrop(); return; }
+  // upward gestures, measured from the finger's lowest point: long swipe
+  // up = rotate, short quick flick up = shadow drop. Downward drag only
+  // ever soft-drops (handled in touchmove) — it never triggers the drop,
+  // so you can't drop by accident while steering down.
+  const upDist = state.maxY - t.clientY;
+  const upDx = Math.abs(t.clientX - state.xAtLow);
+  if (upDist >= cell * 3.5 && upDx < upDist) { tryRotate(true); return; }
+  if (upDist > 30 && performance.now() - state.tLow < 300 && upDx < upDist) { hardDrop(); return; }
   if (!state.consumed && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
     if (dt < 300) {
       // tap = rotate; left third rotates CCW, rest CW
@@ -1035,7 +1057,6 @@ const HELP = {
 let inputMode = matchMedia('(pointer: coarse)').matches ? 'touch' : 'keys';
 function refreshControlHints() {
   $('startControls').innerHTML = HELP[inputMode].full;
-  $('pauseControls').innerHTML = HELP[inputMode].full;
   $('legendText').innerHTML = HELP[inputMode].legend;
 }
 function setInputMode(mode) {
@@ -1068,8 +1089,8 @@ function newGame() {
   $('pauseOverlay').classList.add('hidden');
   $('screen').classList.remove('paused');
   $('hud').style.visibility = 'visible';
+  $('hud').classList.remove('faded');
   $('legend').style.visibility = 'visible';
-  $('bottomPause').textContent = 'PAUSE';
   running = true;
   playToken = null;
   fetchPlayToken();
@@ -1084,15 +1105,14 @@ function togglePause() {
   paused = !paused;
   $('pauseOverlay').classList.toggle('hidden', !paused);
   $('screen').classList.toggle('paused', paused);
-  $('bottomPause').textContent = paused ? 'RESUME' : 'PAUSE';
+  $('hud').classList.toggle('faded', paused); // score/next dim with the board
 }
 $('startBtn').addEventListener('click', newGame);
 $('retryBtn').addEventListener('click', newGame);
-$('restartBtn').addEventListener('click', newGame);
 $('resumeBtn').addEventListener('click', togglePause);
-$('bottomPause').addEventListener('click', () => {
-  $('bottomPause').blur(); // keep Space (hard drop) from re-triggering this
-  togglePause();
+$('bottomRestart').addEventListener('click', () => {
+  $('bottomRestart').blur(); // keep Space (hard drop) from re-triggering this
+  newGame();
 });
 function saveName() {
   hiName = $('nameInput').value.trim().slice(0, 16).toUpperCase();
@@ -1108,32 +1128,6 @@ $('nameInput').addEventListener('keydown', e => {
   e.stopPropagation();
   if (e.key === 'Enter') { saveName(); $('nameInput').blur(); }
 });
-// reset high score: available on both the start and game-over screens,
-// two-tap confirmation on each
-function wireResetButton(btn) {
-  let armed = false, timer = null;
-  btn.addEventListener('click', () => {
-    if (!armed) {
-      armed = true;
-      btn.textContent = 'SURE? TAP AGAIN';
-      timer = setTimeout(() => { armed = false; btn.textContent = 'RESET HI'; }, 3000);
-      return;
-    }
-    clearTimeout(timer);
-    armed = false;
-    btn.textContent = 'RESET HI';
-    hi = 0;
-    hiName = '';
-    localStorage.removeItem('pentamino.hi');
-    localStorage.removeItem('pentamino.hiName');
-    localStorage.removeItem('pentris.hi'); // legacy key still read as a fallback
-    $('newHi').textContent = '';
-    refreshHiLine();
-    updateHud();
-  });
-}
-wireResetButton($('resetBtn'));
-wireResetButton($('resetBtn2'));
 function refreshSoundBtn() {
   $('soundBtn').textContent = muted ? 'SOUND OFF' : 'SOUND ON';
 }
@@ -1156,6 +1150,7 @@ window.__pentaminoDebug = {
   cellAt(x, y) { return grid[y][x]; },
   ghost() { return current ? computeGhost() : null; },
   flip() { return current ? tryFlip() : false; },
+  newBag() { return shuffledBag().map(i => PIECES[i].n); },
   dims() { return { cols: COLS, rows: ROWS, cell }; },
   state() { return { score, clears, level, over, running, paused, hi, hiName, updateAvailable, next: nextQueue.map(p => p.n), piece: current ? { x: current.x, y: current.y, cells: current.cells.map(c => c.join(',')).join(' ') } : null }; },
   tick(dt) { if (running && !paused) { update(dt); draw(); } },
