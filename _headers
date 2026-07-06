@@ -1,0 +1,9 @@
+# Cloudflare Pages headers (ignored on GitHub Pages — the game's own
+# GAME_VERSION self-update check covers that case).
+# Always revalidate the Pentamino page so deploys show up on refresh.
+
+/pentamino/
+  Cache-Control: no-cache
+
+/pentamino/index.html
+  Cache-Control: no-cache

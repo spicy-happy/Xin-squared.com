@@ -35,3 +35,6 @@ are phone-first.
 - Clear animations take 280ms (`CLEAR_FLASH_MS`); wait ~700ms after a lock
   before asserting grid state.
 - `window.__loopStarted === true` signals the game loop is running.
+- **Bump `GAME_VERSION` in `pentamino/index.html` on every change to that
+  file** — deployed pages compare it against the server copy to reload
+  themselves; forgetting the bump means players keep the stale version.
