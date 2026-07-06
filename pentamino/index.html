@@ -178,7 +178,7 @@
     <canvas id="board"></canvas>
     <div class="overlay" id="startOverlay">
       <h1>PENTAMINO</h1>
-      <p>SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>LONG SWIPE &#9660; = DROP<br>TWO-FINGER TAP = PAUSE</p>
+      <p>SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>SWIPE &#9650; = DROP<br>TWO-FINGER TAP = PAUSE</p>
       <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
       <p class="big" id="hiLine"></p>
       <button id="startBtn">START</button>
@@ -200,7 +200,7 @@
     </div>
   </div>
   <div id="legend" style="visibility:hidden">
-    <div>SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE<br>LONG SWIPE &#9660; DROP &#183; 2-FINGER PAUSE</div>
+    <div>SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE<br>SWIPE &#9650; DROP &#183; 2-FINGER PAUSE</div>
     <div id="legendRow">
       <button class="gbBtn" id="bottomRestart">RESTART</button>
       <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
@@ -214,7 +214,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 7;
+const GAME_VERSION = 8;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -801,6 +801,7 @@ boardCanvas.addEventListener('touchstart', e => {
     id: t.identifier,
     startX: t.clientX, startY: t.clientY,
     lastX: t.clientX, lastY: t.clientY,
+    maxY: t.clientY,
     startTime: performance.now(),
     movedCols: 0, movedRows: 0,
     accX: 0, accY: 0,
@@ -817,6 +818,15 @@ boardCanvas.addEventListener('touchmove', e => {
   touch.accY += t.clientY - touch.lastY;
   touch.lastX = t.clientX;
   touch.lastY = t.clientY;
+  touch.maxY = Math.max(touch.maxY, t.clientY);
+  // swipe UP = teleport the piece to the ghost spot (incl. squeeze tucks).
+  // Measured from the finger's LOWEST point, so a flick up right after
+  // dragging a piece down works without backtracking past the start.
+  if (current && touch.maxY - t.clientY > cell * 1.5) {
+    touch = null;
+    hardDrop();
+    return;
+  }
   // horizontal: swipe distance sets move distance — small swipe = small
   // move, big swipe = big move (one column per ~0.7 cell-widths)
   const hStep = cell * 0.7;
@@ -839,15 +849,6 @@ boardCanvas.addEventListener('touchmove', e => {
     updateHud();
   }
   if (touch.accY < 0) touch.accY = Math.max(touch.accY, -cell * 4);
-  // Long swipe = drop to the ghost spot (incl. squeeze tucks). Two triggers:
-  // resting piece + finger keeps dragging (fires well before lock delay
-  // freezes the piece where gravity left it), or 8+ cells of total travel
-  // while still falling in the open.
-  if (current && ((!canFall() && touch.accY >= cell * 1.5) ||
-                  t.clientY - touch.startY > cell * 8)) {
-    touch = null;
-    hardDrop();
-  }
 }, { passive: false });
 
 boardCanvas.addEventListener('touchend', e => {
@@ -861,8 +862,6 @@ boardCanvas.addEventListener('touchend', e => {
   const state = touch;
   touch = null;
   if (!running || paused || !current) return;
-  // fast downward flick (not a slow soft-drop drag) = hard drop
-  if (dy > 80 && dt < 220 && Math.abs(dx) < Math.abs(dy)) { hardDrop(); return; }
   // tap = rotate; left third rotates CCW, rest CW
   if (!state.consumed && dt < 300 && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
     const rect = boardCanvas.getBoundingClientRect();
