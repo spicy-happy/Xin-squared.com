@@ -99,6 +99,14 @@
     border-radius: 4px;
     cursor: pointer;
   }
+  #legend {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align: center;
+    line-height: 1.6;
+    margin-top: 6px;
+    white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -135,6 +143,7 @@
     </div>
     <div class="overlay hidden" id="pauseOverlay">
       <h1>PAUSED</h1>
+      <p>DRAG &#9668;&#9658; MOVE<br>TAP = ROTATE<br>DRAG &#9660; SOFT DROP<br>SWIPE &#9650; HARD DROP</p>
       <button id="resumeBtn">RESUME</button>
     </div>
     <div class="overlay hidden" id="overOverlay">
@@ -144,6 +153,7 @@
       <button id="retryBtn">PLAY AGAIN</button>
     </div>
   </div>
+  <div id="legend">DRAG &#9668;&#9658; MOVE &#183; TAP ROTATE<br>DRAG &#9660; SOFT &#183; SWIPE &#9650; HARD DROP</div>
 </div>
 
 <script>
@@ -184,7 +194,8 @@ const linesPerLevel = 12;
 const gravityMs = lvl => Math.max(180, Math.round(1000 * Math.pow(0.93, lvl - 1)));
 
 // ---------- State ----------
-let grid, bag, current, nextPiece, hi;
+let grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
+let bag, current, nextPiece, hi;
 let score = 0, lines = 0, level = 1;
 let dropTimer = 0, lockTimer = -1, lockResets = 0, lastTime = 0;
 let running = false, paused = false, over = false;
@@ -248,7 +259,8 @@ function bounds(cells) {
 }
 function makePiece(proto) {
   const { w, h } = bounds(proto.c);
-  return { cells: proto.c.map(c => c.slice()), tex: proto.tex, x: Math.floor((COLS - w) / 2), y: -h };
+  // spawn with the bottom row already visible so the piece appears immediately
+  return { cells: proto.c.map(c => c.slice()), tex: proto.tex, x: Math.floor((COLS - w) / 2), y: 1 - h };
 }
 function collides(cells, px, py) {
   for (const [cx, cy] of cells) {
@@ -431,8 +443,9 @@ function layout() {
   const availH = window.innerHeight - 16;
   // reserve HUD height (~86px incl. margins) + screen padding/border (~28px)
   const hudH = $('hud').offsetHeight + 8;
+  const legendH = $('legend').offsetHeight + 6;
   const chrome = 28;
-  cell = Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - chrome) / ROWS));
+  cell = Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - legendH - chrome) / ROWS));
   cell = Math.max(10, cell);
   const w = cell * COLS, h = cell * ROWS;
   boardCanvas.style.width = w + 'px';
@@ -676,9 +689,11 @@ window.__pentaminoDebug = {
 };
 
 window.addEventListener('resize', layout);
+// start the loop before first layout so a rendering hiccup can never kill gravity
+requestAnimationFrame(frame);
+window.__loopStarted = true;
 updateHud();
 layout();
-requestAnimationFrame(frame);
 </script>
 </body>
 </html>
