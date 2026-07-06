@@ -136,6 +136,17 @@
     align-items: center;
     gap: 5px;
   }
+  #tipLine {
+    display: block;
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align: center;
+    color: var(--gb-dark);
+    text-decoration: underline;
+    cursor: pointer;
+    touch-action: auto;
+  }
 </style>
 </head>
 <body>
@@ -192,6 +203,7 @@
     <div>SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE<br>LONG SWIPE &#9660; DROP &#183; 2-FINGER PAUSE</div>
     <button class="gbBtn" id="bottomRestart">RESTART</button>
   </div>
+  <a id="tipLine" href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">Leave A Tip</a>
 </div>
 
 <script>
@@ -199,7 +211,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 5;
+const GAME_VERSION = 6;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -651,8 +663,9 @@ function layout() {
   // reserve HUD height (~86px incl. margins) + screen padding/border (~28px)
   const hudH = $('hud').offsetHeight + 8;
   const legendH = $('legend').offsetHeight + 6;
+  const tipH = $('tipLine').offsetHeight + 6;
   const chrome = 28;
-  cell = Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - legendH - chrome) / ROWS));
+  cell = Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - legendH - tipH - chrome) / ROWS));
   cell = Math.max(10, cell);
   const w = cell * COLS, h = cell * ROWS;
   boardCanvas.style.width = w + 'px';
@@ -801,21 +814,26 @@ boardCanvas.addEventListener('touchmove', e => {
     touch.accX -= dir * hStep;
     if (tryMove(dir, 0)) { touch.movedCols++; touch.consumed = true; }
   }
-  // vertical: soft drop one row per drag step (only downward)
+  // vertical: soft drop one row per drag step (only downward). Only consume
+  // drag on a successful move so it accumulates while the piece rests —
+  // that accumulation is what triggers the drop-to-ghost below.
   while (touch.accY >= cell * 0.8) {
+    if (!current || !tryMove(0, 1)) break;
     touch.accY -= cell * 0.8;
-    if (current && tryMove(0, 1)) {
-      score += 1;
-      touch.movedRows++;
-      touch.consumed = true;
-      dropTimer = 0;
-      sfx.soft();
-      updateHud();
-    } else break;
+    score += 1;
+    touch.movedRows++;
+    touch.consumed = true;
+    dropTimer = 0;
+    sfx.soft();
+    updateHud();
   }
   if (touch.accY < 0) touch.accY = Math.max(touch.accY, -cell * 4);
-  // a LONG swipe down commits the piece to the ghost spot
-  if (t.clientY - touch.startY > cell * 8) {
+  // Long swipe = drop to the ghost spot (incl. squeeze tucks). Two triggers:
+  // resting piece + finger keeps dragging (fires well before lock delay
+  // freezes the piece where gravity left it), or 8+ cells of total travel
+  // while still falling in the open.
+  if (current && ((!canFall() && touch.accY >= cell * 1.5) ||
+                  t.clientY - touch.startY > cell * 8)) {
     touch = null;
     hardDrop();
   }
