@@ -55,7 +55,7 @@
   .stat .label { font-size: 10px; }
   .stat .value { font-size: 15px; }
   #nextBox { display: flex; flex-direction: column; align-items: center; }
-  #nextCanvas { display: block; }
+  #nextCanvas { display: block; border: 2px solid var(--gb-darkest); border-radius: 3px; }
   .gbBtn {
     font: inherit;
     font-size: 13px;
@@ -163,7 +163,7 @@
     <div class="overlay" id="startOverlay">
       <h1>PENTAMINO</h1>
       <p>TETRIS WITH<br>PENTOMINOES<br>ALL 18 PIECES</p>
-      <p>SWIPE &#9668;&#9658; MOVE<br>SMALL SWIPE = SMALL MOVE<br>BIG SWIPE = BIG MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>FLICK &#9660; HARD DROP<br>TWO-FINGER TAP = PAUSE</p>
+      <p>SWIPE &#9668;&#9658; MOVE<br>SMALL SWIPE = SMALL MOVE<br>BIG SWIPE = BIG MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>FLICK &#9660; DROP TO GHOST<br>GHOST TUCKS UNDER LEDGES<br>TWO-FINGER TAP = PAUSE</p>
       <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
       <p class="big" id="hiLine"></p>
       <button id="startBtn">START</button>
@@ -171,7 +171,7 @@
     </div>
     <div class="overlay hidden" id="pauseOverlay">
       <h1>PAUSED</h1>
-      <p>SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>FLICK &#9660; HARD DROP<br>TWO-FINGER TAP = PAUSE</p>
+      <p>SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>FLICK &#9660; DROP TO GHOST<br>TWO-FINGER TAP = PAUSE</p>
       <button id="resumeBtn">RESUME</button>
       <button class="gbBtn" id="restartBtn">RESTART</button>
       <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
@@ -199,7 +199,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 3;
+const GAME_VERSION = 4;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -383,10 +383,31 @@ function ghostY() {
   while (!collides(current.cells, current.x, y + 1)) y++;
   return y;
 }
+// The ghost is the DEEPEST resting spot the piece can actually reach at its
+// current column by falling and sliding (down/left/right moves) — so it can
+// sit in a pocket under a ledge. A flick drops the piece straight to it.
+function computeGhost() {
+  const seen = new Set();
+  const stack = [[current.x, current.y]];
+  seen.add(current.x + ',' + current.y);
+  let best = -Infinity;
+  while (stack.length) {
+    const [x, y] = stack.pop();
+    if (x === current.x && y > best && collides(current.cells, x, y + 1)) best = y; // resting here
+    for (const [nx, ny] of [[x - 1, y], [x + 1, y], [x, y + 1]]) {
+      const k = nx + ',' + ny;
+      if (seen.has(k) || ny >= ROWS + 5 || collides(current.cells, nx, ny)) continue;
+      seen.add(k);
+      stack.push([nx, ny]);
+    }
+  }
+  return best === -Infinity ? ghostY() : best;
+}
 function hardDrop() {
-  const dist = ghostY() - current.y;
-  current.y += dist;
-  score += dist * 2;
+  const gy = computeGhost();
+  const dist = gy - current.y;
+  if (dist > 0) score += dist * 2;
+  current.y = gy;
   sfx.hard();
   lockPiece();
 }
@@ -694,7 +715,7 @@ function draw() {
     }
   }
   if (current) {
-    const gy = ghostY();
+    const gy = computeGhost();
     for (const [cx, cy] of current.cells) {
       const y = gy + cy;
       if (y >= 0 && y !== current.y + cy) drawGhostBlock(boardCtx, (current.x + cx) * cell, y * cell, cell);
@@ -710,6 +731,8 @@ function drawNext() {
   const s = nextCanvas.width / dpr / 11;
   nextCtx.fillStyle = C_LIGHTEST;
   nextCtx.fillRect(0, 0, s * 11, s * 4);
+  nextCtx.fillStyle = 'rgba(48, 98, 48, 0.35)';
+  nextCtx.fillRect(Math.round(s * 5.5), 0, 1, s * 4); // divider between the two
   nextQueue.forEach((p, i) => {
     const { w, h } = bounds(p.c);
     const ox = (i * 6 + (5 - w) / 2) * s, oy = (4 - h) / 2 * s;
@@ -855,23 +878,8 @@ $('startBtn').addEventListener('click', newGame);
 $('retryBtn').addEventListener('click', newGame);
 $('restartBtn').addEventListener('click', newGame);
 $('resumeBtn').addEventListener('click', togglePause);
-// bottom restart: instant when idle, two-tap confirm mid-game so a stray
-// tap can't wipe a run
-let restartArmed = false, restartTimer = null;
-function disarmRestart() {
-  restartArmed = false;
-  clearTimeout(restartTimer);
-  $('bottomRestart').textContent = 'RESTART';
-}
 $('bottomRestart').addEventListener('click', () => {
   $('bottomRestart').blur(); // keep Space (hard drop) from re-triggering this
-  if (running && !over && !restartArmed) {
-    restartArmed = true;
-    $('bottomRestart').textContent = 'SURE?';
-    restartTimer = setTimeout(disarmRestart, 2500);
-    return;
-  }
-  disarmRestart();
   newGame();
 });
 function saveName() {
@@ -928,6 +936,7 @@ window.__pentaminoDebug = {
   fillRow(y, skipX = -1) { for (let x = 0; x < COLS; x++) if (x !== skipX) grid[y][x] = 1; },
   setCell(x, y, v) { grid[y][x] = v; },
   cellAt(x, y) { return grid[y][x]; },
+  ghost() { return current ? computeGhost() : null; },
   dims() { return { cols: COLS, rows: ROWS, cell }; },
   state() { return { score, clears, level, over, running, paused, hi, hiName, updateAvailable, next: nextQueue.map(p => p.n), piece: current ? { x: current.x, y: current.y, cells: current.cells.map(c => c.join(',')).join(' ') } : null }; },
   tick(dt) { if (running && !paused) { update(dt); draw(); } },
