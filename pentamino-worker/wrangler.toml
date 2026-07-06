@@ -1,0 +1,12 @@
+name = "pentamino-scores"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+
+# KV namespace holding the leaderboard (single key "top").
+# id filled in from: wrangler kv namespace create SCORES
+[[kv_namespaces]]
+binding = "SCORES"
+id = "32a26b93642a4a9080087d14ef5db548"
+
+[observability]
+enabled = true
