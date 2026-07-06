@@ -54,19 +54,8 @@
   .stat { line-height: 1.25; letter-spacing: 1px; }
   .stat .label { font-size: 10px; }
   .stat .value { font-size: 15px; }
-  #nextBox { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-  #nextCanvas { display: block; }
-  #spawnBar {
-    width: 100%;
-    height: 6px;
-    border: 1px solid var(--gb-darkest);
-    border-radius: 2px;
-  }
-  #spawnFill {
-    height: 100%;
-    width: 100%;
-    background: var(--gb-darkest);
-  }
+  #nextBox { display: flex; flex-direction: column; align-items: center; }
+  #nextCanvas { display: block; border: 2px solid var(--gb-darkest); border-radius: 3px; }
   .gbBtn {
     font: inherit;
     font-size: 13px;
@@ -79,9 +68,8 @@
     cursor: pointer;
   }
   .gbBtn:active { background: var(--gb-dark); color: var(--gb-lightest); }
-  #pauseBtn { align-self: flex-start; }
   #boardWrap { position: relative; flex: 1; }
-  #board { display: block; background: var(--gb-light); touch-action: none; }
+  #board { display: block; background: var(--gb-light); }
   .overlay {
     position: absolute;
     inset: 0;
@@ -96,6 +84,14 @@
     letter-spacing: 2px;
   }
   .overlay.hidden { display: none; }
+  /* anti-cheat: while paused, blur the board behind the overlay (the HUD
+     dims via #hud.faded) so the field can't be studied for free */
+  #pauseOverlay {
+    background: rgba(155, 188, 15, .75);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  #screen.paused #board { filter: blur(12px); }
   .overlay h1 { font-size: 28px; letter-spacing: 4px; }
   .overlay p { font-size: 12px; line-height: 1.8; }
   .overlay .big { font-size: 16px; }
@@ -136,6 +132,13 @@
     user-select: text;
     touch-action: auto;
   }
+  #lbBox { width: 100%; max-width: 340px; font-size: 11px; letter-spacing: 1px; }
+  #lbTitle { font-size: 11px; margin-bottom: 4px; }
+  #lbList { line-height: 1.6; white-space: pre; }
+  #lbList .me {
+    background: var(--gb-darkest);
+    color: var(--gb-lightest);
+  }
   #legend {
     font-size: 10px;
     letter-spacing: 1px;
@@ -143,12 +146,35 @@
     line-height: 1.6;
     margin-top: 6px;
     white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
   }
+  #legendRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+  #madeBy { font-size: 13px; letter-spacing: 1px; }
+  #tipLine {
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: var(--gb-darkest);
+    text-decoration: underline;
+    cursor: pointer;
+    touch-action: auto;
+    visibility: visible; /* stays up even while the rest of the legend hides */
+  }
+  #hud { transition: opacity .2s; }
+  #hud.faded { opacity: .15; }
 </style>
 </head>
 <body>
 <div id="screen">
-  <div id="hud">
+  <div id="hud" style="visibility:hidden">
     <div class="stat">
       <div class="label">SCORE</div>
       <div class="value" id="score">0</div>
@@ -156,35 +182,29 @@
       <div class="value" id="hi">0</div>
     </div>
     <div class="stat">
-      <div class="label">BLASTS</div>
-      <div class="value" id="blasts">0</div>
+      <div class="label">CLEARS</div>
+      <div class="value" id="clears">0</div>
       <div class="label">LEVEL</div>
       <div class="value" id="level">1</div>
     </div>
-    <button class="gbBtn" id="pauseBtn" aria-label="Pause">&#10074;&#10074;</button>
     <div id="nextBox">
       <div class="stat"><div class="label">NEXT</div></div>
       <canvas id="nextCanvas"></canvas>
-      <div id="spawnBar"><div id="spawnFill"></div></div>
     </div>
   </div>
   <div id="boardWrap">
     <canvas id="board"></canvas>
     <div class="overlay" id="startOverlay">
       <h1>PENTABOMB</h1>
-      <p>KATAMINO-STYLE PUZZLE<br>ALL 18 PENTOMINOES</p>
-      <p>PIECES APPEAR ON A TIMER<br>DRAG ANY PIECE ANYWHERE<br>EVEN ONES PLACED BEFORE<br>TAP A PIECE = ROTATE</p>
-      <p>FILL A 5&#215;5 SQUARE TO BLAST<br>EVERY PIECE IT TOUCHES<br>NO ROOM LEFT = GAME OVER</p>
+      <p id="startControls"></p>
+      <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
       <p class="big" id="hiLine"></p>
+      <p id="worldBest"></p>
       <button id="startBtn">START</button>
-      <button class="gbBtn" id="resetBtn">RESET HI</button>
     </div>
     <div class="overlay hidden" id="pauseOverlay">
       <h1>PAUSED</h1>
-      <p>DRAG PIECE = MOVE<br>TAP PIECE = ROTATE<br>FILL 5&#215;5 = BOOM<br>TWO-FINGER TAP = PAUSE</p>
       <button id="resumeBtn">RESUME</button>
-      <button class="gbBtn" id="restartBtn">RESTART</button>
-      <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
     </div>
     <div class="overlay hidden" id="overOverlay">
       <h1>GAME OVER</h1>
@@ -195,10 +215,22 @@
         <input id="nameInput" maxlength="16" autocomplete="off" spellcheck="false" enterkeyhint="done">
         <button class="gbBtn" id="nameOk">OK</button>
       </div>
+      <div id="lbBox">
+        <div id="lbTitle">&#8212; WORLD TOP 10 &#8212;</div>
+        <div id="lbList"></div>
+      </div>
       <button id="retryBtn">PLAY AGAIN</button>
     </div>
   </div>
-  <div id="legend">DRAG = MOVE &#183; TAP = ROTATE<br>FILL 5&#215;5 = BOOM &#183; 2-FINGER TAP PAUSE</div>
+  <div id="legend" style="visibility:hidden">
+    <div id="legendText"></div>
+    <div id="legendRow">
+      <button class="gbBtn" id="bottomRestart">RESTART</button>
+      <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
+      <span id="madeBy">MADE BY XIN</span>
+      <a id="tipLine" href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">LEAVE A TIP</a>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -206,7 +238,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 1;
+const GAME_VERSION = 11;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -233,32 +265,34 @@ const PIECES = [
 ];
 PIECES.forEach((p, i) => { p.tex = i % 3; });
 
-const COLS = 12, ROWS = 12;
-const SQUARE_SCORE = 1000;  // per 5x5 square blasted, times level
-const CELL_SCORE = 100;     // per cell destroyed, times level
-const BLASTS_PER_LEVEL = 5;
-const BLAST_FLASH_MS = 320;
-const SPAWN_FLASH_MS = 900;
-const KICKS = [[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
+const COLS = 12, ROWS = 20;
+const BLOCK_SCORE = 1000; // per 5x5 square destroyed, times level
+const LINE_SCORES = [0, 100, 300, 600, 1000, 1600];
+const KICKS = [[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[-1,-1],[1,-1]];
+const LOCK_DELAY = 400, MAX_LOCK_RESETS = 10;
+const HOLD_FLIP_MS = 300;      // press-and-hold this long flips instantly, mid-touch
+const TOUCH_LOCK_GRACE = 300;  // lock waits this much longer while a finger is down
+const ROTATE_REGRET_MS = 300;  // a drop this soon after a rotate may undo it
 
-// Pressure curve: a new piece appears every spawnMs; ramps up per level.
-const spawnMs = lvl => Math.max(2600, Math.round(9000 * Math.pow(0.9, lvl - 1)));
+// Slow-and-steady curve: level up every 12 clears, gravity eases down gently.
+const clearsPerLevel = 12;
+const gravityMs = lvl => Math.max(180, Math.round(1000 * Math.pow(0.93, lvl - 1)));
 
 // ---------- State ----------
-// Every piece on the board stays a movable unit:
-// { id, cells (normalized), x, y, tex, flash }
 let grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
-let pieces = new Map(), nextPieceId = 1;
-let bag, nextProto, hi;
-let score = 0, blasts = 0, level = 1;
-let spawnTimer = 0, lastTime = 0;
+let bag, current, hi;
+let nextQueue = []; // upcoming 2 pieces, shown in the NEXT preview
+let score = 0, clears = 0, level = 1;
+let dropTimer = 0, lockTimer = -1, lockResets = 0, lastTime = 0;
 let running = false, paused = false, over = false;
-let blasting = null; // { squares, pieceIds:Set, timer }
-let drag = null;     // { id, offX, offY, tx, ty, moved, sx, sy, t0, pointerId }
+let spawnTime = 0, gameStartAt = 0;
+let lastOrient = null; // shape/pos just before the latest rotate or flip
+let clearingRows = null, clearingCells = null, clearingBlockCount = 0, clearTimer = 0;
+const CLEAR_FLASH_MS = 280;
 
-hi = +(localStorage.getItem('pentabomb.hi') || 0);
-let hiName = localStorage.getItem('pentabomb.hiName') || '';
-let muted = localStorage.getItem('pentabomb.muted') === '1';
+hi = +(localStorage.getItem('pentabomb.hi') || localStorage.getItem('pentamino.hi') || localStorage.getItem('pentris.hi') || 0);
+let hiName = localStorage.getItem('pentabomb.hiName') || localStorage.getItem('pentamino.hiName') || '';
+let muted = (localStorage.getItem('pentabomb.muted') ?? localStorage.getItem('pentamino.muted') ?? localStorage.getItem('pentris.muted')) === '1';
 
 // ---------- Self-update: pick up fresh deploys on refresh / new game ----------
 let updateAvailable = false;
@@ -304,19 +338,24 @@ function beep(freq, dur, vol = 0.06, delay = 0) {
   } catch (e) { /* audio unavailable */ }
 }
 const sfx = {
-  spawn:  () => { beep(660, 0.05, 0.04); beep(880, 0.07, 0.04, 0.06); },
-  pickup: () => beep(330, 0.04, 0.03),
-  drop:   () => beep(160, 0.08),
+  move:   () => beep(220, 0.04, 0.03),
   rotate: () => beep(440, 0.06),
-  buzz:   () => beep(110, 0.12, 0.05),
-  blast:  n => { for (let i = 0; i < Math.max(3, n + 2); i++) beep(262 + i * 131, 0.09, 0.06, i * 0.08); },
+  flip:   () => beep(523, 0.06),
+  soft:   () => beep(180, 0.03, 0.02),
+  hard:   () => beep(140, 0.09),
+  lock:   () => beep(160, 0.08),
+  clear:  n => { for (let i = 0; i < Math.max(2, n + 1); i++) beep(330 + i * 110, 0.09, 0.06, i * 0.09); },
   level:  () => { beep(523, 0.1); beep(659, 0.1, 0.06, 0.1); beep(784, 0.14, 0.06, 0.2); },
   over:   () => { beep(392, 0.15); beep(330, 0.15, 0.06, 0.16); beep(262, 0.15, 0.06, 0.32); beep(196, 0.3, 0.06, 0.48); },
 };
 
 // ---------- Piece mechanics ----------
+// The awkward pieces show up half as often: friendly ones go into the bag
+// twice, these only once.
+const RARE = new Set(['F', 'F2', 'W', 'X', 'Z', 'S']);
 function shuffledBag() {
   const b = PIECES.map((_, i) => i);
+  PIECES.forEach((p, i) => { if (!RARE.has(p.n)) b.push(i); });
   for (let i = b.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [b[i], b[j]] = [b[j], b[i]];
@@ -332,101 +371,188 @@ function bounds(cells) {
   for (const [x, y] of cells) { if (x + 1 > w) w = x + 1; if (y + 1 > h) h = y + 1; }
   return { w, h };
 }
+function makePiece(proto) {
+  const { w, h } = bounds(proto.c);
+  // spawn with the bottom row already visible so the piece appears immediately
+  return { cells: proto.c.map(c => c.slice()), tex: proto.tex, x: Math.floor((COLS - w) / 2), y: 1 - h };
+}
+function collides(cells, px, py) {
+  for (const [cx, cy] of cells) {
+    const x = px + cx, y = py + cy;
+    if (x < 0 || x >= COLS || y >= ROWS) return true;
+    if (y >= 0 && grid[y][x]) return true;
+  }
+  return false;
+}
 function rotatedCells(cells, cw) {
   const rot = cells.map(([x, y]) => cw ? [-y, x] : [y, -x]);
   let mx = Infinity, my = Infinity;
   for (const [x, y] of rot) { if (x < mx) mx = x; if (y < my) my = y; }
   return rot.map(([x, y]) => [x - mx, y - my]);
 }
-// A spot fits if every cell is on the board and empty (or belongs to ignoreId).
-function fits(cells, px, py, ignoreId = 0) {
-  for (const [cx, cy] of cells) {
-    const x = px + cx, y = py + cy;
-    if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
-    const v = grid[y][x];
-    if (v && v !== ignoreId) return false;
-  }
-  return true;
-}
-function placeOnGrid(p) { for (const [cx, cy] of p.cells) grid[p.y + cy][p.x + cx] = p.id; }
-function liftFromGrid(p) { for (const [cx, cy] of p.cells) grid[p.y + cy][p.x + cx] = 0; }
-
-// Every empty spot on the board where this proto fits, in any rotation.
-function allPlacements(protoCells) {
-  const out = [];
-  let cells = protoCells.map(c => c.slice());
-  for (let r = 0; r < 4; r++) {
-    const { w, h } = bounds(cells);
-    for (let y = 0; y <= ROWS - h; y++)
-      for (let x = 0; x <= COLS - w; x++)
-        if (fits(cells, x, y)) out.push({ cells, x, y });
-    cells = rotatedCells(cells, true);
-  }
-  return out;
-}
-
-// A new piece materializes in a random empty spot. Nowhere to put it = game over.
-function spawnPiece() {
-  const proto = nextProto;
-  const options = allPlacements(proto.c);
-  if (options.length === 0) { gameOver(); return false; }
-  nextProto = takeFromBag();
-  drawNext();
-  const pick = options[Math.floor(Math.random() * options.length)];
-  const p = {
-    id: nextPieceId++,
-    cells: pick.cells.map(c => c.slice()),
-    x: pick.x, y: pick.y,
-    tex: proto.tex,
-    flash: SPAWN_FLASH_MS,
-  };
-  pieces.set(p.id, p);
-  placeOnGrid(p);
-  sfx.spawn();
-  checkBlasts();
-  return true;
-}
-
-// Tap = rotate 90° clockwise in place (recentred on the bounding box, with kicks).
-function tryRotatePiece(p) {
-  const oldB = bounds(p.cells);
-  const cells = rotatedCells(p.cells, true);
+function tryRotate(cw) {
+  const oldB = bounds(current.cells);
+  const cells = rotatedCells(current.cells, cw);
   const newB = bounds(cells);
-  const baseX = p.x + Math.floor((oldB.w - newB.w) / 2);
-  const baseY = p.y + Math.floor((oldB.h - newB.h) / 2);
+  // recenter so rotation doesn't drift toward a corner
+  const baseX = current.x + Math.floor((oldB.w - newB.w) / 2);
+  const baseY = current.y + Math.floor((oldB.h - newB.h) / 2);
   for (const [kx, ky] of KICKS) {
-    if (fits(cells, baseX + kx, baseY + ky, p.id)) {
-      liftFromGrid(p);
-      p.cells = cells;
-      p.x = baseX + kx;
-      p.y = baseY + ky;
-      placeOnGrid(p);
+    if (!collides(cells, baseX + kx, baseY + ky)) {
+      lastOrient = { cells: current.cells, x: current.x, y: current.y, t: performance.now() };
+      current.cells = cells;
+      current.x = baseX + kx;
+      current.y = baseY + ky;
+      onSuccessfulShift();
       sfx.rotate();
-      checkBlasts();
       return true;
     }
   }
-  sfx.buzz();
   return false;
 }
-
-function tryMovePiece(p, nx, ny) {
-  if (nx === p.x && ny === p.y) return true;
-  if (!fits(p.cells, nx, ny, p.id)) { sfx.buzz(); return false; }
-  liftFromGrid(p);
-  p.x = nx;
-  p.y = ny;
-  placeOnGrid(p);
-  sfx.drop();
-  checkBlasts();
+// Mirror the piece left-right (its bounding box is unchanged, so no recenter).
+function tryFlip() {
+  const { w } = bounds(current.cells);
+  const cells = current.cells.map(([x, y]) => [w - 1 - x, y]);
+  for (const [kx, ky] of KICKS) {
+    if (!collides(cells, current.x + kx, current.y + ky)) {
+      lastOrient = { cells: current.cells, x: current.x, y: current.y, t: performance.now() };
+      current.cells = cells;
+      current.x += kx;
+      current.y += ky;
+      onSuccessfulShift();
+      sfx.flip();
+      return true;
+    }
+  }
+  return false;
+}
+function tryMove(dx, dy) {
+  if (collides(current.cells, current.x + dx, current.y + dy)) return false;
+  current.x += dx;
+  current.y += dy;
+  if (dx !== 0) { onSuccessfulShift(); sfx.move(); }
   return true;
 }
-
-// ---------- Blasts ----------
-// Any fully-covered 5x5 square detonates and destroys EVERY piece touching it.
-function findBlasts() {
-  let squares = 0;
-  const pieceIds = new Set();
+function onSuccessfulShift() {
+  if (lockTimer >= 0 && lockResets < MAX_LOCK_RESETS && canFall()) {
+    lockTimer = -1;
+  } else if (lockTimer >= 0 && lockResets < MAX_LOCK_RESETS) {
+    lockTimer = 0;
+    lockResets++;
+  }
+}
+function canFall() {
+  return !collides(current.cells, current.x, current.y + 1);
+}
+function ghostY() {
+  let y = current.y;
+  while (!collides(current.cells, current.x, y + 1)) y++;
+  return y;
+}
+// The ghost is the DEEPEST spot at the piece's column where it FITS and
+// comes to rest — it may "squeeze" through gaps narrower than itself and
+// even land inside fully sealed caves (impossible in regular Tetris, very
+// satisfying). A drop sends the piece straight there.
+function computeGhost() {
+  for (let y = ROWS - 1; y >= current.y; y--) {
+    if (collides(current.cells, current.x, y)) continue;
+    if (!collides(current.cells, current.x, y + 1)) continue; // must come to rest
+    return y;
+  }
+  return ghostY();
+}
+// ---------- Drop forgiveness ----------
+// Deepest y at column px where this shape fits and comes to rest — the same
+// squeeze/sealed-cave rule as computeGhost, but for any shape and column.
+function restY(cells, px, fromY) {
+  for (let y = ROWS - 1; y >= fromY; y--) {
+    if (collides(cells, px, y)) continue;
+    if (!collides(cells, px, y + 1)) continue;
+    return y;
+  }
+  return null;
+}
+// Would dropping this shape at (px, py) finish a line or a 5x5 blast?
+function placementClears(cells, px, py) {
+  const g = grid.map(r => r.slice());
+  for (const [cx, cy] of cells) {
+    const y = py + cy;
+    if (y < 0) return false; // locks out above the board
+    g[y][px + cx] = 1;
+  }
+  for (let y = 0; y < ROWS; y++) if (g[y].every(v => v)) return true;
+  for (let y = 0; y <= ROWS - 5; y++) {
+    for (let x = 0; x <= COLS - 5; x++) {
+      let solid = true;
+      for (let dy = 0; dy < 5 && solid; dy++)
+        for (let dx = 0; dx < 5; dx++)
+          if (!g[y + dy][x + dx]) { solid = false; break; }
+      if (solid) return true;
+    }
+  }
+  return false;
+}
+// Coyote time for rotations: when a drop lands right after a rotate/flip,
+// the placement that scores wins. If the current shape clears nothing but
+// the pre-rotation shape would finish a line or a 5x5 from here, treat the
+// rotate as an accident (a tap that was meant to be a flick) and undo it.
+function maybeRegretRotation() {
+  if (!lastOrient || performance.now() - lastOrient.t > ROTATE_REGRET_MS) return;
+  const snap = lastOrient;
+  lastOrient = null;
+  const nowY = restY(current.cells, current.x, current.y);
+  if (nowY !== null && placementClears(current.cells, current.x, nowY)) return;
+  for (const px of new Set([current.x, snap.x])) {
+    const fromY = Math.min(current.y, snap.y);
+    const ry = restY(snap.cells, px, fromY);
+    if (ry === null || !placementClears(snap.cells, px, ry)) continue;
+    current.cells = snap.cells.map(c => c.slice());
+    current.x = px;
+    current.y = fromY;
+    return;
+  }
+}
+function hardDrop() {
+  maybeRegretRotation();
+  const gy = computeGhost();
+  const dist = gy - current.y;
+  if (dist > 0) score += dist * 2;
+  current.y = gy;
+  sfx.hard();
+  lockPiece();
+}
+function lockPiece() {
+  let above = false;
+  for (const [cx, cy] of current.cells) {
+    const y = current.y + cy;
+    if (y < 0) { above = true; continue; }
+    grid[y][current.x + cx] = current.tex + 1;
+  }
+  current = null;
+  lockTimer = -1;
+  if (above) { gameOver(); return; }
+  const full = [];
+  for (let y = 0; y < ROWS; y++) if (grid[y].every(v => v)) full.push(y);
+  const blocks = find5x5Blocks();
+  if (full.length || blocks.count) {
+    clearingRows = full;
+    clearingCells = blocks.cells;
+    clearingBlockCount = blocks.count;
+    clearTimer = 0;
+    sfx.clear(full.length + blocks.count);
+  } else {
+    sfx.lock();
+    spawn();
+  }
+  updateHud();
+}
+// Any fully-filled 5x5 square of settled blocks gets destroyed — and the
+// explosion takes everything within BLAST_RADIUS cells around it with it.
+const BLAST_RADIUS = 2;
+function find5x5Blocks() {
+  const cells = new Set();
+  let count = 0;
   for (let y = 0; y <= ROWS - 5; y++) {
     for (let x = 0; x <= COLS - 5; x++) {
       let solid = true;
@@ -434,54 +560,136 @@ function findBlasts() {
         for (let dx = 0; dx < 5; dx++)
           if (!grid[y + dy][x + dx]) { solid = false; break; }
       if (solid) {
-        squares++;
-        for (let dy = 0; dy < 5; dy++)
-          for (let dx = 0; dx < 5; dx++)
-            pieceIds.add(grid[y + dy][x + dx]);
+        count++;
+        const r = BLAST_RADIUS;
+        for (let dy = -r; dy < 5 + r; dy++) {
+          for (let dx = -r; dx < 5 + r; dx++) {
+            const gx = x + dx, gy = y + dy;
+            if (gx >= 0 && gx < COLS && gy >= 0 && gy < ROWS && grid[gy][gx])
+              cells.add(gx + ',' + gy);
+          }
+        }
       }
     }
   }
-  return squares ? { squares, pieceIds } : null;
+  return { cells, count };
 }
-function checkBlasts() {
-  if (blasting) return false;
-  const found = findBlasts();
-  if (!found) return false;
-  blasting = { squares: found.squares, pieceIds: found.pieceIds, timer: 0 };
-  // the held piece is going up in smoke: let go of it
-  if (drag && found.pieceIds.has(drag.id)) drag = null;
-  sfx.blast(found.squares);
-  return true;
-}
-function finishBlast() {
-  let cellsDestroyed = 0;
-  for (const id of blasting.pieceIds) {
-    const p = pieces.get(id);
-    if (!p) continue;
-    cellsDestroyed += p.cells.length;
-    liftFromGrid(p);
-    pieces.delete(id);
+function finishClear() {
+  for (const key of clearingCells) {
+    const [x, y] = key.split(',').map(Number);
+    grid[y][x] = 0;
   }
-  score += level * (SQUARE_SCORE * blasting.squares + CELL_SCORE * cellsDestroyed);
-  blasts += blasting.squares;
-  blasting = null;
-  const newLevel = Math.floor(blasts / BLASTS_PER_LEVEL) + 1;
+  for (const y of clearingRows) {
+    grid.splice(y, 1);
+    grid.unshift(new Array(COLS).fill(0));
+  }
+  const n = clearingRows.length;
+  score += BLOCK_SCORE * clearingBlockCount * level;
+  clears += n + clearingBlockCount;
+  score += LINE_SCORES[Math.min(n, LINE_SCORES.length - 1)] * level;
+  clearingRows = null;
+  clearingCells = null;
+  clearingBlockCount = 0;
+  settleFloatingBlocks();
+  const newLevel = Math.floor(clears / clearsPerLevel) + 1;
   if (newLevel > level) { level = newLevel; sfx.level(); }
+  // settling can complete new rows or 5x5 squares: chain the clear
+  const full = [];
+  for (let y = 0; y < ROWS; y++) if (grid[y].every(v => v)) full.push(y);
+  const blocks = find5x5Blocks();
+  if (full.length || blocks.count) {
+    clearingRows = full;
+    clearingCells = blocks.cells;
+    clearingBlockCount = blocks.count;
+    clearTimer = 0;
+    sfx.clear(full.length + blocks.count);
+    updateHud();
+    return;
+  }
   updateHud();
+  spawn();
 }
-
+// After a blast, blocks left floating over empty space fall as connected chunks.
+function connectedComponents() {
+  const seen = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
+  const comps = [];
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      if (!grid[y][x] || seen[y][x]) continue;
+      const comp = [], stack = [[x, y]];
+      seen[y][x] = true;
+      while (stack.length) {
+        const [cx, cy] = stack.pop();
+        comp.push([cx, cy]);
+        for (const [nx, ny] of [[cx - 1, cy], [cx + 1, cy], [cx, cy - 1], [cx, cy + 1]]) {
+          if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && grid[ny][nx] && !seen[ny][nx]) {
+            seen[ny][nx] = true;
+            stack.push([nx, ny]);
+          }
+        }
+      }
+      comps.push(comp);
+    }
+  }
+  return comps;
+}
+function fallDistance(comp) {
+  const inComp = new Set(comp.map(([x, y]) => x + ',' + y));
+  let d = Infinity;
+  for (const [x, y] of comp) {
+    let free = 0, limited = true;
+    for (let ny = y + 1; ny < ROWS; ny++) {
+      // a lower cell of the same chunk moves too; the gap between is internal
+      if (inComp.has(x + ',' + ny)) { limited = false; break; }
+      if (grid[ny][x]) break;
+      free++;
+    }
+    if (limited && free < d) d = free;
+  }
+  return d === Infinity ? 0 : d;
+}
+function settleFloatingBlocks() {
+  let moved = true;
+  while (moved) {
+    moved = false;
+    for (const comp of connectedComponents()) {
+      const d = fallDistance(comp);
+      if (d > 0) {
+        comp.sort((a, b) => b[1] - a[1]);
+        for (const [x, y] of comp) { grid[y + d][x] = grid[y][x]; grid[y][x] = 0; }
+        moved = true;
+      }
+    }
+  }
+}
+function spawn() {
+  current = makePiece(nextQueue.shift());
+  nextQueue.push(takeFromBag());
+  dropTimer = 0;
+  lockTimer = -1;
+  lockResets = 0;
+  spawnTime = performance.now();
+  lastOrient = null;
+  drawNext();
+  if (collides(current.cells, current.x, current.y) &&
+      collides(current.cells, current.x, current.y - 1)) {
+    gameOver();
+  }
+}
 function hiLabel() {
   return 'HI ' + hi + (hiName ? ' · ' + hiName : '');
 }
 function refreshHiLine() {
   $('hiLine').textContent = hi > 0 ? hiLabel() : '';
-  $('resetBtn').style.display = hi > 0 ? '' : 'none';
 }
 function gameOver() {
   running = false;
   over = true;
-  drag = null;
   sfx.over();
+  sendEvent('end', {
+    score, clears, level,
+    sec: Math.max(0, Math.round((performance.now() - gameStartAt) / 1000)),
+  });
   $('finalScore').textContent = 'SCORE ' + score;
   if (score > hi) {
     hi = score;
@@ -495,22 +703,155 @@ function gameOver() {
   }
   refreshHiLine();
   updateHud();
+  lastRun = { score, clears, level, token: playToken };
+  showLeaderboard(score);
   $('overOverlay').classList.remove('hidden');
+}
+
+// ---------- Global leaderboard (Cloudflare Worker, see /pentamino-worker) ----------
+// A single-use play token is fetched at game start; the server rejects
+// scores whose token is too fresh for the claimed points (anti-forgery).
+const SCORES_API = 'https://pentamino-scores.mail-f78.workers.dev';
+let playToken = null;
+let lastRun = null;
+let globalQualifies = false, submitted = false, nameSaved = false;
+
+async function fetchPlayToken() {
+  try {
+    const res = await fetch(SCORES_API + '/token', { method: 'POST' });
+    if (res.ok) playToken = (await res.json()).token;
+  } catch (e) { /* offline: game still works, submission just unavailable */ }
+}
+
+// ---------- Basic analytics: aggregate counters in the same worker ----------
+// Pageviews, first-time visitors, games started/finished, score + session
+// sums. No IDs, no cookies — dashboard at /pentabomb/stats.html.
+function sendEvent(type, extra) {
+  try {
+    const body = JSON.stringify(Object.assign({ type }, extra || {}));
+    // text/plain keeps the beacon a "simple request" (no CORS preflight)
+    if (navigator.sendBeacon &&
+        navigator.sendBeacon(SCORES_API + '/event', new Blob([body], { type: 'text/plain' }))) return;
+    fetch(SCORES_API + '/event', { method: 'POST', body, keepalive: true }).catch(() => {});
+  } catch (e) { /* analytics must never break the game */ }
+}
+
+async function fetchScores() {
+  const res = await fetch(SCORES_API + '/scores');
+  if (!res.ok) throw new Error('scores fetch failed: ' + res.status);
+  const data = await res.json();
+  return Array.isArray(data.scores) ? data.scores : [];
+}
+
+function renderLb(scores, myRank = -1) {
+  const el = $('lbList');
+  el.textContent = '';
+  if (!scores.length) { el.textContent = 'NO SCORES YET'; return; }
+  scores.forEach((s, i) => {
+    const span = document.createElement('span');
+    span.textContent =
+      String(i + 1).padStart(2) + ' ' +
+      String(s.name).slice(0, 16).padEnd(17) +
+      String(s.score).padStart(7) + '\n';
+    if (i === myRank) span.className = 'me';
+    el.appendChild(span);
+  });
+}
+
+function updateWorldBest(scores) {
+  if (scores && scores.length) {
+    $('worldBest').textContent = 'WORLD BEST ' + scores[0].score + ' · ' + scores[0].name;
+  }
+}
+
+async function showLeaderboard(finalScore) {
+  submitted = false;
+  globalQualifies = false;
+  nameSaved = false;
+  $('lbList').textContent = 'LOADING...';
+  try {
+    const scores = await fetchScores();
+    renderLb(scores);
+    updateWorldBest(scores);
+    // the game's token usually arrived while playing; grab it if it was late
+    if (lastRun && !lastRun.token) lastRun.token = playToken;
+    globalQualifies = finalScore > 0 && lastRun &&
+      (scores.length < 10 || finalScore > scores[scores.length - 1].score);
+    if (globalQualifies) {
+      if (nameSaved && hiName) {
+        // player confirmed their name before this fetch finished
+        submitGlobalScore(hiName);
+      } else {
+        // reuse the local name-entry UI to also claim the global spot
+        $('nameEntry').classList.remove('hidden');
+        if (!$('nameInput').value) $('nameInput').value = hiName;
+      }
+    }
+  } catch (e) {
+    $('lbList').textContent = 'LEADERBOARD OFFLINE';
+  }
+}
+
+async function submitGlobalScore(name) {
+  if (!globalQualifies || submitted || !lastRun || !name) return;
+  submitted = true;
+  try {
+    if (!lastRun.token) {
+      // token fetch lost at game start — a fresh one still passes the
+      // server's plausibility check for small scores
+      await fetchPlayToken();
+      lastRun.token = playToken;
+      if (!lastRun.token) throw new Error('no token');
+    }
+    const res = await fetch(SCORES_API + '/scores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        score: lastRun.score,
+        clears: lastRun.clears,
+        level: lastRun.level,
+        token: lastRun.token,
+      }),
+    });
+    if (!res.ok) throw new Error('submit rejected: ' + res.status);
+    const data = await res.json();
+    renderLb(data.scores || [], data.rank != null ? data.rank - 1 : -1);
+    updateWorldBest(data.scores);
+  } catch (e) {
+    submitted = false;
+    $('lbTitle').textContent = '— SUBMIT FAILED —';
+  }
 }
 
 // ---------- Game loop ----------
 function update(dt) {
-  for (const p of pieces.values()) if (p.flash > 0) p.flash -= dt;
-  if (blasting) {
-    blasting.timer += dt;
-    if (blasting.timer >= BLAST_FLASH_MS) finishBlast();
+  if (clearingRows) {
+    clearTimer += dt;
+    if (clearTimer >= CLEAR_FLASH_MS) finishClear();
     return;
   }
-  spawnTimer += dt;
-  const interval = spawnMs(level);
-  if (spawnTimer >= interval) {
-    spawnTimer = 0;
-    spawnPiece();
+  if (!current) return;
+  if (canFall()) {
+    lockTimer = -1;
+    dropTimer += dt;
+    const interval = softDropping ? Math.min(45, gravityMs(level)) : gravityMs(level);
+    while (dropTimer >= interval) {
+      dropTimer -= interval;
+      current.y++;
+      if (softDropping) { score += 1; sfx.soft(); }
+      if (!canFall()) break;
+    }
+  } else {
+    dropTimer = 0;
+    if (lockTimer < 0) lockTimer = 0;
+    else {
+      lockTimer += dt;
+      // touch coyote time: while a finger is on the board, hold the lock a
+      // beat longer so a drop flick that lands a hair late still counts
+      const grace = touch ? TOUCH_LOCK_GRACE : 0;
+      if (lockTimer >= LOCK_DELAY + grace) lockPiece();
+    }
   }
 }
 function frame(t) {
@@ -526,7 +867,7 @@ function frame(t) {
 }
 
 // ---------- Rendering ----------
-let cell = 24, dpr = 1;
+let cell = 20, dpr = 1;
 const ink = getComputedStyle(document.documentElement);
 const C_LIGHTEST = ink.getPropertyValue('--gb-lightest').trim();
 const C_LIGHT = ink.getPropertyValue('--gb-light').trim();
@@ -538,6 +879,7 @@ function layout() {
   const screen = $('screen');
   const availW = Math.min(window.innerWidth - 16, 760);
   const availH = window.innerHeight - 16;
+  // reserve HUD height (~86px incl. margins) + screen padding/border (~28px)
   const hudH = $('hud').offsetHeight + 8;
   const legendH = $('legend').offsetHeight + 6;
   const chrome = 28;
@@ -550,10 +892,10 @@ function layout() {
   boardCanvas.height = h * dpr;
   boardCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   screen.style.width = (w + chrome) + 'px';
-  const nc = Math.max(7, Math.floor(cell * 0.5));
-  nextCanvas.style.width = (nc * 5) + 'px';
+  const nc = Math.max(6, Math.floor(cell * 0.45));
+  nextCanvas.style.width = (nc * 11) + 'px';
   nextCanvas.style.height = (nc * 4) + 'px';
-  nextCanvas.width = nc * 5 * dpr;
+  nextCanvas.width = nc * 11 * dpr;
   nextCanvas.height = nc * 4 * dpr;
   nextCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   drawNext();
@@ -589,42 +931,6 @@ function drawGhostBlock(ctx, x, y, s) {
   const o = ctx.lineWidth;
   ctx.strokeRect(x + o, y + o, s - 2 * o, s - 2 * o);
 }
-// Outline a piece's perimeter in the lightest tone so each piece reads as
-// one draggable unit even next to same-textured neighbours.
-function outlinePiece(cells, px, py, sameCell) {
-  const s = cell, lw = Math.max(1, Math.floor(s * 0.08));
-  boardCtx.strokeStyle = C_LIGHTEST;
-  boardCtx.lineWidth = lw;
-  boardCtx.beginPath();
-  const half = lw / 2;
-  for (const [cx, cy] of cells) {
-    const x = (px + cx) * s, y = (py + cy) * s;
-    if (!sameCell(cx, cy - 1)) { boardCtx.moveTo(x, y + half); boardCtx.lineTo(x + s, y + half); }
-    if (!sameCell(cx, cy + 1)) { boardCtx.moveTo(x, y + s - half); boardCtx.lineTo(x + s, y + s - half); }
-    if (!sameCell(cx - 1, cy)) { boardCtx.moveTo(x + half, y); boardCtx.lineTo(x + half, y + s); }
-    if (!sameCell(cx + 1, cy)) { boardCtx.moveTo(x + s - half, y); boardCtx.lineTo(x + s - half, y + s); }
-  }
-  boardCtx.stroke();
-}
-function drawPiece(p) {
-  const isBlasting = blasting && blasting.pieceIds.has(p.id);
-  const flashOn = isBlasting
-    ? Math.floor(blasting.timer / 70) % 2 === 0
-    : (p.flash > 0 && Math.floor(p.flash / 110) % 2 === 0);
-  for (const [cx, cy] of p.cells) {
-    const x = (p.x + cx) * cell, y = (p.y + cy) * cell;
-    if (flashOn) {
-      boardCtx.fillStyle = C_LIGHTEST;
-      boardCtx.fillRect(x, y, cell, cell);
-    } else {
-      drawBlock(boardCtx, x, y, cell, p.tex);
-    }
-  }
-  if (!flashOn) {
-    const set = new Set(p.cells.map(([x, y]) => x + ',' + y));
-    outlinePiece(p.cells, p.x, p.y, (x, y) => set.has(x + ',' + y));
-  }
-}
 function draw() {
   const w = cell * COLS, h = cell * ROWS;
   boardCtx.fillStyle = C_LIGHT;
@@ -636,213 +942,320 @@ function draw() {
   for (let x = 1; x < COLS; x++) { boardCtx.moveTo(x * cell + .5, 0); boardCtx.lineTo(x * cell + .5, h); }
   for (let y = 1; y < ROWS; y++) { boardCtx.moveTo(0, y * cell + .5); boardCtx.lineTo(w, y * cell + .5); }
   boardCtx.stroke();
-  for (const p of pieces.values()) {
-    if (drag && p.id === drag.id) continue;
-    drawPiece(p);
-  }
-  // the held piece: ghost outline at its origin, solid (or hollow when the
-  // drop would be invalid) at the spot under the finger
-  if (drag) {
-    const p = pieces.get(drag.id);
-    if (p) {
-      for (const [cx, cy] of p.cells)
-        drawGhostBlock(boardCtx, (p.x + cx) * cell, (p.y + cy) * cell, cell);
-      const ok = fits(p.cells, drag.tx, drag.ty, p.id);
-      if (ok) {
-        for (const [cx, cy] of p.cells)
-          drawBlock(boardCtx, (drag.tx + cx) * cell, (drag.ty + cy) * cell, cell, p.tex);
-        const set = new Set(p.cells.map(([x, y]) => x + ',' + y));
-        outlinePiece(p.cells, drag.tx, drag.ty, (x, y) => set.has(x + ',' + y));
+  // settled blocks (flash rows being cleared)
+  const flashOn = clearingRows && Math.floor(clearTimer / 70) % 2 === 0;
+  for (let y = 0; y < ROWS; y++) {
+    const rowFlashing = clearingRows && clearingRows.includes(y);
+    for (let x = 0; x < COLS; x++) {
+      const v = grid[y][x];
+      if (!v) continue;
+      const flashing = rowFlashing || (clearingCells && clearingCells.has(x + ',' + y));
+      if (flashing && flashOn) {
+        boardCtx.fillStyle = C_LIGHTEST;
+        boardCtx.fillRect(x * cell, y * cell, cell, cell);
       } else {
-        boardCtx.strokeStyle = C_DARKEST;
-        boardCtx.lineWidth = Math.max(2, Math.floor(cell * 0.14));
-        const o = boardCtx.lineWidth / 2;
-        for (const [cx, cy] of p.cells)
-          boardCtx.strokeRect((drag.tx + cx) * cell + o, (drag.ty + cy) * cell + o, cell - 2 * o, cell - 2 * o);
+        drawBlock(boardCtx, x * cell, y * cell, cell, v - 1);
       }
     }
   }
-  // countdown to the next spawn
-  const remain = blasting ? 1 - spawnTimer / spawnMs(level)
-    : Math.max(0, 1 - spawnTimer / spawnMs(level));
-  $('spawnFill').style.width = (remain * 100).toFixed(1) + '%';
+  if (current) {
+    const gy = computeGhost();
+    for (const [cx, cy] of current.cells) {
+      const y = gy + cy;
+      if (y >= 0 && y !== current.y + cy) drawGhostBlock(boardCtx, (current.x + cx) * cell, y * cell, cell);
+    }
+    for (const [cx, cy] of current.cells) {
+      const y = current.y + cy;
+      if (y >= 0) drawBlock(boardCtx, (current.x + cx) * cell, y * cell, cell, current.tex);
+    }
+  }
 }
+// Preview shows the next 2 pieces side by side (5 cells each + 1 gap = 11 wide).
 function drawNext() {
-  const s = nextCanvas.width / dpr / 5;
+  const s = nextCanvas.width / dpr / 11;
   nextCtx.fillStyle = C_LIGHTEST;
-  nextCtx.fillRect(0, 0, s * 5, s * 4);
-  if (!nextProto) return;
-  const { w, h } = bounds(nextProto.c);
-  const ox = (5 - w) / 2 * s, oy = (4 - h) / 2 * s;
-  for (const [x, y] of nextProto.c) drawBlock(nextCtx, ox + x * s, oy + y * s, s, nextProto.tex);
+  nextCtx.fillRect(0, 0, s * 11, s * 4);
+  nextCtx.fillStyle = 'rgba(48, 98, 48, 0.35)';
+  nextCtx.fillRect(Math.round(s * 5.5), 0, 1, s * 4); // divider between the two
+  nextQueue.forEach((p, i) => {
+    const { w, h } = bounds(p.c);
+    const ox = (i * 6 + (5 - w) / 2) * s, oy = (4 - h) / 2 * s;
+    for (const [x, y] of p.c) drawBlock(nextCtx, ox + x * s, oy + y * s, s, p.tex);
+  });
 }
 
 function updateHud() {
   $('score').textContent = score;
-  $('blasts').textContent = blasts;
+  $('clears').textContent = clears;
   $('level').textContent = level;
-  $('hi').textContent = Math.max(hi, score || 0);
+  $('hi').textContent = Math.max(hi, running ? score : 0);
 }
 
-// ---------- Input: drag to move, tap to rotate (pointer events) ----------
-const activePointers = new Set();
+// ---------- Input: touch gestures ----------
+let softDropping = false;
+let touch = null;
 
-function cellFromEvent(e) {
-  const rect = boardCanvas.getBoundingClientRect();
-  return {
-    x: Math.floor((e.clientX - rect.left) / cell),
-    y: Math.floor((e.clientY - rect.top) / cell),
-  };
-}
-function clampTarget(p, x, y) {
-  const { w, h } = bounds(p.cells);
-  return {
-    x: Math.max(0, Math.min(COLS - w, x)),
-    y: Math.max(0, Math.min(ROWS - h, y)),
-  };
-}
-
-boardCanvas.addEventListener('pointerdown', e => {
+boardCanvas.addEventListener('touchstart', e => {
   e.preventDefault();
-  activePointers.add(e.pointerId);
-  if (activePointers.size >= 2) {
-    // two-finger tap = pause
-    drag = null;
+  if (e.touches.length >= 2) {
+    if (touch && touch.holdTimer !== null) clearTimeout(touch.holdTimer);
+    touch = null;
     if (running && !over) togglePause();
     return;
   }
-  if (!running || paused || drag) return;
-  const { x, y } = cellFromEvent(e);
-  if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return;
-  const id = grid[y][x];
-  if (!id) return;
-  if (blasting && blasting.pieceIds.has(id)) return; // already going up in smoke
-  const p = pieces.get(id);
-  drag = {
-    id,
-    offX: x - p.x, offY: y - p.y,
-    tx: p.x, ty: p.y,
-    moved: false,
-    sx: e.clientX, sy: e.clientY,
-    t0: performance.now(),
-    pointerId: e.pointerId,
+  if (!running || paused || !current) return;
+  const t = e.changedTouches[0];
+  if (touch && touch.holdTimer !== null) clearTimeout(touch.holdTimer);
+  touch = {
+    id: t.identifier,
+    startX: t.clientX, startY: t.clientY,
+    lastX: t.clientX, lastY: t.clientY,
+    maxY: t.clientY, xAtLow: t.clientX, tLow: performance.now(),
+    startTime: performance.now(),
+    movedCols: 0, movedRows: 0,
+    accX: 0, accY: 0,
+    consumed: false,
+    holdTimer: null,
   };
-  try { boardCanvas.setPointerCapture(e.pointerId); } catch (err) {}
-  sfx.pickup();
-  draw();
-});
+  // press-and-hold = flip, applied the moment the hold registers — no
+  // waiting for the finger to lift
+  const tobj = touch;
+  tobj.holdTimer = setTimeout(() => {
+    if (touch !== tobj) return;
+    tobj.holdTimer = null;
+    if (tobj.consumed || !running || paused || !current) return;
+    if (Math.abs(tobj.lastX - tobj.startX) >= 12 || Math.abs(tobj.lastY - tobj.startY) >= 12) return;
+    tryFlip();
+    tobj.consumed = true; // the gesture is spent: no tap-rotate on release
+  }, HOLD_FLIP_MS);
+}, { passive: false });
 
-boardCanvas.addEventListener('pointermove', e => {
-  if (!drag || e.pointerId !== drag.pointerId) return;
+boardCanvas.addEventListener('touchmove', e => {
   e.preventDefault();
-  if (Math.abs(e.clientX - drag.sx) > 8 || Math.abs(e.clientY - drag.sy) > 8) drag.moved = true;
-  const p = pieces.get(drag.id);
-  if (!p) { drag = null; return; }
-  const { x, y } = cellFromEvent(e);
-  const t = clampTarget(p, x - drag.offX, y - drag.offY);
-  drag.tx = t.x;
-  drag.ty = t.y;
-  if (!running || paused) return;
-  draw();
-});
-
-boardCanvas.addEventListener('pointerup', e => {
-  activePointers.delete(e.pointerId);
-  if (!drag || e.pointerId !== drag.pointerId) return;
-  e.preventDefault();
-  const d = drag;
-  drag = null;
-  if (!running || paused) return;
-  const p = pieces.get(d.id);
-  if (!p) return;
-  const quick = performance.now() - d.t0 < 400;
-  if (!d.moved && quick) {
-    tryRotatePiece(p);
-  } else {
-    tryMovePiece(p, d.tx, d.ty);
+  if (!touch || !running || paused || !current) return;
+  const t = [...e.changedTouches].find(t => t.identifier === touch.id);
+  if (!t) return;
+  touch.accX += t.clientX - touch.lastX;
+  touch.accY += t.clientY - touch.lastY;
+  touch.lastX = t.clientX;
+  touch.lastY = t.clientY;
+  // remember the finger's LOWEST point — upward gestures at touchend are
+  // measured from here, so a flick up right after dragging a piece down
+  // works without backtracking past the start
+  if (t.clientY > touch.maxY) {
+    touch.maxY = t.clientY;
+    touch.xAtLow = t.clientX;
+    touch.tLow = performance.now();
   }
-  updateHud();
-  draw();
-});
+  // any real movement cancels the pending hold-flip
+  if (touch.holdTimer !== null &&
+      (Math.abs(touch.lastX - touch.startX) >= 12 || Math.abs(touch.lastY - touch.startY) >= 12)) {
+    clearTimeout(touch.holdTimer);
+    touch.holdTimer = null;
+  }
+  const upDist = touch.maxY - touch.lastY;
+  // horizontal: swipe distance sets move distance — small swipe = small
+  // move, big swipe = big move (one column per ~0.7 cell-widths). Once the
+  // finger is clearly flicking upward, sideways wobble is part of the
+  // flick, not a move: stop shifting the piece (fewer one-column-off drops)
+  const hStep = cell * 0.7;
+  if (upDist <= cell * 0.5) {
+    while (Math.abs(touch.accX) >= hStep) {
+      const dir = touch.accX > 0 ? 1 : -1;
+      touch.accX -= dir * hStep;
+      if (tryMove(dir, 0)) { touch.movedCols++; touch.consumed = true; }
+    }
+  } else {
+    touch.accX = 0;
+  }
+  // vertical: soft drop one row per drag step (only downward). Only consume
+  // drag on a successful move so it accumulates while the piece rests —
+  // that accumulation is what triggers the drop-to-ghost below.
+  while (touch.accY >= cell * 0.8) {
+    if (!current || !tryMove(0, 1)) break;
+    touch.accY -= cell * 0.8;
+    score += 1;
+    touch.movedRows++;
+    touch.consumed = true;
+    dropTimer = 0;
+    sfx.soft();
+    updateHud();
+  }
+  if (touch.accY < 0) touch.accY = Math.max(touch.accY, -cell * 4);
+  // decisive upward flick: fire the shadow drop immediately instead of
+  // waiting for the finger to lift (beats the lock timer, feels instant)
+  const upDx = Math.abs(touch.lastX - touch.xAtLow);
+  if (upDist >= cell * 1.2 && upDist >= upDx * 0.8) {
+    if (touch.holdTimer !== null) clearTimeout(touch.holdTimer);
+    const stale = touch.startTime < spawnTime; // flick aimed at the previous piece
+    touch = null;
+    if (!stale) hardDrop();
+  }
+}, { passive: false });
 
-boardCanvas.addEventListener('pointercancel', e => {
-  activePointers.delete(e.pointerId);
-  if (drag && e.pointerId === drag.pointerId) { drag = null; draw(); }
-});
+boardCanvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (!touch) return;
+  const t = [...e.changedTouches].find(t => t.identifier === touch.id);
+  if (!t) return;
+  const dx = t.clientX - touch.startX;
+  const dy = t.clientY - touch.startY;
+  const dt = performance.now() - touch.startTime;
+  const state = touch;
+  if (state.holdTimer !== null) clearTimeout(state.holdTimer);
+  touch = null;
+  if (!running || paused || !current) return;
+  // EVERY upward swipe is a shadow drop, measured from the finger's lowest
+  // point. The bar is just above tap jitter, and a diagonal flick still
+  // counts (generous ratio) — rotating when you meant to drop is worse
+  // than the reverse. Downward drag only ever soft-drops (touchmove).
+  const upDist = state.maxY - t.clientY;
+  const upDx = Math.abs(t.clientX - state.xAtLow);
+  if (upDist >= Math.max(14, cell * 0.5) && upDist >= upDx * 0.8) {
+    // a flick that began before this piece spawned was meant for the
+    // previous piece — swallow it rather than slam the fresh one
+    if (state.startTime >= spawnTime) hardDrop();
+    return;
+  }
+  if (!state.consumed && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+    if (dt < HOLD_FLIP_MS) {
+      // tap = rotate; left third rotates CCW, rest CW
+      const rect = boardCanvas.getBoundingClientRect();
+      const cw = (t.clientX - rect.left) > rect.width / 3;
+      tryRotate(cw);
+    }
+    // (press-and-hold flips via the touchstart timer, already fired)
+  }
+}, { passive: false });
 
-// ---------- Input: keyboard (desktop) ----------
+boardCanvas.addEventListener('touchcancel', () => {
+  if (touch && touch.holdTimer !== null) clearTimeout(touch.holdTimer);
+  touch = null;
+}, { passive: false });
+
+// ---------- Input: keyboard ----------
 document.addEventListener('keydown', e => {
-  if (e.repeat) return;
+  setInputMode('keys');
+  if (e.repeat && (e.key === ' ' || e.key === 'p' || e.key === 'P' ||
+                   e.key === 'f' || e.key === 'F' || e.key === 'Shift')) return;
   if ((e.key === 'p' || e.key === 'P') && running) { togglePause(); return; }
+  if (!running || paused || !current) return;
+  switch (e.key) {
+    case 'ArrowLeft': tryMove(-1, 0); e.preventDefault(); break;
+    case 'ArrowRight': tryMove(1, 0); e.preventDefault(); break;
+    case 'ArrowDown':
+      if (tryMove(0, 1)) { score += 1; dropTimer = 0; sfx.soft(); updateHud(); }
+      e.preventDefault(); break;
+    case 'ArrowUp': case 'x': case 'X': tryRotate(true); e.preventDefault(); break;
+    case 'z': case 'Z': tryRotate(false); e.preventDefault(); break;
+    case 'f': case 'F': case 'Shift': tryFlip(); e.preventDefault(); break;
+    case ' ': case 'Enter': hardDrop(); e.preventDefault(); break;
+  }
 });
+
+// ---------- Input: mouse (left click rotate, right click flip) ----------
+boardCanvas.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'mouse') return;
+  setInputMode('keys');
+  if (!running || paused || !current) return;
+  e.preventDefault();
+  if (e.button === 2) { tryFlip(); return; }
+  if (e.button === 0) {
+    // same zones as tap: left third rotates CCW, the rest CW
+    const rect = boardCanvas.getBoundingClientRect();
+    tryRotate((e.clientX - rect.left) > rect.width / 3);
+  }
+});
+boardCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// ---------- Input mode: swap control hints for touch vs keyboard+mouse ----------
+// The browser can't see what's "plugged in"; best practice is to guess from
+// the pointer media query, then trust whichever input the player actually uses.
+const HELP = {
+  touch: {
+    full: 'SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE &#183; HOLD = FLIP<br>SWIPE &#9650; = DROP<br>SWIPE &#9660; SOFT DROP<br>TWO-FINGER TAP = PAUSE',
+    legend: 'SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE &#183; HOLD FLIP<br>SWIPE &#9650; DROP &#183; 2-FINGER PAUSE',
+  },
+  keys: {
+    full: '&#9668; &#9658; MOVE &#183; &#9660; SOFT DROP<br>Z / X / &#9650; = ROTATE<br>F OR SHIFT = FLIP<br>SPACE = DROP &#183; P = PAUSE<br>CLICK = ROTATE &#183; R-CLICK = FLIP',
+    legend: 'Z/X ROTATE &#183; F FLIP &#183; SPACE DROP<br>CLICK ROTATE &#183; R-CLICK FLIP &#183; P PAUSE',
+  },
+};
+let inputMode = matchMedia('(pointer: coarse)').matches ? 'touch' : 'keys';
+function refreshControlHints() {
+  $('startControls').innerHTML = HELP[inputMode].full;
+  $('legendText').innerHTML = HELP[inputMode].legend;
+}
+function setInputMode(mode) {
+  if (inputMode === mode) return;
+  inputMode = mode;
+  refreshControlHints();
+  layout(); // legend height may change, so the board size can too
+}
+window.addEventListener('touchstart', () => setInputMode('touch'), { passive: true, capture: true });
+refreshControlHints();
 
 // ---------- Buttons / overlays ----------
 function newGame() {
   // a fresh deploy was spotted earlier: load it instead of starting stale
   if (updateAvailable && applyUpdate()) return;
+  // drop focus from whichever button started the game, so Space (hard
+  // drop) can't re-activate it mid-play
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
-  pieces = new Map();
-  nextPieceId = 1;
   bag = shuffledBag();
-  score = 0; blasts = 0; level = 1;
+  score = 0; clears = 0; level = 1;
   over = false; paused = false;
-  blasting = null; drag = null; spawnTimer = 0;
-  nextProto = takeFromBag();
-  spawnPiece();
+  clearingRows = null; clearingCells = null; clearingBlockCount = 0;
+  softDropping = false;
+  nextQueue = [takeFromBag(), takeFromBag()];
+  spawn();
   updateHud();
   $('startOverlay').classList.add('hidden');
   $('overOverlay').classList.add('hidden');
   $('pauseOverlay').classList.add('hidden');
+  $('screen').classList.remove('paused');
+  $('hud').style.visibility = 'visible';
+  $('hud').classList.remove('faded');
+  $('legend').style.visibility = 'visible';
   running = true;
+  gameStartAt = performance.now();
+  sendEvent('start');
+  playToken = null;
+  fetchPlayToken();
   draw();
   // re-check in the background; swap to the new deploy while nothing is at stake
   checkForUpdate().then(u => {
-    if (u && running && !over && score === 0 && blasts === 0) applyUpdate();
+    if (u && running && !over && score === 0 && clears === 0) applyUpdate();
   });
 }
 function togglePause() {
   if (!running) return;
   paused = !paused;
-  if (paused) drag = null;
   $('pauseOverlay').classList.toggle('hidden', !paused);
+  $('screen').classList.toggle('paused', paused);
+  $('hud').classList.toggle('faded', paused); // score/next dim with the board
 }
 $('startBtn').addEventListener('click', newGame);
 $('retryBtn').addEventListener('click', newGame);
-$('restartBtn').addEventListener('click', newGame);
 $('resumeBtn').addEventListener('click', togglePause);
-$('pauseBtn').addEventListener('click', () => { if (running && !over) togglePause(); });
+$('bottomRestart').addEventListener('click', () => {
+  $('bottomRestart').blur(); // keep Space (hard drop) from re-triggering this
+  newGame();
+});
 function saveName() {
   hiName = $('nameInput').value.trim().slice(0, 16).toUpperCase();
   localStorage.setItem('pentabomb.hiName', hiName);
   $('nameEntry').classList.add('hidden');
   $('newHi').textContent = hiLabel();
   refreshHiLine();
+  nameSaved = true;
+  submitGlobalScore(hiName);
 }
 $('nameOk').addEventListener('click', saveName);
 $('nameInput').addEventListener('keydown', e => {
   e.stopPropagation();
   if (e.key === 'Enter') { saveName(); $('nameInput').blur(); }
-});
-let resetArmed = false, resetTimer = null;
-$('resetBtn').addEventListener('click', () => {
-  if (!resetArmed) {
-    resetArmed = true;
-    $('resetBtn').textContent = 'SURE? TAP AGAIN';
-    resetTimer = setTimeout(() => {
-      resetArmed = false;
-      $('resetBtn').textContent = 'RESET HI';
-    }, 3000);
-    return;
-  }
-  clearTimeout(resetTimer);
-  resetArmed = false;
-  hi = 0;
-  hiName = '';
-  localStorage.removeItem('pentabomb.hi');
-  localStorage.removeItem('pentabomb.hiName');
-  $('resetBtn').textContent = 'RESET HI';
-  refreshHiLine();
-  updateHud();
 });
 function refreshSoundBtn() {
   $('soundBtn').textContent = muted ? 'SOUND OFF' : 'SOUND ON';
@@ -861,36 +1274,30 @@ document.addEventListener('visibilitychange', () => {
 
 // minimal hook for automated testing
 window.__pentabombDebug = {
-  dims() { return { cols: COLS, rows: ROWS, cell }; },
+  fillRow(y, skipX = -1) { for (let x = 0; x < COLS; x++) if (x !== skipX) grid[y][x] = 1; },
+  setCell(x, y, v) { grid[y][x] = v; },
   cellAt(x, y) { return grid[y][x]; },
-  pieceCount() { return pieces.size; },
-  listPieces() { return [...pieces.values()].map(p => ({ id: p.id, x: p.x, y: p.y, cells: p.cells.map(c => c.join(',')).join(' ') })); },
-  state() { return { score, blasts, level, over, running, paused, hi, hiName, updateAvailable, blasting: !!blasting, spawnTimer, spawnInterval: spawnMs(level), dragging: drag ? drag.id : null }; },
-  setNext(i) { nextProto = PIECES[i]; drawNext(); },
-  spawnNow() { spawnTimer = 0; return spawnPiece(); },
-  forceSpawn(i, rot, x, y) {
-    let cells = PIECES[i].c.map(c => c.slice());
-    for (let r = 0; r < rot; r++) cells = rotatedCells(cells, true);
-    if (!fits(cells, x, y)) return null;
-    const p = { id: nextPieceId++, cells, x, y, tex: PIECES[i].tex, flash: 0 };
-    pieces.set(p.id, p);
-    placeOnGrid(p);
-    checkBlasts();
-    return p.id;
-  },
-  removePiece(id) { const p = pieces.get(id); if (!p) return false; liftFromGrid(p); pieces.delete(id); return true; },
-  clear() { for (const p of pieces.values()) liftFromGrid(p); pieces.clear(); draw(); },
-  movePiece(id, x, y) { const p = pieces.get(id); return p ? tryMovePiece(p, x, y) : false; },
-  rotatePiece(id) { const p = pieces.get(id); return p ? tryRotatePiece(p) : false; },
+  ghost() { return current ? computeGhost() : null; },
+  flip() { return current ? tryFlip() : false; },
+  newBag() { return shuffledBag().map(i => PIECES[i].n); },
+  dims() { return { cols: COLS, rows: ROWS, cell }; },
+  state() { return { score, clears, level, over, running, paused, hi, hiName, updateAvailable, next: nextQueue.map(p => p.n), piece: current ? { x: current.x, y: current.y, cells: current.cells.map(c => c.join(',')).join(' ') } : null }; },
   tick(dt) { if (running && !paused) { update(dt); draw(); } },
 };
 
 window.addEventListener('resize', layout);
-// start the loop before first layout so a rendering hiccup can never kill the timer
+// start the loop before first layout so a rendering hiccup can never kill gravity
 requestAnimationFrame(frame);
 window.__loopStarted = true;
 updateHud();
 refreshHiLine();
+fetchScores().then(updateWorldBest).catch(() => {});
+let firstVisit = false;
+try {
+  firstVisit = !localStorage.getItem('pentabomb.seen');
+  if (firstVisit) localStorage.setItem('pentabomb.seen', '1');
+} catch (e) {}
+sendEvent('visit', firstVisit ? { first: true } : null);
 layout();
 // drop the cache-buster from the address bar, then see if a newer deploy exists
 if (location.search) history.replaceState(null, '', location.pathname);
