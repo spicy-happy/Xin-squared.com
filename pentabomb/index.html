@@ -145,7 +145,6 @@
     text-align: center;
     line-height: 1.6;
     margin-top: 6px;
-    white-space: nowrap;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -170,6 +169,19 @@
   }
   #hud { transition: opacity .2s; }
   #hud.faded { opacity: .15; }
+  /* tiny phones (320px class): tighten type so the cabinet never overflows */
+  @media (max-width: 360px) {
+    .overlay { letter-spacing: 1px; padding: 12px; gap: 10px; }
+    .overlay h1 { font-size: 22px; letter-spacing: 2px; }
+    .overlay p { font-size: 11px; letter-spacing: 1px; }
+    /* the gesture hints are already on the start overlay; dropping them here
+       frees several lines of height for the board itself */
+    #legendText { display: none; }
+    #legend { font-size: 9px; }
+    .gbBtn { font-size: 11px; }
+    #madeBy, #tipLine { font-size: 11px; }
+    #lbBox { font-size: 10px; }
+  }
 </style>
 </head>
 <body>
@@ -238,7 +250,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 12;
+const GAME_VERSION = 13;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -549,6 +561,9 @@ function lockPiece() {
 }
 // Any fully-filled 5x5 square of settled blocks gets destroyed — and the
 // explosion takes everything within BLAST_RADIUS cells around it with it.
+// Overlapping windows are a deliberate combo: a filled 6x5 area counts as
+// two blasts, 6x6 as four, so overbuilding past 5x5 pays off multiplicatively
+// (the destroyed cells themselves are unioned, only the score multiplies).
 const BLAST_RADIUS = 2;
 function find5x5Blocks() {
   const cells = new Set();
@@ -671,9 +686,12 @@ function spawn() {
   spawnTime = performance.now();
   lastOrient = null;
   drawNext();
-  if (collides(current.cells, current.x, current.y) &&
-      collides(current.cells, current.x, current.y - 1)) {
-    gameOver();
+  if (collides(current.cells, current.x, current.y)) {
+    // blocked at the normal spot: actually spawn one row higher if that
+    // fits (lockPiece's above-the-top check still ends the game if it
+    // locks up there), otherwise it's a top-out
+    if (!collides(current.cells, current.x, current.y - 1)) current.y -= 1;
+    else gameOver();
   }
 }
 function hiLabel() {
@@ -834,7 +852,9 @@ async function submitGlobalScore(name) {
 function update(dt) {
   if (clearingRows) {
     clearTimer += dt;
-    if (clearTimer >= CLEAR_FLASH_MS) finishClear();
+    // multi-blast combos flash longer so the "BLAST xN" callout can be read
+    const flashMs = clearingBlockCount >= 2 ? CLEAR_FLASH_MS * 2.5 : CLEAR_FLASH_MS;
+    if (clearTimer >= flashMs) finishClear();
     return;
   }
   if (!current) return;
@@ -887,10 +907,14 @@ function layout() {
   const availH = window.innerHeight - 16;
   // reserve HUD height (~86px incl. margins) + screen padding/border (~28px)
   const hudH = $('hud').offsetHeight + 8;
-  const legendH = $('legend').offsetHeight + 6;
   const chrome = 28;
-  cell = Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - legendH - chrome) / ROWS));
-  cell = Math.max(10, cell);
+  const sizeFor = legendH =>
+    Math.max(10, Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - legendH - chrome) / ROWS)));
+  cell = sizeFor($('legend').offsetHeight + 6);
+  // narrowing the cabinet can rewrap the legend onto more lines: apply the
+  // width, measure again, and shrink the board if the legend grew taller
+  screen.style.width = (cell * COLS + chrome) + 'px';
+  cell = Math.min(cell, sizeFor($('legend').offsetHeight + 6));
   const w = cell * COLS, h = cell * ROWS;
   boardCanvas.style.width = w + 'px';
   boardCanvas.style.height = h + 'px';
@@ -898,7 +922,11 @@ function layout() {
   boardCanvas.height = h * dpr;
   boardCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   screen.style.width = (w + chrome) + 'px';
-  const nc = Math.max(6, Math.floor(cell * 0.45));
+  // cap the NEXT preview so the HUD row never pokes past the cabinet edge
+  let statsW = 0;
+  for (const el of document.querySelectorAll('#hud > .stat')) statsW += el.offsetWidth;
+  const ncMax = Math.floor((w + chrome - 16 - statsW - 20) / 11);
+  const nc = Math.max(6, Math.min(Math.floor(cell * 0.45), ncMax));
   nextCanvas.style.width = (nc * 11) + 'px';
   nextCanvas.style.height = (nc * 4) + 'px';
   nextCanvas.width = nc * 11 * dpr;
@@ -963,6 +991,24 @@ function draw() {
         drawBlock(boardCtx, x * cell, y * cell, cell, v - 1);
       }
     }
+  }
+  // combo callout: overlapping 5x5 windows score multiplicatively — teach it
+  if (clearingBlockCount >= 2) {
+    const label = 'BLAST x' + clearingBlockCount;
+    const fs = Math.max(14, Math.floor(cell * 1.1));
+    boardCtx.font = 'bold ' + fs + 'px "Courier New", Courier, monospace';
+    boardCtx.textAlign = 'center';
+    boardCtx.textBaseline = 'middle';
+    const tw = boardCtx.measureText(label).width;
+    boardCtx.fillStyle = C_LIGHTEST;
+    boardCtx.fillRect(w / 2 - tw / 2 - 8, h / 2 - fs, tw + 16, fs * 2);
+    boardCtx.strokeStyle = C_DARKEST;
+    boardCtx.lineWidth = 2;
+    boardCtx.strokeRect(w / 2 - tw / 2 - 8, h / 2 - fs, tw + 16, fs * 2);
+    boardCtx.fillStyle = C_DARKEST;
+    boardCtx.fillText(label, w / 2, h / 2);
+    boardCtx.textAlign = 'left';
+    boardCtx.textBaseline = 'alphabetic';
   }
   if (current) {
     const gy = computeGhost();

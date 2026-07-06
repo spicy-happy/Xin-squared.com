@@ -2,11 +2,22 @@ name = "pentamino-scores"
 main = "src/index.js"
 compatibility_date = "2026-07-01"
 
-# KV namespace holding the leaderboard (single key "top").
+# KV holds play tokens, rate-limit counters, analytics, and the legacy "top"
+# key the Durable Object seeds itself from on first run.
 # id filled in from: wrangler kv namespace create SCORES
 [[kv_namespaces]]
 binding = "SCORES"
 id = "32a26b93642a4a9080087d14ef5db548"
+
+# The leaderboard lives in a single Durable Object ("global") so concurrent
+# score submissions serialize instead of racing a KV read-modify-write.
+[[durable_objects.bindings]]
+name = "LEADERBOARD"
+class_name = "Leaderboard"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Leaderboard"]
 
 [observability]
 enabled = true

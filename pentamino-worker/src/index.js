@@ -8,6 +8,11 @@
 // Anti-cheat (friction, not proof): scores need a single-use server-issued
 // token, and are rejected unless enough real time elapsed since the token
 // was issued (MAX_PTS_PER_SEC). Per-IP hourly rate limits on top.
+//
+// The leaderboard itself lives in a Durable Object so concurrent submissions
+// serialize instead of racing a KV read-modify-write. KV still holds tokens,
+// rate-limit counters, and analytics (races there are tolerable), plus the
+// legacy "top" key the DO seeds itself from on first run.
 
 const KEY = 'top';
 const MAX_ENTRIES = 10;
@@ -53,14 +58,39 @@ function json(body, status, headers) {
   });
 }
 
-async function readScores(env) {
-  const raw = await env.SCORES.get(KEY);
-  if (!raw) return [];
-  try {
-    const list = JSON.parse(raw);
-    return Array.isArray(list) ? list : [];
-  } catch {
-    return [];
+// Single global leaderboard object. Durable Object input gates close during
+// storage awaits, so read-sort-write here can't interleave between requests.
+export class Leaderboard {
+  constructor(state, env) {
+    this.state = state;
+    this.env = env;
+  }
+  async scores() {
+    let list = await this.state.storage.get(KEY);
+    if (list === undefined) {
+      // first run: seed from the legacy KV copy so existing scores survive
+      list = [];
+      try {
+        const raw = await this.env.SCORES.get(KEY);
+        const parsed = JSON.parse(raw || '[]');
+        if (Array.isArray(parsed)) list = parsed;
+      } catch { /* unreadable legacy data: start empty */ }
+      await this.state.storage.put(KEY, list);
+    }
+    return list;
+  }
+  async fetch(request) {
+    const scores = await this.scores();
+    if (request.method === 'POST') {
+      const entry = await request.json();
+      scores.push(entry);
+      scores.sort((a, b) => b.score - a.score);
+      const top = scores.slice(0, MAX_ENTRIES);
+      const rank = top.indexOf(entry);
+      if (rank !== -1) await this.state.storage.put(KEY, top);
+      return json({ scores: top, rank: rank === -1 ? null : rank + 1 }, 200, {});
+    }
+    return json({ scores }, 200, {});
   }
 }
 
@@ -180,8 +210,11 @@ export default {
       return json({ error: 'not found' }, 404, headers);
     }
 
+    const board = () => env.LEADERBOARD.get(env.LEADERBOARD.idFromName('global'));
+
     if (request.method === 'GET') {
-      return json({ scores: await readScores(env) }, 200, headers);
+      const res = await board().fetch('https://do/scores');
+      return json(await res.json(), 200, headers);
     }
 
     if (request.method === 'POST') {
@@ -219,17 +252,13 @@ export default {
       }
       await env.SCORES.delete('t:' + body.token); // single use
 
-      const scores = await readScores(env);
       const entry = { name, score, clears, level, date: new Date().toISOString().slice(0, 10) };
-      scores.push(entry);
-      scores.sort((a, b) => b.score - a.score);
-      const top = scores.slice(0, MAX_ENTRIES);
-
-      const rank = top.indexOf(entry);
-      if (rank !== -1) {
-        await env.SCORES.put(KEY, JSON.stringify(top));
-      }
-      return json({ scores: top, rank: rank === -1 ? null : rank + 1 }, 200, headers);
+      const res = await board().fetch('https://do/scores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry),
+      });
+      return json(await res.json(), 200, headers);
     }
 
     return json({ error: 'method not allowed' }, 405, headers);
