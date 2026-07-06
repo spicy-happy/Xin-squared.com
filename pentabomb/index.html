@@ -238,7 +238,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 11;
+const GAME_VERSION = 12;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -814,13 +814,19 @@ async function submitGlobalScore(name) {
         token: lastRun.token,
       }),
     });
-    if (!res.ok) throw new Error('submit rejected: ' + res.status);
+    if (!res.ok) {
+      let reason = '';
+      try { reason = (await res.json()).error || ''; } catch (e2) {}
+      throw new Error(reason || 'http ' + res.status);
+    }
     const data = await res.json();
     renderLb(data.scores || [], data.rank != null ? data.rank - 1 : -1);
     updateWorldBest(data.scores);
   } catch (e) {
     submitted = false;
-    $('lbTitle').textContent = '— SUBMIT FAILED —';
+    // show the server's reason so a rejection is diagnosable from a screenshot
+    const why = (e && e.message ? String(e.message) : '').toUpperCase().slice(0, 24);
+    $('lbTitle').textContent = why ? '— SUBMIT FAILED: ' + why + ' —' : '— SUBMIT FAILED —';
   }
 }
 

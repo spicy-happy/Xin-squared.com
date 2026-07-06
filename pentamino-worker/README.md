@@ -37,8 +37,10 @@ always fake a score; real prevention would need server-side replay validation):
 
 - Submissions require a server-issued single-use token (`t:<uuid>` in KV).
 - A score is rejected unless the token is old enough for the points to have
-  been physically playable (100 pts/sec ceiling, 500-pt grace) — forging a
-  big score means holding a fresh token for many minutes per attempt.
+  been physically playable (1000 pts/sec ceiling, 500-pt grace) — forging a
+  big score means holding a fresh token for minutes per attempt. (The
+  ceiling was originally 100 pts/sec, which rejected a legitimate 500k
+  game — scoring scales with level, so good runs average far above 100.)
 - Per-IP hourly rate limits: 120 tokens, 20 submissions, 400 events
   (`rl:*` keys in KV).
 - POST endpoints require an allowlisted Origin header.
