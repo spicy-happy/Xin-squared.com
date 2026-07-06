@@ -139,6 +139,7 @@
       <h1>PENTAMINO</h1>
       <p>TETRIS WITH<br>PENTOMINOES<br>ALL 18 PIECES</p>
       <p>DRAG &#9668;&#9658; MOVE<br>TAP = ROTATE<br>DRAG &#9660; SOFT DROP<br>SWIPE &#9650; HARD DROP</p>
+      <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
       <button id="startBtn">START</button>
     </div>
     <div class="overlay hidden" id="pauseOverlay">
@@ -184,7 +185,8 @@ const PIECES = [
 ];
 PIECES.forEach((p, i) => { p.tex = i % 3; });
 
-const COLS = 12, ROWS = 24;
+const COLS = 24, ROWS = 24;
+const BLOCK_SCORE = 1000; // per 5x5 square destroyed, times level
 const LINE_SCORES = [0, 100, 300, 600, 1000, 1600];
 const KICKS = [[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[-1,-1],[1,-1]];
 const LOCK_DELAY = 400, MAX_LOCK_RESETS = 10;
@@ -199,7 +201,7 @@ let bag, current, nextPiece, hi;
 let score = 0, lines = 0, level = 1;
 let dropTimer = 0, lockTimer = -1, lockResets = 0, lastTime = 0;
 let running = false, paused = false, over = false;
-let clearingRows = null, clearTimer = 0;
+let clearingRows = null, clearingCells = null, clearingBlockCount = 0, clearTimer = 0;
 const CLEAR_FLASH_MS = 280;
 
 hi = +(localStorage.getItem('pentamino.hi') || localStorage.getItem('pentris.hi') || 0);
@@ -337,23 +339,53 @@ function lockPiece() {
   if (above) { gameOver(); return; }
   const full = [];
   for (let y = 0; y < ROWS; y++) if (grid[y].every(v => v)) full.push(y);
-  if (full.length) {
+  const blocks = find5x5Blocks();
+  if (full.length || blocks.count) {
     clearingRows = full;
+    clearingCells = blocks.cells;
+    clearingBlockCount = blocks.count;
     clearTimer = 0;
-    sfx.clear(full.length);
+    sfx.clear(full.length + blocks.count);
   } else {
     sfx.lock();
     spawn();
   }
   updateHud();
 }
+// Any fully-filled 5x5 square of settled blocks gets destroyed.
+function find5x5Blocks() {
+  const cells = new Set();
+  let count = 0;
+  for (let y = 0; y <= ROWS - 5; y++) {
+    for (let x = 0; x <= COLS - 5; x++) {
+      let solid = true;
+      for (let dy = 0; dy < 5 && solid; dy++)
+        for (let dx = 0; dx < 5; dx++)
+          if (!grid[y + dy][x + dx]) { solid = false; break; }
+      if (solid) {
+        count++;
+        for (let dy = 0; dy < 5; dy++)
+          for (let dx = 0; dx < 5; dx++)
+            cells.add((x + dx) + ',' + (y + dy));
+      }
+    }
+  }
+  return { cells, count };
+}
 function finishClear() {
+  for (const key of clearingCells) {
+    const [x, y] = key.split(',').map(Number);
+    grid[y][x] = 0;
+  }
   for (const y of clearingRows) {
     grid.splice(y, 1);
     grid.unshift(new Array(COLS).fill(0));
   }
   const n = clearingRows.length;
+  score += BLOCK_SCORE * clearingBlockCount * level;
   clearingRows = null;
+  clearingCells = null;
+  clearingBlockCount = 0;
   lines += n;
   score += LINE_SCORES[n] * level;
   const newLevel = Math.floor(lines / linesPerLevel) + 1;
@@ -439,7 +471,7 @@ const C_DARKEST = ink.getPropertyValue('--gb-darkest').trim();
 function layout() {
   dpr = Math.min(2, window.devicePixelRatio || 1);
   const screen = $('screen');
-  const availW = Math.min(window.innerWidth - 16, 440);
+  const availW = Math.min(window.innerWidth - 16, 760);
   const availH = window.innerHeight - 16;
   // reserve HUD height (~86px incl. margins) + screen padding/border (~28px)
   const hudH = $('hud').offsetHeight + 8;
@@ -507,10 +539,11 @@ function draw() {
   // settled blocks (flash rows being cleared)
   const flashOn = clearingRows && Math.floor(clearTimer / 70) % 2 === 0;
   for (let y = 0; y < ROWS; y++) {
-    const flashing = clearingRows && clearingRows.includes(y);
+    const rowFlashing = clearingRows && clearingRows.includes(y);
     for (let x = 0; x < COLS; x++) {
       const v = grid[y][x];
       if (!v) continue;
+      const flashing = rowFlashing || (clearingCells && clearingCells.has(x + ',' + y));
       if (flashing && flashOn) {
         boardCtx.fillStyle = C_LIGHTEST;
         boardCtx.fillRect(x * cell, y * cell, cell, cell);
@@ -646,7 +679,7 @@ function newGame() {
   bag = shuffledBag();
   score = 0; lines = 0; level = 1;
   over = false; paused = false;
-  clearingRows = null;
+  clearingRows = null; clearingCells = null; clearingBlockCount = 0;
   softDropping = false;
   nextPiece = takeFromBag();
   spawn();
