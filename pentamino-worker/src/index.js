@@ -67,15 +67,23 @@ export class Leaderboard {
   }
   async scores() {
     let list = await this.state.storage.get(KEY);
-    if (list === undefined) {
-      // first run: seed from the legacy KV copy so existing scores survive
-      list = [];
+    // Seed on first run — and after any SEED_MARK bump, merge the KV "top"
+    // key back in once. That makes KV the admin channel: hand-edit the KV
+    // list, bump the mark, redeploy, and the entries fold into the board.
+    const SEED_MARK = 'kvMerge:2026-07-06a';
+    if (list === undefined || !(await this.state.storage.get(SEED_MARK))) {
+      let legacy = [];
       try {
         const raw = await this.env.SCORES.get(KEY);
         const parsed = JSON.parse(raw || '[]');
-        if (Array.isArray(parsed)) list = parsed;
-      } catch { /* unreadable legacy data: start empty */ }
+        if (Array.isArray(parsed)) legacy = parsed;
+      } catch { /* unreadable legacy data: ignore it */ }
+      const seen = new Set((list || []).map(e => e.name + ':' + e.score));
+      list = (list || []).concat(legacy.filter(e => e && !seen.has(e.name + ':' + e.score)));
+      list.sort((a, b) => b.score - a.score);
+      list = list.slice(0, MAX_ENTRIES);
       await this.state.storage.put(KEY, list);
+      await this.state.storage.put(SEED_MARK, true);
     }
     return list;
   }
