@@ -124,6 +124,13 @@
     user-select: text;
     touch-action: auto;
   }
+  #lbBox { width: 100%; max-width: 340px; font-size: 11px; letter-spacing: 1px; }
+  #lbTitle { font-size: 11px; margin-bottom: 4px; }
+  #lbList { line-height: 1.6; white-space: pre; }
+  #lbList .me {
+    background: var(--gb-darkest);
+    color: var(--gb-lightest);
+  }
   #legend {
     font-size: 10px;
     letter-spacing: 1px;
@@ -176,6 +183,7 @@
       <p>SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>LONG SWIPE &#9660; = DROP<br>TWO-FINGER TAP = PAUSE</p>
       <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
       <p class="big" id="hiLine"></p>
+      <p id="worldBest"></p>
       <button id="startBtn">START</button>
       <button class="gbBtn" id="resetBtn">RESET HI</button>
     </div>
@@ -195,6 +203,10 @@
         <input id="nameInput" maxlength="16" autocomplete="off" spellcheck="false" enterkeyhint="done">
         <button class="gbBtn" id="nameOk">OK</button>
       </div>
+      <div id="lbBox">
+        <div id="lbTitle">&#8212; WORLD TOP 10 &#8212;</div>
+        <div id="lbList"></div>
+      </div>
       <button id="retryBtn">PLAY AGAIN</button>
       <button class="gbBtn" id="resetBtn2">RESET HI</button>
     </div>
@@ -211,7 +223,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 6;
+const GAME_VERSION = 7;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -605,7 +617,112 @@ function gameOver() {
   }
   refreshHiLine();
   updateHud();
+  lastRun = { score, clears, level, token: playToken };
+  showLeaderboard(score);
   $('overOverlay').classList.remove('hidden');
+}
+
+// ---------- Global leaderboard (Cloudflare Worker, see /pentamino-worker) ----------
+// A single-use play token is fetched at game start; the server rejects
+// scores whose token is too fresh for the claimed points (anti-forgery).
+const SCORES_API = 'https://pentamino-scores.mail-f78.workers.dev';
+let playToken = null;
+let lastRun = null;
+let globalQualifies = false, submitted = false, nameSaved = false;
+
+async function fetchPlayToken() {
+  try {
+    const res = await fetch(SCORES_API + '/token', { method: 'POST' });
+    if (res.ok) playToken = (await res.json()).token;
+  } catch (e) { /* offline: game still works, submission just unavailable */ }
+}
+
+async function fetchScores() {
+  const res = await fetch(SCORES_API + '/scores');
+  if (!res.ok) throw new Error('scores fetch failed: ' + res.status);
+  const data = await res.json();
+  return Array.isArray(data.scores) ? data.scores : [];
+}
+
+function renderLb(scores, myRank = -1) {
+  const el = $('lbList');
+  el.textContent = '';
+  if (!scores.length) { el.textContent = 'NO SCORES YET'; return; }
+  scores.forEach((s, i) => {
+    const span = document.createElement('span');
+    span.textContent =
+      String(i + 1).padStart(2) + ' ' +
+      String(s.name).slice(0, 16).padEnd(17) +
+      String(s.score).padStart(7) + '\n';
+    if (i === myRank) span.className = 'me';
+    el.appendChild(span);
+  });
+}
+
+function updateWorldBest(scores) {
+  if (scores && scores.length) {
+    $('worldBest').textContent = 'WORLD BEST ' + scores[0].score + ' · ' + scores[0].name;
+  }
+}
+
+async function showLeaderboard(finalScore) {
+  submitted = false;
+  globalQualifies = false;
+  nameSaved = false;
+  $('lbList').textContent = 'LOADING...';
+  try {
+    const scores = await fetchScores();
+    renderLb(scores);
+    updateWorldBest(scores);
+    // the game's token usually arrived while playing; grab it if it was late
+    if (lastRun && !lastRun.token) lastRun.token = playToken;
+    globalQualifies = finalScore > 0 && lastRun &&
+      (scores.length < 10 || finalScore > scores[scores.length - 1].score);
+    if (globalQualifies) {
+      if (nameSaved && hiName) {
+        // player confirmed their name before this fetch finished
+        submitGlobalScore(hiName);
+      } else {
+        // reuse the local name-entry UI to also claim the global spot
+        $('nameEntry').classList.remove('hidden');
+        if (!$('nameInput').value) $('nameInput').value = hiName;
+      }
+    }
+  } catch (e) {
+    $('lbList').textContent = 'LEADERBOARD OFFLINE';
+  }
+}
+
+async function submitGlobalScore(name) {
+  if (!globalQualifies || submitted || !lastRun || !name) return;
+  submitted = true;
+  try {
+    if (!lastRun.token) {
+      // token fetch lost at game start — a fresh one still passes the
+      // server's plausibility check for small scores
+      await fetchPlayToken();
+      lastRun.token = playToken;
+      if (!lastRun.token) throw new Error('no token');
+    }
+    const res = await fetch(SCORES_API + '/scores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        score: lastRun.score,
+        clears: lastRun.clears,
+        level: lastRun.level,
+        token: lastRun.token,
+      }),
+    });
+    if (!res.ok) throw new Error('submit rejected: ' + res.status);
+    const data = await res.json();
+    renderLb(data.scores || [], data.rank != null ? data.rank - 1 : -1);
+    updateWorldBest(data.scores);
+  } catch (e) {
+    submitted = false;
+    $('lbTitle').textContent = '— SUBMIT FAILED —';
+  }
 }
 
 // ---------- Game loop ----------
@@ -901,6 +1018,8 @@ function newGame() {
   $('hud').style.visibility = 'visible';
   $('legend').style.visibility = 'visible';
   running = true;
+  playToken = null;
+  fetchPlayToken();
   draw();
   // re-check in the background; swap to the new deploy while nothing is at stake
   checkForUpdate().then(u => {
@@ -926,6 +1045,8 @@ function saveName() {
   $('nameEntry').classList.add('hidden');
   $('newHi').textContent = hiLabel();
   refreshHiLine();
+  nameSaved = true;
+  submitGlobalScore(hiName);
 }
 $('nameOk').addEventListener('click', saveName);
 $('nameInput').addEventListener('keydown', e => {
@@ -990,6 +1111,7 @@ requestAnimationFrame(frame);
 window.__loopStarted = true;
 updateHud();
 refreshHiLine();
+fetchScores().then(updateWorldBest).catch(() => {});
 layout();
 // drop the cache-buster from the address bar, then see if a newer deploy exists
 if (location.search) history.replaceState(null, '', location.pathname);
