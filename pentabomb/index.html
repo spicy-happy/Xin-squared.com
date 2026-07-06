@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#9bbc0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>PENTABOMB</title>
+<style>
+  :root {
+    --gb-lightest: #9bbc0f;
+    --gb-light: #8bac0f;
+    --gb-dark: #306230;
+    --gb-darkest: #0f380f;
+    --shell: #2b2b2b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--shell);
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+  body {
+    font-family: "Courier New", Courier, monospace;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  #screen {
+    background: var(--gb-lightest);
+    border: 6px solid var(--gb-darkest);
+    border-radius: 8px;
+    box-shadow: 0 0 0 4px #444, 0 8px 30px rgba(0,0,0,.6);
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    color: var(--gb-darkest);
+  }
+  #hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .stat { line-height: 1.25; letter-spacing: 1px; }
+  .stat .label { font-size: 10px; }
+  .stat .value { font-size: 15px; }
+  #nextBox { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  #nextCanvas { display: block; }
+  #spawnBar {
+    width: 100%;
+    height: 6px;
+    border: 1px solid var(--gb-darkest);
+    border-radius: 2px;
+  }
+  #spawnFill {
+    height: 100%;
+    width: 100%;
+    background: var(--gb-darkest);
+  }
+  .gbBtn {
+    font: inherit;
+    font-size: 13px;
+    background: var(--gb-lightest);
+    color: var(--gb-darkest);
+    border: 2px solid var(--gb-darkest);
+    border-radius: 4px;
+    padding: 2px 7px;
+    line-height: 1.2;
+    cursor: pointer;
+  }
+  .gbBtn:active { background: var(--gb-dark); color: var(--gb-lightest); }
+  #pauseBtn { align-self: flex-start; }
+  #boardWrap { position: relative; flex: 1; }
+  #board { display: block; background: var(--gb-light); touch-action: none; }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(155, 188, 15, .92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+    padding: 16px;
+    letter-spacing: 2px;
+  }
+  .overlay.hidden { display: none; }
+  .overlay h1 { font-size: 28px; letter-spacing: 4px; }
+  .overlay p { font-size: 12px; line-height: 1.8; }
+  .overlay .big { font-size: 16px; }
+  .overlay button {
+    font: inherit;
+    font-size: 16px;
+    letter-spacing: 2px;
+    padding: 10px 22px;
+    background: var(--gb-darkest);
+    color: var(--gb-lightest);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .overlay button.gbBtn {
+    font-size: 12px;
+    padding: 5px 12px;
+    background: var(--gb-lightest);
+    color: var(--gb-darkest);
+    border: 2px solid var(--gb-darkest);
+  }
+  #nameEntry { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  #nameEntry.hidden { display: none; }
+  #nameInput {
+    font: inherit;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    width: 15ch;
+    max-width: 80vw;
+    background: var(--gb-lightest);
+    color: var(--gb-darkest);
+    border: 2px solid var(--gb-darkest);
+    border-radius: 4px;
+    padding: 6px 8px;
+    -webkit-user-select: text;
+    user-select: text;
+    touch-action: auto;
+  }
+  #legend {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-align: center;
+    line-height: 1.6;
+    margin-top: 6px;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<div id="screen">
+  <div id="hud">
+    <div class="stat">
+      <div class="label">SCORE</div>
+      <div class="value" id="score">0</div>
+      <div class="label">HI</div>
+      <div class="value" id="hi">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">BLASTS</div>
+      <div class="value" id="blasts">0</div>
+      <div class="label">LEVEL</div>
+      <div class="value" id="level">1</div>
+    </div>
+    <button class="gbBtn" id="pauseBtn" aria-label="Pause">&#10074;&#10074;</button>
+    <div id="nextBox">
+      <div class="stat"><div class="label">NEXT</div></div>
+      <canvas id="nextCanvas"></canvas>
+      <div id="spawnBar"><div id="spawnFill"></div></div>
+    </div>
+  </div>
+  <div id="boardWrap">
+    <canvas id="board"></canvas>
+    <div class="overlay" id="startOverlay">
+      <h1>PENTABOMB</h1>
+      <p>KATAMINO-STYLE PUZZLE<br>ALL 18 PENTOMINOES</p>
+      <p>PIECES APPEAR ON A TIMER<br>DRAG ANY PIECE ANYWHERE<br>EVEN ONES PLACED BEFORE<br>TAP A PIECE = ROTATE</p>
+      <p>FILL A 5&#215;5 SQUARE TO BLAST<br>EVERY PIECE IT TOUCHES<br>NO ROOM LEFT = GAME OVER</p>
+      <p class="big" id="hiLine"></p>
+      <button id="startBtn">START</button>
+      <button class="gbBtn" id="resetBtn">RESET HI</button>
+    </div>
+    <div class="overlay hidden" id="pauseOverlay">
+      <h1>PAUSED</h1>
+      <p>DRAG PIECE = MOVE<br>TAP PIECE = ROTATE<br>FILL 5&#215;5 = BOOM<br>TWO-FINGER TAP = PAUSE</p>
+      <button id="resumeBtn">RESUME</button>
+      <button class="gbBtn" id="restartBtn">RESTART</button>
+      <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
+    </div>
+    <div class="overlay hidden" id="overOverlay">
+      <h1>GAME OVER</h1>
+      <p class="big" id="finalScore">SCORE 0</p>
+      <p id="newHi"></p>
+      <div id="nameEntry" class="hidden">
+        <p>ENTER YOUR NAME</p>
+        <input id="nameInput" maxlength="16" autocomplete="off" spellcheck="false" enterkeyhint="done">
+        <button class="gbBtn" id="nameOk">OK</button>
+      </div>
+      <button id="retryBtn">PLAY AGAIN</button>
+    </div>
+  </div>
+  <div id="legend">DRAG = MOVE &#183; TAP = ROTATE<br>FILL 5&#215;5 = BOOM &#183; 2-FINGER TAP PAUSE</div>
+</div>
+
+<script>
+'use strict';
+
+// Bump on every deploy that touches this file: running pages compare this
+// against the server copy to know when to reload themselves.
+const GAME_VERSION = 1;
+
+// ---------- Pieces: all 18 one-sided pentominoes ----------
+// Each entry: list of [x,y] cells, plus a texture index (0-2) since the
+// Game Boy palette has no color to tell pieces apart.
+const PIECES = [
+  { n: 'F',  c: [[1,0],[2,0],[0,1],[1,1],[1,2]] },
+  { n: 'F2', c: [[0,0],[1,0],[1,1],[2,1],[1,2]] },
+  { n: 'I',  c: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
+  { n: 'L',  c: [[0,0],[0,1],[0,2],[0,3],[1,3]] },
+  { n: 'J',  c: [[1,0],[1,1],[1,2],[1,3],[0,3]] },
+  { n: 'N',  c: [[0,0],[0,1],[1,1],[1,2],[1,3]] },
+  { n: 'N2', c: [[1,0],[1,1],[0,1],[0,2],[0,3]] },
+  { n: 'P',  c: [[0,0],[1,0],[0,1],[1,1],[0,2]] },
+  { n: 'Q',  c: [[0,0],[1,0],[0,1],[1,1],[1,2]] },
+  { n: 'T',  c: [[0,0],[1,0],[2,0],[1,1],[1,2]] },
+  { n: 'U',  c: [[0,0],[2,0],[0,1],[1,1],[2,1]] },
+  { n: 'V',  c: [[0,0],[0,1],[0,2],[1,2],[2,2]] },
+  { n: 'W',  c: [[0,0],[0,1],[1,1],[1,2],[2,2]] },
+  { n: 'X',  c: [[1,0],[0,1],[1,1],[2,1],[1,2]] },
+  { n: 'Y',  c: [[1,0],[0,1],[1,1],[1,2],[1,3]] },
+  { n: 'Y2', c: [[0,0],[0,1],[1,1],[0,2],[0,3]] },
+  { n: 'Z',  c: [[0,0],[1,0],[1,1],[1,2],[2,2]] },
+  { n: 'S',  c: [[1,0],[2,0],[1,1],[0,2],[1,2]] },
+];
+PIECES.forEach((p, i) => { p.tex = i % 3; });
+
+const COLS = 12, ROWS = 12;
+const SQUARE_SCORE = 1000;  // per 5x5 square blasted, times level
+const CELL_SCORE = 100;     // per cell destroyed, times level
+const BLASTS_PER_LEVEL = 5;
+const BLAST_FLASH_MS = 320;
+const SPAWN_FLASH_MS = 900;
+const KICKS = [[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]];
+
+// Pressure curve: a new piece appears every spawnMs; ramps up per level.
+const spawnMs = lvl => Math.max(2600, Math.round(9000 * Math.pow(0.9, lvl - 1)));
+
+// ---------- State ----------
+// Every piece on the board stays a movable unit:
+// { id, cells (normalized), x, y, tex, flash }
+let grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
+let pieces = new Map(), nextPieceId = 1;
+let bag, nextProto, hi;
+let score = 0, blasts = 0, level = 1;
+let spawnTimer = 0, lastTime = 0;
+let running = false, paused = false, over = false;
+let blasting = null; // { squares, pieceIds:Set, timer }
+let drag = null;     // { id, offX, offY, tx, ty, moved, sx, sy, t0, pointerId }
+
+hi = +(localStorage.getItem('pentabomb.hi') || 0);
+let hiName = localStorage.getItem('pentabomb.hiName') || '';
+let muted = localStorage.getItem('pentabomb.muted') === '1';
+
+// ---------- Self-update: pick up fresh deploys on refresh / new game ----------
+let updateAvailable = false;
+function checkForUpdate() {
+  return fetch(location.pathname, { cache: 'no-store' })
+    .then(r => (r.ok ? r.text() : ''))
+    .then(html => {
+      const m = html.match(/GAME_VERSION\s*=\s*(\d+)/);
+      if (m && +m[1] !== GAME_VERSION) updateAvailable = true;
+      return updateAvailable;
+    })
+    .catch(() => false);
+}
+function applyUpdate() {
+  // never reload twice for the same running version (a stale edge could loop us)
+  if (sessionStorage.getItem('pentabomb.reloadedFor') === String(GAME_VERSION)) return false;
+  try { sessionStorage.setItem('pentabomb.reloadedFor', String(GAME_VERSION)); } catch (e) {}
+  location.replace(location.pathname + '?v=' + Date.now());
+  return true;
+}
+
+// ---------- DOM ----------
+const $ = id => document.getElementById(id);
+const boardCanvas = $('board'), boardCtx = boardCanvas.getContext('2d');
+const nextCanvas = $('nextCanvas'), nextCtx = nextCanvas.getContext('2d');
+
+// ---------- Audio: Game Boy style square-wave beeps ----------
+let audioCtx = null;
+function beep(freq, dur, vol = 0.06, delay = 0) {
+  if (muted) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const t = audioCtx.currentTime + delay;
+    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.connect(g).connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + dur);
+  } catch (e) { /* audio unavailable */ }
+}
+const sfx = {
+  spawn:  () => { beep(660, 0.05, 0.04); beep(880, 0.07, 0.04, 0.06); },
+  pickup: () => beep(330, 0.04, 0.03),
+  drop:   () => beep(160, 0.08),
+  rotate: () => beep(440, 0.06),
+  buzz:   () => beep(110, 0.12, 0.05),
+  blast:  n => { for (let i = 0; i < Math.max(3, n + 2); i++) beep(262 + i * 131, 0.09, 0.06, i * 0.08); },
+  level:  () => { beep(523, 0.1); beep(659, 0.1, 0.06, 0.1); beep(784, 0.14, 0.06, 0.2); },
+  over:   () => { beep(392, 0.15); beep(330, 0.15, 0.06, 0.16); beep(262, 0.15, 0.06, 0.32); beep(196, 0.3, 0.06, 0.48); },
+};
+
+// ---------- Piece mechanics ----------
+function shuffledBag() {
+  const b = PIECES.map((_, i) => i);
+  for (let i = b.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [b[i], b[j]] = [b[j], b[i]];
+  }
+  return b;
+}
+function takeFromBag() {
+  if (!bag || bag.length === 0) bag = shuffledBag();
+  return PIECES[bag.pop()];
+}
+function bounds(cells) {
+  let w = 0, h = 0;
+  for (const [x, y] of cells) { if (x + 1 > w) w = x + 1; if (y + 1 > h) h = y + 1; }
+  return { w, h };
+}
+function rotatedCells(cells, cw) {
+  const rot = cells.map(([x, y]) => cw ? [-y, x] : [y, -x]);
+  let mx = Infinity, my = Infinity;
+  for (const [x, y] of rot) { if (x < mx) mx = x; if (y < my) my = y; }
+  return rot.map(([x, y]) => [x - mx, y - my]);
+}
+// A spot fits if every cell is on the board and empty (or belongs to ignoreId).
+function fits(cells, px, py, ignoreId = 0) {
+  for (const [cx, cy] of cells) {
+    const x = px + cx, y = py + cy;
+    if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
+    const v = grid[y][x];
+    if (v && v !== ignoreId) return false;
+  }
+  return true;
+}
+function placeOnGrid(p) { for (const [cx, cy] of p.cells) grid[p.y + cy][p.x + cx] = p.id; }
+function liftFromGrid(p) { for (const [cx, cy] of p.cells) grid[p.y + cy][p.x + cx] = 0; }
+
+// Every empty spot on the board where this proto fits, in any rotation.
+function allPlacements(protoCells) {
+  const out = [];
+  let cells = protoCells.map(c => c.slice());
+  for (let r = 0; r < 4; r++) {
+    const { w, h } = bounds(cells);
+    for (let y = 0; y <= ROWS - h; y++)
+      for (let x = 0; x <= COLS - w; x++)
+        if (fits(cells, x, y)) out.push({ cells, x, y });
+    cells = rotatedCells(cells, true);
+  }
+  return out;
+}
+
+// A new piece materializes in a random empty spot. Nowhere to put it = game over.
+function spawnPiece() {
+  const proto = nextProto;
+  const options = allPlacements(proto.c);
+  if (options.length === 0) { gameOver(); return false; }
+  nextProto = takeFromBag();
+  drawNext();
+  const pick = options[Math.floor(Math.random() * options.length)];
+  const p = {
+    id: nextPieceId++,
+    cells: pick.cells.map(c => c.slice()),
+    x: pick.x, y: pick.y,
+    tex: proto.tex,
+    flash: SPAWN_FLASH_MS,
+  };
+  pieces.set(p.id, p);
+  placeOnGrid(p);
+  sfx.spawn();
+  checkBlasts();
+  return true;
+}
+
+// Tap = rotate 90° clockwise in place (recentred on the bounding box, with kicks).
+function tryRotatePiece(p) {
+  const oldB = bounds(p.cells);
+  const cells = rotatedCells(p.cells, true);
+  const newB = bounds(cells);
+  const baseX = p.x + Math.floor((oldB.w - newB.w) / 2);
+  const baseY = p.y + Math.floor((oldB.h - newB.h) / 2);
+  for (const [kx, ky] of KICKS) {
+    if (fits(cells, baseX + kx, baseY + ky, p.id)) {
+      liftFromGrid(p);
+      p.cells = cells;
+      p.x = baseX + kx;
+      p.y = baseY + ky;
+      placeOnGrid(p);
+      sfx.rotate();
+      checkBlasts();
+      return true;
+    }
+  }
+  sfx.buzz();
+  return false;
+}
+
+function tryMovePiece(p, nx, ny) {
+  if (nx === p.x && ny === p.y) return true;
+  if (!fits(p.cells, nx, ny, p.id)) { sfx.buzz(); return false; }
+  liftFromGrid(p);
+  p.x = nx;
+  p.y = ny;
+  placeOnGrid(p);
+  sfx.drop();
+  checkBlasts();
+  return true;
+}
+
+// ---------- Blasts ----------
+// Any fully-covered 5x5 square detonates and destroys EVERY piece touching it.
+function findBlasts() {
+  let squares = 0;
+  const pieceIds = new Set();
+  for (let y = 0; y <= ROWS - 5; y++) {
+    for (let x = 0; x <= COLS - 5; x++) {
+      let solid = true;
+      for (let dy = 0; dy < 5 && solid; dy++)
+        for (let dx = 0; dx < 5; dx++)
+          if (!grid[y + dy][x + dx]) { solid = false; break; }
+      if (solid) {
+        squares++;
+        for (let dy = 0; dy < 5; dy++)
+          for (let dx = 0; dx < 5; dx++)
+            pieceIds.add(grid[y + dy][x + dx]);
+      }
+    }
+  }
+  return squares ? { squares, pieceIds } : null;
+}
+function checkBlasts() {
+  if (blasting) return false;
+  const found = findBlasts();
+  if (!found) return false;
+  blasting = { squares: found.squares, pieceIds: found.pieceIds, timer: 0 };
+  // the held piece is going up in smoke: let go of it
+  if (drag && found.pieceIds.has(drag.id)) drag = null;
+  sfx.blast(found.squares);
+  return true;
+}
+function finishBlast() {
+  let cellsDestroyed = 0;
+  for (const id of blasting.pieceIds) {
+    const p = pieces.get(id);
+    if (!p) continue;
+    cellsDestroyed += p.cells.length;
+    liftFromGrid(p);
+    pieces.delete(id);
+  }
+  score += level * (SQUARE_SCORE * blasting.squares + CELL_SCORE * cellsDestroyed);
+  blasts += blasting.squares;
+  blasting = null;
+  const newLevel = Math.floor(blasts / BLASTS_PER_LEVEL) + 1;
+  if (newLevel > level) { level = newLevel; sfx.level(); }
+  updateHud();
+}
+
+function hiLabel() {
+  return 'HI ' + hi + (hiName ? ' · ' + hiName : '');
+}
+function refreshHiLine() {
+  $('hiLine').textContent = hi > 0 ? hiLabel() : '';
+  $('resetBtn').style.display = hi > 0 ? '' : 'none';
+}
+function gameOver() {
+  running = false;
+  over = true;
+  drag = null;
+  sfx.over();
+  $('finalScore').textContent = 'SCORE ' + score;
+  if (score > hi) {
+    hi = score;
+    localStorage.setItem('pentabomb.hi', String(hi));
+    $('newHi').textContent = 'NEW HIGH SCORE!';
+    $('nameEntry').classList.remove('hidden');
+    $('nameInput').value = hiName;
+  } else {
+    $('newHi').textContent = hiLabel();
+    $('nameEntry').classList.add('hidden');
+  }
+  refreshHiLine();
+  updateHud();
+  $('overOverlay').classList.remove('hidden');
+}
+
+// ---------- Game loop ----------
+function update(dt) {
+  for (const p of pieces.values()) if (p.flash > 0) p.flash -= dt;
+  if (blasting) {
+    blasting.timer += dt;
+    if (blasting.timer >= BLAST_FLASH_MS) finishBlast();
+    return;
+  }
+  spawnTimer += dt;
+  const interval = spawnMs(level);
+  if (spawnTimer >= interval) {
+    spawnTimer = 0;
+    spawnPiece();
+  }
+}
+function frame(t) {
+  if (running && !paused) {
+    const dt = Math.min(100, t - lastTime);
+    lastTime = t;
+    update(dt);
+    draw();
+  } else {
+    lastTime = t;
+  }
+  requestAnimationFrame(frame);
+}
+
+// ---------- Rendering ----------
+let cell = 24, dpr = 1;
+const ink = getComputedStyle(document.documentElement);
+const C_LIGHTEST = ink.getPropertyValue('--gb-lightest').trim();
+const C_LIGHT = ink.getPropertyValue('--gb-light').trim();
+const C_DARK = ink.getPropertyValue('--gb-dark').trim();
+const C_DARKEST = ink.getPropertyValue('--gb-darkest').trim();
+
+function layout() {
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  const screen = $('screen');
+  const availW = Math.min(window.innerWidth - 16, 760);
+  const availH = window.innerHeight - 16;
+  const hudH = $('hud').offsetHeight + 8;
+  const legendH = $('legend').offsetHeight + 6;
+  const chrome = 28;
+  cell = Math.floor(Math.min((availW - chrome) / COLS, (availH - hudH - legendH - chrome) / ROWS));
+  cell = Math.max(10, cell);
+  const w = cell * COLS, h = cell * ROWS;
+  boardCanvas.style.width = w + 'px';
+  boardCanvas.style.height = h + 'px';
+  boardCanvas.width = w * dpr;
+  boardCanvas.height = h * dpr;
+  boardCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  screen.style.width = (w + chrome) + 'px';
+  const nc = Math.max(7, Math.floor(cell * 0.5));
+  nextCanvas.style.width = (nc * 5) + 'px';
+  nextCanvas.style.height = (nc * 4) + 'px';
+  nextCanvas.width = nc * 5 * dpr;
+  nextCanvas.height = nc * 4 * dpr;
+  nextCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawNext();
+  draw();
+}
+
+// Three block textures so pieces read differently in monochrome.
+function drawBlock(ctx, x, y, s, tex) {
+  ctx.fillStyle = C_DARKEST;
+  ctx.fillRect(x, y, s, s);
+  const b = Math.max(1, Math.floor(s * 0.12));
+  if (tex === 0) {
+    // solid with light core dot
+    ctx.fillStyle = C_LIGHTEST;
+    const d = Math.max(2, Math.floor(s * 0.28));
+    ctx.fillRect(x + Math.floor((s - d) / 2), y + Math.floor((s - d) / 2), d, d);
+  } else if (tex === 1) {
+    // hollow: light inner with dark rim
+    ctx.fillStyle = C_LIGHTEST;
+    ctx.fillRect(x + b, y + b, s - 2 * b, s - 2 * b);
+    ctx.fillStyle = C_DARKEST;
+    const d = Math.max(2, Math.floor(s * 0.34));
+    ctx.fillRect(x + Math.floor((s - d) / 2), y + Math.floor((s - d) / 2), d, d);
+  } else {
+    // mid-tone with darkest border
+    ctx.fillStyle = C_DARK;
+    ctx.fillRect(x + b, y + b, s - 2 * b, s - 2 * b);
+  }
+}
+function drawGhostBlock(ctx, x, y, s) {
+  ctx.strokeStyle = C_DARK;
+  ctx.lineWidth = Math.max(1, Math.floor(s * 0.1));
+  const o = ctx.lineWidth;
+  ctx.strokeRect(x + o, y + o, s - 2 * o, s - 2 * o);
+}
+// Outline a piece's perimeter in the lightest tone so each piece reads as
+// one draggable unit even next to same-textured neighbours.
+function outlinePiece(cells, px, py, sameCell) {
+  const s = cell, lw = Math.max(1, Math.floor(s * 0.08));
+  boardCtx.strokeStyle = C_LIGHTEST;
+  boardCtx.lineWidth = lw;
+  boardCtx.beginPath();
+  const half = lw / 2;
+  for (const [cx, cy] of cells) {
+    const x = (px + cx) * s, y = (py + cy) * s;
+    if (!sameCell(cx, cy - 1)) { boardCtx.moveTo(x, y + half); boardCtx.lineTo(x + s, y + half); }
+    if (!sameCell(cx, cy + 1)) { boardCtx.moveTo(x, y + s - half); boardCtx.lineTo(x + s, y + s - half); }
+    if (!sameCell(cx - 1, cy)) { boardCtx.moveTo(x + half, y); boardCtx.lineTo(x + half, y + s); }
+    if (!sameCell(cx + 1, cy)) { boardCtx.moveTo(x + s - half, y); boardCtx.lineTo(x + s - half, y + s); }
+  }
+  boardCtx.stroke();
+}
+function drawPiece(p) {
+  const isBlasting = blasting && blasting.pieceIds.has(p.id);
+  const flashOn = isBlasting
+    ? Math.floor(blasting.timer / 70) % 2 === 0
+    : (p.flash > 0 && Math.floor(p.flash / 110) % 2 === 0);
+  for (const [cx, cy] of p.cells) {
+    const x = (p.x + cx) * cell, y = (p.y + cy) * cell;
+    if (flashOn) {
+      boardCtx.fillStyle = C_LIGHTEST;
+      boardCtx.fillRect(x, y, cell, cell);
+    } else {
+      drawBlock(boardCtx, x, y, cell, p.tex);
+    }
+  }
+  if (!flashOn) {
+    const set = new Set(p.cells.map(([x, y]) => x + ',' + y));
+    outlinePiece(p.cells, p.x, p.y, (x, y) => set.has(x + ',' + y));
+  }
+}
+function draw() {
+  const w = cell * COLS, h = cell * ROWS;
+  boardCtx.fillStyle = C_LIGHT;
+  boardCtx.fillRect(0, 0, w, h);
+  // faint grid
+  boardCtx.strokeStyle = 'rgba(48, 98, 48, 0.25)';
+  boardCtx.lineWidth = 1;
+  boardCtx.beginPath();
+  for (let x = 1; x < COLS; x++) { boardCtx.moveTo(x * cell + .5, 0); boardCtx.lineTo(x * cell + .5, h); }
+  for (let y = 1; y < ROWS; y++) { boardCtx.moveTo(0, y * cell + .5); boardCtx.lineTo(w, y * cell + .5); }
+  boardCtx.stroke();
+  for (const p of pieces.values()) {
+    if (drag && p.id === drag.id) continue;
+    drawPiece(p);
+  }
+  // the held piece: ghost outline at its origin, solid (or hollow when the
+  // drop would be invalid) at the spot under the finger
+  if (drag) {
+    const p = pieces.get(drag.id);
+    if (p) {
+      for (const [cx, cy] of p.cells)
+        drawGhostBlock(boardCtx, (p.x + cx) * cell, (p.y + cy) * cell, cell);
+      const ok = fits(p.cells, drag.tx, drag.ty, p.id);
+      if (ok) {
+        for (const [cx, cy] of p.cells)
+          drawBlock(boardCtx, (drag.tx + cx) * cell, (drag.ty + cy) * cell, cell, p.tex);
+        const set = new Set(p.cells.map(([x, y]) => x + ',' + y));
+        outlinePiece(p.cells, drag.tx, drag.ty, (x, y) => set.has(x + ',' + y));
+      } else {
+        boardCtx.strokeStyle = C_DARKEST;
+        boardCtx.lineWidth = Math.max(2, Math.floor(cell * 0.14));
+        const o = boardCtx.lineWidth / 2;
+        for (const [cx, cy] of p.cells)
+          boardCtx.strokeRect((drag.tx + cx) * cell + o, (drag.ty + cy) * cell + o, cell - 2 * o, cell - 2 * o);
+      }
+    }
+  }
+  // countdown to the next spawn
+  const remain = blasting ? 1 - spawnTimer / spawnMs(level)
+    : Math.max(0, 1 - spawnTimer / spawnMs(level));
+  $('spawnFill').style.width = (remain * 100).toFixed(1) + '%';
+}
+function drawNext() {
+  const s = nextCanvas.width / dpr / 5;
+  nextCtx.fillStyle = C_LIGHTEST;
+  nextCtx.fillRect(0, 0, s * 5, s * 4);
+  if (!nextProto) return;
+  const { w, h } = bounds(nextProto.c);
+  const ox = (5 - w) / 2 * s, oy = (4 - h) / 2 * s;
+  for (const [x, y] of nextProto.c) drawBlock(nextCtx, ox + x * s, oy + y * s, s, nextProto.tex);
+}
+
+function updateHud() {
+  $('score').textContent = score;
+  $('blasts').textContent = blasts;
+  $('level').textContent = level;
+  $('hi').textContent = Math.max(hi, score || 0);
+}
+
+// ---------- Input: drag to move, tap to rotate (pointer events) ----------
+const activePointers = new Set();
+
+function cellFromEvent(e) {
+  const rect = boardCanvas.getBoundingClientRect();
+  return {
+    x: Math.floor((e.clientX - rect.left) / cell),
+    y: Math.floor((e.clientY - rect.top) / cell),
+  };
+}
+function clampTarget(p, x, y) {
+  const { w, h } = bounds(p.cells);
+  return {
+    x: Math.max(0, Math.min(COLS - w, x)),
+    y: Math.max(0, Math.min(ROWS - h, y)),
+  };
+}
+
+boardCanvas.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  activePointers.add(e.pointerId);
+  if (activePointers.size >= 2) {
+    // two-finger tap = pause
+    drag = null;
+    if (running && !over) togglePause();
+    return;
+  }
+  if (!running || paused || drag) return;
+  const { x, y } = cellFromEvent(e);
+  if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return;
+  const id = grid[y][x];
+  if (!id) return;
+  if (blasting && blasting.pieceIds.has(id)) return; // already going up in smoke
+  const p = pieces.get(id);
+  drag = {
+    id,
+    offX: x - p.x, offY: y - p.y,
+    tx: p.x, ty: p.y,
+    moved: false,
+    sx: e.clientX, sy: e.clientY,
+    t0: performance.now(),
+    pointerId: e.pointerId,
+  };
+  try { boardCanvas.setPointerCapture(e.pointerId); } catch (err) {}
+  sfx.pickup();
+  draw();
+});
+
+boardCanvas.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.pointerId) return;
+  e.preventDefault();
+  if (Math.abs(e.clientX - drag.sx) > 8 || Math.abs(e.clientY - drag.sy) > 8) drag.moved = true;
+  const p = pieces.get(drag.id);
+  if (!p) { drag = null; return; }
+  const { x, y } = cellFromEvent(e);
+  const t = clampTarget(p, x - drag.offX, y - drag.offY);
+  drag.tx = t.x;
+  drag.ty = t.y;
+  if (!running || paused) return;
+  draw();
+});
+
+boardCanvas.addEventListener('pointerup', e => {
+  activePointers.delete(e.pointerId);
+  if (!drag || e.pointerId !== drag.pointerId) return;
+  e.preventDefault();
+  const d = drag;
+  drag = null;
+  if (!running || paused) return;
+  const p = pieces.get(d.id);
+  if (!p) return;
+  const quick = performance.now() - d.t0 < 400;
+  if (!d.moved && quick) {
+    tryRotatePiece(p);
+  } else {
+    tryMovePiece(p, d.tx, d.ty);
+  }
+  updateHud();
+  draw();
+});
+
+boardCanvas.addEventListener('pointercancel', e => {
+  activePointers.delete(e.pointerId);
+  if (drag && e.pointerId === drag.pointerId) { drag = null; draw(); }
+});
+
+// ---------- Input: keyboard (desktop) ----------
+document.addEventListener('keydown', e => {
+  if (e.repeat) return;
+  if ((e.key === 'p' || e.key === 'P') && running) { togglePause(); return; }
+});
+
+// ---------- Buttons / overlays ----------
+function newGame() {
+  // a fresh deploy was spotted earlier: load it instead of starting stale
+  if (updateAvailable && applyUpdate()) return;
+  grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
+  pieces = new Map();
+  nextPieceId = 1;
+  bag = shuffledBag();
+  score = 0; blasts = 0; level = 1;
+  over = false; paused = false;
+  blasting = null; drag = null; spawnTimer = 0;
+  nextProto = takeFromBag();
+  spawnPiece();
+  updateHud();
+  $('startOverlay').classList.add('hidden');
+  $('overOverlay').classList.add('hidden');
+  $('pauseOverlay').classList.add('hidden');
+  running = true;
+  draw();
+  // re-check in the background; swap to the new deploy while nothing is at stake
+  checkForUpdate().then(u => {
+    if (u && running && !over && score === 0 && blasts === 0) applyUpdate();
+  });
+}
+function togglePause() {
+  if (!running) return;
+  paused = !paused;
+  if (paused) drag = null;
+  $('pauseOverlay').classList.toggle('hidden', !paused);
+}
+$('startBtn').addEventListener('click', newGame);
+$('retryBtn').addEventListener('click', newGame);
+$('restartBtn').addEventListener('click', newGame);
+$('resumeBtn').addEventListener('click', togglePause);
+$('pauseBtn').addEventListener('click', () => { if (running && !over) togglePause(); });
+function saveName() {
+  hiName = $('nameInput').value.trim().slice(0, 16).toUpperCase();
+  localStorage.setItem('pentabomb.hiName', hiName);
+  $('nameEntry').classList.add('hidden');
+  $('newHi').textContent = hiLabel();
+  refreshHiLine();
+}
+$('nameOk').addEventListener('click', saveName);
+$('nameInput').addEventListener('keydown', e => {
+  e.stopPropagation();
+  if (e.key === 'Enter') { saveName(); $('nameInput').blur(); }
+});
+let resetArmed = false, resetTimer = null;
+$('resetBtn').addEventListener('click', () => {
+  if (!resetArmed) {
+    resetArmed = true;
+    $('resetBtn').textContent = 'SURE? TAP AGAIN';
+    resetTimer = setTimeout(() => {
+      resetArmed = false;
+      $('resetBtn').textContent = 'RESET HI';
+    }, 3000);
+    return;
+  }
+  clearTimeout(resetTimer);
+  resetArmed = false;
+  hi = 0;
+  hiName = '';
+  localStorage.removeItem('pentabomb.hi');
+  localStorage.removeItem('pentabomb.hiName');
+  $('resetBtn').textContent = 'RESET HI';
+  refreshHiLine();
+  updateHud();
+});
+function refreshSoundBtn() {
+  $('soundBtn').textContent = muted ? 'SOUND OFF' : 'SOUND ON';
+}
+$('soundBtn').addEventListener('click', () => {
+  muted = !muted;
+  localStorage.setItem('pentabomb.muted', muted ? '1' : '0');
+  refreshSoundBtn();
+  if (!muted) sfx.rotate();
+});
+refreshSoundBtn();
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && running && !paused) togglePause();
+});
+
+// minimal hook for automated testing
+window.__pentabombDebug = {
+  dims() { return { cols: COLS, rows: ROWS, cell }; },
+  cellAt(x, y) { return grid[y][x]; },
+  pieceCount() { return pieces.size; },
+  listPieces() { return [...pieces.values()].map(p => ({ id: p.id, x: p.x, y: p.y, cells: p.cells.map(c => c.join(',')).join(' ') })); },
+  state() { return { score, blasts, level, over, running, paused, hi, hiName, updateAvailable, blasting: !!blasting, spawnTimer, spawnInterval: spawnMs(level), dragging: drag ? drag.id : null }; },
+  setNext(i) { nextProto = PIECES[i]; drawNext(); },
+  spawnNow() { spawnTimer = 0; return spawnPiece(); },
+  forceSpawn(i, rot, x, y) {
+    let cells = PIECES[i].c.map(c => c.slice());
+    for (let r = 0; r < rot; r++) cells = rotatedCells(cells, true);
+    if (!fits(cells, x, y)) return null;
+    const p = { id: nextPieceId++, cells, x, y, tex: PIECES[i].tex, flash: 0 };
+    pieces.set(p.id, p);
+    placeOnGrid(p);
+    checkBlasts();
+    return p.id;
+  },
+  removePiece(id) { const p = pieces.get(id); if (!p) return false; liftFromGrid(p); pieces.delete(id); return true; },
+  clear() { for (const p of pieces.values()) liftFromGrid(p); pieces.clear(); draw(); },
+  movePiece(id, x, y) { const p = pieces.get(id); return p ? tryMovePiece(p, x, y) : false; },
+  rotatePiece(id) { const p = pieces.get(id); return p ? tryRotatePiece(p) : false; },
+  tick(dt) { if (running && !paused) { update(dt); draw(); } },
+};
+
+window.addEventListener('resize', layout);
+// start the loop before first layout so a rendering hiccup can never kill the timer
+requestAnimationFrame(frame);
+window.__loopStarted = true;
+updateHud();
+refreshHiLine();
+layout();
+// drop the cache-buster from the address bar, then see if a newer deploy exists
+if (location.search) history.replaceState(null, '', location.pathname);
+checkForUpdate().then(u => { if (u && !running) applyUpdate(); });
+</script>
+</body>
+</html>
