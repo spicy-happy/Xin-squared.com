@@ -35,6 +35,14 @@ are phone-first.
 - Clear animations take 280ms (`CLEAR_FLASH_MS`); wait ~700ms after a lock
   before asserting grid state.
 - `window.__loopStarted === true` signals the game loop is running.
-- **Bump `GAME_VERSION` in `pentamino/index.html` on every change to that
-  file** — deployed pages compare it against the server copy to reload
-  themselves; forgetting the bump means players keep the stale version.
+- `pentabomb/index.html` exposes `window.__pentabombDebug`
+  (dims/cellAt/pieceCount/listPieces/state/setNext/spawnNow/forceSpawn/
+  removePiece/clear/movePiece/rotatePiece/tick). Its first piece spawns at
+  a random spot — call `clear()` after starting for deterministic boards.
+  Drive input with synthetic `PointerEvent`s on `#board` (drag = move,
+  tap = rotate); the blast flash is 320ms (`BLAST_FLASH_MS`), so tick
+  ~400ms past a blast before asserting grid state.
+- **Bump `GAME_VERSION` in `pentamino/index.html` and `pentabomb/index.html`
+  on every change to those files** — deployed pages compare it against the
+  server copy to reload themselves; forgetting the bump means players keep
+  the stale version.
