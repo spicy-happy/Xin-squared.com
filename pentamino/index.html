@@ -56,7 +56,6 @@
   .stat .value { font-size: 15px; }
   #nextBox { display: flex; flex-direction: column; align-items: center; }
   #nextCanvas { display: block; }
-  #btns { display: flex; flex-direction: column; gap: 4px; }
   .gbBtn {
     font: inherit;
     font-size: 13px;
@@ -119,8 +118,8 @@
       <div class="value" id="hi">0</div>
     </div>
     <div class="stat">
-      <div class="label">LINES</div>
-      <div class="value" id="lines">0</div>
+      <div class="label">CLEARS</div>
+      <div class="value" id="clears">0</div>
       <div class="label">LEVEL</div>
       <div class="value" id="level">1</div>
     </div>
@@ -128,24 +127,21 @@
       <div class="stat"><div class="label">NEXT</div></div>
       <canvas id="nextCanvas"></canvas>
     </div>
-    <div id="btns">
-      <button class="gbBtn" id="pauseBtn" aria-label="Pause">&#10073;&#10073;</button>
-      <button class="gbBtn" id="soundBtn" aria-label="Sound">&#9834;</button>
-    </div>
   </div>
   <div id="boardWrap">
     <canvas id="board"></canvas>
     <div class="overlay" id="startOverlay">
       <h1>PENTAMINO</h1>
       <p>TETRIS WITH<br>PENTOMINOES<br>ALL 18 PIECES</p>
-      <p>DRAG &#9668;&#9658; MOVE<br>TAP = ROTATE<br>DRAG &#9660; SOFT DROP<br>FLICK &#9660; HARD DROP</p>
+      <p>SWIPE &#9668;&#9658; MOVE<br>SMALL SWIPE = SMALL MOVE<br>BIG SWIPE = BIG MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>FLICK &#9660; HARD DROP<br>TWO-FINGER TAP = PAUSE</p>
       <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
       <button id="startBtn">START</button>
     </div>
     <div class="overlay hidden" id="pauseOverlay">
       <h1>PAUSED</h1>
-      <p>DRAG &#9668;&#9658; MOVE<br>TAP = ROTATE<br>DRAG &#9660; SOFT DROP<br>FLICK &#9660; HARD DROP</p>
+      <p>SWIPE &#9668;&#9658; MOVE<br>TAP = ROTATE<br>SWIPE &#9660; SOFT DROP<br>FLICK &#9660; HARD DROP<br>TWO-FINGER TAP = PAUSE</p>
       <button id="resumeBtn">RESUME</button>
+      <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
     </div>
     <div class="overlay hidden" id="overOverlay">
       <h1>GAME OVER</h1>
@@ -154,7 +150,7 @@
       <button id="retryBtn">PLAY AGAIN</button>
     </div>
   </div>
-  <div id="legend">DRAG &#9668;&#9658; MOVE &#183; TAP ROTATE<br>DRAG &#9660; SOFT &#183; FLICK &#9660; HARD DROP</div>
+  <div id="legend">SWIPE &#9668;&#9658; MOVE &#183; TAP ROTATE<br>FLICK &#9660; DROP &#183; 2-FINGER TAP PAUSE</div>
 </div>
 
 <script>
@@ -185,20 +181,20 @@ const PIECES = [
 ];
 PIECES.forEach((p, i) => { p.tex = i % 3; });
 
-const COLS = 24, ROWS = 24;
+const COLS = 12, ROWS = 20;
 const BLOCK_SCORE = 1000; // per 5x5 square destroyed, times level
 const LINE_SCORES = [0, 100, 300, 600, 1000, 1600];
 const KICKS = [[0,0],[-1,0],[1,0],[-2,0],[2,0],[0,-1],[-1,-1],[1,-1]];
 const LOCK_DELAY = 400, MAX_LOCK_RESETS = 10;
 
-// Slow-and-steady curve: level up every 12 lines, gravity eases down gently.
-const linesPerLevel = 12;
+// Slow-and-steady curve: level up every 12 clears, gravity eases down gently.
+const clearsPerLevel = 12;
 const gravityMs = lvl => Math.max(180, Math.round(1000 * Math.pow(0.93, lvl - 1)));
 
 // ---------- State ----------
 let grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
 let bag, current, nextPiece, hi;
-let score = 0, lines = 0, level = 1;
+let score = 0, clears = 0, level = 1;
 let dropTimer = 0, lockTimer = -1, lockResets = 0, lastTime = 0;
 let running = false, paused = false, over = false;
 let clearingRows = null, clearingCells = null, clearingBlockCount = 0, clearTimer = 0;
@@ -383,15 +379,82 @@ function finishClear() {
   }
   const n = clearingRows.length;
   score += BLOCK_SCORE * clearingBlockCount * level;
+  clears += n + clearingBlockCount;
+  score += LINE_SCORES[Math.min(n, LINE_SCORES.length - 1)] * level;
   clearingRows = null;
   clearingCells = null;
   clearingBlockCount = 0;
-  lines += n;
-  score += LINE_SCORES[n] * level;
-  const newLevel = Math.floor(lines / linesPerLevel) + 1;
+  settleFloatingBlocks();
+  const newLevel = Math.floor(clears / clearsPerLevel) + 1;
   if (newLevel > level) { level = newLevel; sfx.level(); }
+  // settling can complete new rows or 5x5 squares: chain the clear
+  const full = [];
+  for (let y = 0; y < ROWS; y++) if (grid[y].every(v => v)) full.push(y);
+  const blocks = find5x5Blocks();
+  if (full.length || blocks.count) {
+    clearingRows = full;
+    clearingCells = blocks.cells;
+    clearingBlockCount = blocks.count;
+    clearTimer = 0;
+    sfx.clear(full.length + blocks.count);
+    updateHud();
+    return;
+  }
   updateHud();
   spawn();
+}
+// After a blast, blocks left floating over empty space fall as connected chunks.
+function connectedComponents() {
+  const seen = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
+  const comps = [];
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      if (!grid[y][x] || seen[y][x]) continue;
+      const comp = [], stack = [[x, y]];
+      seen[y][x] = true;
+      while (stack.length) {
+        const [cx, cy] = stack.pop();
+        comp.push([cx, cy]);
+        for (const [nx, ny] of [[cx - 1, cy], [cx + 1, cy], [cx, cy - 1], [cx, cy + 1]]) {
+          if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && grid[ny][nx] && !seen[ny][nx]) {
+            seen[ny][nx] = true;
+            stack.push([nx, ny]);
+          }
+        }
+      }
+      comps.push(comp);
+    }
+  }
+  return comps;
+}
+function fallDistance(comp) {
+  const inComp = new Set(comp.map(([x, y]) => x + ',' + y));
+  let d = Infinity;
+  for (const [x, y] of comp) {
+    let free = 0, limited = true;
+    for (let ny = y + 1; ny < ROWS; ny++) {
+      // a lower cell of the same chunk moves too; the gap between is internal
+      if (inComp.has(x + ',' + ny)) { limited = false; break; }
+      if (grid[ny][x]) break;
+      free++;
+    }
+    if (limited && free < d) d = free;
+  }
+  return d === Infinity ? 0 : d;
+}
+function settleFloatingBlocks() {
+  let moved = true;
+  while (moved) {
+    moved = false;
+    for (const comp of connectedComponents()) {
+      const d = fallDistance(comp);
+      if (d > 0) {
+        comp.sort((a, b) => b[1] - a[1]);
+        for (const [x, y] of comp) { grid[y + d][x] = grid[y][x]; grid[y][x] = 0; }
+        moved = true;
+      }
+    }
+  }
 }
 function spawn() {
   current = makePiece(nextPiece);
@@ -577,7 +640,7 @@ function drawNextBlock(x, y, s, tex) { drawBlock(nextCtx, x, y, s, tex); }
 
 function updateHud() {
   $('score').textContent = score;
-  $('lines').textContent = lines;
+  $('clears').textContent = clears;
   $('level').textContent = level;
   $('hi').textContent = Math.max(hi, score || 0);
 }
@@ -588,6 +651,11 @@ let touch = null;
 
 boardCanvas.addEventListener('touchstart', e => {
   e.preventDefault();
+  if (e.touches.length >= 2) {
+    touch = null;
+    if (running && !over) togglePause();
+    return;
+  }
   if (!running || paused || !current) return;
   const t = e.changedTouches[0];
   touch = {
@@ -610,10 +678,12 @@ boardCanvas.addEventListener('touchmove', e => {
   touch.accY += t.clientY - touch.lastY;
   touch.lastX = t.clientX;
   touch.lastY = t.clientY;
-  // horizontal: one column per cell-width of drag
-  while (Math.abs(touch.accX) >= cell) {
+  // horizontal: swipe distance sets move distance — small swipe = small
+  // move, big swipe = big move (one column per ~0.7 cell-widths)
+  const hStep = cell * 0.7;
+  while (Math.abs(touch.accX) >= hStep) {
     const dir = touch.accX > 0 ? 1 : -1;
-    touch.accX -= dir * cell;
+    touch.accX -= dir * hStep;
     if (tryMove(dir, 0)) { touch.movedCols++; touch.consumed = true; }
   }
   // vertical: soft drop one row per drag step (only downward)
@@ -643,7 +713,7 @@ boardCanvas.addEventListener('touchend', e => {
   touch = null;
   if (!running || paused || !current) return;
   // fast downward flick (not a slow soft-drop drag) = hard drop
-  if (dy > 80 && dt < 220 && state.movedRows <= 2 && Math.abs(dx) < Math.abs(dy)) { hardDrop(); return; }
+  if (dy > 80 && dt < 220 && Math.abs(dx) < Math.abs(dy)) { hardDrop(); return; }
   // tap = rotate; left third rotates CCW, rest CW
   if (!state.consumed && dt < 300 && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
     const rect = boardCanvas.getBoundingClientRect();
@@ -675,7 +745,7 @@ document.addEventListener('keydown', e => {
 function newGame() {
   grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
   bag = shuffledBag();
-  score = 0; lines = 0; level = 1;
+  score = 0; clears = 0; level = 1;
   over = false; paused = false;
   clearingRows = null; clearingCells = null; clearingBlockCount = 0;
   softDropping = false;
@@ -695,10 +765,9 @@ function togglePause() {
 }
 $('startBtn').addEventListener('click', newGame);
 $('retryBtn').addEventListener('click', newGame);
-$('pauseBtn').addEventListener('click', togglePause);
 $('resumeBtn').addEventListener('click', togglePause);
 function refreshSoundBtn() {
-  $('soundBtn').textContent = muted ? '✗' : '♪';
+  $('soundBtn').textContent = muted ? 'SOUND OFF' : 'SOUND ON';
 }
 $('soundBtn').addEventListener('click', () => {
   muted = !muted;
@@ -715,7 +784,10 @@ document.addEventListener('visibilitychange', () => {
 // minimal hook for automated testing
 window.__pentaminoDebug = {
   fillRow(y, skipX = -1) { for (let x = 0; x < COLS; x++) if (x !== skipX) grid[y][x] = 1; },
-  state() { return { score, lines, level, over, running, paused, piece: current ? { x: current.x, y: current.y, cells: current.cells.map(c => c.join(',')).join(' ') } : null }; },
+  setCell(x, y, v) { grid[y][x] = v; },
+  cellAt(x, y) { return grid[y][x]; },
+  dims() { return { cols: COLS, rows: ROWS, cell }; },
+  state() { return { score, clears, level, over, running, paused, piece: current ? { x: current.x, y: current.y, cells: current.cells.map(c => c.join(',')).join(' ') } : null }; },
   tick(dt) { if (running && !paused) { update(dt); draw(); } },
 };
 
