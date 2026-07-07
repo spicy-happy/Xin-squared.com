@@ -36,7 +36,9 @@ const TOKEN_TTL = 6 * 3600; // a game session should finish within 6h
 // still forces a forger to age a token ~8 min per 500k points.
 const MAX_PTS_PER_SEC = 1000;
 const MIN_SCORE_GRACE = 500; // scores this small skip the rate check
-const SUBMITS_PER_HOUR = 20;
+// every finished game submits now (weekly board), and quick deaths can be
+// under a minute — 20/h throttled real players
+const SUBMITS_PER_HOUR = 60;
 const TOKENS_PER_HOUR = 120;
 const EVENTS_PER_HOUR = 400;
 const STAT_DAYS_SHOWN = 14;

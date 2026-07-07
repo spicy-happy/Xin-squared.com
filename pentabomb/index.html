@@ -166,6 +166,13 @@
   #overBtns { display: flex; align-items: center; gap: 10px; flex: none; }
   #nameEntry { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   #nameEntry.hidden { display: none; }
+  #nameRow { display: flex; align-items: center; gap: 8px; }
+  /* game over: quiet everything but the results — HUD dims, the legend
+     collapses to a plain footer, the countdown shows the board underneath */
+  #screen.gameover #legendText,
+  #screen.gameover #bottomRestart,
+  #screen.gameover #soundBtn { display: none; }
+  #countOverlay { background: rgba(155, 188, 15, .45); }
   #nameInput {
     font: inherit;
     font-size: 14px;
@@ -279,8 +286,10 @@
       <p id="newHi"></p>
       <div id="nameEntry" class="hidden">
         <p>ENTER YOUR NAME</p>
-        <input id="nameInput" maxlength="16" autocomplete="off" spellcheck="false" enterkeyhint="done">
-        <button class="gbBtn" id="nameOk">OK</button>
+        <div id="nameRow">
+          <input id="nameInput" maxlength="16" autocomplete="off" spellcheck="false" enterkeyhint="done">
+          <button class="gbBtn" id="nameOk">OK</button>
+        </div>
       </div>
       <div id="lbBox">
         <div id="lbTitle">&#8212; WORLD TOP 10 &#8212;</div>
@@ -315,7 +324,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 16;
+const GAME_VERSION = 17;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -424,6 +433,7 @@ const sfx = {
   clear:  n => { for (let i = 0; i < Math.max(2, n + 1); i++) beep(330 + i * 110, 0.09, 0.06, i * 0.09); },
   level:  () => { beep(523, 0.1); beep(659, 0.1, 0.06, 0.1); beep(784, 0.14, 0.06, 0.2); },
   over:   () => { beep(392, 0.15); beep(330, 0.15, 0.06, 0.16); beep(262, 0.15, 0.06, 0.32); beep(196, 0.3, 0.06, 0.48); },
+  start:  () => { beep(523, 0.12); beep(784, 0.35, 0.07, 0.12); },
 };
 
 // ---------- Piece mechanics ----------
@@ -782,11 +792,13 @@ function gameOver() {
     $('nameEntry').classList.remove('hidden');
     $('nameInput').value = hiName;
   } else {
-    $('newHi').textContent = hiLabel();
+    $('newHi').textContent = ''; // HUD already shows HI; keep this screen lean
     $('nameEntry').classList.add('hidden');
   }
   refreshHiLine();
   updateHud();
+  $('hud').classList.add('faded');
+  $('screen').classList.add('gameover');
   lastRun = { score, clears, level, token: playToken };
   showLeaderboard(score);
   $('overOverlay').classList.remove('hidden');
@@ -859,11 +871,15 @@ async function showLeaderboard(finalScore) {
     updateWorldBest(scores);
     // the game's token usually arrived while playing; grab it if it was late
     if (lastRun && !lastRun.token) lastRun.token = playToken;
-    globalQualifies = finalScore > 0 && lastRun &&
-      (scores.length < 10 || finalScore > scores[scores.length - 1].score);
+    // every finished game submits: the weekly board only fills if ordinary
+    // scores get sent, not just all-time-top-10 runs
+    globalQualifies = finalScore > 0 && !!lastRun;
     if (globalQualifies) {
       if (nameSaved && hiName) {
         // player confirmed their name before this fetch finished
+        submitGlobalScore(hiName);
+      } else if (hiName && $('nameEntry').classList.contains('hidden')) {
+        // returning player, no name prompt on screen: submit quietly
         submitGlobalScore(hiName);
       } else {
         // reuse the local name-entry UI to also claim the global spot
@@ -1388,6 +1404,7 @@ function newGame() {
   $('overOverlay').classList.add('hidden');
   $('pauseOverlay').classList.add('hidden');
   $('screen').classList.remove('paused');
+  $('screen').classList.remove('gameover');
   $('hud').style.visibility = 'visible';
   $('hud').classList.remove('faded');
   $('legend').style.visibility = 'visible';
@@ -1409,16 +1426,15 @@ function togglePause() {
   $('screen').classList.toggle('paused', paused);
   $('hud').classList.toggle('faded', paused); // score/next dim with the board
 }
-// 3-2-1 countdown before every game: prep time to get hands in position
+// 3-2-1 countdown before every game: prep time to get hands in position.
+// The board is fully set up (first piece + NEXT preview visible) behind a
+// translucent overlay, so players can plan before gravity kicks in.
 let countingDown = false;
 function startCountdown() {
   if (countingDown) return;
   countingDown = true;
-  running = false;
-  $('startOverlay').classList.add('hidden');
-  $('overOverlay').classList.add('hidden');
-  $('pauseOverlay').classList.add('hidden');
-  $('screen').classList.remove('paused');
+  newGame();
+  running = false; // freeze gravity while the numbers tick
   $('countOverlay').classList.remove('hidden');
   let n = 3;
   const step = () => {
@@ -1430,7 +1446,9 @@ function startCountdown() {
     } else {
       $('countOverlay').classList.add('hidden');
       countingDown = false;
-      newGame();
+      running = true;
+      gameStartAt = performance.now();
+      sfx.start();
     }
   };
   step();
@@ -1446,7 +1464,6 @@ function saveName() {
   hiName = $('nameInput').value.trim().slice(0, 16).toUpperCase();
   localStorage.setItem('pentabomb.hiName', hiName);
   $('nameEntry').classList.add('hidden');
-  $('newHi').textContent = hiLabel();
   refreshHiLine();
   nameSaved = true;
   submitGlobalScore(hiName);

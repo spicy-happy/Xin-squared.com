@@ -71,21 +71,27 @@
     border-bottom: 2px solid var(--gb-dark);
     padding: 8px 2px;
   }
-  #list .top1 { font-size: 15px; }
-  #list .top3 { text-decoration: underline; }
   #playRow { text-align: center; margin-top: 18px; }
-  #playRow a {
-    display: inline-block;
+  #playRow button {
+    font: inherit;
     font-size: 15px;
     letter-spacing: 2px;
     padding: 10px 24px;
     background: var(--gb-darkest);
     color: var(--gb-lightest);
+    border: none;
     border-radius: 4px;
-    text-decoration: none;
+    cursor: pointer;
   }
-  #home { text-align: center; margin-top: 14px; font-size: 10px; }
-  #home a { color: var(--gb-darkest); }
+  #footer {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 16px;
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+  #footer a { color: var(--gb-darkest); }
 </style>
 </head>
 <body>
@@ -93,20 +99,21 @@
   <h1>WORLD RANKINGS</h1>
   <div id="sub">PENTABOMB</div>
   <div id="tabs">
-    <button class="tab" id="tabWeek" hidden>THIS WEEK</button>
+    <button class="tab" id="tabWeek">THIS WEEK</button>
     <button class="tab active" id="tabAll">ALL TIME</button>
   </div>
   <div id="resetLine"></div>
   <div id="list">LOADING...</div>
-  <div id="playRow"><a href="./">PLAY PENTABOMB</a></div>
-  <div id="home"><a href="https://www.xin-squared.com/">MADE BY XIN &#183; XIN-SQUARED.COM</a></div>
+  <div id="playRow"><button id="backBtn">GO BACK</button></div>
+  <div id="footer">
+    <span>MADE BY XIN</span>
+    <a href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">LEAVE A TIP</a>
+  </div>
 </div>
 <script>
 'use strict';
 const API = 'https://pentamino-scores.mail-f78.workers.dev';
 const $ = id => document.getElementById(id);
-// the weekly board stays hidden until it has enough scores to look alive
-const MIN_WEEKLY_SHOWN = 3;
 let data = null, mode = 'all';
 
 function render() {
@@ -114,19 +121,16 @@ function render() {
   const rows = data ? (mode === 'weekly' ? data.weekly : data.allTime) : [];
   el.textContent = '';
   if (!rows.length) {
-    el.textContent = 'NO SCORES YET.';
+    el.textContent = mode === 'weekly'
+      ? 'NO SCORES YET THIS WEEK.\nBE THE FIRST!'
+      : 'NO SCORES YET.';
     return;
   }
-  rows.slice(0, 50).forEach((s, i) => {
-    const span = document.createElement('span');
-    span.textContent =
-      String(i + 1).padStart(2) + ' ' +
-      String(s.name).slice(0, 16).padEnd(17) +
-      String(s.score).padStart(8) + '\n';
-    if (i === 0) span.className = 'top1';
-    else if (i < 3) span.className = 'top3';
-    el.appendChild(span);
-  });
+  el.textContent = rows.slice(0, 50).map((s, i) =>
+    String(i + 1).padStart(2) + ' ' +
+    String(s.name).slice(0, 16).padEnd(17) +
+    String(s.score).padStart(8)
+  ).join('\n');
 }
 
 function setMode(m) {
@@ -137,9 +141,13 @@ function setMode(m) {
 }
 $('tabWeek').addEventListener('click', () => setMode('weekly'));
 $('tabAll').addEventListener('click', () => setMode('all'));
+$('backBtn').addEventListener('click', () => {
+  if (history.length > 1 && document.referrer) history.back();
+  else location.href = './';
+});
 
 function tickReset() {
-  if (!data || !data.weekEndsAt || $('tabWeek').hidden) return;
+  if (!data || !data.weekEndsAt) return;
   let s = Math.max(0, Math.floor((data.weekEndsAt - Date.now()) / 1000));
   const d = Math.floor(s / 86400); s -= d * 86400;
   const h = Math.floor(s / 3600); s -= h * 3600;
@@ -151,14 +159,13 @@ fetch(API + '/leaderboard')
   .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
   .then(j => {
     data = j;
-    if (Array.isArray(data.weekly) && data.weekly.length >= MIN_WEEKLY_SHOWN) {
-      $('tabWeek').hidden = false;
-      // the fresh weekly race is the more interesting default once it exists
-      if (location.hash !== '#all') setMode('weekly');
-      tickReset();
-      setInterval(tickReset, 30000);
+    // land on the weekly race when it has scores; all-time otherwise
+    if (location.hash !== '#all' && Array.isArray(data.weekly) && data.weekly.length) {
+      setMode('weekly');
     }
     render();
+    tickReset();
+    setInterval(tickReset, 30000);
   })
   .catch(() => { $('list').textContent = 'RANKINGS OFFLINE'; });
 </script>
