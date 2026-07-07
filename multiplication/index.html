@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#9bbc0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Times Tables Arcade — 6 Free Retro Multiplication Games for Kids</title>
+<meta name="description" content="Learn multiplication tables with 6 free Game Boy-style mini games: flash cards, dot arrays, number munching, boss battles, falling meteors and door puzzles. Ages 5-10, no install, no ads.">
+<link rel="canonical" href="https://www.xin-squared.com/multiplication/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Xin Squared">
+<meta property="og:title" content="Times Tables Arcade — retro multiplication mini games">
+<meta property="og:description" content="6 free Game Boy-style mini games for learning multiplication tables. Ages 5-10, plays in your browser.">
+<meta property="og:url" content="https://www.xin-squared.com/multiplication/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Times Tables Arcade — retro multiplication mini games">
+<meta name="twitter:description" content="6 free Game Boy-style mini games for learning multiplication tables. Ages 5-10, plays in your browser.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Times Tables Arcade",
+  "url": "https://www.xin-squared.com/multiplication/",
+  "description": "Six Game Boy-style mini games for learning multiplication tables: timed flash cards, dot array visualization, a number muncher, boss battles, falling meteor equations and missing-factor door puzzles.",
+  "genre": ["Educational", "Arcade", "Puzzle"],
+  "gamePlatform": ["Web Browser", "Mobile Web"],
+  "playMode": "SinglePlayer",
+  "typicalAgeRange": "5-10",
+  "applicationCategory": "Game",
+  "operatingSystem": "Any",
+  "author": { "@type": "Person", "name": "Xin", "url": "https://www.xin-squared.com/" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="gb">
+  <div id="screen">
+
+    <div id="hud" class="hidden">
+      <button id="hud-back" aria-label="Back to menu">&#9664;</button>
+      <div id="hud-title">GAME</div>
+      <div id="hud-right"></div>
+    </div>
+
+    <!-- BOOT -->
+    <section id="view-boot" class="view active">
+      <div id="boot-logo">XIN&sup2;</div>
+      <div id="boot-sub">PRESENTS</div>
+    </section>
+
+    <!-- MENU -->
+    <section id="view-menu" class="view">
+      <div id="menu-logo">
+        <div class="logo-line1">TIMES TABLES</div>
+        <div class="logo-line2">ARCADE</div>
+      </div>
+      <div id="menu-cards"></div>
+      <div id="menu-foot">
+        <button id="btn-sound" class="foot-btn">SOUND: ON</button>
+        <a class="foot-btn" href="/">XIN&sup2;.COM</a>
+      </div>
+    </section>
+
+    <!-- TABLE PICKER -->
+    <section id="view-table" class="view">
+      <h2 class="view-title">PICK A TABLE</h2>
+      <p class="view-sub" id="table-gamename"></p>
+      <div id="table-grid"></div>
+      <p class="hint-text">MIX = ALL TABLES 2&ndash;12</p>
+    </section>
+
+    <!-- FLASH BLITZ -->
+    <section id="view-flash" class="view">
+      <div class="timebar"><div id="flash-timefill" class="timefill"></div></div>
+      <div id="flash-streak" class="streak-row"></div>
+      <div id="flash-q" class="big-question">3 &times; 4</div>
+      <div id="flash-choices" class="choices"></div>
+    </section>
+
+    <!-- DOT GRID -->
+    <section id="view-dots" class="view">
+      <div id="dots-round" class="round-row"></div>
+      <div id="dots-q" class="big-question small">3 &times; 4 = ?</div>
+      <div id="dots-gridwrap"><div id="dots-grid"></div></div>
+      <div id="dots-skip" class="skip-row"></div>
+      <div id="dots-choices" class="choices"></div>
+    </section>
+
+    <!-- MUNCHER -->
+    <section id="view-muncher" class="view">
+      <div id="muncher-target" class="target-banner">EAT MULTIPLES OF 4</div>
+      <div id="muncher-grid"></div>
+      <div id="muncher-controls">
+        <div id="dpad">
+          <button class="dpad-btn" data-dir="up" style="grid-area:u">&#9650;</button>
+          <button class="dpad-btn" data-dir="left" style="grid-area:l">&#9664;</button>
+          <button class="dpad-btn" data-dir="down" style="grid-area:d">&#9660;</button>
+          <button class="dpad-btn" data-dir="right" style="grid-area:r">&#9654;</button>
+        </div>
+        <div id="muncher-msg"></div>
+        <button id="btn-eat">EAT</button>
+      </div>
+    </section>
+
+    <!-- BOSS BATTLE -->
+    <section id="view-boss" class="view">
+      <div id="boss-arena">
+        <div id="boss-info">
+          <div id="boss-name">SLIMO</div>
+          <div class="hpbar"><div id="boss-hp" class="hpfill"></div></div>
+        </div>
+        <canvas id="boss-canvas" width="96" height="96"></canvas>
+        <div id="hero-row">
+          <canvas id="hero-canvas" width="64" height="64"></canvas>
+          <div id="hero-hearts"></div>
+        </div>
+      </div>
+      <div class="timebar"><div id="boss-timefill" class="timefill"></div></div>
+      <div id="boss-q" class="big-question small">3 &times; 4 = ?</div>
+      <div id="boss-choices" class="choices"></div>
+    </section>
+
+    <!-- METEOR MATH -->
+    <section id="view-meteor" class="view">
+      <canvas id="meteor-canvas" width="320" height="330"></canvas>
+      <div id="meteor-inputrow">
+        <div id="meteor-typed">_</div>
+      </div>
+      <div id="meteor-pad"></div>
+    </section>
+
+    <!-- KEY QUEST -->
+    <section id="view-keyquest" class="view">
+      <div id="kq-progress"></div>
+      <canvas id="kq-canvas" width="128" height="96"></canvas>
+      <div id="kq-q" class="big-question small">3 &times; ? = 12</div>
+      <div id="kq-choices" class="choices"></div>
+    </section>
+
+    <!-- RESULT -->
+    <section id="view-result" class="view">
+      <h2 id="result-title" class="view-title">GAME OVER</h2>
+      <div id="result-lines"></div>
+      <div id="result-newbest" class="hidden">&#9733; NEW BEST! &#9733;</div>
+      <div class="result-btns">
+        <button id="result-again" class="menu-btn">PLAY AGAIN</button>
+        <button id="result-table" class="menu-btn">CHANGE TABLE</button>
+        <button id="result-menu" class="menu-btn">MENU</button>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="js/audio.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/main.js"></script>
+<script src="js/flash.js"></script>
+<script src="js/dots.js"></script>
+<script src="js/muncher.js"></script>
+<script src="js/boss.js"></script>
+<script src="js/meteor.js"></script>
+<script src="js/keyquest.js"></script>
+<script>MAIN.boot();</script>
+</body>
+</html>
