@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Pentabomb Analytics</title>
+<style>
+  :root {
+    --bg: #101418;
+    --panel: #181f26;
+    --line: #2a343e;
+    --text: #d7e1ea;
+    --dim: #7d8b98;
+    --accent: #58d68d;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    padding: 24px 16px;
+    display: flex;
+    justify-content: center;
+  }
+  main { width: 100%; max-width: 720px; }
+  h1 { font-size: 18px; letter-spacing: 2px; }
+  .sub { color: var(--dim); font-size: 11px; margin: 6px 0 20px; line-height: 1.6; }
+  #msg { color: var(--dim); font-size: 13px; padding: 24px 0; text-align: center; }
+  #cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px;
+  }
+  .card .k { color: var(--dim); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+  .card .v { font-size: 22px; margin-top: 4px; }
+  .card .n { color: var(--dim); font-size: 10px; margin-top: 2px; }
+  h2 { font-size: 12px; letter-spacing: 2px; color: var(--dim); margin: 22px 0 10px; text-transform: uppercase; }
+  #chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 120px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px;
+  }
+  .barWrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+  .bar { background: var(--accent); border-radius: 2px 2px 0 0; min-height: 2px; }
+  .barLabel { color: var(--dim); font-size: 8px; text-align: center; margin-top: 4px; }
+  .tableWrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { padding: 6px 10px; text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th {
+    background: var(--panel);
+    color: var(--dim);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody tr:nth-child(even) { background: var(--panel); }
+  .foot { color: var(--dim); font-size: 10px; margin-top: 20px; line-height: 1.7; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>PENTABOMB ANALYTICS</h1>
+  <div class="sub">Aggregate counters only &mdash; no cookies, no user IDs, no tracking scripts.</div>
+  <div id="msg">Loading&hellip;</div>
+  <div id="cards" hidden></div>
+  <h2 id="chartTitle" hidden>Daily visits (last 14 days)</h2>
+  <div id="chart" hidden></div>
+  <h2 id="tableTitle" hidden>Daily breakdown</h2>
+  <div class="tableWrap" id="tableWrap" hidden>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Visits</th><th>New</th><th>Started</th>
+          <th>Finished</th><th>Avg score</th><th>Best</th><th>Avg time</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="foot">
+    Visits = page loads &middot; New = first-time devices (localStorage flag)<br>
+    Data from the Pentabomb score worker &middot; <a href="/pentabomb/">play the game</a>
+  </div>
+</main>
+
+<script>
+'use strict';
+const API = 'https://pentamino-scores.mail-f78.workers.dev';
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n || 0).toLocaleString('en-US');
+const mmss = sec => {
+  sec = Math.round(sec || 0);
+  return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+};
+
+function card(k, v, n) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.innerHTML = '<div class="k">' + k + '</div><div class="v">' + v + '</div>' +
+    (n ? '<div class="n">' + n + '</div>' : '');
+  return div;
+}
+
+async function load() {
+  let data;
+  try {
+    const res = await fetch(API + '/stats');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    data = await res.json();
+  } catch (e) {
+    $('msg').textContent = 'Stats unavailable (' + e.message + ')';
+    return;
+  }
+  const all = data.all || {};
+  $('msg').hidden = true;
+
+  const cards = $('cards');
+  cards.hidden = false;
+  cards.append(
+    card('Visits (all time)', fmt(all.visits)),
+    card('New visitors', fmt(all.uniques)),
+    card('Games started', fmt(all.starts)),
+    card('Games finished', fmt(all.ends)),
+    card('Finish rate', all.starts ? Math.round(100 * all.ends / all.starts) + '%' : '&mdash;',
+         'finished / started'),
+    card('Avg score', fmt(all.avgScore), 'per finished game'),
+    card('Best score', fmt(all.best)),
+    card('Avg game time', mmss(all.avgSec), 'min:sec'),
+  );
+
+  // Worker returns days newest-first; show oldest-first in chart and table.
+  const days = (Array.isArray(data.days) ? data.days : []).slice().reverse();
+  if (!days.length) return;
+
+  const chart = $('chart');
+  $('chartTitle').hidden = false;
+  chart.hidden = false;
+  const max = Math.max(1, ...days.map(d => d.visits || 0));
+  for (const d of days) {
+    const wrap = document.createElement('div');
+    wrap.className = 'barWrap';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = Math.round(100 * (d.visits || 0) / max) + '%';
+    bar.title = d.date + ': ' + fmt(d.visits) + ' visits';
+    const label = document.createElement('div');
+    label.className = 'barLabel';
+    label.textContent = d.date.slice(5); // MM-DD
+    wrap.append(bar, label);
+    chart.appendChild(wrap);
+  }
+
+  $('tableTitle').hidden = false;
+  $('tableWrap').hidden = false;
+  const tbody = $('rows');
+  for (const d of days) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = [
+      d.date, fmt(d.visits), fmt(d.uniques), fmt(d.starts),
+      fmt(d.ends), fmt(d.avgScore), fmt(d.best), mmss(d.avgSec),
+    ].map(c => '<td>' + c + '</td>').join('');
+    tbody.appendChild(tr);
+  }
+}
+load();
+</script>
+</body>
+</html>
