@@ -37,6 +37,8 @@ are phone-first.
 - Clear animations take 280ms (`CLEAR_FLASH_MS`); wait ~700ms after a lock
   before asserting grid state.
 - `window.__loopStarted === true` signals the game loop is running.
+- Clicking START/PLAY AGAIN runs a ~2s 3-2-1 countdown before the game
+  begins; scripted runs can call `__pentabombDebug.startNow()` to skip it.
 - `pentapuzzle/index.html` (Katamino-style free-placement puzzle, formerly
   at /pentabomb) exposes `window.__pentapuzzleDebug`
   (dims/cellAt/pieceCount/listPieces/state/setNext/spawnNow/forceSpawn/

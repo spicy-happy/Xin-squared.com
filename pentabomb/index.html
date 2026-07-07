@@ -6,7 +6,42 @@
 <meta name="theme-color" content="#9bbc0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>PENTABOMB</title>
+<title>PENTABOMB — Free Pentomino Puzzle Game, Play in Your Browser</title>
+<meta name="description" content="PENTABOMB is a free Game Boy-style pentomino puzzle game. Drop 5-block pieces, fill a 5×5 square to blast it away, and chase the world top 10. No install, no ads — plays on phone and desktop.">
+<link rel="canonical" href="https://www.xin-squared.com/pentabomb/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Xin Squared">
+<meta property="og:title" content="PENTABOMB — Fill a 5×5 square. Blast it away.">
+<meta property="og:description" content="Free Game Boy-style pentomino puzzle. Play instantly in your browser on phone or desktop — can you crack the world top 10?">
+<meta property="og:url" content="https://www.xin-squared.com/pentabomb/">
+<meta property="og:image" content="https://www.xin-squared.com/pentabomb/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="PENTABOMB — retro green puzzle game title screen with pentomino pieces">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PENTABOMB — Fill a 5×5 square. Blast it away.">
+<meta name="twitter:description" content="Free Game Boy-style pentomino puzzle. Play instantly in your browser — can you crack the world top 10?">
+<meta name="twitter:image" content="https://www.xin-squared.com/pentabomb/og.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "PENTABOMB",
+  "url": "https://www.xin-squared.com/pentabomb/",
+  "image": "https://www.xin-squared.com/pentabomb/og.png",
+  "description": "A free Game Boy-style pentomino puzzle game. Drop 5-block pieces, fill a 5×5 square to blast it away, and compete on a global leaderboard.",
+  "genre": ["Puzzle", "Arcade"],
+  "gamePlatform": ["Web Browser", "Mobile Web"],
+  "playMode": "SinglePlayer",
+  "applicationCategory": "Game",
+  "operatingSystem": "Any",
+  "author": { "@type": "Person", "name": "Xin", "url": "https://www.xin-squared.com/" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
 <style>
   :root {
     --gb-lightest: #9bbc0f;
@@ -113,6 +148,22 @@
     color: var(--gb-darkest);
     border: 2px solid var(--gb-darkest);
   }
+  /* empty status lines (challenge/newHi) shouldn't eat overlay space */
+  .overlay p:empty { display: none; }
+  .rankLink {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--gb-darkest);
+    text-underline-offset: 3px;
+  }
+  #lbBox .rankLink { display: block; margin-top: 6px; text-align: center; }
+  #countOverlay { font-size: 72px; letter-spacing: 0; }
+  /* game-over content can exceed the board (name entry + leaderboard +
+     buttons): center while it fits, scroll instead of spilling when not */
+  #overOverlay { justify-content: flex-start; overflow-y: auto; }
+  #overOverlay > :first-child { margin-top: auto; }
+  #overOverlay > :last-child { margin-bottom: auto; }
+  #overBtns { display: flex; align-items: center; gap: 10px; flex: none; }
   #nameEntry { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   #nameEntry.hidden { display: none; }
   #nameInput {
@@ -212,8 +263,11 @@
       <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
       <p class="big" id="hiLine"></p>
       <p id="worldBest"></p>
+      <p class="big" id="challengeLine"></p>
       <button id="startBtn">START</button>
+      <a class="rankLink" href="leaderboard.html">WORLD RANKINGS &#8594;</a>
     </div>
+    <div class="overlay hidden" id="countOverlay"><span id="countNum">3</span></div>
     <div class="overlay hidden" id="pauseOverlay">
       <h1>PAUSED</h1>
       <button id="resumeBtn">RESUME</button>
@@ -221,6 +275,7 @@
     <div class="overlay hidden" id="overOverlay">
       <h1>GAME OVER</h1>
       <p class="big" id="finalScore">SCORE 0</p>
+      <p id="challengeResult"></p>
       <p id="newHi"></p>
       <div id="nameEntry" class="hidden">
         <p>ENTER YOUR NAME</p>
@@ -230,10 +285,20 @@
       <div id="lbBox">
         <div id="lbTitle">&#8212; WORLD TOP 10 &#8212;</div>
         <div id="lbList"></div>
+        <a class="rankLink" href="leaderboard.html">FULL TOP 50 &#8594;</a>
       </div>
-      <button id="retryBtn">PLAY AGAIN</button>
+      <div id="overBtns">
+        <button id="retryBtn">PLAY AGAIN</button>
+        <button class="gbBtn" id="shareBtn">SHARE SCORE</button>
+      </div>
     </div>
   </div>
+  <noscript>
+    <p>PENTABOMB is a free Game Boy-style pentomino puzzle game by Xin. Drop
+    5-block pieces, fill a 5&#215;5 square to blast it away, and compete on the
+    world top 10 leaderboard. Works on phones and desktops &#8212; JavaScript
+    must be enabled to play.</p>
+  </noscript>
   <div id="legend" style="visibility:hidden">
     <div id="legendText"></div>
     <div id="legendRow">
@@ -250,7 +315,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 13;
+const GAME_VERSION = 15;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells, plus a texture index (0-2) since the
@@ -709,6 +774,7 @@ function gameOver() {
     sec: Math.max(0, Math.round((performance.now() - gameStartAt) / 1000)),
   });
   $('finalScore').textContent = 'SCORE ' + score;
+  $('challengeResult').textContent = challengeResultLine(score);
   if (score > hi) {
     hi = score;
     localStorage.setItem('pentabomb.hi', String(hi));
@@ -847,6 +913,61 @@ async function submitGlobalScore(name) {
     $('lbTitle').textContent = why ? '— SUBMIT FAILED: ' + why + ' —' : '— SUBMIT FAILED —';
   }
 }
+
+// ---------- Share + challenge links ----------
+// Share links carry the score as ?c=N; opening one shows a "beat this"
+// callout on the start screen, closing the loop between two players.
+const SHARE_URL = 'https://www.xin-squared.com/pentabomb/';
+let challengeScore = 0;
+try {
+  const c = parseInt(new URLSearchParams(location.search).get('c'), 10);
+  if (Number.isInteger(c) && c > 0 && c <= 99999999) {
+    challengeScore = c;
+    $('challengeLine').textContent = 'BEAT THIS: ' + challengeScore;
+    sendEvent('challenge');
+  }
+} catch (e) {}
+
+function challengeResultLine(finalScore) {
+  if (!challengeScore) return '';
+  return finalScore > challengeScore ? 'CHALLENGE BEATEN!' : 'CHALLENGE: BEAT ' + challengeScore;
+}
+
+let shareResetTimer = 0;
+async function shareScore() {
+  const s = lastRun ? lastRun.score : score;
+  const url = SHARE_URL + (s > 0 ? '?c=' + s : '');
+  const text = s > 0
+    ? 'I scored ' + s + ' in PENTABOMB. Beat that!'
+    : 'PENTABOMB — fill a 5x5 square, blast it away. Free in your browser.';
+  sendEvent('share');
+  const btn = $('shareBtn');
+  const flash = msg => {
+    btn.textContent = msg;
+    clearTimeout(shareResetTimer);
+    shareResetTimer = setTimeout(() => { btn.textContent = 'SHARE SCORE'; }, 2000);
+  };
+  if (navigator.share) {
+    try { await navigator.share({ title: 'PENTABOMB', text, url }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; /* else fall through */ }
+  }
+  try {
+    await navigator.clipboard.writeText(text + ' ' + url);
+    flash('LINK COPIED!');
+  } catch (e) {
+    // last resort: legacy copy via a temporary textarea
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text + ' ' + url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      flash('LINK COPIED!');
+    } catch (e2) { flash('COPY FAILED'); }
+  }
+}
+$('shareBtn').addEventListener('click', () => { $('shareBtn').blur(); shareScore(); });
 
 // ---------- Game loop ----------
 function update(dt) {
@@ -1288,12 +1409,38 @@ function togglePause() {
   $('screen').classList.toggle('paused', paused);
   $('hud').classList.toggle('faded', paused); // score/next dim with the board
 }
-$('startBtn').addEventListener('click', newGame);
-$('retryBtn').addEventListener('click', newGame);
+// 3-2-1 countdown before every game: prep time to get hands in position
+let countingDown = false;
+function startCountdown() {
+  if (countingDown) return;
+  countingDown = true;
+  running = false;
+  $('startOverlay').classList.add('hidden');
+  $('overOverlay').classList.add('hidden');
+  $('pauseOverlay').classList.add('hidden');
+  $('screen').classList.remove('paused');
+  $('countOverlay').classList.remove('hidden');
+  let n = 3;
+  const step = () => {
+    if (n > 0) {
+      $('countNum').textContent = n;
+      sfx.rotate();
+      n--;
+      setTimeout(step, 650);
+    } else {
+      $('countOverlay').classList.add('hidden');
+      countingDown = false;
+      newGame();
+    }
+  };
+  step();
+}
+$('startBtn').addEventListener('click', startCountdown);
+$('retryBtn').addEventListener('click', startCountdown);
 $('resumeBtn').addEventListener('click', togglePause);
 $('bottomRestart').addEventListener('click', () => {
   $('bottomRestart').blur(); // keep Space (hard drop) from re-triggering this
-  newGame();
+  startCountdown();
 });
 function saveName() {
   hiName = $('nameInput').value.trim().slice(0, 16).toUpperCase();
@@ -1335,6 +1482,7 @@ window.__pentabombDebug = {
   dims() { return { cols: COLS, rows: ROWS, cell }; },
   state() { return { score, clears, level, over, running, paused, hi, hiName, updateAvailable, next: nextQueue.map(p => p.n), piece: current ? { x: current.x, y: current.y, cells: current.cells.map(c => c.join(',')).join(' ') } : null }; },
   tick(dt) { if (running && !paused) { update(dt); draw(); } },
+  startNow() { newGame(); }, // skip the 3-2-1 countdown in scripted runs
 };
 
 window.addEventListener('resize', layout);

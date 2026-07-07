@@ -130,6 +130,8 @@ async function load() {
     tile('BEST SCORE', fmt(all.best)),
     tile('FINISH RATE', all.starts ? Math.round(100 * all.ends / all.starts) + '%' : '&#8212;',
          'FINISHED / STARTED'),
+    tile('SHARES', fmt(all.shares || 0), 'SHARE BUTTON TAPS'),
+    tile('CHALLENGE VISITS', fmt(all.challenges || 0), 'ARRIVED VIA SHARE LINK'),
   );
   const days = Array.isArray(data.days) ? data.days : [];
   if (days.length) {

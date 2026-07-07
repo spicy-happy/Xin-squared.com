@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /pentabombanalytics/
+Disallow: /healthtracker/
+
+Sitemap: https://www.xin-squared.com/sitemap.xml

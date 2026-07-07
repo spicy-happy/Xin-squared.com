@@ -1,8 +1,9 @@
 // Global high-score + analytics API for Pentabomb (xin-squared.com/pentabomb).
 // POST /token  -> { token }  (anonymous play token, issued at game start)
 // GET  /scores -> { scores: [{name, score, clears, level, date}, ...] } (top 10)
+// GET  /leaderboard -> { allTime: [...50], weekly: [...50], weekEndsAt } (weekly = Mon 00:00 UTC reset)
 // POST /scores {name, score, clears, level, token} -> { scores: [...], rank: 1-based | null }
-// POST /event  {type: visit|start|end, first?, score?, clears?, level?, sec?} -> { ok }
+// POST /event  {type: visit|start|end|share|challenge, first?, score?, clears?, level?, sec?} -> { ok }
 // GET  /stats  -> { all: {...}, days: [{date, ...}, ...] }  (aggregate counters)
 //
 // Anti-cheat (friction, not proof): scores need a single-use server-issued
@@ -15,7 +16,17 @@
 // legacy "top" key the DO seeds itself from on first run.
 
 const KEY = 'top';
-const MAX_ENTRIES = 10;
+const MAX_ENTRIES = 10;   // shown on the in-game game-over screen
+const KEEP_ENTRIES = 50;  // kept per board, shown on /pentabomb/leaderboard.html
+
+// Weeks start Monday 00:00 UTC. Day 0 of the epoch was a Thursday, so
+// shifting by 4 days aligns the week counter to Mondays.
+function weekNum(ts) {
+  return Math.floor((Math.floor(ts / 86400000) - 4) / 7);
+}
+function weekEndsAt(ts) {
+  return ((weekNum(ts) + 1) * 7 + 4) * 86400000;
+}
 const MAX_NAME = 16;
 const MAX_SCORE = 5_000_000;
 const TOKEN_TTL = 6 * 3600; // a game session should finish within 6h
@@ -96,24 +107,44 @@ export class Leaderboard {
       await this.state.storage.put(SEED_MARK, true);
     }
     // collapse duplicates that got in before submit-time dedup existed
-    const deduped = dedupeScores(list).slice(0, MAX_ENTRIES);
+    const deduped = dedupeScores(list).slice(0, KEEP_ENTRIES);
     if (deduped.length !== list.length) {
       list = deduped;
       await this.state.storage.put(KEY, list);
     }
     return list;
   }
+  async weekly() {
+    const list = await this.state.storage.get('wk:' + weekNum(Date.now()));
+    return Array.isArray(list) ? list : [];
+  }
   async fetch(request) {
+    const path = new URL(request.url).pathname;
+    if (path === '/leaderboard') {
+      const [allTime, weekly] = await Promise.all([this.scores(), this.weekly()]);
+      return json({
+        allTime: allTime.slice(0, KEEP_ENTRIES),
+        weekly: weekly.slice(0, KEEP_ENTRIES),
+        weekEndsAt: weekEndsAt(Date.now()),
+      }, 200, {});
+    }
     const scores = await this.scores();
     if (request.method === 'POST') {
       const entry = await request.json();
-      scores.push(entry);
-      const top = dedupeScores(scores).slice(0, MAX_ENTRIES);
-      const rank = top.indexOf(entry);
-      if (rank !== -1) await this.state.storage.put(KEY, top);
-      return json({ scores: top, rank: rank === -1 ? null : rank + 1 }, 200, {});
+      const top = dedupeScores(scores.concat([entry])).slice(0, KEEP_ENTRIES);
+      if (top.includes(entry)) await this.state.storage.put(KEY, top);
+      const wkKey = 'wk:' + weekNum(Date.now());
+      const week = dedupeScores((await this.weekly()).concat([entry])).slice(0, KEEP_ENTRIES);
+      if (week.includes(entry)) {
+        await this.state.storage.put(wkKey, week);
+        // drop last week's board now that a new week has scores
+        await this.state.storage.delete('wk:' + (weekNum(Date.now()) - 1));
+      }
+      const shown = top.slice(0, MAX_ENTRIES);
+      const rank = shown.indexOf(entry);
+      return json({ scores: shown, rank: rank === -1 ? null : rank + 1 }, 200, {});
     }
-    return json({ scores }, 200, {});
+    return json({ scores: scores.slice(0, MAX_ENTRIES) }, 200, {});
   }
 }
 
@@ -128,7 +159,7 @@ function cleanName(name) {
 // scoreSum/secSum feed averages, best = top score of the bucket.
 // KV read-modify-write means concurrent events can occasionally drop a
 // count — fine for traction tracking, don't use for billing.
-const EMPTY_STATS = { visits: 0, uniques: 0, starts: 0, ends: 0, scoreSum: 0, secSum: 0, best: 0 };
+const EMPTY_STATS = { visits: 0, uniques: 0, starts: 0, ends: 0, scoreSum: 0, secSum: 0, best: 0, shares: 0, challenges: 0 };
 
 async function readStats(env, key) {
   try {
@@ -190,7 +221,7 @@ export default {
         return json({ error: 'invalid json' }, 400, headers);
       }
       const type = body && body.type;
-      if (type !== 'visit' && type !== 'start' && type !== 'end') {
+      if (!['visit', 'start', 'end', 'share', 'challenge'].includes(type)) {
         return json({ error: 'invalid type' }, 400, headers);
       }
       const day = new Date().toISOString().slice(0, 10);
@@ -201,6 +232,10 @@ export default {
           if (body.first === true) s.uniques++;
         } else if (type === 'start') {
           s.starts++;
+        } else if (type === 'share') {
+          s.shares++;
+        } else if (type === 'challenge') {
+          s.challenges++;
         } else {
           const score = Number.isInteger(body.score) && body.score >= 0 && body.score <= MAX_SCORE ? body.score : 0;
           const sec = Number.isInteger(body.sec) && body.sec >= 0 && body.sec <= 86400 ? body.sec : 0;
@@ -229,11 +264,16 @@ export default {
       }, 200, headers);
     }
 
+    const board = () => env.LEADERBOARD.get(env.LEADERBOARD.idFromName('global'));
+
+    if (url.pathname === '/leaderboard' && request.method === 'GET') {
+      const res = await board().fetch('https://do/leaderboard');
+      return json(await res.json(), 200, headers);
+    }
+
     if (url.pathname !== '/scores') {
       return json({ error: 'not found' }, 404, headers);
     }
-
-    const board = () => env.LEADERBOARD.get(env.LEADERBOARD.idFromName('global'));
 
     if (request.method === 'GET') {
       const res = await board().fetch('https://do/scores');

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#9bbc0f">
+<title>PENTABOMB World Rankings — Weekly &amp; All-Time Top 50</title>
+<meta name="description" content="PENTABOMB world rankings: the weekly top 50 (resets every Monday) and the all-time top 50. Play the free pentomino puzzle game in your browser and claim a spot.">
+<link rel="canonical" href="https://www.xin-squared.com/pentabomb/leaderboard.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Xin Squared">
+<meta property="og:title" content="PENTABOMB World Rankings">
+<meta property="og:description" content="Weekly and all-time top 50. The weekly board resets every Monday — can you claim #1?">
+<meta property="og:url" content="https://www.xin-squared.com/pentabomb/leaderboard.html">
+<meta property="og:image" content="https://www.xin-squared.com/pentabomb/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.xin-squared.com/pentabomb/og.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root {
+    --gb-lightest: #9bbc0f;
+    --gb-light: #8bac0f;
+    --gb-dark: #306230;
+    --gb-darkest: #0f380f;
+    --shell: #2b2b2b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--shell);
+    font-family: "Courier New", Courier, monospace;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    padding: 16px 8px 40px;
+    padding-top: calc(16px + env(safe-area-inset-top));
+  }
+  #screen {
+    background: var(--gb-lightest);
+    border: 6px solid var(--gb-darkest);
+    border-radius: 8px;
+    box-shadow: 0 0 0 4px #444, 0 8px 30px rgba(0,0,0,.6);
+    color: var(--gb-darkest);
+    width: 100%;
+    max-width: 480px;
+    padding: 18px 14px 22px;
+    letter-spacing: 1px;
+  }
+  h1 { font-size: 22px; letter-spacing: 3px; text-align: center; }
+  #sub { text-align: center; font-size: 11px; margin-top: 6px; }
+  #tabs { display: flex; gap: 8px; justify-content: center; margin: 16px 0 6px; }
+  .tab {
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: 2px;
+    padding: 7px 14px;
+    background: var(--gb-lightest);
+    color: var(--gb-darkest);
+    border: 2px solid var(--gb-darkest);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .tab.active { background: var(--gb-darkest); color: var(--gb-lightest); }
+  #resetLine { text-align: center; font-size: 10px; min-height: 14px; margin-bottom: 10px; }
+  #list {
+    white-space: pre;
+    font-size: 13px;
+    line-height: 1.75;
+    overflow-x: auto;
+    border-top: 2px solid var(--gb-dark);
+    border-bottom: 2px solid var(--gb-dark);
+    padding: 8px 2px;
+  }
+  #list .top1 { font-size: 15px; }
+  #list .top3 { text-decoration: underline; }
+  #playRow { text-align: center; margin-top: 18px; }
+  #playRow a {
+    display: inline-block;
+    font-size: 15px;
+    letter-spacing: 2px;
+    padding: 10px 24px;
+    background: var(--gb-darkest);
+    color: var(--gb-lightest);
+    border-radius: 4px;
+    text-decoration: none;
+  }
+  #home { text-align: center; margin-top: 14px; font-size: 10px; }
+  #home a { color: var(--gb-darkest); }
+</style>
+</head>
+<body>
+<div id="screen">
+  <h1>WORLD RANKINGS</h1>
+  <div id="sub">PENTABOMB &#183; TOP 50</div>
+  <div id="tabs">
+    <button class="tab active" id="tabWeek">THIS WEEK</button>
+    <button class="tab" id="tabAll">ALL TIME</button>
+  </div>
+  <div id="resetLine"></div>
+  <div id="list">LOADING...</div>
+  <div id="playRow"><a href="./">PLAY PENTABOMB</a></div>
+  <div id="home"><a href="https://www.xin-squared.com/">MADE BY XIN &#183; XIN-SQUARED.COM</a></div>
+</div>
+<script>
+'use strict';
+const API = 'https://pentamino-scores.mail-f78.workers.dev';
+const $ = id => document.getElementById(id);
+let data = null, mode = 'weekly';
+
+function render() {
+  const el = $('list');
+  const rows = data ? (mode === 'weekly' ? data.weekly : data.allTime) : [];
+  el.textContent = '';
+  if (!rows.length) {
+    el.textContent = mode === 'weekly'
+      ? 'NO SCORES YET THIS WEEK.\nBE THE FIRST!'
+      : 'NO SCORES YET.';
+    return;
+  }
+  rows.slice(0, 50).forEach((s, i) => {
+    const span = document.createElement('span');
+    span.textContent =
+      String(i + 1).padStart(2) + ' ' +
+      String(s.name).slice(0, 16).padEnd(17) +
+      String(s.score).padStart(8) + '\n';
+    if (i === 0) span.className = 'top1';
+    else if (i < 3) span.className = 'top3';
+    el.appendChild(span);
+  });
+}
+
+function setMode(m) {
+  mode = m;
+  $('tabWeek').classList.toggle('active', m === 'weekly');
+  $('tabAll').classList.toggle('active', m === 'all');
+  render();
+}
+$('tabWeek').addEventListener('click', () => setMode('weekly'));
+$('tabAll').addEventListener('click', () => setMode('all'));
+if (location.hash === '#all') setMode('all'); // deep link to the all-time board
+
+function tickReset() {
+  if (!data || !data.weekEndsAt) return;
+  let s = Math.max(0, Math.floor((data.weekEndsAt - Date.now()) / 1000));
+  const d = Math.floor(s / 86400); s -= d * 86400;
+  const h = Math.floor(s / 3600); s -= h * 3600;
+  const m = Math.floor(s / 60);
+  $('resetLine').textContent = 'WEEKLY BOARD RESETS IN ' + d + 'D ' + h + 'H ' + m + 'M';
+}
+
+fetch(API + '/leaderboard')
+  .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+  .then(j => {
+    data = j;
+    render();
+    tickReset();
+    setInterval(tickReset, 30000);
+  })
+  .catch(() => { $('list').textContent = 'RANKINGS OFFLINE'; });
+</script>
+</body>
+</html>
