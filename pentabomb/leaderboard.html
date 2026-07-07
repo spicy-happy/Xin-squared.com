@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#9bbc0f">
-<title>PENTABOMB World Rankings — Weekly &amp; All-Time Top 50</title>
-<meta name="description" content="PENTABOMB world rankings: the weekly top 50 (resets every Monday) and the all-time top 50. Play the free pentomino puzzle game in your browser and claim a spot.">
+<title>PENTABOMB World Rankings — Weekly &amp; All-Time High Scores</title>
+<meta name="description" content="PENTABOMB world rankings: this week's best scores (resets every Monday) and the all-time greats. Play the free pentomino puzzle game in your browser and claim a spot.">
 <link rel="canonical" href="https://www.xin-squared.com/pentabomb/leaderboard.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Xin Squared">
 <meta property="og:title" content="PENTABOMB World Rankings">
-<meta property="og:description" content="Weekly and all-time top 50. The weekly board resets every Monday — can you claim #1?">
+<meta property="og:description" content="This week's best scores and the all-time greats. The weekly board resets every Monday — can you claim #1?">
 <meta property="og:url" content="https://www.xin-squared.com/pentabomb/leaderboard.html">
 <meta property="og:image" content="https://www.xin-squared.com/pentabomb/og.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -91,10 +91,10 @@
 <body>
 <div id="screen">
   <h1>WORLD RANKINGS</h1>
-  <div id="sub">PENTABOMB &#183; TOP 50</div>
+  <div id="sub">PENTABOMB</div>
   <div id="tabs">
-    <button class="tab active" id="tabWeek">THIS WEEK</button>
-    <button class="tab" id="tabAll">ALL TIME</button>
+    <button class="tab" id="tabWeek" hidden>THIS WEEK</button>
+    <button class="tab active" id="tabAll">ALL TIME</button>
   </div>
   <div id="resetLine"></div>
   <div id="list">LOADING...</div>
@@ -105,16 +105,16 @@
 'use strict';
 const API = 'https://pentamino-scores.mail-f78.workers.dev';
 const $ = id => document.getElementById(id);
-let data = null, mode = 'weekly';
+// the weekly board stays hidden until it has enough scores to look alive
+const MIN_WEEKLY_SHOWN = 3;
+let data = null, mode = 'all';
 
 function render() {
   const el = $('list');
   const rows = data ? (mode === 'weekly' ? data.weekly : data.allTime) : [];
   el.textContent = '';
   if (!rows.length) {
-    el.textContent = mode === 'weekly'
-      ? 'NO SCORES YET THIS WEEK.\nBE THE FIRST!'
-      : 'NO SCORES YET.';
+    el.textContent = 'NO SCORES YET.';
     return;
   }
   rows.slice(0, 50).forEach((s, i) => {
@@ -137,10 +137,9 @@ function setMode(m) {
 }
 $('tabWeek').addEventListener('click', () => setMode('weekly'));
 $('tabAll').addEventListener('click', () => setMode('all'));
-if (location.hash === '#all') setMode('all'); // deep link to the all-time board
 
 function tickReset() {
-  if (!data || !data.weekEndsAt) return;
+  if (!data || !data.weekEndsAt || $('tabWeek').hidden) return;
   let s = Math.max(0, Math.floor((data.weekEndsAt - Date.now()) / 1000));
   const d = Math.floor(s / 86400); s -= d * 86400;
   const h = Math.floor(s / 3600); s -= h * 3600;
@@ -152,9 +151,14 @@ fetch(API + '/leaderboard')
   .then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
   .then(j => {
     data = j;
+    if (Array.isArray(data.weekly) && data.weekly.length >= MIN_WEEKLY_SHOWN) {
+      $('tabWeek').hidden = false;
+      // the fresh weekly race is the more interesting default once it exists
+      if (location.hash !== '#all') setMode('weekly');
+      tickReset();
+      setInterval(tickReset, 30000);
+    }
     render();
-    tickReset();
-    setInterval(tickReset, 30000);
   })
   .catch(() => { $('list').textContent = 'RANKINGS OFFLINE'; });
 </script>
