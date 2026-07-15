@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#9bbc0f">
+<meta name="theme-color" content="#f2ecd8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>PENTABOMB — Free Pentomino Puzzle Game, Play in Your Browser</title>
@@ -44,10 +44,11 @@
 </script>
 <style>
   :root {
-    --gb-lightest: #9bbc0f;
-    --gb-light: #8bac0f;
-    --gb-dark: #306230;
-    --gb-darkest: #0f380f;
+    /* Game Boy Color era: cream screen, deep-navy play field, plum ink */
+    --gb-lightest: #f2ecd8;
+    --gb-light: #20223a;
+    --gb-dark: #8a8266;
+    --gb-darkest: #2a2440;
     --shell: #2b2b2b;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -108,7 +109,7 @@
   .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(155, 188, 15, .92);
+    background: rgba(242, 236, 216, .93);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -122,7 +123,7 @@
   /* anti-cheat: while paused, blur the board behind the overlay (the HUD
      dims via #hud.faded) so the field can't be studied for free */
   #pauseOverlay {
-    background: rgba(155, 188, 15, .75);
+    background: rgba(242, 236, 216, .8);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
@@ -172,7 +173,7 @@
   #screen.gameover #legendText,
   #screen.gameover #bottomRestart,
   #screen.gameover #soundBtn { display: none; }
-  #countOverlay { background: rgba(155, 188, 15, .45); }
+  #countOverlay { background: rgba(242, 236, 216, .45); }
   #nameInput {
     font: inherit;
     font-size: 14px;
@@ -227,6 +228,109 @@
   }
   #hud { transition: opacity .2s; }
   #hud.faded { opacity: .15; }
+  /* ---------- How-to-play swipe gallery ---------- */
+  .howto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    touch-action: pan-y;
+  }
+  .howtoRow { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+  .howtoArt {
+    background: var(--gb-light);
+    border: 3px solid var(--gb-darkest);
+    border-radius: 4px;
+    line-height: 0;
+    width: min(240px, 62vw);
+  }
+  .howtoArt svg { width: 100%; height: auto; display: block; image-rendering: pixelated; }
+  .howtoCap {
+    font-size: 11px;
+    letter-spacing: 1px;
+    line-height: 1.6;
+    min-height: 3.2em;
+    max-width: min(280px, 76vw);
+  }
+  .howtoTitle { font-size: 12px; letter-spacing: 2px; }
+  .howtoBtn {
+    font: inherit;
+    font-size: 16px;
+    background: none;
+    border: none;
+    color: var(--gb-darkest);
+    cursor: pointer;
+    padding: 6px;
+  }
+  .howtoDots { display: flex; gap: 6px; }
+  .howtoDots span {
+    width: 8px; height: 8px;
+    border: 2px solid var(--gb-darkest);
+    border-radius: 0; /* square dots: it's a pixel game */
+    cursor: pointer;
+  }
+  .howtoDots span.on { background: var(--gb-darkest); }
+  /* ---------- Score popups + level banner ---------- */
+  #popLane {
+    position: absolute;
+    top: 4px; left: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .pop {
+    font-size: 12px;
+    letter-spacing: 1px;
+    background: var(--gb-lightest);
+    color: var(--gb-darkest);
+    border: 2px solid var(--gb-darkest);
+    border-radius: 3px;
+    padding: 1px 6px;
+    animation: popFade 1.5s ease-out forwards;
+  }
+  .pop.blast { background: var(--gb-darkest); color: var(--gb-lightest); }
+  @keyframes popFade {
+    0% { opacity: 0; transform: translateY(6px); }
+    12% { opacity: 1; transform: translateY(0); }
+    75% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-8px); }
+  }
+  #levelBanner {
+    position: absolute;
+    top: 10%; left: 50%;
+    transform: translateX(-50%);
+    font-size: 18px;
+    letter-spacing: 3px;
+    background: var(--gb-darkest);
+    color: var(--gb-lightest);
+    border-radius: 4px;
+    padding: 6px 14px;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+  }
+  #levelBanner.show { animation: bannerFade 1.6s ease-out forwards; }
+  @keyframes bannerFade {
+    0% { opacity: 0; transform: translateX(-50%) scale(.6); }
+    15% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+    25% { transform: translateX(-50%) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  #boardWrap.shake { animation: boardShake .45s linear; }
+  @keyframes boardShake {
+    0%, 100% { transform: translate(0, 0); }
+    15% { transform: translate(-5px, 3px); }
+    30% { transform: translate(5px, -3px); }
+    45% { transform: translate(-4px, -3px); }
+    60% { transform: translate(4px, 3px); }
+    75% { transform: translate(-2px, 1px); }
+    90% { transform: translate(2px, -1px); }
+  }
   /* tiny phones (320px class): tighten type so the cabinet never overflows */
   @media (max-width: 360px) {
     .overlay { letter-spacing: 1px; padding: 12px; gap: 10px; }
@@ -264,20 +368,23 @@
   </div>
   <div id="boardWrap">
     <canvas id="board"></canvas>
+    <div id="popLane"></div>
+    <div id="levelBanner"></div>
     <div class="overlay" id="startOverlay">
       <h1>PENTABOMB</h1>
-      <p id="startControls"></p>
-      <p>FILL A 5&#215;5 SQUARE<br>TO BLAST IT AWAY</p>
+      <div id="howtoStart"></div>
       <p class="big" id="hiLine"></p>
       <p id="worldBest"></p>
       <p class="big" id="challengeLine"></p>
       <button id="startBtn">START</button>
       <a class="rankLink" href="leaderboard.html">WORLD RANKINGS &#8594;</a>
+      <a class="rankLink" href="vs.html">2P VS MODE &#8594;</a>
     </div>
     <div class="overlay hidden" id="countOverlay"><span id="countNum">3</span></div>
     <div class="overlay hidden" id="pauseOverlay">
       <h1>PAUSED</h1>
       <button id="resumeBtn">RESUME</button>
+      <div id="howtoPause"></div>
     </div>
     <div class="overlay hidden" id="overOverlay">
       <h1>GAME OVER</h1>
@@ -324,32 +431,43 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 17;
+const GAME_VERSION = 18;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
-// Each entry: list of [x,y] cells, plus a texture index (0-2) since the
-// Game Boy palette has no color to tell pieces apart.
+// Each entry: list of [x,y] cells plus a Game Boy Color hue. Mirror pairs
+// (F/F2, L/J, N/N2, P/Q, Y/Y2, Z/S) share a hue family in two tones, so
+// "orange = L family" is learnable while the mirror twins stay tellable.
 const PIECES = [
-  { n: 'F',  c: [[1,0],[2,0],[0,1],[1,1],[1,2]] },
-  { n: 'F2', c: [[0,0],[1,0],[1,1],[2,1],[1,2]] },
-  { n: 'I',  c: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
-  { n: 'L',  c: [[0,0],[0,1],[0,2],[0,3],[1,3]] },
-  { n: 'J',  c: [[1,0],[1,1],[1,2],[1,3],[0,3]] },
-  { n: 'N',  c: [[0,0],[0,1],[1,1],[1,2],[1,3]] },
-  { n: 'N2', c: [[1,0],[1,1],[0,1],[0,2],[0,3]] },
-  { n: 'P',  c: [[0,0],[1,0],[0,1],[1,1],[0,2]] },
-  { n: 'Q',  c: [[0,0],[1,0],[0,1],[1,1],[1,2]] },
-  { n: 'T',  c: [[0,0],[1,0],[2,0],[1,1],[1,2]] },
-  { n: 'U',  c: [[0,0],[2,0],[0,1],[1,1],[2,1]] },
-  { n: 'V',  c: [[0,0],[0,1],[0,2],[1,2],[2,2]] },
-  { n: 'W',  c: [[0,0],[0,1],[1,1],[1,2],[2,2]] },
-  { n: 'X',  c: [[1,0],[0,1],[1,1],[2,1],[1,2]] },
-  { n: 'Y',  c: [[1,0],[0,1],[1,1],[1,2],[1,3]] },
-  { n: 'Y2', c: [[0,0],[0,1],[1,1],[0,2],[0,3]] },
-  { n: 'Z',  c: [[0,0],[1,0],[1,1],[1,2],[2,2]] },
-  { n: 'S',  c: [[1,0],[2,0],[1,1],[0,2],[1,2]] },
+  { n: 'F',  col: '#cc50a8', c: [[1,0],[2,0],[0,1],[1,1],[1,2]] },
+  { n: 'F2', col: '#96368c', c: [[0,0],[1,0],[1,1],[2,1],[1,2]] },
+  { n: 'I',  col: '#38b8d8', c: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
+  { n: 'L',  col: '#f09030', c: [[0,0],[0,1],[0,2],[0,3],[1,3]] },
+  { n: 'J',  col: '#c05f18', c: [[1,0],[1,1],[1,2],[1,3],[0,3]] },
+  { n: 'N',  col: '#52b848', c: [[0,0],[0,1],[1,1],[1,2],[1,3]] },
+  { n: 'N2', col: '#2c8a3e', c: [[1,0],[1,1],[0,1],[0,2],[0,3]] },
+  { n: 'P',  col: '#ecd044', c: [[0,0],[1,0],[0,1],[1,1],[0,2]] },
+  { n: 'Q',  col: '#c39d22', c: [[0,0],[1,0],[0,1],[1,1],[1,2]] },
+  { n: 'T',  col: '#9858cc', c: [[0,0],[1,0],[2,0],[1,1],[1,2]] },
+  { n: 'U',  col: '#5b5bd0', c: [[0,0],[2,0],[0,1],[1,1],[2,1]] },
+  { n: 'V',  col: '#30a898', c: [[0,0],[0,1],[0,2],[1,2],[2,2]] },
+  { n: 'W',  col: '#9aa838', c: [[0,0],[0,1],[1,1],[1,2],[2,2]] },
+  { n: 'X',  col: '#e04838', c: [[1,0],[0,1],[1,1],[2,1],[1,2]] },
+  { n: 'Y',  col: '#4a90e0', c: [[1,0],[0,1],[1,1],[1,2],[1,3]] },
+  { n: 'Y2', col: '#2d64ae', c: [[0,0],[0,1],[1,1],[0,2],[0,3]] },
+  { n: 'Z',  col: '#e07868', c: [[0,0],[1,0],[1,1],[1,2],[2,2]] },
+  { n: 'S',  col: '#b84e60', c: [[1,0],[2,0],[1,1],[0,2],[1,2]] },
 ];
-PIECES.forEach((p, i) => { p.tex = i % 3; });
+// GBC-style block shading: each hue gets a highlight and shadow tone, mixed
+// toward white/black so every piece bevels consistently.
+function mixHex(hex, target, f) {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = s => Math.round(((n >> s) & 255) * (1 - f) + target * f);
+  return 'rgb(' + ch(16) + ',' + ch(8) + ',' + ch(0) + ')';
+}
+PIECES.forEach((p, i) => {
+  p.i = i;
+  p.pal = { base: p.col, hi: mixHex(p.col, 255, 0.45), lo: mixHex(p.col, 0, 0.4) };
+});
 
 const COLS = 12, ROWS = 20;
 const BLOCK_SCORE = 1000; // per 5x5 square destroyed, times level
@@ -432,6 +550,7 @@ const sfx = {
   lock:   () => beep(160, 0.08),
   clear:  n => { for (let i = 0; i < Math.max(2, n + 1); i++) beep(330 + i * 110, 0.09, 0.06, i * 0.09); },
   level:  () => { beep(523, 0.1); beep(659, 0.1, 0.06, 0.1); beep(784, 0.14, 0.06, 0.2); },
+  mega:   () => { beep(80, 0.3, 0.09); beep(60, 0.35, 0.09, 0.12); beep(523, 0.1, 0.07, 0.3); beep(659, 0.1, 0.07, 0.4); beep(880, 0.25, 0.08, 0.5); },
   over:   () => { beep(392, 0.15); beep(330, 0.15, 0.06, 0.16); beep(262, 0.15, 0.06, 0.32); beep(196, 0.3, 0.06, 0.48); },
   start:  () => { beep(523, 0.12); beep(784, 0.35, 0.07, 0.12); },
 };
@@ -461,7 +580,7 @@ function bounds(cells) {
 function makePiece(proto) {
   const { w, h } = bounds(proto.c);
   // spawn with the bottom row already visible so the piece appears immediately
-  return { cells: proto.c.map(c => c.slice()), tex: proto.tex, x: Math.floor((COLS - w) / 2), y: 1 - h };
+  return { cells: proto.c.map(c => c.slice()), pi: proto.i, x: Math.floor((COLS - w) / 2), y: 1 - h };
 }
 function collides(cells, px, py) {
   for (const [cx, cy] of cells) {
@@ -604,7 +723,10 @@ function hardDrop() {
   maybeRegretRotation();
   const gy = computeGhost();
   const dist = gy - current.y;
-  if (dist > 0) score += dist * 2;
+  if (dist > 0) {
+    score += dist * 2;
+    if (dist * 2 >= 10) popScore('+' + dist * 2 + ' DROP');
+  }
   current.y = gy;
   sfx.hard();
   lockPiece();
@@ -614,8 +736,9 @@ function lockPiece() {
   for (const [cx, cy] of current.cells) {
     const y = current.y + cy;
     if (y < 0) { above = true; continue; }
-    grid[y][current.x + cx] = current.tex + 1;
+    grid[y][current.x + cx] = current.pi + 1;
   }
+  gridVersion++;
   current = null;
   lockTimer = -1;
   if (above) { gameOver(); return; }
@@ -674,15 +797,32 @@ function finishClear() {
     grid.unshift(new Array(COLS).fill(0));
   }
   const n = clearingRows.length;
-  score += BLOCK_SCORE * clearingBlockCount * level;
+  const blastPts = BLOCK_SCORE * clearingBlockCount * level;
+  const linePts = LINE_SCORES[Math.min(n, LINE_SCORES.length - 1)] * level;
+  const mega = clearingBlockCount >= 4;
+  score += blastPts + linePts;
   clears += n + clearingBlockCount;
-  score += LINE_SCORES[Math.min(n, LINE_SCORES.length - 1)] * level;
+  if (clearingBlockCount > 0) {
+    popScore('BLAST x' + clearingBlockCount + ' +' + blastPts, 'blast');
+  }
+  if (n > 0) popScore((n > 1 ? 'LINE x' + n : 'LINE') + ' +' + linePts);
   clearingRows = null;
   clearingCells = null;
   clearingBlockCount = 0;
-  settleFloatingBlocks();
+  if (mega) {
+    // MEGABLAST: a 6x6-or-bigger simultaneous clear shakes the whole board
+    // down — every block falls to the floor, holes and all. The earned
+    // recovery tool: rare, deliberate, spectacular.
+    collapseColumns();
+    showBanner('MEGABLAST!');
+    shakeBoard();
+    sfx.mega();
+  } else {
+    settleFloatingBlocks();
+  }
+  gridVersion++;
   const newLevel = Math.floor(clears / clearsPerLevel) + 1;
-  if (newLevel > level) { level = newLevel; sfx.level(); }
+  if (newLevel > level) { level = newLevel; sfx.level(); if (!mega) showBanner('LEVEL ' + newLevel); }
   // settling can complete new rows or 5x5 squares: chain the clear
   const full = [];
   for (let y = 0; y < ROWS; y++) if (grid[y].every(v => v)) full.push(y);
@@ -698,6 +838,44 @@ function finishClear() {
   }
   updateHud();
   spawn();
+}
+// MEGABLAST aftermath: full column gravity — every block falls straight down
+// until it rests on the floor or another block. Unlike the usual connected-
+// chunk settle, this erases covered holes entirely.
+function collapseColumns() {
+  for (let x = 0; x < COLS; x++) {
+    let w = ROWS - 1;
+    for (let y = ROWS - 1; y >= 0; y--) {
+      if (!grid[y][x]) continue;
+      const v = grid[y][x];
+      grid[y][x] = 0;
+      grid[w][x] = v;
+      w--;
+    }
+  }
+}
+// ---------- Score popups + banners (DOM, outside the canvas) ----------
+function popScore(text, cls) {
+  const lane = $('popLane');
+  const el = document.createElement('div');
+  el.className = 'pop' + (cls ? ' ' + cls : '');
+  el.textContent = text;
+  lane.prepend(el);
+  while (lane.children.length > 4) lane.lastChild.remove();
+  el.addEventListener('animationend', () => el.remove());
+}
+function showBanner(text) {
+  const b = $('levelBanner');
+  b.textContent = text;
+  b.classList.remove('show');
+  void b.offsetWidth; // restart the CSS animation
+  b.classList.add('show');
+}
+function shakeBoard() {
+  const w = $('boardWrap');
+  w.classList.remove('shake');
+  void w.offsetWidth;
+  w.classList.add('shake');
 }
 // After a blast, blocks left floating over empty space fall as connected chunks.
 function connectedComponents() {
@@ -1018,6 +1196,7 @@ function update(dt) {
   }
 }
 function frame(t) {
+  pollGamepads();
   if (running && !paused) {
     const dt = Math.min(100, t - lastTime);
     lastTime = t;
@@ -1073,41 +1252,90 @@ function layout() {
   draw();
 }
 
-// Three block textures so pieces read differently in monochrome.
-function drawBlock(ctx, x, y, s, tex) {
-  ctx.fillStyle = C_DARKEST;
+// GBC-style beveled block: dark outline, colored body, light top-left edge,
+// dark bottom-right edge, and a tiny corner shine. Chunky on purpose.
+function drawBlock(ctx, x, y, s, pi) {
+  const pal = PIECES[pi] ? PIECES[pi].pal : PIECES[0].pal;
+  const b = Math.max(1, Math.floor(s * 0.14));
+  ctx.fillStyle = '#14152a';
   ctx.fillRect(x, y, s, s);
-  const b = Math.max(1, Math.floor(s * 0.12));
-  if (tex === 0) {
-    // solid with light core dot
-    ctx.fillStyle = C_LIGHTEST;
-    const d = Math.max(2, Math.floor(s * 0.28));
-    ctx.fillRect(x + Math.floor((s - d) / 2), y + Math.floor((s - d) / 2), d, d);
-  } else if (tex === 1) {
-    // hollow: light inner with dark rim
-    ctx.fillStyle = C_LIGHTEST;
-    ctx.fillRect(x + b, y + b, s - 2 * b, s - 2 * b);
-    ctx.fillStyle = C_DARKEST;
-    const d = Math.max(2, Math.floor(s * 0.34));
-    ctx.fillRect(x + Math.floor((s - d) / 2), y + Math.floor((s - d) / 2), d, d);
-  } else {
-    // mid-tone with darkest border
-    ctx.fillStyle = C_DARK;
-    ctx.fillRect(x + b, y + b, s - 2 * b, s - 2 * b);
-  }
+  ctx.fillStyle = pal.base;
+  ctx.fillRect(x + 1, y + 1, s - 2, s - 2);
+  ctx.fillStyle = pal.hi;
+  ctx.fillRect(x + 1, y + 1, s - 2, b);          // top edge
+  ctx.fillRect(x + 1, y + 1, b, s - 2);          // left edge
+  ctx.fillStyle = pal.lo;
+  ctx.fillRect(x + 1, y + s - 1 - b, s - 2, b);  // bottom edge
+  ctx.fillRect(x + s - 1 - b, y + 1, b, s - 2);  // right edge
+  // pixel shine in the top-left of the body
+  const d = Math.max(1, Math.floor(s * 0.16));
+  ctx.fillStyle = pal.hi;
+  ctx.fillRect(x + b + 1, y + b + 1, d, d);
 }
-function drawGhostBlock(ctx, x, y, s) {
-  ctx.strokeStyle = C_DARK;
+function drawGhostBlock(ctx, x, y, s, pi) {
+  ctx.strokeStyle = PIECES[pi] ? PIECES[pi].pal.base : C_DARK;
+  ctx.globalAlpha = 0.55;
   ctx.lineWidth = Math.max(1, Math.floor(s * 0.1));
   const o = ctx.lineWidth;
   ctx.strokeRect(x + o, y + o, s - 2 * o, s - 2 * o);
+  ctx.globalAlpha = 1;
+}
+// ---------- Clear telegraph ----------
+// Simulate the piece locking at its ghost spot; if that would finish rows or
+// 5x5 blasts, pulse everything the clear would take (blast radius included)
+// so the player sees the payoff before committing to the drop.
+let gridVersion = 0;
+let teleCache = { key: '', result: null };
+function telegraph() {
+  if (!current || clearingRows) return null;
+  const gy = computeGhost();
+  const key = current.pi + '|' + current.x + '|' + gy + '|' +
+    current.cells.map(c => c.join(',')).join(';') + '|' + gridVersion;
+  if (teleCache.key === key) return teleCache.result;
+  teleCache.key = key;
+  teleCache.result = null;
+  const g = grid.map(r => r.slice());
+  let lockout = false;
+  for (const [cx, cy] of current.cells) {
+    const y = gy + cy;
+    if (y < 0) { lockout = true; break; }
+    g[y][current.x + cx] = 1;
+  }
+  if (!lockout) {
+    const cells = new Set();
+    let rows = 0, blasts = 0;
+    for (let y = 0; y < ROWS; y++) {
+      if (!g[y].every(v => v)) continue;
+      rows++;
+      for (let x = 0; x < COLS; x++) cells.add(x + ',' + y);
+    }
+    for (let y = 0; y <= ROWS - 5; y++) {
+      for (let x = 0; x <= COLS - 5; x++) {
+        let solid = true;
+        for (let dy = 0; dy < 5 && solid; dy++)
+          for (let dx = 0; dx < 5; dx++)
+            if (!g[y + dy][x + dx]) { solid = false; break; }
+        if (!solid) continue;
+        blasts++;
+        const r = BLAST_RADIUS;
+        for (let dy = -r; dy < 5 + r; dy++)
+          for (let dx = -r; dx < 5 + r; dx++) {
+            const gx = x + dx, gyy = y + dy;
+            if (gx >= 0 && gx < COLS && gyy >= 0 && gyy < ROWS && g[gyy][gx])
+              cells.add(gx + ',' + gyy);
+          }
+      }
+    }
+    if (cells.size) teleCache.result = { cells, rows, blasts };
+  }
+  return teleCache.result;
 }
 function draw() {
   const w = cell * COLS, h = cell * ROWS;
   boardCtx.fillStyle = C_LIGHT;
   boardCtx.fillRect(0, 0, w, h);
   // faint grid
-  boardCtx.strokeStyle = 'rgba(48, 98, 48, 0.25)';
+  boardCtx.strokeStyle = 'rgba(242, 236, 216, 0.08)';
   boardCtx.lineWidth = 1;
   boardCtx.beginPath();
   for (let x = 1; x < COLS; x++) { boardCtx.moveTo(x * cell + .5, 0); boardCtx.lineTo(x * cell + .5, h); }
@@ -1131,7 +1359,9 @@ function draw() {
   }
   // combo callout: overlapping 5x5 windows score multiplicatively — teach it
   if (clearingBlockCount >= 2) {
-    const label = 'BLAST x' + clearingBlockCount;
+    const label = clearingBlockCount >= 4
+      ? 'MEGABLAST x' + clearingBlockCount
+      : 'BLAST x' + clearingBlockCount;
     const fs = Math.max(14, Math.floor(cell * 1.1));
     boardCtx.font = 'bold ' + fs + 'px "Courier New", Courier, monospace';
     boardCtx.textAlign = 'center';
@@ -1151,25 +1381,37 @@ function draw() {
     const gy = computeGhost();
     for (const [cx, cy] of current.cells) {
       const y = gy + cy;
-      if (y >= 0 && y !== current.y + cy) drawGhostBlock(boardCtx, (current.x + cx) * cell, y * cell, cell);
+      if (y >= 0 && y !== current.y + cy) drawGhostBlock(boardCtx, (current.x + cx) * cell, y * cell, cell, current.pi);
     }
     for (const [cx, cy] of current.cells) {
       const y = current.y + cy;
-      if (y >= 0) drawBlock(boardCtx, (current.x + cx) * cell, y * cell, cell, current.tex);
+      if (y >= 0) drawBlock(boardCtx, (current.x + cx) * cell, y * cell, cell, current.pi);
+    }
+    // telegraph: slow cream pulse over everything the drop would clear
+    const tele = telegraph();
+    if (tele) {
+      const pulse = 0.16 + 0.14 * (0.5 + 0.5 * Math.sin(performance.now() / 140));
+      boardCtx.fillStyle = C_LIGHTEST;
+      boardCtx.globalAlpha = pulse;
+      for (const key of tele.cells) {
+        const [x, y] = key.split(',').map(Number);
+        boardCtx.fillRect(x * cell, y * cell, cell, cell);
+      }
+      boardCtx.globalAlpha = 1;
     }
   }
 }
 // Preview shows the next 2 pieces side by side (5 cells each + 1 gap = 11 wide).
 function drawNext() {
   const s = nextCanvas.width / dpr / 11;
-  nextCtx.fillStyle = C_LIGHTEST;
+  nextCtx.fillStyle = C_LIGHT;
   nextCtx.fillRect(0, 0, s * 11, s * 4);
-  nextCtx.fillStyle = 'rgba(48, 98, 48, 0.35)';
+  nextCtx.fillStyle = 'rgba(242, 236, 216, 0.25)';
   nextCtx.fillRect(Math.round(s * 5.5), 0, 1, s * 4); // divider between the two
   nextQueue.forEach((p, i) => {
     const { w, h } = bounds(p.c);
     const ox = (i * 6 + (5 - w) / 2) * s, oy = (4 - h) / 2 * s;
-    for (const [x, y] of p.c) drawBlock(nextCtx, ox + x * s, oy + y * s, s, p.tex);
+    for (const [x, y] of p.c) drawBlock(nextCtx, ox + x * s, oy + y * s, s, p.i);
   });
 }
 
@@ -1187,9 +1429,11 @@ let touch = null;
 boardCanvas.addEventListener('touchstart', e => {
   e.preventDefault();
   if (e.touches.length >= 2) {
+    // 2, 3, any number of fingers: always PAUSE, never toggle — a third
+    // finger landing a beat late must not resume the game it just paused
     if (touch && touch.holdTimer !== null) clearTimeout(touch.holdTimer);
     touch = null;
-    if (running && !over) togglePause();
+    if (!over) pauseGame();
     return;
   }
   if (!running || paused || !current) return;
@@ -1369,11 +1613,15 @@ const HELP = {
     full: '&#9668; &#9658; MOVE &#183; &#9660; SOFT DROP<br>Z / X / &#9650; = ROTATE<br>F OR SHIFT = FLIP<br>SPACE = DROP &#183; P = PAUSE<br>CLICK = ROTATE &#183; R-CLICK = FLIP',
     legend: 'Z/X ROTATE &#183; F FLIP &#183; SPACE DROP<br>CLICK ROTATE &#183; R-CLICK FLIP &#183; P PAUSE',
   },
+  pad: {
+    full: 'DPAD / STICK = MOVE<br>A / B = ROTATE &#183; X / Y = FLIP<br>DPAD &#9650; = DROP &#183; &#9660; = SOFT DROP<br>START = PAUSE',
+    legend: 'DPAD MOVE &#183; A/B ROTATE &#183; X/Y FLIP<br>&#9650; DROP &#183; START PAUSE',
+  },
 };
 let inputMode = matchMedia('(pointer: coarse)').matches ? 'touch' : 'keys';
 function refreshControlHints() {
-  $('startControls').innerHTML = HELP[inputMode].full;
   $('legendText').innerHTML = HELP[inputMode].legend;
+  renderGalleries();
 }
 function setInputMode(mode) {
   if (inputMode === mode) return;
@@ -1382,7 +1630,220 @@ function setInputMode(mode) {
   layout(); // legend height may change, so the board size can too
 }
 window.addEventListener('touchstart', () => setInputMode('touch'), { passive: true, capture: true });
+
+// ---------- How-to-play gallery: chunky pixel-art panels ----------
+// Each panel is a tiny SVG "screen" built from a character map, one char per
+// 10px pixel — same palette as the game pieces.
+const ART_INK = {
+  '.': null,
+  'W': '#f2ecd8', 'w': 'rgba(242,236,216,0.38)',
+  'R': '#e04838', 'O': '#f09030', 'Y': '#ecd044', 'Q': '#c39d22',
+  'G': '#52b848', 'g': '#2c8a3e', 'C': '#38b8d8', 'T': '#30a898',
+  'B': '#4a90e0', 'b': '#2d64ae', 'U': '#5b5bd0', 'P': '#9858cc',
+  'M': '#cc50a8', 'm': '#96368c', 'L': '#9aa838', 'Z': '#e07868',
+};
+function pxArt(rows, texts) {
+  const cs = 10, w = rows[0].length * cs, h = rows.length * cs;
+  let s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + ' ' + h + '" shape-rendering="crispEdges">';
+  rows.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) {
+      const c = ART_INK[row[x]];
+      if (c) s += '<rect x="' + x * cs + '" y="' + y * cs + '" width="' + cs + '" height="' + cs + '" fill="' + c + '"/>';
+    }
+  });
+  (texts || []).forEach(t => {
+    s += '<text x="' + t.x + '" y="' + t.y + '" fill="' + (t.c || '#f2ecd8') + '" font-family="Courier New,Courier,monospace" font-weight="bold" font-size="' + (t.s || 24) + '" text-anchor="middle">' + t.t + '</text>';
+  });
+  return s + '</svg>';
+}
+// Panel 1: pieces rotate AND flip (the F pair shown as true mirror twins)
+const ART_PIECES = pxArt([
+  '........................',
+  '.PPPPPP.................',
+  '.PPPPPP.....CCCCCCCCCC..',
+  '...PP.......CCCCCCCCCC..',
+  '...PP...................',
+  '...PP...................',
+  '........................',
+  '........................',
+  '........................',
+  '.....MMMM.....mmmm......',
+  '.....MMMM.....mmmm......',
+  '...MMMM.........mmmm....',
+  '...MMMM.........mmmm....',
+  '.....MM..........mm.....',
+  '.....MM..........mm.....',
+  '........................',
+], [{ x: 95, y: 45, t: '&#8635;', s: 26 }, { x: 115, y: 122, t: '&#8646;', s: 20 }]);
+// Panel 2: fill a row; the telegraph glow marks where the drop will clear
+const ART_LINE = pxArt([
+  '........................',
+  '........................',
+  '........................',
+  '........................',
+  '........CCCCCCCCCC......',
+  '........CCCCCCCCCC......',
+  '........................',
+  '...........WW...........',
+  '...........WW...........',
+  '..........WWWW..........',
+  '...........WW...........',
+  '........................',
+  '........................',
+  '........................',
+  'OOYYGGRRwwwwwwwwwwBBPPTT',
+  'YYGGRROOwwwwwwwwwwPPTTBB',
+], []);
+// Panel 3: a solid 5x5 is a bomb — the dashed ring is the blast radius
+const ART_BOMB = pxArt([
+  '.....W.W.W.W.W.W.W.W....',
+  '........................',
+  '.....W.BBYYGGCCRR.W.....',
+  '.......BBYYGGCCRR.......',
+  '.....W.YYGGCCRRBB.W.....',
+  '.......YYGGCCRRBB.......',
+  '.....W.GGCCRRBBYY.W.....',
+  '.......GGCCRRBBYY.......',
+  '.....W.CCRRBBYYGG.W.....',
+  '.......CCRRBBYYGG.......',
+  '.....W.RRBBYYGGCC.W.....',
+  '.......RRBBYYGGCC.......',
+  '........................',
+  '.....W.W.W.W.W.W.W.W....',
+  '........................',
+  '........................',
+], [{ x: 120, y: 156, t: '5&#215;5 = BOOM', s: 15 }]);
+// Panel 4: overlapped squares multiply; 4+ at once = MEGABLAST, board drops
+const ART_MEGA = pxArt([
+  '..BBYYGGCCRRPP..........',
+  '..BBYYGGCCRRPP..........',
+  '..YYGGCCRRPPBB..........',
+  '..YYGGCCRRPPBB..........',
+  '..GGCCRRPPBBYY..........',
+  '..GGCCRRPPBBYY..........',
+  '..CCRRPPBBYYGG..........',
+  '..CCRRPPBBYYGG..........',
+  '..RRPPBBYYGGCC..W...W...',
+  '..RRPPBBYYGGCC..W...W...',
+  '..PPBBYYGGCCRR.WWW.WWW..',
+  '..PPBBYYGGCCRR..W...W...',
+  '........................',
+  '........................',
+  'GGBBYYRRPPCCMMOOTTUUGGBB',
+  'OOCCGGMMBBYYRRPPTTUUCCRR',
+], [{ x: 185, y: 55, t: '&#215;4!', s: 24 }]);
+
+const HOWTO_PANELS = [
+  { title: 'THE PIECES', art: () => ART_PIECES,
+    cap: '18 PIECES, 5 BLOCKS EACH.<br>ROTATE &#8635; AND FLIP &#8646; &#8212; MIRROR TWINS SHARE A COLOR.' },
+  { title: 'CLEAR LINES', art: () => ART_LINE,
+    cap: 'FILL A ROW TO CLEAR IT.<br>GLOWING BLOCKS = WHAT YOUR DROP WILL CLEAR.' },
+  { title: 'BUILD BOMBS', art: () => ART_BOMB,
+    cap: 'FILL A SOLID 5&#215;5 SQUARE AND IT EXPLODES &#8212; TAKING EVERYTHING 2 CELLS AROUND IT.' },
+  { title: 'MEGABLAST', art: () => ART_MEGA,
+    cap: 'OVERLAP SQUARES: 6&#215;5 = &#215;2, 6&#215;6 = &#215;4&#8230; 4+ AT ONCE = MEGABLAST! THE WHOLE BOARD DROPS FLAT.' },
+  { title: 'CONTROLS', art: null,
+    cap: '' }, // caption filled from HELP at render time
+];
+const galleries = [];
+function buildGallery(mountId) {
+  const mount = $(mountId);
+  if (!mount) return null;
+  const g = { i: 0, mount };
+  mount.className = 'howto';
+  mount.innerHTML =
+    '<div class="howtoTitle"></div>' +
+    '<div class="howtoRow">' +
+    '<button class="howtoBtn" aria-label="Previous">&#9668;</button>' +
+    '<div class="howtoArt"></div>' +
+    '<button class="howtoBtn" aria-label="Next">&#9658;</button>' +
+    '</div>' +
+    '<div class="howtoCap"></div>' +
+    '<div class="howtoDots"></div>';
+  const [prevBtn, nextBtn] = mount.querySelectorAll('.howtoBtn');
+  prevBtn.addEventListener('click', () => { g.i = (g.i + HOWTO_PANELS.length - 1) % HOWTO_PANELS.length; renderGallery(g); });
+  nextBtn.addEventListener('click', () => { g.i = (g.i + 1) % HOWTO_PANELS.length; renderGallery(g); });
+  // swipe between panels; keep these touches away from the board's handlers
+  let sx = null;
+  mount.addEventListener('touchstart', e => { e.stopPropagation(); sx = e.changedTouches[0].clientX; }, { passive: true });
+  mount.addEventListener('touchend', e => {
+    e.stopPropagation();
+    if (sx === null) return;
+    const dx = e.changedTouches[0].clientX - sx;
+    sx = null;
+    if (Math.abs(dx) < 30) return;
+    g.i = (g.i + (dx < 0 ? 1 : HOWTO_PANELS.length - 1)) % HOWTO_PANELS.length;
+    renderGallery(g);
+  }, { passive: true });
+  galleries.push(g);
+  renderGallery(g);
+  return g;
+}
+function renderGallery(g) {
+  const p = HOWTO_PANELS[g.i];
+  g.mount.querySelector('.howtoTitle').textContent = p.title;
+  const artBox = g.mount.querySelector('.howtoArt');
+  if (p.art) { artBox.style.display = ''; artBox.innerHTML = p.art(); }
+  else { artBox.style.display = 'none'; }
+  g.mount.querySelector('.howtoCap').innerHTML = p.cap || HELP[inputMode].full;
+  const dots = g.mount.querySelector('.howtoDots');
+  dots.innerHTML = '';
+  HOWTO_PANELS.forEach((_, i) => {
+    const d = document.createElement('span');
+    if (i === g.i) d.className = 'on';
+    d.addEventListener('click', () => { g.i = i; renderGallery(g); });
+    dots.appendChild(d);
+  });
+}
+function renderGalleries() { galleries.forEach(renderGallery); }
+buildGallery('howtoStart');
+buildGallery('howtoPause');
 refreshControlHints();
+
+// ---------- Input: gamepad (Gamepad API, polled once per frame) ----------
+// DPad/stick moves with DAS so held directions feel like a real handheld;
+// A/B rotate, X/Y flip, up = hard drop, down = soft drop, start = pause.
+const DAS_DELAY = 170, DAS_REPEAT = 45;
+let padPrev = { b: [], left: false, right: false, up: false, down: false };
+let padDas = { dir: 0, next: 0 };
+function pollGamepads() {
+  let gp = null;
+  try {
+    const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (const g of gps) if (g && g.connected) { gp = g; break; }
+  } catch (e) { return; }
+  if (!gp) return;
+  const b = gp.buttons.map(x => x && x.pressed);
+  const ax = gp.axes || [];
+  const left = b[14] || ax[0] < -0.5, right = b[15] || ax[0] > 0.5;
+  const down = b[13] || ax[1] > 0.5, up = b[12] || ax[1] < -0.5;
+  const edge = i => b[i] && !padPrev.b[i];
+  if (b.some(v => v) || left || right || up || down) setInputMode('pad');
+  // START (9) or A (0) drive the menus; START pauses/resumes in play
+  if (edge(9)) {
+    if (running) togglePause();
+    else if (!countingDown) startCountdown();
+  } else if (edge(0) && !running && !countingDown &&
+             (over || !$('startOverlay').classList.contains('hidden'))) {
+    startCountdown();
+  } else if (running && !paused && current) {
+    const now = performance.now();
+    const dir = left ? -1 : right ? 1 : 0;
+    if (dir !== padDas.dir) {
+      padDas.dir = dir;
+      if (dir) { tryMove(dir, 0); padDas.next = now + DAS_DELAY; }
+    } else if (dir && now >= padDas.next) {
+      tryMove(dir, 0);
+      padDas.next = now + DAS_REPEAT;
+    }
+    softDropping = down; // gravity loop scores the soft-dropped rows
+    if (edge(1)) tryRotate(false);
+    else if (edge(0)) tryRotate(true);
+    if (current && (edge(2) || edge(3))) tryFlip();
+    if (current && up && !padPrev.up) hardDrop();
+  }
+  padPrev = { b, left, right, up, down };
+}
 
 // ---------- Buttons / overlays ----------
 function newGame() {
@@ -1392,11 +1853,13 @@ function newGame() {
   // drop) can't re-activate it mid-play
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
+  gridVersion++;
   bag = shuffledBag();
   score = 0; clears = 0; level = 1;
   over = false; paused = false;
   clearingRows = null; clearingCells = null; clearingBlockCount = 0;
   softDropping = false;
+  $('popLane').textContent = '';
   nextQueue = [takeFromBag(), takeFromBag()];
   spawn();
   updateHud();
@@ -1425,6 +1888,11 @@ function togglePause() {
   $('pauseOverlay').classList.toggle('hidden', !paused);
   $('screen').classList.toggle('paused', paused);
   $('hud').classList.toggle('faded', paused); // score/next dim with the board
+}
+// One-way pause for "safety" triggers (extra fingers landing, tabbing or
+// clicking away): never let the same signal resume a paused game.
+function pauseGame() {
+  if (running && !paused) togglePause();
 }
 // 3-2-1 countdown before every game: prep time to get hands in position.
 // The board is fully set up (first piece + NEXT preview visible) behind a
@@ -1485,15 +1953,20 @@ $('soundBtn').addEventListener('click', () => {
 refreshSoundBtn();
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && running && !paused) togglePause();
+  if (document.hidden) pauseGame();
 });
+// visibilitychange only fires when the TAB hides — switching to another OS
+// window (Cmd-Tab) merely blurs, which used to keep gravity running and
+// kill the game while the player thought it was paused. Blur pauses too.
+window.addEventListener('blur', pauseGame);
 
 // minimal hook for automated testing
 window.__pentabombDebug = {
-  fillRow(y, skipX = -1) { for (let x = 0; x < COLS; x++) if (x !== skipX) grid[y][x] = 1; },
-  setCell(x, y, v) { grid[y][x] = v; },
+  fillRow(y, skipX = -1) { for (let x = 0; x < COLS; x++) if (x !== skipX) grid[y][x] = 1; gridVersion++; },
+  setCell(x, y, v) { grid[y][x] = v; gridVersion++; },
   cellAt(x, y) { return grid[y][x]; },
   ghost() { return current ? computeGhost() : null; },
+  tele() { const t = telegraph(); return t ? { rows: t.rows, blasts: t.blasts, cells: [...t.cells] } : null; },
   flip() { return current ? tryFlip() : false; },
   newBag() { return shuffledBag().map(i => PIECES[i].n); },
   dims() { return { cols: COLS, rows: ROWS, cell }; },
