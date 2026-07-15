@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#f2ecd8">
+<meta name="theme-color" content="#ff2e8b">
 <title>PENTABOMB World Rankings — Weekly &amp; All-Time High Scores</title>
 <meta name="description" content="PENTABOMB world rankings: this week's best scores (resets every Monday) and the all-time greats. Play the free pentomino puzzle game in your browser and claim a spot.">
 <link rel="canonical" href="https://www.xin-squared.com/pentabomb/leaderboard.html">
@@ -17,81 +17,105 @@
 <meta name="twitter:image" content="https://www.xin-squared.com/pentabomb/og.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
   :root {
-    --gb-lightest: #f2ecd8;
-    --gb-light: #20223a;
-    --gb-dark: #8a8266;
-    --gb-darkest: #2a2440;
-    --shell: #2b2b2b;
+    --ink:    #17122b;
+    --paper:  #ffce1f;   /* poster yellow */
+    --light:  #fff6e6;   /* near-white: text on pink */
+    --pink:   #ff2e8b;
+    --cyan:   #17d3cc;
+    --yellow: #ffe14d;
+    --shell:  #0d0a1e;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: var(--shell);
-    font-family: "Courier New", Courier, monospace;
-    font-weight: bold;
+    background-color: var(--shell);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M24 30h12M30 24v12' stroke='%2317d3cc' stroke-width='4' stroke-opacity='.22'/%3E%3Ccircle cx='90' cy='30' r='5' fill='%23ff2e8b' fill-opacity='.22'/%3E%3Cpolygon points='30,84 23,96 37,96' fill='%23ffe14d' fill-opacity='.22'/%3E%3Cpolygon points='90,83 97,90 90,97 83,90' fill='%23a24bff' fill-opacity='.22'/%3E%3C/svg%3E");
+    font-family: "VT323", "Courier New", monospace;
+    font-weight: 400;
     display: flex;
     justify-content: center;
     padding: 16px 8px 40px;
     padding-top: calc(16px + env(safe-area-inset-top));
   }
   #screen {
-    background: var(--gb-lightest);
-    border: 6px solid var(--gb-darkest);
+    background: var(--paper);
+    border: 5px solid var(--ink);
     border-radius: 8px;
-    box-shadow: 0 0 0 4px #444, 0 8px 30px rgba(0,0,0,.6);
-    color: var(--gb-darkest);
+    box-shadow: 8px 8px 0 var(--pink), 0 10px 34px rgba(0,0,0,.55);
+    color: var(--ink);
     width: 100%;
-    max-width: 480px;
+    max-width: 460px; /* matches the index cabinet so spacing stays consistent */
     padding: 18px 14px 22px;
-    letter-spacing: 1px;
   }
-  h1 { font-size: 22px; letter-spacing: 3px; text-align: center; }
-  #sub { text-align: center; font-size: 11px; margin-top: 6px; }
-  #tabs { display: flex; gap: 8px; justify-content: center; margin: 16px 0 6px; }
+  h1 {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: 18px;
+    line-height: 1.35;
+    text-align: center;
+    color: var(--pink);
+    text-shadow:
+      -2px 0 var(--ink), 2px 0 var(--ink), 0 -2px var(--ink), 0 2px var(--ink),
+      -2px -2px var(--ink), 2px -2px var(--ink), -2px 2px var(--ink), 2px 2px var(--ink),
+      3px 3px 0 var(--ink), 4px 4px 0 var(--ink), 5px 5px 0 var(--ink), 6px 6px 0 var(--ink);
+  }
+  #sub {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    text-align: center; font-size: 10px; margin-top: 12px; color: var(--pink);
+  }
+  #tabs { display: flex; gap: 10px; justify-content: center; margin: 18px 0 8px; }
   .tab {
-    font: inherit;
-    font-size: 12px;
-    letter-spacing: 2px;
-    padding: 7px 14px;
-    background: var(--gb-lightest);
-    color: var(--gb-darkest);
-    border: 2px solid var(--gb-darkest);
-    border-radius: 4px;
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: 9px;
+    padding: 9px 12px;
+    background: var(--cyan);
+    color: var(--ink);
+    border: 3px solid var(--ink);
+    border-radius: 0;
     cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink);
   }
-  .tab.active { background: var(--gb-darkest); color: var(--gb-lightest); }
-  #resetLine { text-align: center; font-size: 10px; min-height: 14px; margin-bottom: 10px; }
+  .tab.active { background: var(--pink); color: var(--light); }
+  #resetLine { text-align: center; font-size: 11px; min-height: 15px; margin-bottom: 12px; color: var(--ink); }
   #list {
+    font-family: "Press Start 2P", "Courier New", monospace;
     white-space: pre;
-    font-size: 13px;
-    line-height: 1.75;
+    font-size: 11px;
+    line-height: 1.9;
     overflow-x: auto;
-    border-top: 2px solid var(--gb-dark);
-    border-bottom: 2px solid var(--gb-dark);
-    padding: 8px 2px;
+    border-top: 3px solid var(--ink);
+    border-bottom: 3px solid var(--ink);
+    padding: 10px 2px;
+    color: var(--ink);
   }
-  #playRow { text-align: center; margin-top: 18px; }
+  #playRow { text-align: center; margin-top: 20px; }
   #playRow button {
-    font: inherit;
-    font-size: 15px;
-    letter-spacing: 2px;
-    padding: 10px 24px;
-    background: var(--gb-darkest);
-    color: var(--gb-lightest);
-    border: none;
-    border-radius: 4px;
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: 12px;
+    padding: 12px 22px;
+    background: var(--pink);
+    color: var(--light);
+    border: 3px solid var(--ink);
+    border-radius: 0;
     cursor: pointer;
+    box-shadow: 5px 5px 0 var(--ink);
   }
+  #playRow button:active { transform: translate(5px, 5px); box-shadow: none; }
   #footer {
     display: flex;
     justify-content: center;
-    gap: 18px;
-    margin-top: 16px;
-    font-size: 11px;
-    letter-spacing: 2px;
+    align-items: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    gap: 12px;
+    margin-top: 18px;
+    font-size: 14px;
   }
-  #footer a { color: var(--gb-darkest); }
+  #footer a { color: var(--pink); font-weight: 700; text-decoration: underline; }
+  #footer span { color: var(--ink); }
 </style>
 </head>
 <body>

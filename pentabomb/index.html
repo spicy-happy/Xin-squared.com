@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#f2ecd8">
+<meta name="theme-color" content="#ff2e8b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>PENTABOMB — Free Pentomino Puzzle Game, Play in Your Browser</title>
@@ -17,7 +17,7 @@
 <meta property="og:image" content="https://www.xin-squared.com/pentabomb/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="PENTABOMB — retro green puzzle game title screen with pentomino pieces">
+<meta property="og:image:alt" content="PENTABOMB — 90s pop-art pixel puzzle game title screen with neon pentomino pieces">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="PENTABOMB — Fill a 5×5 square. Blast it away.">
 <meta name="twitter:description" content="Free Game Boy-style pentomino puzzle. Play instantly in your browser — can you crack the world top 10?">
@@ -42,20 +42,36 @@
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
 }
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* Game Boy Color era: cream screen, deep-navy play field, plum ink */
-    --gb-lightest: #f2ecd8;
-    --gb-light: #20223a;
-    --gb-dark: #8a8266;
-    --gb-darkest: #2a2440;
-    --shell: #2b2b2b;
+    /* 90s pop-art palette: hot neon + black ink outlines on poster yellow */
+    --ink:    #17122b;   /* near-black purple: outlines + primary text */
+    --paper:  #ffce1f;   /* poster yellow: cabinet interior */
+    --light:  #fff6e6;   /* near-white: text on pink, input fields */
+    --pink:   #ff2e8b;   /* hot magenta */
+    --cyan:   #17d3cc;   /* teal-cyan */
+    --yellow: #ffe14d;   /* lighter accent yellow (badges on the dark board) */
+    --blue:   #3a53ff;   /* electric blue */
+    --purple: #a24bff;   /* purple */
+    --board:  #1a1240;   /* deep indigo play field — neon pops on it */
+    --shell:  #0d0a1e;   /* outer shell / page background */
+    /* the canvas renderer reads these four via getComputedStyle — keep them
+       literal hex (drawBlock / telegraph / grid / combo callout) */
+    --gb-lightest: #fdf1da;
+    --gb-light: #1a1240;
+    --gb-dark: #7a6bb8;
+    --gb-darkest: #17122b;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     height: 100%;
     overflow: hidden;
-    background: var(--shell);
+    background-color: var(--shell);
+    /* regularly-spaced pop-art confetti: a 2x2 motif on a 60px grid */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M24 30h12M30 24v12' stroke='%2317d3cc' stroke-width='4' stroke-opacity='.22'/%3E%3Ccircle cx='90' cy='30' r='5' fill='%23ff2e8b' fill-opacity='.22'/%3E%3Cpolygon points='30,84 23,96 37,96' fill='%23ffe14d' fill-opacity='.22'/%3E%3Cpolygon points='90,83 97,90 90,97 83,90' fill='%23a24bff' fill-opacity='.22'/%3E%3C/svg%3E");
     touch-action: none;
     -webkit-user-select: none;
     user-select: none;
@@ -63,151 +79,210 @@
     overscroll-behavior: none;
   }
   body {
-    font-family: "Courier New", Courier, monospace;
-    font-weight: bold;
+    font-family: "VT323", "Courier New", monospace;
+    font-weight: 400;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
+  h1, .stat .value, .gbBtn, .overlay button,
+  #countOverlay, #levelBanner, .pop, #lbTitle, #lbList,
+  #nameInput, .howtoTitle { font-family: "Press Start 2P", "Courier New", monospace; }
   #screen {
-    background: var(--gb-lightest);
-    border: 6px solid var(--gb-darkest);
+    background: var(--paper);
+    border: 5px solid var(--ink);
     border-radius: 8px;
-    box-shadow: 0 0 0 4px #444, 0 8px 30px rgba(0,0,0,.6);
+    box-shadow: 8px 8px 0 var(--pink), 0 10px 34px rgba(0,0,0,.55);
     display: flex;
     flex-direction: column;
     padding: 8px;
-    color: var(--gb-darkest);
+    color: var(--ink);
   }
   #hud {
     display: flex;
     justify-content: space-between;
     align-items: stretch;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
-  .stat { line-height: 1.25; letter-spacing: 1px; }
-  .stat .label { font-size: 10px; }
-  .stat .value { font-size: 15px; }
+  .stat { line-height: 1.35; }
+  .stat .label { font-size: 14px; letter-spacing: 1px; color: #c21e6b; }
+  .stat .value { font-size: 15px; color: var(--ink); }
   #nextBox { display: flex; flex-direction: column; align-items: center; }
-  #nextCanvas { display: block; border: 2px solid var(--gb-darkest); border-radius: 3px; }
+  #nextCanvas { display: block; border: 3px solid var(--ink); border-radius: 0; image-rendering: pixelated; }
   .gbBtn {
-    font: inherit;
-    font-size: 13px;
-    background: var(--gb-lightest);
-    color: var(--gb-darkest);
-    border: 2px solid var(--gb-darkest);
-    border-radius: 4px;
-    padding: 2px 7px;
-    line-height: 1.2;
+    font-size: 9px;
+    background: var(--cyan);
+    color: var(--ink);
+    border: 3px solid var(--ink);
+    border-radius: 0;
+    padding: 7px 9px;
+    line-height: 1.3;
     cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink);
   }
-  .gbBtn:active { background: var(--gb-dark); color: var(--gb-lightest); }
+  .gbBtn:active { transform: translate(3px, 3px); box-shadow: none; background: var(--yellow); }
   #boardWrap { position: relative; flex: 1; }
-  #board { display: block; background: var(--gb-light); }
+  #board { display: block; background: var(--gb-light); image-rendering: pixelated; }
   .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(242, 236, 216, .93);
+    /* solid paper — identical to the cabinet behind it, so there's no visible
+       inner box on the start / game-over screens (pause + countdown override) */
+    background: var(--paper);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 14px;
+    gap: 11px;
     padding: 16px;
-    letter-spacing: 2px;
   }
   .overlay.hidden { display: none; }
   /* anti-cheat: while paused, blur the board behind the overlay (the HUD
      dims via #hud.faded) so the field can't be studied for free */
   #pauseOverlay {
-    background: rgba(242, 236, 216, .8);
+    background: rgba(255, 206, 31, .85);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
   #screen.paused #board { filter: blur(12px); }
-  .overlay h1 { font-size: 28px; letter-spacing: 4px; }
-  .overlay p { font-size: 12px; line-height: 1.8; }
-  .overlay .big { font-size: 16px; }
-  .overlay button {
-    font: inherit;
-    font-size: 16px;
-    letter-spacing: 2px;
-    padding: 10px 22px;
-    background: var(--gb-darkest);
-    color: var(--gb-lightest);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+  /* pop-art title: yellow fill, chunky black pixel outline, hot-pink drop */
+  /* retro arcade title: pink fill, crisp black outline, solid black 3D
+     extrusion (stacked offsets so there are no gaps or muddy ghosting) */
+  .overlay h1 {
+    font-size: 23px;
+    line-height: 1.4;
+    color: var(--pink);
+    text-shadow:
+      -2px 0 var(--ink), 2px 0 var(--ink), 0 -2px var(--ink), 0 2px var(--ink),
+      -2px -2px var(--ink), 2px -2px var(--ink), -2px 2px var(--ink), 2px 2px var(--ink),
+      3px 3px 0 var(--ink), 4px 4px 0 var(--ink), 5px 5px 0 var(--ink), 6px 6px 0 var(--ink);
   }
+  .overlay p { font-size: 16px; line-height: 1.6; color: var(--ink); }
+  .overlay .big { font-size: 19px; font-weight: 700; }
+  .overlay button {
+    font-size: 11px;
+    padding: 11px 14px;
+    background: var(--pink);
+    color: var(--light);
+    border: 3px solid var(--ink);
+    border-radius: 0;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 5px 5px 0 var(--ink);
+  }
+  .overlay button:active { transform: translate(5px, 5px); box-shadow: none; }
   .overlay button.gbBtn {
-    font-size: 12px;
-    padding: 5px 12px;
-    background: var(--gb-lightest);
-    color: var(--gb-darkest);
-    border: 2px solid var(--gb-darkest);
+    font-size: 8px;
+    padding: 9px 11px;
+    background: var(--cyan);
+    color: var(--ink);
+    border: 3px solid var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
   }
   /* empty status lines (challenge/newHi) shouldn't eat overlay space */
   .overlay p:empty { display: none; }
   .rankLink {
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--gb-darkest);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--pink);
     text-underline-offset: 3px;
   }
   #lbBox .rankLink { display: block; margin-top: 6px; text-align: center; }
-  #countOverlay { font-size: 72px; letter-spacing: 0; }
+  /* 2P VS MODE: a real button in its own color (electric blue) so it reads as
+     an action, distinct from the pink START */
+  #vsBtn {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: 10px;
+    padding: 10px 14px;
+    background: var(--blue);
+    color: var(--light);
+    border: 3px solid var(--ink);
+    text-decoration: none;
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  #vsBtn:active { transform: translate(4px, 4px); box-shadow: none; }
+  /* the high score gets its own labelled box, pinned to the bottom of the
+     start screen with the world best tucked underneath */
+  #recordBox {
+    margin-top: 6px;
+    padding: 9px 18px;
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    box-shadow: 5px 5px 0 var(--cyan);
+    text-align: center;
+  }
+  #recordBox .recLabel {
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: #c21e6b;
+  }
+  #recordBox .recVal {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: 14px;
+    color: var(--ink);
+    margin-top: 4px;
+  }
+  #recordBox .recWorld {
+    font-size: 13px;
+    color: var(--ink);
+    margin-top: 7px;
+    padding-top: 6px;
+    border-top: 2px solid rgba(23,18,43,.35);
+  }
+  #recordBox .recWorld:empty { display: none; }
+  #countOverlay { font-size: 66px; letter-spacing: 0; color: var(--pink); text-shadow: 5px 5px 0 var(--ink); }
   /* game-over content can exceed the board (name entry + leaderboard +
      buttons): center while it fits, scroll instead of spilling when not */
   #overOverlay { justify-content: flex-start; overflow-y: auto; }
   #overOverlay > :first-child { margin-top: auto; }
   #overOverlay > :last-child { margin-bottom: auto; }
-  #overBtns { display: flex; align-items: center; gap: 10px; flex: none; }
+  #overBtns { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; flex: none; }
+  #overBtns button { min-width: 120px; } /* RESTART + SHARE render the same size */
+  #shareBtn { background: var(--cyan); color: var(--ink); }
   #nameEntry { display: flex; flex-direction: column; align-items: center; gap: 8px; }
   #nameEntry.hidden { display: none; }
   #nameRow { display: flex; align-items: center; gap: 8px; }
   /* game over: quiet everything but the results — HUD dims, the legend
      collapses to a plain footer, the countdown shows the board underneath */
   #screen.gameover #legendText,
-  #screen.gameover #bottomRestart,
-  #screen.gameover #soundBtn { display: none; }
-  #countOverlay { background: rgba(242, 236, 216, .45); }
+  #screen.gameover #legendRow { display: none; }
+  #countOverlay { background: rgba(255, 206, 31, .45); }
   #nameInput {
-    font: inherit;
-    font-size: 14px;
-    letter-spacing: 2px;
+    font-size: 12px;
+    letter-spacing: 0;
     text-transform: uppercase;
     text-align: center;
-    width: 15ch;
+    width: 13ch;
     max-width: 80vw;
-    background: var(--gb-lightest);
-    color: var(--gb-darkest);
-    border: 2px solid var(--gb-darkest);
-    border-radius: 4px;
-    padding: 6px 8px;
+    background: var(--light);
+    color: var(--ink);
+    border: 3px solid var(--ink);
+    border-radius: 0;
+    padding: 8px;
+    box-shadow: 3px 3px 0 var(--ink);
     -webkit-user-select: text;
     user-select: text;
     touch-action: auto;
   }
-  #lbBox { width: 100%; max-width: 340px; font-size: 11px; letter-spacing: 1px; }
-  #lbTitle { font-size: 11px; margin-bottom: 4px; }
-  #lbList { line-height: 1.6; white-space: pre; }
+  #lbBox { width: 100%; max-width: 340px; font-size: 9px; letter-spacing: 0; }
+  #lbTitle { font-size: 9px; margin-bottom: 8px; color: var(--pink); }
+  #lbList { line-height: 1.55; white-space: pre; color: var(--ink); }
   #lbList .me {
-    background: var(--gb-darkest);
-    color: var(--gb-lightest);
+    background: var(--pink);
+    color: var(--light);
   }
   #legend {
-    font-size: 10px;
-    letter-spacing: 1px;
+    font-size: 13px;
     text-align: center;
     line-height: 1.6;
-    margin-top: 6px;
+    margin-top: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
   }
   #legendRow {
     display: flex;
@@ -216,16 +291,27 @@
     flex-wrap: wrap;
     gap: 8px 14px;
   }
-  #madeBy { font-size: 13px; letter-spacing: 1px; }
+  /* MADE BY XIN + LEAVE A TIP: one line, always visible, at the bottom of every
+     screen (start, play, game over) and mirrored on the other pages */
+  #footerRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    gap: 12px;
+  }
+  #madeBy { font-size: 14px; color: var(--ink); }
   #tipLine {
-    font-size: 13px;
-    letter-spacing: 1px;
-    color: var(--gb-darkest);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--pink);
     text-decoration: underline;
     cursor: pointer;
     touch-action: auto;
-    visibility: visible; /* stays up even while the rest of the legend hides */
   }
+  /* control hints + in-game buttons only apply while playing */
+  #screen.pregame #legendText, #screen.pregame #legendRow { display: none; }
   #hud { transition: opacity .2s; }
   #hud.faded { opacity: .15; }
   /* ---------- How-to-play swipe gallery ---------- */
@@ -240,37 +326,82 @@
   .howtoRow { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
   .howtoArt {
     background: var(--gb-light);
-    border: 3px solid var(--gb-darkest);
-    border-radius: 4px;
+    border: 3px solid var(--ink);
+    border-radius: 0;
     line-height: 0;
     width: min(240px, 62vw);
+    aspect-ratio: 22 / 14; /* every panel is the same size, so arrows never shift */
+    box-shadow: 4px 4px 0 var(--ink);
   }
-  .howtoArt svg { width: 100%; height: auto; display: block; image-rendering: pixelated; }
+  .howtoArt svg { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
   .howtoCap {
-    font-size: 11px;
-    letter-spacing: 1px;
-    line-height: 1.6;
+    font-size: 15px;
+    line-height: 1.55;
     min-height: 3.2em;
     max-width: min(280px, 76vw);
+    color: var(--ink);
   }
-  .howtoTitle { font-size: 12px; letter-spacing: 2px; }
-  .howtoBtn {
-    font: inherit;
-    font-size: 16px;
-    background: none;
-    border: none;
-    color: var(--gb-darkest);
+  .howtoTitle { font-size: 13px; color: var(--ink); }
+  /* CONTROLS panel: an input-support checklist fills the box instead of art.
+     Same box dimensions as .howtoArt so the arrows never move between panels. */
+  .howtoArt.asList {
+    background: var(--light);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 9px;
+    line-height: 1.2;
+    text-align: left;
+  }
+  .ctrlRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink);
+  }
+  .ctrlRow .ck {
+    flex: none;
+    color: var(--ink);
+    background: var(--cyan);
+    border: 2px solid var(--ink);
+    width: 15px; height: 15px;
+    line-height: 12px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .ctrlRow b { font-weight: 700; }
+  /* scoped under .howto so it beats the .overlay button rule (the gallery
+     lives inside the start/pause overlays) */
+  .howto .howtoBtn {
+    font-size: 15px;
+    background: var(--cyan);
+    border: 3px solid var(--ink);
+    color: var(--ink);
     cursor: pointer;
-    padding: 6px;
+    width: 40px;
+    height: 40px;
+    min-width: 0;
+    flex: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 2px 2px 0 var(--ink);
   }
+  .howto .howtoBtn:active { transform: translate(2px, 2px); box-shadow: none; }
+  /* SVG triangle instead of a font glyph — perfectly centered in the button */
+  .howto .howtoBtn svg { width: 15px; height: 15px; display: block; fill: var(--ink); }
   .howtoDots { display: flex; gap: 6px; }
   .howtoDots span {
-    width: 8px; height: 8px;
-    border: 2px solid var(--gb-darkest);
+    width: 9px; height: 9px;
+    border: 2px solid var(--ink);
     border-radius: 0; /* square dots: it's a pixel game */
     cursor: pointer;
   }
-  .howtoDots span.on { background: var(--gb-darkest); }
+  .howtoDots span.on { background: var(--pink); }
   /* ---------- Score popups + level banner ---------- */
   #popLane {
     position: absolute;
@@ -283,16 +414,17 @@
     z-index: 5;
   }
   .pop {
-    font-size: 12px;
-    letter-spacing: 1px;
-    background: var(--gb-lightest);
-    color: var(--gb-darkest);
-    border: 2px solid var(--gb-darkest);
-    border-radius: 3px;
-    padding: 1px 6px;
+    font-size: 8px;
+    line-height: 1.4;
+    background: var(--paper);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    border-radius: 0;
+    padding: 3px 6px;
+    box-shadow: 2px 2px 0 var(--ink);
     animation: popFade 1.5s ease-out forwards;
   }
-  .pop.blast { background: var(--gb-darkest); color: var(--gb-lightest); }
+  .pop.blast { background: var(--pink); color: var(--light); }
   @keyframes popFade {
     0% { opacity: 0; transform: translateY(6px); }
     12% { opacity: 1; transform: translateY(0); }
@@ -303,12 +435,14 @@
     position: absolute;
     top: 10%; left: 50%;
     transform: translateX(-50%);
-    font-size: 18px;
-    letter-spacing: 3px;
-    background: var(--gb-darkest);
-    color: var(--gb-lightest);
-    border-radius: 4px;
-    padding: 6px 14px;
+    font-size: 14px;
+    letter-spacing: 0;
+    background: var(--yellow);
+    color: var(--ink);
+    border: 3px solid var(--ink);
+    border-radius: 0;
+    padding: 8px 14px;
+    box-shadow: 4px 4px 0 var(--ink);
     pointer-events: none;
     z-index: 5;
     opacity: 0;
@@ -333,21 +467,21 @@
   }
   /* tiny phones (320px class): tighten type so the cabinet never overflows */
   @media (max-width: 360px) {
-    .overlay { letter-spacing: 1px; padding: 12px; gap: 10px; }
-    .overlay h1 { font-size: 22px; letter-spacing: 2px; }
-    .overlay p { font-size: 11px; letter-spacing: 1px; }
+    .overlay { padding: 12px; gap: 10px; }
+    .overlay h1 { font-size: 18px; }
+    .overlay p { font-size: 14px; }
     /* the gesture hints are already on the start overlay; dropping them here
        frees several lines of height for the board itself */
     #legendText { display: none; }
-    #legend { font-size: 9px; }
-    .gbBtn { font-size: 11px; }
-    #madeBy, #tipLine { font-size: 11px; }
-    #lbBox { font-size: 10px; }
+    #legend { font-size: 12px; }
+    .gbBtn { font-size: 8px; }
+    #madeBy, #tipLine { font-size: 12px; }
+    #lbBox { font-size: 8px; }
   }
 </style>
 </head>
 <body>
-<div id="screen">
+<div id="screen" class="pregame">
   <div id="hud" style="visibility:hidden">
     <div class="stat">
       <div class="label">SCORE</div>
@@ -373,12 +507,15 @@
     <div class="overlay" id="startOverlay">
       <h1>PENTABOMB</h1>
       <div id="howtoStart"></div>
-      <p class="big" id="hiLine"></p>
-      <p id="worldBest"></p>
       <p class="big" id="challengeLine"></p>
       <button id="startBtn">START</button>
+      <a id="vsBtn" href="vs.html">2P VS MODE</a>
       <a class="rankLink" href="leaderboard.html">WORLD RANKINGS &#8594;</a>
-      <a class="rankLink" href="vs.html">2P VS MODE &#8594;</a>
+      <div id="recordBox">
+        <div class="recLabel">YOUR HIGH SCORE</div>
+        <div class="recVal" id="hiVal">&#8212;</div>
+        <div class="recWorld" id="worldBest"></div>
+      </div>
     </div>
     <div class="overlay hidden" id="countOverlay"><span id="countNum">3</span></div>
     <div class="overlay hidden" id="pauseOverlay">
@@ -390,7 +527,6 @@
       <h1>GAME OVER</h1>
       <p class="big" id="finalScore">SCORE 0</p>
       <p id="challengeResult"></p>
-      <p id="newHi"></p>
       <div id="nameEntry" class="hidden">
         <p>ENTER YOUR NAME</p>
         <div id="nameRow">
@@ -404,8 +540,8 @@
         <a class="rankLink" href="leaderboard.html">FULL RANKINGS &#8594;</a>
       </div>
       <div id="overBtns">
-        <button id="retryBtn">PLAY AGAIN</button>
-        <button class="gbBtn" id="shareBtn">SHARE SCORE</button>
+        <button id="retryBtn">RESTART</button>
+        <button id="shareBtn">SHARE</button>
       </div>
     </div>
   </div>
@@ -415,11 +551,13 @@
     world top 10 leaderboard. Works on phones and desktops &#8212; JavaScript
     must be enabled to play.</p>
   </noscript>
-  <div id="legend" style="visibility:hidden">
+  <div id="legend">
     <div id="legendText"></div>
     <div id="legendRow">
       <button class="gbBtn" id="bottomRestart">RESTART</button>
       <button class="gbBtn" id="soundBtn" aria-label="Sound">SOUND ON</button>
+    </div>
+    <div id="footerRow">
       <span id="madeBy">MADE BY XIN</span>
       <a id="tipLine" href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">LEAVE A TIP</a>
     </div>
@@ -431,34 +569,34 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 18;
+const GAME_VERSION = 21;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
-// Each entry: list of [x,y] cells plus a Game Boy Color hue. Mirror pairs
+// Each entry: list of [x,y] cells plus a 90s-pop neon hue. Mirror pairs
 // (F/F2, L/J, N/N2, P/Q, Y/Y2, Z/S) share a hue family in two tones, so
 // "orange = L family" is learnable while the mirror twins stay tellable.
 const PIECES = [
-  { n: 'F',  col: '#cc50a8', c: [[1,0],[2,0],[0,1],[1,1],[1,2]] },
-  { n: 'F2', col: '#96368c', c: [[0,0],[1,0],[1,1],[2,1],[1,2]] },
-  { n: 'I',  col: '#38b8d8', c: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
-  { n: 'L',  col: '#f09030', c: [[0,0],[0,1],[0,2],[0,3],[1,3]] },
-  { n: 'J',  col: '#c05f18', c: [[1,0],[1,1],[1,2],[1,3],[0,3]] },
-  { n: 'N',  col: '#52b848', c: [[0,0],[0,1],[1,1],[1,2],[1,3]] },
-  { n: 'N2', col: '#2c8a3e', c: [[1,0],[1,1],[0,1],[0,2],[0,3]] },
-  { n: 'P',  col: '#ecd044', c: [[0,0],[1,0],[0,1],[1,1],[0,2]] },
-  { n: 'Q',  col: '#c39d22', c: [[0,0],[1,0],[0,1],[1,1],[1,2]] },
-  { n: 'T',  col: '#9858cc', c: [[0,0],[1,0],[2,0],[1,1],[1,2]] },
-  { n: 'U',  col: '#5b5bd0', c: [[0,0],[2,0],[0,1],[1,1],[2,1]] },
-  { n: 'V',  col: '#30a898', c: [[0,0],[0,1],[0,2],[1,2],[2,2]] },
-  { n: 'W',  col: '#9aa838', c: [[0,0],[0,1],[1,1],[1,2],[2,2]] },
-  { n: 'X',  col: '#e04838', c: [[1,0],[0,1],[1,1],[2,1],[1,2]] },
-  { n: 'Y',  col: '#4a90e0', c: [[1,0],[0,1],[1,1],[1,2],[1,3]] },
-  { n: 'Y2', col: '#2d64ae', c: [[0,0],[0,1],[1,1],[0,2],[0,3]] },
-  { n: 'Z',  col: '#e07868', c: [[0,0],[1,0],[1,1],[1,2],[2,2]] },
-  { n: 'S',  col: '#b84e60', c: [[1,0],[2,0],[1,1],[0,2],[1,2]] },
+  { n: 'F',  col: '#ff2e8b', c: [[1,0],[2,0],[0,1],[1,1],[1,2]] },
+  { n: 'F2', col: '#c21e6b', c: [[0,0],[1,0],[1,1],[2,1],[1,2]] },
+  { n: 'I',  col: '#17d3cc', c: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
+  { n: 'L',  col: '#ff8a1e', c: [[0,0],[0,1],[0,2],[0,3],[1,3]] },
+  { n: 'J',  col: '#d1600c', c: [[1,0],[1,1],[1,2],[1,3],[0,3]] },
+  { n: 'N',  col: '#5bd94a', c: [[0,0],[0,1],[1,1],[1,2],[1,3]] },
+  { n: 'N2', col: '#2fa22a', c: [[1,0],[1,1],[0,1],[0,2],[0,3]] },
+  { n: 'P',  col: '#ffce2e', c: [[0,0],[1,0],[0,1],[1,1],[0,2]] },
+  { n: 'Q',  col: '#e0a400', c: [[0,0],[1,0],[0,1],[1,1],[1,2]] },
+  { n: 'T',  col: '#a24bff', c: [[0,0],[1,0],[2,0],[1,1],[1,2]] },
+  { n: 'U',  col: '#3a53ff', c: [[0,0],[2,0],[0,1],[1,1],[2,1]] },
+  { n: 'V',  col: '#12b39a', c: [[0,0],[0,1],[0,2],[1,2],[2,2]] },
+  { n: 'W',  col: '#9bcc1e', c: [[0,0],[0,1],[1,1],[1,2],[2,2]] },
+  { n: 'X',  col: '#ff3b30', c: [[1,0],[0,1],[1,1],[2,1],[1,2]] },
+  { n: 'Y',  col: '#4a90ff', c: [[1,0],[0,1],[1,1],[1,2],[1,3]] },
+  { n: 'Y2', col: '#2b5fd0', c: [[0,0],[0,1],[1,1],[0,2],[0,3]] },
+  { n: 'Z',  col: '#ff7a5c', c: [[0,0],[1,0],[1,1],[1,2],[2,2]] },
+  { n: 'S',  col: '#d84a52', c: [[1,0],[2,0],[1,1],[0,2],[1,2]] },
 ];
-// GBC-style block shading: each hue gets a highlight and shadow tone, mixed
-// toward white/black so every piece bevels consistently.
+// Pop-art block shading: each hue gets a bright highlight and a deep shadow
+// tone, mixed toward white/black, so every piece reads as a chunky pixel.
 function mixHex(hex, target, f) {
   const n = parseInt(hex.slice(1), 16);
   const ch = s => Math.round(((n >> s) & 255) * (1 - f) + target * f);
@@ -466,7 +604,7 @@ function mixHex(hex, target, f) {
 }
 PIECES.forEach((p, i) => {
   p.i = i;
-  p.pal = { base: p.col, hi: mixHex(p.col, 255, 0.45), lo: mixHex(p.col, 0, 0.4) };
+  p.pal = { base: p.col, hi: mixHex(p.col, 255, 0.52), lo: mixHex(p.col, 0, 0.34) };
 });
 
 const COLS = 12, ROWS = 20;
@@ -951,7 +1089,9 @@ function hiLabel() {
   return 'HI ' + hi + (hiName ? ' · ' + hiName : '');
 }
 function refreshHiLine() {
-  $('hiLine').textContent = hi > 0 ? hiLabel() : '';
+  // the start-screen box is already labelled "YOUR HIGH SCORE", so show just
+  // the value (+ name); em dash when there's no score yet
+  $('hiVal').textContent = hi > 0 ? (hi + (hiName ? ' · ' + hiName : '')) : '—';
 }
 function gameOver() {
   running = false;
@@ -961,16 +1101,17 @@ function gameOver() {
     score, clears, level,
     sec: Math.max(0, Math.round((performance.now() - gameStartAt) / 1000)),
   });
-  $('finalScore').textContent = 'SCORE ' + score;
+  // fold the new-high callout into the score line so it reads as one condensed
+  // headline instead of two stacked lines
+  const isHigh = score > hi;
+  $('finalScore').textContent = isHigh ? 'NEW HIGH SCORE  ' + score : 'SCORE ' + score;
   $('challengeResult').textContent = challengeResultLine(score);
-  if (score > hi) {
+  if (isHigh) {
     hi = score;
     localStorage.setItem('pentabomb.hi', String(hi));
-    $('newHi').textContent = 'NEW HIGH SCORE!';
     $('nameEntry').classList.remove('hidden');
     $('nameInput').value = hiName;
   } else {
-    $('newHi').textContent = ''; // HUD already shows HI; keep this screen lean
     $('nameEntry').classList.add('hidden');
   }
   refreshHiLine();
@@ -988,7 +1129,7 @@ function gameOver() {
 const SCORES_API = 'https://pentamino-scores.mail-f78.workers.dev';
 let playToken = null;
 let lastRun = null;
-let globalQualifies = false, submitted = false, nameSaved = false;
+let globalQualifies = false, submitted = false, nameSaved = false, submittedName = null;
 
 async function fetchPlayToken() {
   try {
@@ -1042,6 +1183,7 @@ async function showLeaderboard(finalScore) {
   submitted = false;
   globalQualifies = false;
   nameSaved = false;
+  submittedName = null;
   $('lbList').textContent = 'LOADING...';
   try {
     const scores = await fetchScores();
@@ -1053,14 +1195,14 @@ async function showLeaderboard(finalScore) {
     // scores get sent, not just all-time-top-10 runs
     globalQualifies = finalScore > 0 && !!lastRun;
     if (globalQualifies) {
-      if (nameSaved && hiName) {
-        // player confirmed their name before this fetch finished
-        submitGlobalScore(hiName);
-      } else if (hiName && $('nameEntry').classList.contains('hidden')) {
-        // returning player, no name prompt on screen: submit quietly
+      if (hiName) {
+        // player already has a name — record the score IMMEDIATELY so it can't
+        // vanish just because they never re-confirm it. A new high score still
+        // leaves the name box up (see gameOver) so they can rename; a rename
+        // re-submits as a correction (saveName).
         submitGlobalScore(hiName);
       } else {
-        // reuse the local name-entry UI to also claim the global spot
+        // brand-new player, no saved name: reuse the name-entry UI to claim it
         $('nameEntry').classList.remove('hidden');
         if (!$('nameInput').value) $('nameInput').value = hiName;
       }
@@ -1084,6 +1226,7 @@ async function submitGlobalScore(name) {
     const res = await fetch(SCORES_API + '/scores', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      keepalive: true, // still fires if the tab is closing (safety-net flush)
       body: JSON.stringify({
         name,
         score: lastRun.score,
@@ -1098,6 +1241,7 @@ async function submitGlobalScore(name) {
       throw new Error(reason || 'http ' + res.status);
     }
     const data = await res.json();
+    submittedName = name;
     renderLb(data.scores || [], data.rank != null ? data.rank - 1 : -1);
     updateWorldBest(data.scores);
   } catch (e) {
@@ -1139,7 +1283,7 @@ async function shareScore() {
   const flash = msg => {
     btn.textContent = msg;
     clearTimeout(shareResetTimer);
-    shareResetTimer = setTimeout(() => { btn.textContent = 'SHARE SCORE'; }, 2000);
+    shareResetTimer = setTimeout(() => { btn.textContent = 'SHARE'; }, 2000);
   };
   if (navigator.share) {
     try { await navigator.share({ title: 'PENTABOMB', text, url }); return; }
@@ -1252,25 +1396,26 @@ function layout() {
   draw();
 }
 
-// GBC-style beveled block: dark outline, colored body, light top-left edge,
-// dark bottom-right edge, and a tiny corner shine. Chunky on purpose.
+// Pop-art pixel block: chunky black outline, flat neon body, bright top-left
+// highlight, deep bottom-right shadow, and a white pixel shine. Reads as a
+// clean chunky pixel — bolder than the old GBC bevel, less noisy than v1.
 function drawBlock(ctx, x, y, s, pi) {
   const pal = PIECES[pi] ? PIECES[pi].pal : PIECES[0].pal;
-  const b = Math.max(1, Math.floor(s * 0.14));
-  ctx.fillStyle = '#14152a';
+  const o = Math.max(2, Math.round(s * 0.09)); // black outline thickness
+  const b = Math.max(1, Math.round(s * 0.15)); // highlight / shadow edge
+  ctx.fillStyle = '#0e0a1e';                    // outline
   ctx.fillRect(x, y, s, s);
-  ctx.fillStyle = pal.base;
-  ctx.fillRect(x + 1, y + 1, s - 2, s - 2);
-  ctx.fillStyle = pal.hi;
-  ctx.fillRect(x + 1, y + 1, s - 2, b);          // top edge
-  ctx.fillRect(x + 1, y + 1, b, s - 2);          // left edge
-  ctx.fillStyle = pal.lo;
-  ctx.fillRect(x + 1, y + s - 1 - b, s - 2, b);  // bottom edge
-  ctx.fillRect(x + s - 1 - b, y + 1, b, s - 2);  // right edge
-  // pixel shine in the top-left of the body
-  const d = Math.max(1, Math.floor(s * 0.16));
-  ctx.fillStyle = pal.hi;
-  ctx.fillRect(x + b + 1, y + b + 1, d, d);
+  ctx.fillStyle = pal.base;                     // flat body
+  ctx.fillRect(x + o, y + o, s - 2 * o, s - 2 * o);
+  ctx.fillStyle = pal.lo;                       // shadow: bottom + right
+  ctx.fillRect(x + o, y + s - o - b, s - 2 * o, b);
+  ctx.fillRect(x + s - o - b, y + o, b, s - 2 * o);
+  ctx.fillStyle = pal.hi;                       // highlight: top + left
+  ctx.fillRect(x + o, y + o, s - 2 * o, b);
+  ctx.fillRect(x + o, y + o, b, s - 2 * o);
+  const d = Math.max(2, Math.round(s * 0.15));  // white pixel shine
+  ctx.fillStyle = '#fff8ea';
+  ctx.fillRect(x + o + b, y + o + b, d, d);
 }
 function drawGhostBlock(ctx, x, y, s, pi) {
   ctx.strokeStyle = PIECES[pi] ? PIECES[pi].pal.base : C_DARK;
@@ -1362,17 +1507,18 @@ function draw() {
     const label = clearingBlockCount >= 4
       ? 'MEGABLAST x' + clearingBlockCount
       : 'BLAST x' + clearingBlockCount;
-    const fs = Math.max(14, Math.floor(cell * 1.1));
-    boardCtx.font = 'bold ' + fs + 'px "Courier New", Courier, monospace';
+    const fs = Math.max(10, Math.floor(cell * 0.7));
+    boardCtx.font = fs + 'px "Press Start 2P", "Courier New", monospace';
     boardCtx.textAlign = 'center';
     boardCtx.textBaseline = 'middle';
     const tw = boardCtx.measureText(label).width;
-    boardCtx.fillStyle = C_LIGHTEST;
-    boardCtx.fillRect(w / 2 - tw / 2 - 8, h / 2 - fs, tw + 16, fs * 2);
-    boardCtx.strokeStyle = C_DARKEST;
-    boardCtx.lineWidth = 2;
-    boardCtx.strokeRect(w / 2 - tw / 2 - 8, h / 2 - fs, tw + 16, fs * 2);
-    boardCtx.fillStyle = C_DARKEST;
+    const padX = fs * 0.8, boxH = fs * 1.9;
+    boardCtx.fillStyle = '#ffce2e'; // yellow pop badge
+    boardCtx.fillRect(w / 2 - tw / 2 - padX, h / 2 - boxH / 2, tw + padX * 2, boxH);
+    boardCtx.strokeStyle = '#17122b';
+    boardCtx.lineWidth = 4;
+    boardCtx.strokeRect(w / 2 - tw / 2 - padX, h / 2 - boxH / 2, tw + padX * 2, boxH);
+    boardCtx.fillStyle = '#17122b';
     boardCtx.fillText(label, w / 2, h / 2);
     boardCtx.textAlign = 'left';
     boardCtx.textBaseline = 'alphabetic';
@@ -1636,13 +1782,13 @@ window.addEventListener('touchstart', () => setInputMode('touch'), { passive: tr
 // 10px pixel — same palette as the game pieces.
 const ART_INK = {
   '.': null,
-  'W': '#f2ecd8', 'w': 'rgba(242,236,216,0.38)',
-  'R': '#e04838', 'O': '#f09030', 'Y': '#ecd044', 'Q': '#c39d22',
-  'G': '#52b848', 'g': '#2c8a3e', 'C': '#38b8d8', 'T': '#30a898',
-  'B': '#4a90e0', 'b': '#2d64ae', 'U': '#5b5bd0', 'P': '#9858cc',
-  'M': '#cc50a8', 'm': '#96368c', 'L': '#9aa838', 'Z': '#e07868',
+  'W': '#fdf1da', 'w': 'rgba(253,241,218,0.42)',
+  'R': '#ff3b30', 'O': '#ff8a1e', 'Y': '#ffce2e', 'Q': '#e0a400',
+  'G': '#5bd94a', 'g': '#2fa22a', 'C': '#17d3cc', 'T': '#12b39a',
+  'B': '#4a90ff', 'b': '#2b5fd0', 'U': '#3a53ff', 'P': '#a24bff',
+  'M': '#ff2e8b', 'm': '#c21e6b', 'L': '#9bcc1e', 'Z': '#ff7a5c',
 };
-function pxArt(rows, texts) {
+function pxArt(rows) {
   const cs = 10, w = rows[0].length * cs, h = rows.length * cs;
   let s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + ' ' + h + '" shape-rendering="crispEdges">';
   rows.forEach((row, y) => {
@@ -1651,99 +1797,87 @@ function pxArt(rows, texts) {
       if (c) s += '<rect x="' + x * cs + '" y="' + y * cs + '" width="' + cs + '" height="' + cs + '" fill="' + c + '"/>';
     }
   });
-  (texts || []).forEach(t => {
-    s += '<text x="' + t.x + '" y="' + t.y + '" fill="' + (t.c || '#f2ecd8') + '" font-family="Courier New,Courier,monospace" font-weight="bold" font-size="' + (t.s || 24) + '" text-anchor="middle">' + t.t + '</text>';
-  });
   return s + '</svg>';
 }
-// Panel 1: pieces rotate AND flip (the F pair shown as true mirror twins)
-const ART_PIECES = pxArt([
-  '........................',
-  '.PPPPPP.................',
-  '.PPPPPP.....CCCCCCCCCC..',
-  '...PP.......CCCCCCCCCC..',
-  '...PP...................',
-  '...PP...................',
-  '........................',
-  '........................',
-  '........................',
-  '.....MMMM.....mmmm......',
-  '.....MMMM.....mmmm......',
-  '...MMMM.........mmmm....',
-  '...MMMM.........mmmm....',
-  '.....MM..........mm.....',
-  '.....MM..........mm.....',
-  '........................',
-], [{ x: 95, y: 45, t: '&#8635;', s: 26 }, { x: 115, y: 122, t: '&#8646;', s: 20 }]);
-// Panel 2: fill a row; the telegraph glow marks where the drop will clear
-const ART_LINE = pxArt([
-  '........................',
-  '........................',
-  '........................',
-  '........................',
-  '........CCCCCCCCCC......',
-  '........CCCCCCCCCC......',
-  '........................',
-  '...........WW...........',
-  '...........WW...........',
-  '..........WWWW..........',
-  '...........WW...........',
-  '........................',
-  '........................',
-  '........................',
-  'OOYYGGRRwwwwwwwwwwBBPPTT',
-  'YYGGRROOwwwwwwwwwwPPTTBB',
-], []);
-// Panel 3: a solid 5x5 is a bomb — the dashed ring is the blast radius
-const ART_BOMB = pxArt([
-  '.....W.W.W.W.W.W.W.W....',
-  '........................',
-  '.....W.BBYYGGCCRR.W.....',
-  '.......BBYYGGCCRR.......',
-  '.....W.YYGGCCRRBB.W.....',
-  '.......YYGGCCRRBB.......',
-  '.....W.GGCCRRBBYY.W.....',
-  '.......GGCCRRBBYY.......',
-  '.....W.CCRRBBYYGG.W.....',
-  '.......CCRRBBYYGG.......',
-  '.....W.RRBBYYGGCC.W.....',
-  '.......RRBBYYGGCC.......',
-  '........................',
-  '.....W.W.W.W.W.W.W.W....',
-  '........................',
-  '........................',
-], [{ x: 120, y: 156, t: '5&#215;5 = BOOM', s: 15 }]);
-// Panel 4: overlapped squares multiply; 4+ at once = MEGABLAST, board drops
-const ART_MEGA = pxArt([
-  '..BBYYGGCCRRPP..........',
-  '..BBYYGGCCRRPP..........',
-  '..YYGGCCRRPPBB..........',
-  '..YYGGCCRRPPBB..........',
-  '..GGCCRRPPBBYY..........',
-  '..GGCCRRPPBBYY..........',
-  '..CCRRPPBBYYGG..........',
-  '..CCRRPPBBYYGG..........',
-  '..RRPPBBYYGGCC..W...W...',
-  '..RRPPBBYYGGCC..W...W...',
-  '..PPBBYYGGCCRR.WWW.WWW..',
-  '..PPBBYYGGCCRR..W...W...',
-  '........................',
-  '........................',
-  'GGBBYYRRPPCCMMOOTTUUGGBB',
-  'OOCCGGMMBBYYRRPPTTUUCCRR',
-], [{ x: 185, y: 55, t: '&#215;4!', s: 24 }]);
+// Every panel is a simplified snapshot of the real game on the SAME 22x14 grid,
+// built by stamping shape stencils — so all panels render at an identical size.
+const AW = 22, AH = 14;
+function blank() { return Array.from({ length: AH }, () => new Array(AW).fill('.')); }
+function stamp(g, x, y, pat, ch) {
+  pat.forEach((row, dy) => {
+    for (let dx = 0; dx < row.length; dx++) {
+      if (row[dx] === '#' && g[y + dy] && x + dx >= 0 && x + dx < AW) g[y + dy][x + dx] = ch;
+    }
+  });
+}
+function artOf(build) { const g = blank(); build(g); return pxArt(g.map(r => r.join(''))); }
+// stencils ('#' = a filled cell)
+const S_L = ['..#', '.##', '###', '.##', '..#'];  // arrow: left
+const S_R = ['#..', '##.', '###', '##.', '#..'];  // arrow: right
+const S_D = ['#####', '.###.', '..#..'];          // arrow: down
+const P_T = ['###', '.#.', '.#.'];                // T pentomino
+const P_I = ['#####'];                            // I pentomino
+const P_L = ['#.', '#.', '#.', '##'];             // L pentomino
+const P_P = ['##', '##', '#.'];                   // P pentomino
+const P_Z = ['##.', '.#.', '.##'];                // S/Z pentomino
+const BURST = ['#..#..#', '.#.#.#.', '..###..', '#######', '..###..', '.#.#.#.', '#..#..#'];
 
+// CONTROLS: no art — an input-support checklist fills the panel instead
+const CONTROLS_LIST =
+  '<div class="ctrlRow"><span class="ck">&#10003;</span><span><b>TOUCH</b> &#183; SWIPE MOVE &#183; TAP ROTATE &#183; HOLD FLIP &#183; SWIPE UP TO DROP</span></div>' +
+  '<div class="ctrlRow"><span class="ck">&#10003;</span><span><b>KEYBOARD</b> &#183; ARROWS MOVE &#183; Z/X ROTATE &#183; F FLIP &#183; SPACE DROP</span></div>' +
+  '<div class="ctrlRow"><span class="ck">&#10003;</span><span><b>CONTROLLER</b> &#183; DPAD MOVE &#183; A/B ROTATE &#183; X/Y FLIP</span></div>';
+// THE PIECES: five different pentominoes in different colors
+const ART_PIECES = artOf(g => {
+  stamp(g, 2, 2, P_I, 'C');
+  stamp(g, 16, 2, P_T, 'Y');
+  stamp(g, 3, 6, P_L, 'G');
+  stamp(g, 17, 7, P_P, 'M');
+  stamp(g, 9, 9, P_Z, 'U');
+});
+// CLEAR LINES: colored pieces stacked in the well, bottom row complete + glowing
+const ART_LINE = artOf(g => {
+  const cols = ['M', 'O', 'Y', 'G', 'C', 'B', 'U', 'P', 'R', 'L', 'Z'];
+  // upper rows still have holes (filling up); each 2-wide block a different
+  // color so distinct pieces read across the row
+  const gaps = { 10: [3, 14], 11: [8, 17], 12: [11] };
+  for (let y = 10; y <= 12; y++) {
+    for (let x = 0; x < AW; x++) {
+      if (gaps[y] && gaps[y].indexOf(x) !== -1) continue;
+      g[y][x] = cols[Math.floor(x / 2) % cols.length];
+    }
+  }
+  for (let x = 0; x < AW; x++) g[13][x] = 'W'; // completed bottom row = glowing
+});
+// BUILD BOMBS: five different-colored pentominoes tile one solid 5x5 (5x5 = 25
+// cells = 5 pieces), inside a dashed blast ring
+const ART_BOMB = artOf(g => {
+  const T = ['CMMMM', 'CYYYM', 'CYYGG', 'CBBGG', 'CBBBG'];
+  const x0 = 8, y0 = 4;
+  for (let dy = 0; dy < 5; dy++)
+    for (let dx = 0; dx < 5; dx++) g[y0 + dy][x0 + dx] = T[dy][dx];
+  // dashed ring one cell out = "blasts everything around it"
+  for (let dx = -1; dx <= 5; dx++) if (dx % 2 === 0) { g[y0 - 1][x0 + dx] = 'W'; g[y0 + 5][x0 + dx] = 'W'; }
+  for (let dy = -1; dy <= 5; dy++) if (dy % 2 === 0) { g[y0 + dy][x0 - 1] = 'W'; g[y0 + dy][x0 + 5] = 'W'; }
+});
+// MEGABLAST: a big burst over an overbuilt, fully packed board
+const ART_MEGA = artOf(g => {
+  const cols = ['M', 'C', 'Y', 'B', 'G', 'P'];
+  for (let y = 7; y < AH; y++) for (let x = 2; x < AW - 2; x++) g[y][x] = cols[(x + y) % cols.length];
+  stamp(g, 7, 0, BURST, 'W');
+});
+// CONTROLS is first so new players learn to steer before the mechanics.
 const HOWTO_PANELS = [
+  { title: 'CONTROLS', html: CONTROLS_LIST,
+    cap: 'PLAY YOUR WAY &#8212; ALL THREE WORK.' },
   { title: 'THE PIECES', art: () => ART_PIECES,
-    cap: '18 PIECES, 5 BLOCKS EACH.<br>ROTATE &#8635; AND FLIP &#8646; &#8212; MIRROR TWINS SHARE A COLOR.' },
+    cap: 'EACH PIECE IS 5 BLOCKS.<br>ROTATE &amp; FLIP TO FIT THEM.' },
   { title: 'CLEAR LINES', art: () => ART_LINE,
-    cap: 'FILL A ROW TO CLEAR IT.<br>GLOWING BLOCKS = WHAT YOUR DROP WILL CLEAR.' },
+    cap: 'FILL A WHOLE ROW AND IT CLEARS.<br>A GLOWING ROW IS ABOUT TO GO.' },
   { title: 'BUILD BOMBS', art: () => ART_BOMB,
-    cap: 'FILL A SOLID 5&#215;5 SQUARE AND IT EXPLODES &#8212; TAKING EVERYTHING 2 CELLS AROUND IT.' },
+    cap: 'FIVE PIECES FILL A 5x5 = BOMB.<br>A FULL 6x6 = MEGABLAST!' },
   { title: 'MEGABLAST', art: () => ART_MEGA,
-    cap: 'OVERLAP SQUARES: 6&#215;5 = &#215;2, 6&#215;6 = &#215;4&#8230; 4+ AT ONCE = MEGABLAST! THE WHOLE BOARD DROPS FLAT.' },
-  { title: 'CONTROLS', art: null,
-    cap: '' }, // caption filled from HELP at render time
+    cap: 'A 6x6 (OR 4+ BOMBS AT ONCE) =<br>MEGABLAST! THE BOARD DROPS FLAT.' },
 ];
 const galleries = [];
 function buildGallery(mountId) {
@@ -1754,9 +1888,9 @@ function buildGallery(mountId) {
   mount.innerHTML =
     '<div class="howtoTitle"></div>' +
     '<div class="howtoRow">' +
-    '<button class="howtoBtn" aria-label="Previous">&#9668;</button>' +
+    '<button class="howtoBtn" aria-label="Previous"><svg viewBox="0 0 10 10"><polygon points="7,1 7,9 2,5"/></svg></button>' +
     '<div class="howtoArt"></div>' +
-    '<button class="howtoBtn" aria-label="Next">&#9658;</button>' +
+    '<button class="howtoBtn" aria-label="Next"><svg viewBox="0 0 10 10"><polygon points="3,1 3,9 8,5"/></svg></button>' +
     '</div>' +
     '<div class="howtoCap"></div>' +
     '<div class="howtoDots"></div>';
@@ -1783,9 +1917,11 @@ function renderGallery(g) {
   const p = HOWTO_PANELS[g.i];
   g.mount.querySelector('.howtoTitle').textContent = p.title;
   const artBox = g.mount.querySelector('.howtoArt');
-  if (p.art) { artBox.style.display = ''; artBox.innerHTML = p.art(); }
-  else { artBox.style.display = 'none'; }
-  g.mount.querySelector('.howtoCap').innerHTML = p.cap || HELP[inputMode].full;
+  artBox.style.display = '';
+  if (p.html) { artBox.classList.add('asList'); artBox.innerHTML = p.html; }
+  else if (p.art) { artBox.classList.remove('asList'); artBox.innerHTML = p.art(); }
+  else { artBox.classList.remove('asList'); artBox.style.display = 'none'; }
+  g.mount.querySelector('.howtoCap').innerHTML = p.cap || HELP[inputMode].legend;
   const dots = g.mount.querySelector('.howtoDots');
   dots.innerHTML = '';
   HOWTO_PANELS.forEach((_, i) => {
@@ -1868,6 +2004,7 @@ function newGame() {
   $('pauseOverlay').classList.add('hidden');
   $('screen').classList.remove('paused');
   $('screen').classList.remove('gameover');
+  $('screen').classList.remove('pregame');
   $('hud').style.visibility = 'visible';
   $('hud').classList.remove('faded');
   $('legend').style.visibility = 'visible';
@@ -1922,7 +2059,7 @@ function startCountdown() {
   step();
 }
 $('startBtn').addEventListener('click', startCountdown);
-$('retryBtn').addEventListener('click', startCountdown);
+$('retryBtn').addEventListener('click', () => { flushPendingScore(); startCountdown(); });
 $('resumeBtn').addEventListener('click', togglePause);
 $('bottomRestart').addEventListener('click', () => {
   $('bottomRestart').blur(); // keep Space (hard drop) from re-triggering this
@@ -1934,9 +2071,26 @@ function saveName() {
   $('nameEntry').classList.add('hidden');
   refreshHiLine();
   nameSaved = true;
-  submitGlobalScore(hiName);
+  // the score may already be in under a saved name (auto-submitted); only post
+  // again if the player actually changed the name, so we don't create a dupe
+  if (hiName && hiName !== submittedName) {
+    submitted = false;
+    submitGlobalScore(hiName);
+  }
 }
 $('nameOk').addEventListener('click', saveName);
+// safety net: if a qualifying score is still unsubmitted when the player leaves
+// the game-over screen (restart, or closes the tab), send it with whatever name
+// we know — so a high score never silently fails to reach the boards
+function flushPendingScore() {
+  if (!over || submitted || !globalQualifies || !lastRun) return;
+  const name = ($('nameInput').value || hiName || '').trim().slice(0, 16).toUpperCase();
+  if (!name) return;
+  hiName = name;
+  localStorage.setItem('pentabomb.hiName', hiName);
+  submitGlobalScore(hiName);
+}
+window.addEventListener('pagehide', flushPendingScore);
 $('nameInput').addEventListener('keydown', e => {
   e.stopPropagation();
   if (e.key === 'Enter') { saveName(); $('nameInput').blur(); }

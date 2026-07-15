@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#f2ecd8">
+<meta name="theme-color" content="#ff2e8b">
 <title>PENTABOMB VS — 2-Player Couch Battle</title>
 <meta name="description" content="PENTABOMB VS: two players, one keyboard (or two controllers), identical pieces, last one standing wins. Free couch-battle pentomino puzzle in your browser.">
 <link rel="canonical" href="https://www.xin-squared.com/pentabomb/vs.html">
@@ -15,62 +15,79 @@
 <meta property="og:image" content="https://www.xin-squared.com/pentabomb/og.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
   :root {
-    --gb-lightest: #f2ecd8;
-    --gb-light: #20223a;
-    --gb-dark: #8a8266;
-    --gb-darkest: #2a2440;
-    --shell: #2b2b2b;
-    --p1: #4a90e0;
-    --p2: #e04838;
+    --ink:    #17122b;
+    --paper:  #ffce1f;   /* poster yellow */
+    --light:  #fff6e6;   /* near-white: text on pink/blue */
+    --pink:   #ff2e8b;
+    --cyan:   #17d3cc;
+    --yellow: #ffe14d;
+    --shell:  #0d0a1e;
+    --p1: #3a53ff;
+    --p2: #ff2e8b;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body {
     height: 100%;
     overflow: hidden;
-    background: var(--shell);
+    background-color: var(--shell);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M24 30h12M30 24v12' stroke='%2317d3cc' stroke-width='4' stroke-opacity='.22'/%3E%3Ccircle cx='90' cy='30' r='5' fill='%23ff2e8b' fill-opacity='.22'/%3E%3Cpolygon points='30,84 23,96 37,96' fill='%23ffe14d' fill-opacity='.22'/%3E%3Cpolygon points='90,83 97,90 90,97 83,90' fill='%23a24bff' fill-opacity='.22'/%3E%3C/svg%3E");
     touch-action: none;
     -webkit-user-select: none;
     user-select: none;
     overscroll-behavior: none;
   }
   body {
-    font-family: "Courier New", Courier, monospace;
-    font-weight: bold;
+    font-family: "VT323", "Courier New", monospace;
+    font-weight: 400;
     display: flex;
     align-items: center;
     justify-content: center;
   }
   #screen {
-    background: var(--gb-lightest);
-    border: 6px solid var(--gb-darkest);
+    background: var(--paper);
+    border: 5px solid var(--ink);
     border-radius: 8px;
-    box-shadow: 0 0 0 4px #444, 0 8px 30px rgba(0,0,0,.6);
+    box-shadow: 8px 8px 0 var(--pink), 0 10px 34px rgba(0,0,0,.55);
     display: flex;
     flex-direction: column;
     padding: 8px;
-    color: var(--gb-darkest);
+    color: var(--ink);
     position: relative;
   }
-  #title { text-align: center; font-size: 16px; letter-spacing: 3px; margin-bottom: 6px; }
+  #title {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    text-align: center; font-size: 13px; line-height: 1.3; margin-bottom: 10px;
+    color: var(--pink);
+    text-shadow:
+      -2px 0 var(--ink), 2px 0 var(--ink), 0 -2px var(--ink), 0 2px var(--ink),
+      -2px -2px var(--ink), 2px -2px var(--ink), -2px 2px var(--ink), 2px 2px var(--ink),
+      3px 3px 0 var(--ink), 4px 4px 0 var(--ink), 5px 5px 0 var(--ink);
+  }
   #arena { display: flex; gap: 12px; justify-content: center; }
-  .side { display: flex; flex-direction: column; gap: 4px; }
+  .side { display: flex; flex-direction: column; gap: 5px; }
   .sideHud {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 8px;
     font-size: 11px;
-    letter-spacing: 1px;
     line-height: 1.3;
   }
-  .pTag { padding: 1px 6px; border-radius: 3px; color: var(--gb-lightest); font-size: 12px; }
+  .pTag {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    padding: 4px 6px; border-radius: 0; color: var(--light); font-size: 9px;
+    border: 2px solid var(--ink);
+  }
   .side.p1 .pTag { background: var(--p1); }
   .side.p2 .pTag { background: var(--p2); }
   .boardBox { position: relative; }
-  .side canvas.board { display: block; background: var(--gb-light); border: 3px solid var(--gb-darkest); border-radius: 3px; }
-  .side canvas.next { display: block; border: 2px solid var(--gb-darkest); border-radius: 3px; }
+  .side canvas.board { display: block; background: var(--gb-light, #1a1240); border: 3px solid var(--ink); border-radius: 0; image-rendering: pixelated; }
+  .side canvas.next { display: block; border: 2px solid var(--ink); border-radius: 0; image-rendering: pixelated; }
   .boardBox.shake { animation: boardShake .45s linear; }
   @keyframes boardShake {
     0%, 100% { transform: translate(0,0); }
@@ -79,11 +96,24 @@
     60% { transform: translate(-4px,-2px); }
     80% { transform: translate(4px,2px); }
   }
-  .keysHint { font-size: 9px; letter-spacing: 1px; text-align: center; line-height: 1.5; }
+  .keysHint { font-size: 10px; text-align: center; line-height: 1.5; color: var(--ink); }
+  /* MADE BY XIN + LEAVE A TIP: one line at the bottom, same as the other pages */
+  .vsFooter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .vsFooter a { color: var(--pink); font-weight: 700; text-decoration: underline; }
+  #playFooter { margin-top: 12px; }
   #overlay {
     position: absolute;
     inset: 0;
-    background: rgba(242, 236, 216, .93);
+    background: var(--paper); /* solid — seamless with the cabinet, no inner box */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -91,28 +121,44 @@
     text-align: center;
     gap: 14px;
     padding: 16px;
-    letter-spacing: 2px;
     z-index: 10;
     border-radius: 4px;
   }
   #overlay.hidden { display: none; }
-  #overlay h1 { font-size: 26px; letter-spacing: 4px; }
-  #overlay p { font-size: 12px; line-height: 1.9; }
-  #overlay .big { font-size: 16px; }
-  #overlay button {
-    font: inherit;
-    font-size: 16px;
-    letter-spacing: 2px;
-    padding: 10px 22px;
-    background: var(--gb-darkest);
-    color: var(--gb-lightest);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+  #overlay h1 {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: 20px;
+    line-height: 1.4;
+    color: var(--pink);
+    text-shadow:
+      -2px 0 var(--ink), 2px 0 var(--ink), 0 -2px var(--ink), 0 2px var(--ink),
+      -2px -2px var(--ink), 2px -2px var(--ink), -2px 2px var(--ink), 2px 2px var(--ink),
+      3px 3px 0 var(--ink), 4px 4px 0 var(--ink), 5px 5px 0 var(--ink), 6px 6px 0 var(--ink);
   }
-  #overlay a { color: var(--gb-darkest); font-size: 11px; letter-spacing: 2px; text-underline-offset: 3px; }
-  #count { font-size: 64px; letter-spacing: 0; }
-  .winTag { display: inline-block; padding: 2px 10px; border-radius: 3px; color: var(--gb-lightest); }
+  #overlay p { font-size: 13px; line-height: 1.8; color: var(--ink); }
+  #overlay .big { font-size: 15px; font-weight: 700; }
+  #overlay button {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: 12px;
+    padding: 12px 20px;
+    background: var(--pink);
+    color: var(--light);
+    border: 3px solid var(--ink);
+    border-radius: 0;
+    cursor: pointer;
+    box-shadow: 5px 5px 0 var(--ink);
+  }
+  #overlay button:active { transform: translate(5px, 5px); box-shadow: none; }
+  #overlay a { color: var(--pink); font-size: 12px; font-weight: 700; text-underline-offset: 3px; }
+  #count {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: 58px; letter-spacing: 0; color: var(--pink); text-shadow: 5px 5px 0 var(--ink);
+  }
+  .winTag {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    display: inline-block; padding: 8px 12px; border-radius: 0; color: var(--light);
+    border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+  }
 </style>
 </head>
 <body>
@@ -150,6 +196,14 @@
     <p class="big" id="count" style="display:none">3</p>
     <button id="goBtn">START MATCH</button>
     <a href="index.html">&#8592; BACK TO PENTABOMB</a>
+    <div class="vsFooter">
+      <span>MADE BY XIN</span>
+      <a href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">LEAVE A TIP</a>
+    </div>
+  </div>
+  <div class="vsFooter" id="playFooter">
+    <span>MADE BY XIN</span>
+    <a href="https://ko-fi.com/spicyhappy" target="_blank" rel="noopener">LEAVE A TIP</a>
   </div>
 </div>
 
@@ -159,24 +213,24 @@
 // squeeze drops, MEGABLAST), but two boards fed the identical piece
 // sequence from a shared seeded bag: pure skill, zero piece luck.
 const PIECES = [
-  { n: 'F',  col: '#cc50a8', c: [[1,0],[2,0],[0,1],[1,1],[1,2]] },
-  { n: 'F2', col: '#96368c', c: [[0,0],[1,0],[1,1],[2,1],[1,2]] },
-  { n: 'I',  col: '#38b8d8', c: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
-  { n: 'L',  col: '#f09030', c: [[0,0],[0,1],[0,2],[0,3],[1,3]] },
-  { n: 'J',  col: '#c05f18', c: [[1,0],[1,1],[1,2],[1,3],[0,3]] },
-  { n: 'N',  col: '#52b848', c: [[0,0],[0,1],[1,1],[1,2],[1,3]] },
-  { n: 'N2', col: '#2c8a3e', c: [[1,0],[1,1],[0,1],[0,2],[0,3]] },
-  { n: 'P',  col: '#ecd044', c: [[0,0],[1,0],[0,1],[1,1],[0,2]] },
-  { n: 'Q',  col: '#c39d22', c: [[0,0],[1,0],[0,1],[1,1],[1,2]] },
-  { n: 'T',  col: '#9858cc', c: [[0,0],[1,0],[2,0],[1,1],[1,2]] },
-  { n: 'U',  col: '#5b5bd0', c: [[0,0],[2,0],[0,1],[1,1],[2,1]] },
-  { n: 'V',  col: '#30a898', c: [[0,0],[0,1],[0,2],[1,2],[2,2]] },
-  { n: 'W',  col: '#9aa838', c: [[0,0],[0,1],[1,1],[1,2],[2,2]] },
-  { n: 'X',  col: '#e04838', c: [[1,0],[0,1],[1,1],[2,1],[1,2]] },
-  { n: 'Y',  col: '#4a90e0', c: [[1,0],[0,1],[1,1],[1,2],[1,3]] },
-  { n: 'Y2', col: '#2d64ae', c: [[0,0],[0,1],[1,1],[0,2],[0,3]] },
-  { n: 'Z',  col: '#e07868', c: [[0,0],[1,0],[1,1],[1,2],[2,2]] },
-  { n: 'S',  col: '#b84e60', c: [[1,0],[2,0],[1,1],[0,2],[1,2]] },
+  { n: 'F',  col: '#ff2e8b', c: [[1,0],[2,0],[0,1],[1,1],[1,2]] },
+  { n: 'F2', col: '#c21e6b', c: [[0,0],[1,0],[1,1],[2,1],[1,2]] },
+  { n: 'I',  col: '#17d3cc', c: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
+  { n: 'L',  col: '#ff8a1e', c: [[0,0],[0,1],[0,2],[0,3],[1,3]] },
+  { n: 'J',  col: '#d1600c', c: [[1,0],[1,1],[1,2],[1,3],[0,3]] },
+  { n: 'N',  col: '#5bd94a', c: [[0,0],[0,1],[1,1],[1,2],[1,3]] },
+  { n: 'N2', col: '#2fa22a', c: [[1,0],[1,1],[0,1],[0,2],[0,3]] },
+  { n: 'P',  col: '#ffce2e', c: [[0,0],[1,0],[0,1],[1,1],[0,2]] },
+  { n: 'Q',  col: '#e0a400', c: [[0,0],[1,0],[0,1],[1,1],[1,2]] },
+  { n: 'T',  col: '#a24bff', c: [[0,0],[1,0],[2,0],[1,1],[1,2]] },
+  { n: 'U',  col: '#3a53ff', c: [[0,0],[2,0],[0,1],[1,1],[2,1]] },
+  { n: 'V',  col: '#12b39a', c: [[0,0],[0,1],[0,2],[1,2],[2,2]] },
+  { n: 'W',  col: '#9bcc1e', c: [[0,0],[0,1],[1,1],[1,2],[2,2]] },
+  { n: 'X',  col: '#ff3b30', c: [[1,0],[0,1],[1,1],[2,1],[1,2]] },
+  { n: 'Y',  col: '#4a90ff', c: [[1,0],[0,1],[1,1],[1,2],[1,3]] },
+  { n: 'Y2', col: '#2b5fd0', c: [[0,0],[0,1],[1,1],[0,2],[0,3]] },
+  { n: 'Z',  col: '#ff7a5c', c: [[0,0],[1,0],[1,1],[1,2],[2,2]] },
+  { n: 'S',  col: '#d84a52', c: [[1,0],[2,0],[1,1],[0,2],[1,2]] },
 ];
 function mixHex(hex, target, f) {
   const n = parseInt(hex.slice(1), 16);
@@ -185,7 +239,7 @@ function mixHex(hex, target, f) {
 }
 PIECES.forEach((p, i) => {
   p.i = i;
-  p.pal = { base: p.col, hi: mixHex(p.col, 255, 0.45), lo: mixHex(p.col, 0, 0.4) };
+  p.pal = { base: p.col, hi: mixHex(p.col, 255, 0.52), lo: mixHex(p.col, 0, 0.34) };
 });
 const COLS = 12, ROWS = 20;
 const BLOCK_SCORE = 1000;
@@ -197,7 +251,7 @@ const CLEAR_FLASH_MS = 280;
 const RARE = new Set(['F', 'F2', 'W', 'X', 'Z', 'S']);
 const clearsPerLevel = 12;
 const gravityMs = lvl => Math.max(180, Math.round(1000 * Math.pow(0.93, lvl - 1)));
-const C_LIGHTEST = '#f2ecd8', C_LIGHT = '#20223a';
+const C_LIGHTEST = '#fdf1da', C_LIGHT = '#1a1240';
 
 const $ = id => document.getElementById(id);
 
@@ -694,27 +748,28 @@ function layout() {
 }
 function drawBlock(ctx, x, y, s, pi) {
   const pal = PIECES[pi] ? PIECES[pi].pal : PIECES[0].pal;
-  const b = Math.max(1, Math.floor(s * 0.14));
-  ctx.fillStyle = '#14152a';
+  const o = Math.max(2, Math.round(s * 0.09)); // black outline
+  const b = Math.max(1, Math.round(s * 0.15)); // highlight / shadow edge
+  ctx.fillStyle = '#0e0a1e';
   ctx.fillRect(x, y, s, s);
   ctx.fillStyle = pal.base;
-  ctx.fillRect(x + 1, y + 1, s - 2, s - 2);
-  ctx.fillStyle = pal.hi;
-  ctx.fillRect(x + 1, y + 1, s - 2, b);
-  ctx.fillRect(x + 1, y + 1, b, s - 2);
+  ctx.fillRect(x + o, y + o, s - 2 * o, s - 2 * o);
   ctx.fillStyle = pal.lo;
-  ctx.fillRect(x + 1, y + s - 1 - b, s - 2, b);
-  ctx.fillRect(x + s - 1 - b, y + 1, b, s - 2);
-  const d = Math.max(1, Math.floor(s * 0.16));
+  ctx.fillRect(x + o, y + s - o - b, s - 2 * o, b);
+  ctx.fillRect(x + s - o - b, y + o, b, s - 2 * o);
   ctx.fillStyle = pal.hi;
-  ctx.fillRect(x + b + 1, y + b + 1, d, d);
+  ctx.fillRect(x + o, y + o, s - 2 * o, b);
+  ctx.fillRect(x + o, y + o, b, s - 2 * o);
+  const d = Math.max(2, Math.round(s * 0.15));
+  ctx.fillStyle = '#fff8ea';
+  ctx.fillRect(x + o + b, y + o + b, d, d);
 }
 function drawBoard(p) {
   const ctx = p.board.getContext('2d');
   const w = cell * COLS, h = cell * ROWS;
   ctx.fillStyle = C_LIGHT;
   ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = 'rgba(242,236,216,0.08)';
+  ctx.strokeStyle = 'rgba(253,241,218,0.08)';
   ctx.lineWidth = 1;
   ctx.beginPath();
   for (let x = 1; x < COLS; x++) { ctx.moveTo(x * cell + .5, 0); ctx.lineTo(x * cell + .5, h); }
@@ -737,17 +792,18 @@ function drawBoard(p) {
   }
   if (p.clearingBlockCount >= 2) {
     const label = (p.clearingBlockCount >= 4 ? 'MEGABLAST x' : 'BLAST x') + p.clearingBlockCount;
-    const fs = Math.max(12, Math.floor(cell * 0.9));
-    ctx.font = 'bold ' + fs + 'px "Courier New", Courier, monospace';
+    const fs = Math.max(8, Math.floor(cell * 0.6));
+    ctx.font = fs + 'px "Press Start 2P", "Courier New", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const tw = ctx.measureText(label).width;
-    ctx.fillStyle = C_LIGHTEST;
-    ctx.fillRect(w / 2 - tw / 2 - 6, h / 2 - fs, tw + 12, fs * 2);
-    ctx.strokeStyle = '#2a2440';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(w / 2 - tw / 2 - 6, h / 2 - fs, tw + 12, fs * 2);
-    ctx.fillStyle = '#2a2440';
+    const padX = fs * 0.7, boxH = fs * 1.9;
+    ctx.fillStyle = '#ffce2e';
+    ctx.fillRect(w / 2 - tw / 2 - padX, h / 2 - boxH / 2, tw + padX * 2, boxH);
+    ctx.strokeStyle = '#17122b';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(w / 2 - tw / 2 - padX, h / 2 - boxH / 2, tw + padX * 2, boxH);
+    ctx.fillStyle = '#17122b';
     ctx.fillText(label, w / 2, h / 2);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
@@ -780,14 +836,16 @@ function drawBoard(p) {
     }
   }
   if (!p.alive) {
-    ctx.fillStyle = 'rgba(20, 21, 42, 0.7)';
+    ctx.fillStyle = 'rgba(13, 10, 30, 0.74)';
     ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = C_LIGHTEST;
-    const fs = Math.max(12, Math.floor(cell * 0.9));
-    ctx.font = 'bold ' + fs + 'px "Courier New", Courier, monospace';
+    ctx.fillStyle = '#ffce2e';
+    const fs = Math.max(9, Math.floor(cell * 0.68));
+    ctx.font = fs + 'px "Press Start 2P", "Courier New", monospace';
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.fillText('TOP OUT', w / 2, h / 2);
     ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
   }
 }
 function drawNext(p) {
