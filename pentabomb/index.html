@@ -140,20 +140,16 @@
     padding: 16px;
   }
   .overlay.hidden { display: none; }
-  /* anti-cheat: while paused, blur the board behind the overlay (the HUD
-     dims via #hud.faded) so the field can't be studied for free */
-  #pauseOverlay {
-    background: rgba(255, 206, 31, .85);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-  }
-  #screen.paused #board { filter: blur(12px); }
+  /* pause inherits the solid-paper overlay: seamless with the cabinet (no
+     translucent inner box) and the board is fully hidden — which is also the
+     anti-cheat: the field can't be studied for free (HUD dims via #hud.faded) */
   /* pop-art title: yellow fill, chunky black pixel outline, hot-pink drop */
   /* retro arcade title: pink fill, crisp black outline, solid black 3D
      extrusion (stacked offsets so there are no gaps or muddy ghosting) */
   .overlay h1 {
-    font-size: 23px;
+    font-size: 27px;
     line-height: 1.4;
+    margin-bottom: 8px; /* extra air under the title (on top of the overlay gap) */
     color: var(--pink);
     text-shadow:
       -2px 0 var(--ink), 2px 0 var(--ink), 0 -2px var(--ink), 0 2px var(--ink),
@@ -162,18 +158,23 @@
   }
   .overlay p { font-size: 16px; line-height: 1.6; color: var(--ink); }
   .overlay .big { font-size: 19px; font-weight: 700; }
-  .overlay button {
-    font-size: 11px;
-    padding: 11px 14px;
+  /* one shared metric for every menu action (START / 2P VS / WORLD RANKINGS /
+     RESTART / SHARE): identical font size, padding and border = identical height */
+  .overlay button, #vsBtn, #rankBtn {
+    font-family: "Press Start 2P", "Courier New", monospace;
+    font-size: 10px;
+    line-height: 1;
+    padding: 12px 16px;
     background: var(--pink);
     color: var(--light);
     border: 3px solid var(--ink);
     border-radius: 0;
     cursor: pointer;
     white-space: nowrap;
-    box-shadow: 5px 5px 0 var(--ink);
+    text-decoration: none;
+    box-shadow: 4px 4px 0 var(--ink);
   }
-  .overlay button:active { transform: translate(5px, 5px); box-shadow: none; }
+  .overlay button:active, #vsBtn:active, #rankBtn:active { transform: translate(4px, 4px); box-shadow: none; }
   .overlay button.gbBtn {
     font-size: 8px;
     padding: 9px 11px;
@@ -191,19 +192,9 @@
     text-underline-offset: 3px;
   }
   #lbBox .rankLink { display: block; margin-top: 6px; text-align: center; }
-  /* 2P VS MODE: a real button in its own color (electric blue) so it reads as
-     an action, distinct from the pink START */
-  #vsBtn {
-    font-family: "Press Start 2P", "Courier New", monospace;
-    font-size: 10px;
-    padding: 10px 14px;
-    background: var(--blue);
-    color: var(--light);
-    border: 3px solid var(--ink);
-    text-decoration: none;
-    box-shadow: 4px 4px 0 var(--ink);
-  }
-  #vsBtn:active { transform: translate(4px, 4px); box-shadow: none; }
+  /* menu buttons keep one color each: pink START, blue 2P VS, cyan RANKINGS */
+  #vsBtn { background: var(--blue); }
+  #rankBtn { background: var(--cyan); color: var(--ink); }
   /* the high score gets its own labelled box, pinned to the bottom of the
      start screen with the world best tucked underneath */
   #recordBox {
@@ -322,7 +313,12 @@
     gap: 6px;
     width: 100%;
     touch-action: pan-y;
+    margin-bottom: 10px; /* keep the dots clear of the buttons below */
   }
+  /* the CLEAR LINES / BUILD BOMBS art blinks its about-to-clear cells cream,
+     mirroring the in-game clear flash */
+  .howtoArt .howtoFlash { animation: howtoFlash .5s steps(1, end) infinite; }
+  @keyframes howtoFlash { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
   .howtoRow { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
   .howtoArt {
     background: var(--gb-light);
@@ -416,7 +412,7 @@
   .pop {
     font-size: 8px;
     line-height: 1.4;
-    background: var(--paper);
+    background: var(--light); /* near-white, so popups pop off the yellow cabinet */
     color: var(--ink);
     border: 2px solid var(--ink);
     border-radius: 0;
@@ -468,7 +464,7 @@
   /* tiny phones (320px class): tighten type so the cabinet never overflows */
   @media (max-width: 360px) {
     .overlay { padding: 12px; gap: 10px; }
-    .overlay h1 { font-size: 18px; }
+    .overlay h1 { font-size: 21px; margin-bottom: 5px; }
     .overlay p { font-size: 14px; }
     /* the gesture hints are already on the start overlay; dropping them here
        frees several lines of height for the board itself */
@@ -510,7 +506,7 @@
       <p class="big" id="challengeLine"></p>
       <button id="startBtn">START</button>
       <a id="vsBtn" href="vs.html">2P VS MODE</a>
-      <a class="rankLink" href="leaderboard.html">WORLD RANKINGS &#8594;</a>
+      <a id="rankBtn" href="leaderboard.html">WORLD RANKINGS</a>
       <div id="recordBox">
         <div class="recLabel">YOUR HIGH SCORE</div>
         <div class="recVal" id="hiVal">&#8212;</div>
@@ -569,7 +565,7 @@
 
 // Bump on every deploy that touches this file: running pages compare this
 // against the server copy to know when to reload themselves.
-const GAME_VERSION = 21;
+const GAME_VERSION = 23;
 
 // ---------- Pieces: all 18 one-sided pentominoes ----------
 // Each entry: list of [x,y] cells plus a 90s-pop neon hue. Mirror pairs
@@ -616,9 +612,18 @@ const HOLD_FLIP_MS = 300;      // press-and-hold this long flips instantly, mid-
 const TOUCH_LOCK_GRACE = 300;  // lock waits this much longer while a finger is down
 const ROTATE_REGRET_MS = 300;  // a drop this soon after a rotate may undo it
 
-// Slow-and-steady curve: level up every 12 clears, gravity eases down gently.
-const clearsPerLevel = 12;
-const gravityMs = lvl => Math.max(180, Math.round(1000 * Math.pow(0.93, lvl - 1)));
+// Difficulty ramps on BOTH clears (level) and active play time, so a cautious
+// player can't stall the speed-up by refusing to clear — the longer a run
+// lasts, the faster pieces fall. Level sets the base of the ramp; every ~11s
+// of play adds one effective level on top. Starts brisker, decays faster, and
+// bottoms out much lower than before, so runs stay punchy instead of dragging
+// on. playMs counts only active play (pauses + the countdown are excluded).
+const clearsPerLevel = 8;
+const GRAVITY_FLOOR = 110;
+function gravityMs(lvl) {
+  const eff = lvl + playMs / 11000;
+  return Math.max(GRAVITY_FLOOR, Math.round(800 * Math.pow(0.87, eff - 1)));
+}
 
 // ---------- State ----------
 let grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -627,7 +632,7 @@ let nextQueue = []; // upcoming 2 pieces, shown in the NEXT preview
 let score = 0, clears = 0, level = 1;
 let dropTimer = 0, lockTimer = -1, lockResets = 0, lastTime = 0;
 let running = false, paused = false, over = false;
-let spawnTime = 0, gameStartAt = 0;
+let spawnTime = 0, gameStartAt = 0, playMs = 0;
 let lastOrient = null; // shape/pos just before the latest rotate or flip
 let clearingRows = null, clearingCells = null, clearingBlockCount = 0, clearTimer = 0;
 const CLEAR_FLASH_MS = 280;
@@ -660,6 +665,9 @@ function applyUpdate() {
 const $ = id => document.getElementById(id);
 const boardCanvas = $('board'), boardCtx = boardCanvas.getContext('2d');
 const nextCanvas = $('nextCanvas'), nextCtx = nextCanvas.getContext('2d');
+// cache-bust the VS link: a fresh solo deploy always pulls a fresh vs.html
+// (vs.html has no self-update check of its own)
+$('vsBtn').href = 'vs.html?v=' + GAME_VERSION;
 
 // ---------- Audio: Game Boy style square-wave beeps ----------
 let audioCtx = null;
@@ -948,11 +956,11 @@ function finishClear() {
   clearingCells = null;
   clearingBlockCount = 0;
   if (mega) {
-    // MEGABLAST: a 6x6-or-bigger simultaneous clear shakes the whole board
+    // MEGABOMB: a 6x6-or-bigger simultaneous clear shakes the whole board
     // down — every block falls to the floor, holes and all. The earned
     // recovery tool: rare, deliberate, spectacular.
     collapseColumns();
-    showBanner('MEGABLAST!');
+    showBanner('MEGABOMB!');
     shakeBoard();
     sfx.mega();
   } else {
@@ -977,7 +985,7 @@ function finishClear() {
   updateHud();
   spawn();
 }
-// MEGABLAST aftermath: full column gravity — every block falls straight down
+// MEGABOMB aftermath: full column gravity — every block falls straight down
 // until it rests on the floor or another block. Unlike the usual connected-
 // chunk settle, this erases covered holes entirely.
 function collapseColumns() {
@@ -1309,6 +1317,7 @@ $('shareBtn').addEventListener('click', () => { $('shareBtn').blur(); shareScore
 
 // ---------- Game loop ----------
 function update(dt) {
+  playMs += dt; // active-play clock: feeds the time-based gravity ramp
   if (clearingRows) {
     clearTimer += dt;
     // multi-blast combos flash longer so the "BLAST xN" callout can be read
@@ -1505,7 +1514,7 @@ function draw() {
   // combo callout: overlapping 5x5 windows score multiplicatively — teach it
   if (clearingBlockCount >= 2) {
     const label = clearingBlockCount >= 4
-      ? 'MEGABLAST x' + clearingBlockCount
+      ? 'MEGABOMB x' + clearingBlockCount
       : 'BLAST x' + clearingBlockCount;
     const fs = Math.max(10, Math.floor(cell * 0.7));
     boardCtx.font = fs + 'px "Press Start 2P", "Courier New", monospace';
@@ -1788,7 +1797,7 @@ const ART_INK = {
   'B': '#4a90ff', 'b': '#2b5fd0', 'U': '#3a53ff', 'P': '#a24bff',
   'M': '#ff2e8b', 'm': '#c21e6b', 'L': '#9bcc1e', 'Z': '#ff7a5c',
 };
-function pxArt(rows) {
+function pxArt(rows, flash) {
   const cs = 10, w = rows[0].length * cs, h = rows.length * cs;
   let s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + ' ' + h + '" shape-rendering="crispEdges">';
   rows.forEach((row, y) => {
@@ -1797,6 +1806,14 @@ function pxArt(rows) {
       if (c) s += '<rect x="' + x * cs + '" y="' + y * cs + '" width="' + cs + '" height="' + cs + '" fill="' + c + '"/>';
     }
   });
+  // cream overlay cells that blink on/off (CSS .howtoFlash) — the same
+  // alternating flash the real game uses on cells about to clear
+  if (flash && flash.length) {
+    s += '<g class="howtoFlash">';
+    for (const [x, y] of flash)
+      s += '<rect x="' + x * cs + '" y="' + y * cs + '" width="' + cs + '" height="' + cs + '" fill="#fdf1da"/>';
+    s += '</g>';
+  }
   return s + '</svg>';
 }
 // Every panel is a simplified snapshot of the real game on the SAME 22x14 grid,
@@ -1810,7 +1827,7 @@ function stamp(g, x, y, pat, ch) {
     }
   });
 }
-function artOf(build) { const g = blank(); build(g); return pxArt(g.map(r => r.join(''))); }
+function artOf(build) { const g = blank(); const flash = []; build(g, flash); return pxArt(g.map(r => r.join('')), flash); }
 // stencils ('#' = a filled cell)
 const S_L = ['..#', '.##', '###', '.##', '..#'];  // arrow: left
 const S_R = ['#..', '##.', '###', '##.', '#..'];  // arrow: right
@@ -1820,7 +1837,10 @@ const P_I = ['#####'];                            // I pentomino
 const P_L = ['#.', '#.', '#.', '##'];             // L pentomino
 const P_P = ['##', '##', '#.'];                   // P pentomino
 const P_Z = ['##.', '.#.', '.##'];                // S/Z pentomino
-const BURST = ['#..#..#', '.#.#.#.', '..###..', '#######', '..###..', '.#.#.#.', '#..#..#'];
+const P_U = ['#.#', '###'];                       // U pentomino
+const P_V = ['#..', '#..', '###'];                // V pentomino
+const P_T2 = ['.#.', '.#.', '###'];               // T pentomino, stem up
+const P_I2 = ['#', '#', '#', '#', '#'];           // I pentomino, standing
 
 // CONTROLS: no art — an input-support checklist fills the panel instead
 const CONTROLS_LIST =
@@ -1835,49 +1855,39 @@ const ART_PIECES = artOf(g => {
   stamp(g, 17, 7, P_P, 'M');
   stamp(g, 9, 9, P_Z, 'U');
 });
-// CLEAR LINES: colored pieces stacked in the well, bottom row complete + glowing
-const ART_LINE = artOf(g => {
-  const cols = ['M', 'O', 'Y', 'G', 'C', 'B', 'U', 'P', 'R', 'L', 'Z'];
-  // upper rows still have holes (filling up); each 2-wide block a different
-  // color so distinct pieces read across the row
-  const gaps = { 10: [3, 14], 11: [8, 17], 12: [11] };
-  for (let y = 10; y <= 12; y++) {
-    for (let x = 0; x < AW; x++) {
-      if (gaps[y] && gaps[y].indexOf(x) !== -1) continue;
-      g[y][x] = cols[Math.floor(x / 2) % cols.length];
-    }
-  }
-  for (let x = 0; x < AW; x++) g[13][x] = 'W'; // completed bottom row = glowing
+// CLEAR LINES: REAL interlocked pentominoes whose feet complete the bottom
+// row — which blinks like an actual in-game clear (flash overlay cells)
+const ART_LINE = artOf((g, flash) => {
+  stamp(g, 0, 13, P_I, 'C');    // I flat: bottom cols 0-4
+  stamp(g, 5, 10, P_L, 'O');    // L: col 5 + foot on col 6
+  stamp(g, 7, 12, P_U, 'M');    // U: bottom cols 7-9
+  stamp(g, 10, 11, P_T2, 'P');  // T: bottom cols 10-12
+  stamp(g, 13, 13, P_I, 'G');   // I flat: bottom cols 13-17
+  stamp(g, 18, 11, P_V, 'B');   // V: bottom cols 18-20
+  stamp(g, 21, 9, P_I2, 'Y');   // I standing: col 21 — row complete!
+  stamp(g, 2, 1, P_T, 'R');     // the current piece, still falling
+  for (let x = 0; x < AW; x++) flash.push([x, 13]); // full row blinks, then clears
 });
 // BUILD BOMBS: five different-colored pentominoes tile one solid 5x5 (5x5 = 25
-// cells = 5 pieces), inside a dashed blast ring
-const ART_BOMB = artOf(g => {
+// cells = 5 pieces) — the finished bomb blinks like a real in-game blast
+const ART_BOMB = artOf((g, flash) => {
   const T = ['CMMMM', 'CYYYM', 'CYYGG', 'CBBGG', 'CBBBG'];
   const x0 = 8, y0 = 4;
   for (let dy = 0; dy < 5; dy++)
-    for (let dx = 0; dx < 5; dx++) g[y0 + dy][x0 + dx] = T[dy][dx];
-  // dashed ring one cell out = "blasts everything around it"
-  for (let dx = -1; dx <= 5; dx++) if (dx % 2 === 0) { g[y0 - 1][x0 + dx] = 'W'; g[y0 + 5][x0 + dx] = 'W'; }
-  for (let dy = -1; dy <= 5; dy++) if (dy % 2 === 0) { g[y0 + dy][x0 - 1] = 'W'; g[y0 + dy][x0 + 5] = 'W'; }
-});
-// MEGABLAST: a big burst over an overbuilt, fully packed board
-const ART_MEGA = artOf(g => {
-  const cols = ['M', 'C', 'Y', 'B', 'G', 'P'];
-  for (let y = 7; y < AH; y++) for (let x = 2; x < AW - 2; x++) g[y][x] = cols[(x + y) % cols.length];
-  stamp(g, 7, 0, BURST, 'W');
+    for (let dx = 0; dx < 5; dx++) {
+      g[y0 + dy][x0 + dx] = T[dy][dx];
+      flash.push([x0 + dx, y0 + dy]);
+    }
 });
 // CONTROLS is first so new players learn to steer before the mechanics.
 const HOWTO_PANELS = [
-  { title: 'CONTROLS', html: CONTROLS_LIST,
-    cap: 'PLAY YOUR WAY &#8212; ALL THREE WORK.' },
+  { title: 'CONTROLS', html: CONTROLS_LIST, cap: '' },
   { title: 'THE PIECES', art: () => ART_PIECES,
     cap: 'EACH PIECE IS 5 BLOCKS.<br>ROTATE &amp; FLIP TO FIT THEM.' },
   { title: 'CLEAR LINES', art: () => ART_LINE,
-    cap: 'FILL A WHOLE ROW AND IT CLEARS.<br>A GLOWING ROW IS ABOUT TO GO.' },
+    cap: 'FILL A WHOLE ROW AND IT CLEARS.<br>THE BLINKING ROW IS ABOUT TO GO.' },
   { title: 'BUILD BOMBS', art: () => ART_BOMB,
-    cap: 'FIVE PIECES FILL A 5x5 = BOMB.<br>A FULL 6x6 = MEGABLAST!' },
-  { title: 'MEGABLAST', art: () => ART_MEGA,
-    cap: 'A 6x6 (OR 4+ BOMBS AT ONCE) =<br>MEGABLAST! THE BOARD DROPS FLAT.' },
+    cap: 'FIVE PIECES FILL A 5x5 = BOMB.<br>IT BLASTS EVERYTHING AROUND IT.' },
 ];
 const galleries = [];
 function buildGallery(mountId) {
@@ -1921,7 +1931,8 @@ function renderGallery(g) {
   if (p.html) { artBox.classList.add('asList'); artBox.innerHTML = p.html; }
   else if (p.art) { artBox.classList.remove('asList'); artBox.innerHTML = p.art(); }
   else { artBox.classList.remove('asList'); artBox.style.display = 'none'; }
-  g.mount.querySelector('.howtoCap').innerHTML = p.cap || HELP[inputMode].legend;
+  // '' is a deliberate blank caption (CONTROLS) — only undefined falls back
+  g.mount.querySelector('.howtoCap').innerHTML = p.cap ?? HELP[inputMode].legend;
   const dots = g.mount.querySelector('.howtoDots');
   dots.innerHTML = '';
   HOWTO_PANELS.forEach((_, i) => {
@@ -1991,7 +2002,7 @@ function newGame() {
   grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
   gridVersion++;
   bag = shuffledBag();
-  score = 0; clears = 0; level = 1;
+  score = 0; clears = 0; level = 1; playMs = 0;
   over = false; paused = false;
   clearingRows = null; clearingCells = null; clearingBlockCount = 0;
   softDropping = false;

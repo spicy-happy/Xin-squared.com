@@ -150,7 +150,8 @@
   }
   #overlay button:active { transform: translate(5px, 5px); box-shadow: none; }
   #overlay a { color: var(--pink); font-size: 12px; font-weight: 700; text-underline-offset: 3px; }
-  #count {
+  /* #overlay #count so the pink beats `#overlay p`'s ink color (specificity) */
+  #overlay #count {
     font-family: "Press Start 2P", "Courier New", monospace;
     font-size: 58px; letter-spacing: 0; color: var(--pink); text-shadow: 5px 5px 0 var(--ink);
   }
@@ -173,7 +174,7 @@
         <canvas class="next" id="next1"></canvas>
       </div>
       <div class="boardBox" id="box1"><canvas class="board" id="board1"></canvas></div>
-      <div class="keysHint" id="keys1">&#9668;&#9658; MOVE &#183; &#9650; ROT &#183; . ROT&#8630;<br>R-SHIFT FLIP &#183; &#9660; SOFT &#183; ENTER DROP</div>
+      <div class="keysHint" id="keys1">A/D MOVE &#183; W ROT &#183; Q ROT&#8630;<br>F FLIP &#183; S SOFT &#183; SPACE DROP</div>
     </div>
     <div class="side p2">
       <div class="sideHud">
@@ -183,14 +184,14 @@
         <canvas class="next" id="next2"></canvas>
       </div>
       <div class="boardBox" id="box2"><canvas class="board" id="board2"></canvas></div>
-      <div class="keysHint" id="keys2">A/D MOVE &#183; W ROT &#183; Q ROT&#8630;<br>F FLIP &#183; S SOFT &#183; SPACE DROP</div>
+      <div class="keysHint" id="keys2">&#9668;&#9658; MOVE &#183; &#9650; ROT &#183; . ROT&#8630;<br>R-SHIFT FLIP &#183; &#9660; SOFT &#183; ENTER DROP</div>
     </div>
   </div>
   <div id="overlay">
     <h1 id="ovTitle">PENTABOMB VS</h1>
-    <p id="ovBody">SAME PIECES FOR BOTH PLAYERS.<br>LAST ONE STANDING WINS.<br><br>
-      P1: ARROWS &#183; ENTER DROP &#183; R-SHIFT FLIP<br>
-      P2: WASD &#183; SPACE DROP &#183; F FLIP<br>
+    <p id="ovBody">SAME PIECES FOR BOTH PLAYERS.<br>EVERY CLEAR DUMPS GARBAGE ON YOUR RIVAL<br>&#8212; BIGGER CLEARS, BIGGER DUMPS.<br>LAST ONE STANDING WINS.<br><br>
+      P1 (LEFT): WASD &#183; SPACE DROP &#183; F FLIP<br>
+      P2 (RIGHT): ARROWS &#183; ENTER DROP &#183; R-SHIFT FLIP<br>
       OR CONTROLLERS: PAD 1 = P1, PAD 2 = P2<br>
       P = PAUSE</p>
     <p class="big" id="count" style="display:none">3</p>
@@ -210,8 +211,9 @@
 <script>
 'use strict';
 // PENTABOMB VS — couch battle. Same rules as the solo game (blasts, flips,
-// squeeze drops, MEGABLAST), but two boards fed the identical piece
-// sequence from a shared seeded bag: pure skill, zero piece luck.
+// squeeze drops, MEGABOMB), but two boards fed the identical piece
+// sequence from a shared seeded bag — plus garbage attacks: every clear
+// dumps rows on the rival, scaled to how big the clear was.
 const PIECES = [
   { n: 'F',  col: '#ff2e8b', c: [[1,0],[2,0],[0,1],[1,1],[1,2]] },
   { n: 'F2', col: '#c21e6b', c: [[0,0],[1,0],[1,1],[2,1],[1,2]] },
@@ -249,9 +251,22 @@ const LOCK_DELAY = 400, MAX_LOCK_RESETS = 10;
 const BLAST_RADIUS = 2;
 const CLEAR_FLASH_MS = 280;
 const RARE = new Set(['F', 'F2', 'W', 'X', 'Z', 'S']);
-const clearsPerLevel = 12;
-const gravityMs = lvl => Math.max(180, Math.round(1000 * Math.pow(0.93, lvl - 1)));
+// Faster, steeper curve than the original couch build — matches solo's punchier
+// feel. Ramps on level AND shared match time so matches escalate and end
+// decisively; matchMs counts only active play (pauses excluded). Both boards
+// read the same clock, so speed stays perfectly symmetric between players.
+const clearsPerLevel = 10;
+const GRAVITY_FLOOR = 130;
+function gravityMs(lvl) {
+  const eff = lvl + matchMs / 12000;
+  return Math.max(GRAVITY_FLOOR, Math.round(850 * Math.pow(0.88, eff - 1)));
+}
 const C_LIGHTEST = '#fdf1da', C_LIGHT = '#1a1240';
+// Attacked-in garbage: a grid sentinel well above any piece index, drawn in a
+// neutral slate so it reads as "not yours". drawBlock receives (grid value - 1).
+const GARBAGE_CELL = 100;
+const GARBAGE_PI = GARBAGE_CELL - 1;
+const GARBAGE_PAL = { base: '#6b6684', hi: mixHex('#6b6684', 255, 0.5), lo: mixHex('#6b6684', 0, 0.34) };
 
 const $ = id => document.getElementById(id);
 
@@ -281,6 +296,7 @@ const sfx = {
   clear:  n => { for (let i = 0; i < Math.max(2, n + 1); i++) beep(330 + i * 110, 0.09, 0.05, i * 0.09); },
   mega:   () => { beep(80, 0.3, 0.09); beep(60, 0.35, 0.09, 0.12); beep(523, 0.1, 0.06, 0.3); beep(880, 0.25, 0.07, 0.45); },
   over:   () => { beep(392, 0.15); beep(262, 0.15, 0.06, 0.16); beep(196, 0.3, 0.06, 0.32); },
+  garbage:() => { beep(120, 0.08, 0.06); beep(90, 0.11, 0.06, 0.06); },
   start:  () => { beep(523, 0.12); beep(784, 0.35, 0.07, 0.12); },
   win:    () => { beep(523, 0.12); beep(659, 0.12, 0.07, 0.12); beep(784, 0.12, 0.07, 0.24); beep(1047, 0.4, 0.08, 0.36); },
 };
@@ -323,6 +339,7 @@ function newPlayer(idx) {
     score: 0, clears: 0, level: 1,
     dropTimer: 0, lockTimer: -1, lockResets: 0,
     clearingRows: null, clearingCells: null, clearingBlockCount: 0, clearTimer: 0,
+    pendingGarbage: 0, // garbage rows queued by the rival, applied on next spawn
     alive: true,
     das: { dir: 0, next: 0 },
     padPrev: { b: [], up: false },
@@ -417,7 +434,49 @@ function hardDrop(p) {
   sfx.hard();
   lockPiece(p);
 }
+// Raise the receiver's stack by `rows`, inserting garbage lines (solid except
+// one shared gap column) at the bottom.
+function addGarbage(p, rows) {
+  if (rows <= 0 || !p.alive) return;
+  // stack already tall enough that rising garbage shoves blocks through the
+  // ceiling → the receiver is buried
+  for (let r = 0; r < rows && r < ROWS; r++) {
+    if (p.grid[r].some(v => v)) { topOut(p); return; }
+  }
+  // Math.random, NOT the seeded piece rng — sharing that rng would desync the
+  // two boards' identical piece sequence. One gap column per burst, so it's
+  // diggable with a single well-placed piece.
+  const hole = Math.floor(Math.random() * COLS);
+  for (let r = 0; r < rows; r++) {
+    p.grid.shift();
+    const line = new Array(COLS).fill(GARBAGE_CELL);
+    line[hole] = 0;
+    p.grid.push(line);
+  }
+  // the stack just rose under the falling piece: lift it out of any overlap
+  // (loop always ends — cells fully above the board can't collide)
+  if (p.current) {
+    while (collides(p, p.current.cells, p.current.x, p.current.y)) p.current.y--;
+  }
+  p.box.classList.remove('shake');
+  void p.box.offsetWidth;
+  p.box.classList.add('shake');
+  sfx.garbage();
+}
+// Attacks land IMMEDIATELY — you see your clear erupt under your rival right
+// away. Only deferred (to their next spawn) while the receiver is mid
+// clear-flash, where splicing rows would corrupt the animation's indices.
+function sendGarbage(p, rows) {
+  if (rows <= 0 || !p.alive) return;
+  if (p.clearingRows) { p.pendingGarbage += rows; return; }
+  addGarbage(p, rows);
+}
 function spawn(p) {
+  if (p.pendingGarbage > 0) {
+    addGarbage(p, p.pendingGarbage);
+    p.pendingGarbage = 0;
+    if (!p.alive) return; // buried by the incoming garbage
+  }
   const proto = pieceAt(p.seqIdx++);
   p.nextProto = pieceAt(p.seqIdx);
   const { w, h } = bounds(proto.c);
@@ -493,6 +552,13 @@ function finishClear(p) {
   p.score += BLOCK_SCORE * p.clearingBlockCount * p.level;
   p.clears += n + p.clearingBlockCount;
   p.score += LINE_SCORES[Math.min(n, LINE_SCORES.length - 1)] * p.level;
+  // Doing well bombs your rival (2v2-Tetris style), and EVERY clear counts,
+  // scaling with how good it was: 1 garbage row per line (2 lines > 1 line),
+  // 3 rows per 5x5 bomb, +4 more on a MEGABOMB. Cascades from settling stack
+  // their own attacks, so chains hit hard. Capped so one hit can't instakill.
+  const attack = Math.min(10, n + p.clearingBlockCount * 3 + (mega ? 4 : 0));
+  const foe = players.find(q => q !== p);
+  if (foe) sendGarbage(foe, attack);
   p.clearingRows = null;
   p.clearingCells = null;
   p.clearingBlockCount = 0;
@@ -626,6 +692,7 @@ function topOut(p) {
 // ---------- Match flow ----------
 let players = [];
 let running = false, paused = false, matchOver = false, countingDown = false;
+let matchMs = 0; // active-play clock shared by both boards; feeds the gravity ramp
 function startMatch() {
   if (countingDown) return;
   rng = mulberry32((Math.random() * 0x7fffffff) | 0);
@@ -634,6 +701,7 @@ function startMatch() {
   players.forEach(p => { spawn(p); updateHud(p); drawBoard(p); });
   matchOver = false;
   paused = false;
+  matchMs = 0;
   countingDown = true;
   $('ovTitle').textContent = 'GET READY';
   $('ovBody').style.display = 'none';
@@ -675,7 +743,7 @@ function pauseMatch() {
   paused = true;
   $('ovTitle').textContent = 'PAUSED';
   $('ovBody').style.display = '';
-  $('ovBody').innerHTML = 'P1: ARROWS &#183; ENTER &#183; R-SHIFT FLIP<br>P2: WASD &#183; SPACE &#183; F FLIP<br>P = RESUME';
+  $('ovBody').innerHTML = 'P1: WASD &#183; SPACE &#183; F FLIP<br>P2: ARROWS &#183; ENTER &#183; R-SHIFT FLIP<br>P = RESUME';
   $('count').style.display = 'none';
   $('goBtn').style.display = '';
   $('goBtn').textContent = 'RESUME';
@@ -747,7 +815,7 @@ function layout() {
   players.forEach(p => { drawBoard(p); drawNext(p); });
 }
 function drawBlock(ctx, x, y, s, pi) {
-  const pal = PIECES[pi] ? PIECES[pi].pal : PIECES[0].pal;
+  const pal = pi === GARBAGE_PI ? GARBAGE_PAL : (PIECES[pi] ? PIECES[pi].pal : PIECES[0].pal);
   const o = Math.max(2, Math.round(s * 0.09)); // black outline
   const b = Math.max(1, Math.round(s * 0.15)); // highlight / shadow edge
   ctx.fillStyle = '#0e0a1e';
@@ -791,7 +859,7 @@ function drawBoard(p) {
     }
   }
   if (p.clearingBlockCount >= 2) {
-    const label = (p.clearingBlockCount >= 4 ? 'MEGABLAST x' : 'BLAST x') + p.clearingBlockCount;
+    const label = (p.clearingBlockCount >= 4 ? 'MEGABOMB x' : 'BLAST x') + p.clearingBlockCount;
     const fs = Math.max(8, Math.floor(cell * 0.6));
     ctx.font = fs + 'px "Press Start 2P", "Courier New", monospace';
     ctx.textAlign = 'center';
@@ -835,6 +903,17 @@ function drawBoard(p) {
       ctx.globalAlpha = 1;
     }
   }
+  // incoming-garbage meter: a hot-pink bar climbs the right edge to warn the
+  // receiver how many rows are about to erupt under them on their next spawn
+  if (p.pendingGarbage > 0 && p.alive) {
+    const bw = Math.max(3, Math.floor(cell * 0.22));
+    const bh = Math.min(ROWS, p.pendingGarbage) * cell;
+    ctx.fillStyle = '#ff2e8b';
+    ctx.fillRect(w - bw, h - bh, bw, bh);
+    ctx.strokeStyle = '#17122b';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(w - bw + 1, h - bh + 1, bw - 2, bh - 2);
+  }
   if (!p.alive) {
     ctx.fillStyle = 'rgba(13, 10, 30, 0.74)';
     ctx.fillRect(0, 0, w, h);
@@ -860,9 +939,12 @@ function drawNext(p) {
 }
 
 // ---------- Input: split keyboard ----------
+// P1 is the LEFT board, P2 the RIGHT — so left-hand keys (WASD) drive the left
+// board and right-hand keys (arrows) drive the right board: each player's
+// controls sit under their own half of the screen.
 const KEYMAP = {
-  1: { left: 'ArrowLeft', right: 'ArrowRight', soft: 'ArrowDown', rotCW: 'ArrowUp', rotCCW: '.', drop: 'Enter' },
-  2: { left: 'a', right: 'd', soft: 's', rotCW: 'w', rotCCW: 'q', drop: ' ' },
+  1: { left: 'a', right: 'd', soft: 's', rotCW: 'w', rotCCW: 'q', drop: ' ' },
+  2: { left: 'ArrowLeft', right: 'ArrowRight', soft: 'ArrowDown', rotCW: 'ArrowUp', rotCCW: '.', drop: 'Enter' },
 };
 document.addEventListener('keydown', e => {
   if ((e.key === 'p' || e.key === 'P') && running) {
@@ -875,9 +957,9 @@ document.addEventListener('keydown', e => {
     return;
   }
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-  // P1 flip: right Shift; P2 flip: F
-  if (e.key === 'Shift' && e.location === 2 && !e.repeat) { tryFlip(players[0]); e.preventDefault(); return; }
-  if (k === 'f' && !e.repeat) { tryFlip(players[1]); e.preventDefault(); return; }
+  // P1 (left / WASD) flip: F; P2 (right / arrows) flip: right Shift
+  if (k === 'f' && !e.repeat) { tryFlip(players[0]); e.preventDefault(); return; }
+  if (e.key === 'Shift' && e.location === 2 && !e.repeat) { tryFlip(players[1]); e.preventDefault(); return; }
   for (const p of players) {
     const m = KEYMAP[p.idx];
     if (!p.alive) continue;
@@ -936,6 +1018,7 @@ function frame(t) {
   if (running && !paused) {
     const dt = Math.min(100, t - lastTime);
     lastTime = t;
+    matchMs += dt; // shared active-play clock: feeds the time-based gravity ramp
     for (const p of players) { update(p, dt); updateHud(p); }
     for (const p of players) drawBoard(p);
   } else {
