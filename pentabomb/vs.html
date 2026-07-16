@@ -189,7 +189,7 @@
   </div>
   <div id="overlay">
     <h1 id="ovTitle">PENTABOMB VS</h1>
-    <p id="ovBody">SAME PIECES FOR BOTH PLAYERS.<br>EVERY CLEAR DUMPS GARBAGE ON YOUR RIVAL<br>&#8212; BIGGER CLEARS, BIGGER DUMPS.<br>LAST ONE STANDING WINS.<br><br>
+    <p id="ovBody">SAME PIECES FOR BOTH PLAYERS.<br>EVERY CLEAR FREEZES PART OF YOUR RIVAL'S BOARD<br>&#8212; MEGABOMB FREEZES A 5x5 CHUNK.<br>ICE CAN'T BE LINE-CLEARED: BOMB-BLAST IT AWAY!<br>LAST ONE STANDING WINS.<br><br>
       P1 (LEFT): WASD &#183; SPACE DROP &#183; F FLIP<br>
       P2 (RIGHT): ARROWS &#183; ENTER DROP &#183; R-SHIFT FLIP<br>
       OR CONTROLLERS: PAD 1 = P1, PAD 2 = P2<br>
@@ -212,8 +212,12 @@
 'use strict';
 // PENTABOMB VS — couch battle. Same rules as the solo game (blasts, flips,
 // squeeze drops, MEGABOMB), but two boards fed the identical piece
-// sequence from a shared seeded bag — plus garbage attacks: every clear
-// dumps rows on the rival, scaled to how big the clear was.
+// sequence from a shared seeded bag — plus freeze attacks: every clear
+// freezes part of the rival's board in place (bottom rows for lines/bombs,
+// a 5x5 chunk for a MEGABOMB). Ice never raises the stack and never kills;
+// it just shrinks the play area. It can't be line-cleared or form bombs —
+// the only way to reclaim it is to bomb-blast it away, so getting hit hands
+// you the motive (and the terrain) for a counter-bomb.
 const PIECES = [
   { n: 'F',  col: '#ff2e8b', c: [[1,0],[2,0],[0,1],[1,1],[1,2]] },
   { n: 'F2', col: '#c21e6b', c: [[0,0],[1,0],[1,1],[2,1],[1,2]] },
@@ -262,11 +266,18 @@ function gravityMs(lvl) {
   return Math.max(GRAVITY_FLOOR, Math.round(850 * Math.pow(0.88, eff - 1)));
 }
 const C_LIGHTEST = '#fdf1da', C_LIGHT = '#1a1240';
-// Attacked-in garbage: a grid sentinel well above any piece index, drawn in a
-// neutral slate so it reads as "not yours". drawBlock receives (grid value - 1).
-const GARBAGE_CELL = 100;
-const GARBAGE_PI = GARBAGE_CELL - 1;
-const GARBAGE_PAL = { base: '#6b6684', hi: mixHex('#6b6684', 255, 0.5), lo: mixHex('#6b6684', 0, 0.34) };
+// Attacked-in ice: a grid sentinel well above any piece index, drawn icy blue
+// so it reads as "frozen, not yours". drawBlock receives (grid value - 1).
+// Frozen cells are inert — they never fall, never count toward line clears or
+// 5x5 bomb formation, and only a bomb blast removes them.
+const FROZEN_CELL = 100;
+const FROZEN_PI = FROZEN_CELL - 1;
+const FROZEN_PAL = { base: '#79c8e8', hi: mixHex('#79c8e8', 255, 0.55), lo: mixHex('#79c8e8', 0, 0.3) };
+// Friendly caps: attacks shrink the play area but never make it unwinnable —
+// the frozen floor stops rising while a chunk still fits, and chunks never
+// reach above row 6, so ~8 working rows (enough to build a 5x5 bomb and dig
+// back out) are always left.
+const MAX_FROZEN_FLOOR = ROWS - 8;
 
 const $ = id => document.getElementById(id);
 
@@ -296,7 +307,7 @@ const sfx = {
   clear:  n => { for (let i = 0; i < Math.max(2, n + 1); i++) beep(330 + i * 110, 0.09, 0.05, i * 0.09); },
   mega:   () => { beep(80, 0.3, 0.09); beep(60, 0.35, 0.09, 0.12); beep(523, 0.1, 0.06, 0.3); beep(880, 0.25, 0.07, 0.45); },
   over:   () => { beep(392, 0.15); beep(262, 0.15, 0.06, 0.16); beep(196, 0.3, 0.06, 0.32); },
-  garbage:() => { beep(120, 0.08, 0.06); beep(90, 0.11, 0.06, 0.06); },
+  freeze: () => { beep(1180, 0.07, 0.05); beep(880, 0.09, 0.05, 0.06); beep(660, 0.12, 0.04, 0.13); },
   start:  () => { beep(523, 0.12); beep(784, 0.35, 0.07, 0.12); },
   win:    () => { beep(523, 0.12); beep(659, 0.12, 0.07, 0.12); beep(784, 0.12, 0.07, 0.24); beep(1047, 0.4, 0.08, 0.36); },
 };
@@ -339,7 +350,7 @@ function newPlayer(idx) {
     score: 0, clears: 0, level: 1,
     dropTimer: 0, lockTimer: -1, lockResets: 0,
     clearingRows: null, clearingCells: null, clearingBlockCount: 0, clearTimer: 0,
-    pendingGarbage: 0, // garbage rows queued by the rival, applied on next spawn
+    pendingFreezeRows: 0, pendingChunks: 0, // rival attacks queued while mid clear-flash
     alive: true,
     das: { dir: 0, next: 0 },
     padPrev: { b: [], up: false },
@@ -434,48 +445,69 @@ function hardDrop(p) {
   sfx.hard();
   lockPiece(p);
 }
-// Raise the receiver's stack by `rows`, inserting garbage lines (solid except
-// one shared gap column) at the bottom.
-function addGarbage(p, rows) {
-  if (rows <= 0 || !p.alive) return;
-  // stack already tall enough that rising garbage shoves blocks through the
-  // ceiling → the receiver is buried
-  for (let r = 0; r < rows && r < ROWS; r++) {
-    if (p.grid[r].some(v => v)) { topOut(p); return; }
-  }
-  // Math.random, NOT the seeded piece rng — sharing that rng would desync the
-  // two boards' identical piece sequence. One gap column per burst, so it's
-  // diggable with a single well-placed piece.
-  const hole = Math.floor(Math.random() * COLS);
-  for (let r = 0; r < rows; r++) {
-    p.grid.shift();
-    const line = new Array(COLS).fill(GARBAGE_CELL);
-    line[hole] = 0;
-    p.grid.push(line);
-  }
-  // the stack just rose under the falling piece: lift it out of any overlap
-  // (loop always ends — cells fully above the board can't collide)
+// How many bottom rows are already solid ice.
+function frozenFloor(p) {
+  let n = 0;
+  while (n < ROWS && p.grid[ROWS - 1 - n].every(v => v === FROZEN_CELL)) n++;
+  return n;
+}
+// Ice can materialize inside the falling piece's footprint: lift it clear
+// (loop always ends — cells fully above the board can't collide).
+function liftCurrent(p) {
   if (p.current) {
     while (collides(p, p.current.cells, p.current.x, p.current.y)) p.current.y--;
   }
+}
+function freezeFx(p) {
   p.box.classList.remove('shake');
   void p.box.offsetWidth;
   p.box.classList.add('shake');
-  sfx.garbage();
+  sfx.freeze();
 }
-// Attacks land IMMEDIATELY — you see your clear erupt under your rival right
-// away. Only deferred (to their next spawn) while the receiver is mid
-// clear-flash, where splicing rows would corrupt the animation's indices.
-function sendGarbage(p, rows) {
-  if (rows <= 0 || !p.alive) return;
-  if (p.clearingRows) { p.pendingGarbage += rows; return; }
-  addGarbage(p, rows);
+// Freeze the receiver's bottom-most unfrozen rows in place: whatever was
+// there — stack, holes, nothing — turns to solid ice. The stack never rises,
+// so a freeze can never kill; it only shrinks the working board.
+function freezeRows(p, rows) {
+  const allowed = Math.min(rows, MAX_FROZEN_FLOOR - frozenFloor(p));
+  if (allowed <= 0 || !p.alive) return;
+  for (let r = 0; r < allowed; r++) {
+    p.grid[ROWS - 1 - frozenFloor(p)] = new Array(COLS).fill(FROZEN_CELL);
+  }
+  liftCurrent(p);
+  freezeFx(p);
+}
+// MEGABOMB payload: a 5x5 chunk of the rival's board turns to ice where it
+// stands, resting on their frozen floor at a random column. Math.random, NOT
+// the seeded piece rng — sharing that rng would desync the two boards'
+// identical piece sequence.
+function freezeChunk(p) {
+  if (!p.alive) return;
+  const bottom = ROWS - 1 - frozenFloor(p);
+  const top = bottom - 4;
+  if (top < 6) { freezeRows(p, 2); return; } // no room for a chunk: fizzle to rows
+  const x0 = Math.floor(Math.random() * (COLS - 4));
+  for (let y = top; y <= bottom; y++)
+    for (let x = x0; x < x0 + 5; x++)
+      p.grid[y][x] = FROZEN_CELL;
+  liftCurrent(p);
+  freezeFx(p);
+}
+// Attacks land IMMEDIATELY — you see your clear ice over your rival's board
+// right away. Only deferred (to their next spawn) while the receiver is mid
+// clear-flash, where rewriting the grid would corrupt the animation.
+function sendAttack(p, rows, chunks) {
+  if ((rows <= 0 && chunks <= 0) || !p.alive) return;
+  if (p.clearingRows) { p.pendingFreezeRows += rows; p.pendingChunks += chunks; return; }
+  for (let i = 0; i < chunks; i++) freezeChunk(p);
+  if (rows > 0) freezeRows(p, rows);
 }
 function spawn(p) {
-  if (p.pendingGarbage > 0) {
-    addGarbage(p, p.pendingGarbage);
-    p.pendingGarbage = 0;
-    if (!p.alive) return; // buried by the incoming garbage
+  if (p.pendingFreezeRows > 0 || p.pendingChunks > 0) {
+    const rows = p.pendingFreezeRows, chunks = p.pendingChunks;
+    p.pendingFreezeRows = 0;
+    p.pendingChunks = 0;
+    for (let i = 0; i < chunks; i++) freezeChunk(p);
+    if (rows > 0) freezeRows(p, rows);
   }
   const proto = pieceAt(p.seqIdx++);
   p.nextProto = pieceAt(p.seqIdx);
@@ -500,8 +532,7 @@ function lockPiece(p) {
   p.current = null;
   p.lockTimer = -1;
   if (above) { topOut(p); return; }
-  const full = [];
-  for (let y = 0; y < ROWS; y++) if (p.grid[y].every(v => v)) full.push(y);
+  const full = fullRows(p);
   const blocks = find5x5(p);
   if (full.length || blocks.count) {
     p.clearingRows = full;
@@ -515,6 +546,16 @@ function lockPiece(p) {
   }
   updateHud(p);
 }
+// Rows containing ice never line-clear — blasting is the only way to melt it.
+function fullRows(p) {
+  const full = [];
+  for (let y = 0; y < ROWS; y++)
+    if (p.grid[y].every(v => v && v !== FROZEN_CELL)) full.push(y);
+  return full;
+}
+// Frozen cells never count toward FORMING a 5x5 (an iced-over chunk must not
+// detonate itself), but anything caught in a blast radius — ice included —
+// gets cleared: that's the receiver's comeback route.
 function find5x5(p) {
   const cells = new Set();
   let count = 0;
@@ -522,8 +563,10 @@ function find5x5(p) {
     for (let x = 0; x <= COLS - 5; x++) {
       let solid = true;
       for (let dy = 0; dy < 5 && solid; dy++)
-        for (let dx = 0; dx < 5; dx++)
-          if (!p.grid[y + dy][x + dx]) { solid = false; break; }
+        for (let dx = 0; dx < 5; dx++) {
+          const v = p.grid[y + dy][x + dx];
+          if (!v || v === FROZEN_CELL) { solid = false; break; }
+        }
       if (solid) {
         count++;
         const r = BLAST_RADIUS;
@@ -552,25 +595,30 @@ function finishClear(p) {
   p.score += BLOCK_SCORE * p.clearingBlockCount * p.level;
   p.clears += n + p.clearingBlockCount;
   p.score += LINE_SCORES[Math.min(n, LINE_SCORES.length - 1)] * p.level;
-  // Doing well bombs your rival (2v2-Tetris style), and EVERY clear counts,
-  // scaling with how good it was: 1 garbage row per line (2 lines > 1 line),
-  // 3 rows per 5x5 bomb, +4 more on a MEGABOMB. Cascades from settling stack
-  // their own attacks, so chains hit hard. Capped so one hit can't instakill.
-  const attack = Math.min(10, n + p.clearingBlockCount * 3 + (mega ? 4 : 0));
+  // Doing well ices your rival, and EVERY clear counts, scaling with how good
+  // it was: 1 frozen row per line (2 lines > 1 line), 2 frozen rows per 5x5
+  // bomb — and a MEGABOMB freezes a whole 5x5 CHUNK of their board instead of
+  // per-bomb rows. Freezes convert in place (never raise the stack, never
+  // kill), and the floor cap keeps every board recoverable by counter-bombing.
+  const rowsAtk = n + (mega ? 0 : p.clearingBlockCount * 2);
+  const chunkAtk = mega ? 1 : 0;
   const foe = players.find(q => q !== p);
-  if (foe) sendGarbage(foe, attack);
+  if (foe) sendAttack(foe, rowsAtk, chunkAtk);
   p.clearingRows = null;
   p.clearingCells = null;
   p.clearingBlockCount = 0;
   if (mega) {
+    // full gravity collapse on the attacker's own board — but received ice is
+    // frozen in place: loose cells compact into the unfrozen slots around it
     for (let x = 0; x < COLS; x++) {
-      let w = ROWS - 1;
+      const loose = [];
       for (let y = ROWS - 1; y >= 0; y--) {
-        if (!p.grid[y][x]) continue;
         const v = p.grid[y][x];
-        p.grid[y][x] = 0;
-        p.grid[w][x] = v;
-        w--;
+        if (v && v !== FROZEN_CELL) { loose.push(v); p.grid[y][x] = 0; }
+      }
+      let i = 0;
+      for (let y = ROWS - 1; y >= 0 && i < loose.length; y--) {
+        if (p.grid[y][x] !== FROZEN_CELL) p.grid[y][x] = loose[i++];
       }
     }
     p.box.classList.remove('shake');
@@ -581,8 +629,7 @@ function finishClear(p) {
     settle(p);
   }
   p.level = Math.floor(p.clears / clearsPerLevel) + 1;
-  const full = [];
-  for (let y = 0; y < ROWS; y++) if (p.grid[y].every(v => v)) full.push(y);
+  const full = fullRows(p);
   const blocks = find5x5(p);
   if (full.length || blocks.count) {
     p.clearingRows = full;
@@ -599,16 +646,18 @@ function finishClear(p) {
 function connectedComponents(p) {
   const seen = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
   const comps = [];
+  // Ice is not part of any falling component — it's frozen where it is, and
+  // loose pieces settle onto it like bedrock.
   for (let y = 0; y < ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
-      if (!p.grid[y][x] || seen[y][x]) continue;
+      if (!p.grid[y][x] || p.grid[y][x] === FROZEN_CELL || seen[y][x]) continue;
       const comp = [], stack = [[x, y]];
       seen[y][x] = true;
       while (stack.length) {
         const [cx, cy] = stack.pop();
         comp.push([cx, cy]);
         for (const [nx, ny] of [[cx - 1, cy], [cx + 1, cy], [cx, cy - 1], [cx, cy + 1]]) {
-          if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && p.grid[ny][nx] && !seen[ny][nx]) {
+          if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && p.grid[ny][nx] && p.grid[ny][nx] !== FROZEN_CELL && !seen[ny][nx]) {
             seen[ny][nx] = true;
             stack.push([nx, ny]);
           }
@@ -656,15 +705,17 @@ function telegraph(p) {
   }
   const cells = new Set();
   for (let y = 0; y < ROWS; y++) {
-    if (!g[y].every(v => v)) continue;
+    if (!g[y].every(v => v && v !== FROZEN_CELL)) continue;
     for (let x = 0; x < COLS; x++) cells.add(x + ',' + y);
   }
   for (let y = 0; y <= ROWS - 5; y++) {
     for (let x = 0; x <= COLS - 5; x++) {
       let solid = true;
       for (let dy = 0; dy < 5 && solid; dy++)
-        for (let dx = 0; dx < 5; dx++)
-          if (!g[y + dy][x + dx]) { solid = false; break; }
+        for (let dx = 0; dx < 5; dx++) {
+          const v = g[y + dy][x + dx];
+          if (!v || v === FROZEN_CELL) { solid = false; break; }
+        }
       if (!solid) continue;
       const r = BLAST_RADIUS;
       for (let dy = -r; dy < 5 + r; dy++)
@@ -815,7 +866,8 @@ function layout() {
   players.forEach(p => { drawBoard(p); drawNext(p); });
 }
 function drawBlock(ctx, x, y, s, pi) {
-  const pal = pi === GARBAGE_PI ? GARBAGE_PAL : (PIECES[pi] ? PIECES[pi].pal : PIECES[0].pal);
+  const frozen = pi === FROZEN_PI;
+  const pal = frozen ? FROZEN_PAL : (PIECES[pi] ? PIECES[pi].pal : PIECES[0].pal);
   const o = Math.max(2, Math.round(s * 0.09)); // black outline
   const b = Math.max(1, Math.round(s * 0.15)); // highlight / shadow edge
   ctx.fillStyle = '#0e0a1e';
@@ -831,6 +883,15 @@ function drawBlock(ctx, x, y, s, pi) {
   const d = Math.max(2, Math.round(s * 0.15));
   ctx.fillStyle = '#fff8ea';
   ctx.fillRect(x + o + b, y + o + b, d, d);
+  if (frozen) {
+    // a little + sparkle in the middle so ice reads as ice, not just a color
+    const t = Math.max(1, Math.round(s * 0.09));
+    const arm = Math.max(2, Math.round(s * 0.24));
+    const cx = x + s / 2, cy = y + s / 2;
+    ctx.fillStyle = '#eafcff';
+    ctx.fillRect(cx - t / 2, cy - arm, t, arm * 2);
+    ctx.fillRect(cx - arm, cy - t / 2, arm * 2, t);
+  }
 }
 function drawBoard(p) {
   const ctx = p.board.getContext('2d');
@@ -903,12 +964,13 @@ function drawBoard(p) {
       ctx.globalAlpha = 1;
     }
   }
-  // incoming-garbage meter: a hot-pink bar climbs the right edge to warn the
-  // receiver how many rows are about to erupt under them on their next spawn
-  if (p.pendingGarbage > 0 && p.alive) {
+  // incoming-freeze meter: an icy bar climbs the right edge to warn the
+  // receiver how much of their board is about to ice over (chunks count 5)
+  const incoming = p.pendingFreezeRows + p.pendingChunks * 5;
+  if (incoming > 0 && p.alive) {
     const bw = Math.max(3, Math.floor(cell * 0.22));
-    const bh = Math.min(ROWS, p.pendingGarbage) * cell;
-    ctx.fillStyle = '#ff2e8b';
+    const bh = Math.min(ROWS, incoming) * cell;
+    ctx.fillStyle = FROZEN_PAL.base;
     ctx.fillRect(w - bw, h - bh, bw, bh);
     ctx.strokeStyle = '#17122b';
     ctx.lineWidth = 2;
