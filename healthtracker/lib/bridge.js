@@ -18,9 +18,15 @@
 // Events listened for on `window`:
 //   'ht-sync-now'   — force an immediate sync tick (used by the Settings UI)
 
-import { writeEntry, syncOnce, readAllEntriesDecrypted } from "./sync.js";
+import { writeEntry, syncOnce, readAllEntriesDecrypted, readEntryDecrypted } from "./sync.js";
 import { getDekKey } from "./auth.js";
 import { bytesToB64Url, utf8Encode } from "./base64url.js";
+
+// Set while the plaintext copy has been removed from localStorage by
+// sealLocal(). Tells the unlock path to repopulate from the encrypted cache
+// rather than treating an empty localStorage as "the user deleted everything".
+// Not a synced key, so the interceptors below ignore it.
+const SEALED_KEY = "ht-sealed";
 
 const SYNCED_KEY_PATTERNS = [
   /^nutrition-\d{4}-\d{2}-\d{2}$/,
@@ -67,13 +73,23 @@ function emit(status) {
   window.dispatchEvent(new CustomEvent("ht-sync-status", { detail: status }));
 }
 
+// Storage changed underneath the UI — a pull landed, or a lock/unlock moved the
+// plaintext. Distinct from 'health-data-changed', which the app also fires on
+// its own saves: the UI must re-read on these but not on its own writes, or it
+// would clobber whatever the user is mid-way through typing.
+function emitExternalChange() {
+  window.dispatchEvent(new Event("health-data-changed"));
+  window.dispatchEvent(new Event("ht-external-change"));
+}
+
 async function flushPendingWrites() {
   writeFlushTimer = null;
   const dek = getDekKey();
-  if (!dek) {
-    pendingWrites.clear();
-    return;
-  }
+  // No key right now — still booting, or just locked / signed out. Keep the
+  // queue rather than dropping it: an unlock later in this page's life will
+  // flush it. Clearing here silently lost any edit made in the half-second
+  // before a lock.
+  if (!dek) return;
   const drained = pendingWrites;
   pendingWrites = new Map();
   for (const [key, op] of drained.entries()) {
@@ -162,26 +178,125 @@ async function applyRemoteEntriesToLocalStorage() {
   return changed;
 }
 
+// Every synced key currently present in localStorage.
+function syncedKeysPresent() {
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (isSynced(k)) keys.push(k);
+  }
+  return keys;
+}
+
+export function isSealed() {
+  return localStorage.getItem(SEALED_KEY) === "1";
+}
+
+/**
+ * Forget that this device was ever sealed. For paths where the plaintext is
+ * legitimately gone for good (a wipe) or legitimately empty (a brand-new
+ * account), so a later local-only choice doesn't warn about data that no
+ * longer exists.
+ */
+export function clearSealedFlag() {
+  localStorage.removeItem(SEALED_KEY);
+}
+
+/**
+ * Capture into the encrypted cache any synced localStorage value that isn't
+ * already there. Covers writes made while no DEK was in memory — those are
+ * dropped by the interceptors above, so without this they would live on in
+ * localStorage but never sync, and a later pull could silently overwrite them.
+ * The main offender is the `migrateDateKeys` pass in index.html, which runs
+ * before React mounts and rewrites `nutrition-*` keys.
+ *
+ * Only safe to call when localStorage is authoritative, i.e. NOT straight after
+ * a seal — check `isSealed()` first and restore instead.
+ */
+export async function reconcileLocalToVault() {
+  if (!getDekKey()) return 0;
+  let recovered = 0;
+  for (const key of syncedKeysPresent()) {
+    const value = localStorage.getItem(key);
+    if (typeof value !== "string") continue;
+    try {
+      const id = await keyToId(key);
+      const current = await readEntryDecrypted(id);
+      if (current && current.value === value) continue;
+      await writeEntry(id, { key, value });
+      recovered++;
+    } catch (err) {
+      console.warn("[bridge] reconcile failed for", key, err?.message);
+    }
+  }
+  if (recovered > 0) console.info("[bridge] recovered", recovered, "unqueued local change(s)");
+  return recovered;
+}
+
+/**
+ * Repopulate localStorage from the encrypted cache after a seal, and clear the
+ * sealed marker. Also used to surface a pull's results.
+ */
+export async function restoreLocalFromVault() {
+  const changed = await applyRemoteEntriesToLocalStorage();
+  localStorage.removeItem(SEALED_KEY);
+  if (changed) emitExternalChange();
+  return changed;
+}
+
+/**
+ * Remove the plaintext copy of every synced key from localStorage.
+ *
+ * Removal goes through `Storage.prototype` directly: the hooked `removeItem`
+ * would tombstone each key and push those tombstones to the server, deleting
+ * the user's data everywhere. This only ever removes the local plaintext.
+ */
+export function purgeLocalPlaintext() {
+  for (const key of syncedKeysPresent()) {
+    Storage.prototype.removeItem.call(localStorage, key);
+  }
+  emitExternalChange();
+}
+
+/**
+ * Lock the device's plaintext: make sure everything visible locally is captured
+ * in the encrypted cache, then drop the plaintext. Must run while the DEK is
+ * still in memory — callers seal first, then clear the key.
+ */
+export async function sealLocal() {
+  if (!getDekKey()) return false;
+  await reconcileLocalToVault();
+  if (writeFlushTimer != null) clearTimeout(writeFlushTimer);
+  await flushPendingWrites();
+  purgeLocalPlaintext();
+  localStorage.setItem(SEALED_KEY, "1");
+  return true;
+}
+
 export async function tick() {
   if (ticking) return { skipped: true };
   if (!getDekKey()) return { skipped: true };
   ticking = true;
   emit("syncing");
   try {
-    // Flush any debounced local writes first so they go up in this tick.
-    if (writeFlushTimer != null) {
-      clearTimeout(writeFlushTimer);
-      await flushPendingWrites();
-    }
+    // Flush any debounced local writes first so they go up in this tick. Note
+    // this runs unconditionally: the queue can hold entries with no timer
+    // pending, if a flush was skipped while the key was briefly unavailable.
+    if (writeFlushTimer != null) clearTimeout(writeFlushTimer);
+    await flushPendingWrites();
     await syncOnce();
     const changed = await applyRemoteEntriesToLocalStorage();
-    if (changed) window.dispatchEvent(new Event("health-data-changed"));
+    if (changed) emitExternalChange();
     emit("synced");
     return { ok: true, changed };
   } catch (err) {
     console.warn("[bridge] tick failed:", err?.message);
-    emit("error");
-    return { ok: false, error: err?.message };
+    // A dead session isn't a sync error — the app keeps working against the
+    // local encrypted cache and pending writes stay dirty until the user
+    // re-enrols this device. Report it as its own state so the UI can say so.
+    const authFailed = err?.status === 401 || err?.code === "no_session";
+    emit(authFailed ? "signin" : "error");
+    return { ok: false, error: err?.message, authFailed };
   } finally {
     ticking = false;
   }

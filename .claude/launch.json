@@ -14,7 +14,7 @@
         "-m",
         "http.server",
         "--directory",
-        "../healthtracker/app",
+        ".",
         "--bind",
         "127.0.0.1",
         "8788"

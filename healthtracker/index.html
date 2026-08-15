@@ -24,25 +24,46 @@
          localStorage interceptors install synchronously so the first React
          render sees a stable view of localStorage. -->
     <script type="module">
-      import { installLocalStorageHooks, startBridge, stopBridge, tick, uploadInitialSnapshot } from "./lib/bridge.js";
-      import { register, authenticate, signOut, getUserId } from "./lib/auth.js";
+      import {
+        installLocalStorageHooks, startBridge, stopBridge, tick, uploadInitialSnapshot,
+        sealLocal, restoreLocalFromVault, reconcileLocalToVault, isSealed, clearSealedFlag,
+      } from "./lib/bridge.js";
+      import {
+        register, authenticate, signOut, getUserId, isUnlocked,
+        resume, unlockLocal, lockDevice, persistCurrentKey, forgetStoredKey,
+        isRememberEnabled, setRememberEnabled,
+      } from "./lib/auth.js";
       import { signOutThisDevice, deleteCloudData, wipeEverything } from "./lib/wipe.js";
       import { getBackendUrl, setBackendUrl } from "./lib/config.js";
       import { getSession } from "./lib/api.js";
 
       installLocalStorageHooks();
 
-      // Resume a cloud session if one was previously established on this device.
-      // Note: a valid session token doesn't imply the DEK is unlocked — the
-      // app still asks for the passphrase via the onboarding modal on each
-      // load (re-derives KEK → unwraps DEK). Skipping that would require
-      // storing the DEK at rest, which we deliberately don't do.
+      // Sign-in is per-device, not per-visit. `resume()` (called from the app
+      // once React mounts) pulls the DEK back out of the device vault, so a
+      // normal visit asks for nothing at all. If the DEK isn't stored, the
+      // vault still holds the KEK envelope and the app can unlock with the
+      // passphrase alone — no passkey, no network. The passkey ceremony is
+      // only for enrolling a device the server has never seen.
+      //
+      // Locking is two steps, and both are needed: `sealLocal()` encrypts
+      // anything outstanding and removes the plaintext from localStorage, then
+      // `lockDevice()` drops the key. The key alone guards sync, not the
+      // on-device copy.
 
       window.HT = {
         register,
         authenticate,
         signOut,
         getUserId,
+        isUnlocked,
+        resume,
+        unlockLocal,
+        lockDevice,
+        persistCurrentKey,
+        forgetStoredKey,
+        isRememberEnabled,
+        setRememberEnabled,
         signOutThisDevice,
         deleteCloudData,
         wipeEverything,
@@ -53,6 +74,11 @@
         stopBridge,
         tick,
         uploadInitialSnapshot,
+        sealLocal,
+        restoreLocalFromVault,
+        reconcileLocalToVault,
+        isSealed,
+        clearSealedFlag,
         ready: true,
       };
       window.dispatchEvent(new Event("ht-ready"));
@@ -543,6 +569,26 @@ function HealthTracker() {
     loadGoal();
     loadUserProfile();
     checkBackupReminder();
+  }, [currentDate]);
+
+  // Re-read storage when something OUTSIDE React changes it: a sync pull
+  // applying remote entries, or an unlock restoring the plaintext after a lock.
+  // Without this the data sits in localStorage while the screen keeps showing
+  // whatever React last rendered — an empty day, right after an unlock.
+  //
+  // Deliberately NOT 'health-data-changed': the app fires that on its own saves
+  // too, and reloading mid-edit would fight the user's typing. 'ht-external-
+  // change' is only emitted by the bridge, for changes React didn't make.
+  useEffect(() => {
+    const reload = () => {
+      loadDayData(currentDate);
+      loadGoal();
+      loadUserProfile();
+      const savedGoals = localStorage.getItem('nutrition-goals');
+      if (savedGoals) { try { setNutritionGoals(JSON.parse(savedGoals)); } catch (e) {} }
+    };
+    window.addEventListener('ht-external-change', reload);
+    return () => window.removeEventListener('ht-external-change', reload);
   }, [currentDate]);
 
   const checkBackupReminder = async () => {
@@ -1323,6 +1369,14 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
   const [onboardPass, setOnboardPass] = useState('');
   const [onboardErr, setOnboardErr] = useState('');
   const [backendUrlInput, setBackendUrlInput] = useState('');
+  // True when this device already holds the KEK envelope, i.e. the unlock
+  // screen only needs the password — no passkey, no server round-trip.
+  const [hasVault, setHasVault] = useState(false);
+  const [staySignedIn, setStaySignedIn] = useState(true);
+  // Returning cloud users render before `resume()` has settled. Until it has,
+  // there's no DEK, and the bridge drops every synced write on the floor — so
+  // the app has to stay uninteractive rather than silently discarding edits.
+  const [booting, setBooting] = useState(() => localStorage.getItem('ht-mode') === 'cloud');
 
   // Wait for ./lib/bridge.js + auth.js to attach window.HT before allowing
   // any cloud action. The script is `type=module` so it runs deferred — on
@@ -1335,18 +1389,75 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     return () => window.removeEventListener('ht-ready', handler);
   }, []);
 
-  // If the user picked 'cloud' on a prior visit but the DEK isn't in memory
-  // (new tab, fresh load), surface the unlock screen instead of letting them
-  // think they're signed in but with no decryption capability.
+  // One-shot startup handshake for returning cloud users. Tries hardest-to-
+  // easiest: restore the stored key (nothing to type), else fall back to the
+  // unlock screen. Runs once — `bootedRef` keeps the cloudMode change that
+  // register/authenticate triggers from re-entering it.
+  const bootedRef = useRef(false);
+  const bootDoneRef = useRef(false);
   useEffect(() => {
-    if (!htReady) return;
-    if (cloudMode === 'cloud' && !window.HT.getUserId() && window.HT.getSession()) {
-      setShowOnboarding(true);
-      setOnboardStep('unlock');
+    if (!htReady || bootedRef.current) return;
+    if (cloudMode !== 'cloud') {
+      setStaySignedIn(window.HT.isRememberEnabled());
+      setBooting(false);
+      return;
     }
+    bootedRef.current = true;
+    let cancelled = false;
+    (async () => {
+      setStaySignedIn(window.HT.isRememberEnabled());
+      let state = { unlocked: false, hasVault: false };
+      try { state = await window.HT.resume(); } catch (e) { console.warn('resume failed:', e?.message); }
+      if (cancelled) return;
+      setHasVault(state.hasVault);
+      if (state.unlocked) {
+        // Already decrypted from the device vault — no prompt at all.
+        await afterUnlock();
+        if (cancelled) return;
+        setShowOnboarding(false);
+      } else {
+        // Needs the password. With a vault that's a local unwrap; without one
+        // (or with no session) it's the full enrolment ceremony. The modal is
+        // its own blocking overlay, so the boot gate can come down either way.
+        setShowOnboarding(true);
+        setOnboardStep(state.hasVault || window.HT.getSession() ? 'unlock' : 'choose');
+      }
+      bootDoneRef.current = true;
+      setBooting(false);
+    })();
+    // If we're torn down mid-resume, release the one-shot guard so the next
+    // mount can retry — otherwise the app would sit un-booted forever. A boot
+    // that already finished keeps the guard, so register/authenticate can't
+    // re-enter it.
+    return () => { cancelled = true; if (!bootDoneRef.current) bootedRef.current = false; };
   }, [htReady, cloudMode]);
 
+  // Shared tail of every path that puts the DEK in memory. Restores the
+  // plaintext if this device was sealed by a lock or sign-out, otherwise sweeps
+  // up any local edit that was written while no key was available (the
+  // `migrateDateKeys` pass runs before React mounts, so it always is). Then
+  // ticks unconditionally — a dead session has to reach `tick()` for the UI to
+  // learn about it and show "Sync paused".
+  const afterUnlock = async () => {
+    try {
+      if (window.HT.isSealed()) await window.HT.restoreLocalFromVault();
+      else await window.HT.reconcileLocalToVault();
+    } catch (e) { console.warn('local reconcile failed:', e?.message); }
+    window.HT.startBridge();
+    try { await window.HT.tick(); } catch {}
+    // Nudge the UI to re-read: a restore or a pull may have replaced storage
+    // under a React tree that still has the pre-lock (or pre-sync) view.
+    window.dispatchEvent(new Event('ht-external-change'));
+  };
+
   const chooseLocalOnly = () => {
+    // After a lock or sign-out the only copy of the data on this device is
+    // encrypted, and only the password can open it. Going local-only from here
+    // starts from empty — say so rather than looking like the data vanished.
+    if (window.HT.isSealed() && !confirm(
+      "This device's data is locked and can only be opened with your password. " +
+      'Continuing without signing in starts a fresh, empty local-only tracker. Continue?'
+    )) return;
     localStorage.setItem('ht-mode', 'local');
     setCloudMode('local');
     setShowOnboarding(false);
@@ -1360,9 +1471,17 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
     setOnboardErr(''); setOnboardStep('busy');
     try {
       await window.HT.register(onboardPass);
+      bootedRef.current = true;
+      bootDoneRef.current = true;
+      setHasVault(true);
+      setBooting(false);
       localStorage.setItem('ht-mode', 'cloud');
       setCloudMode('cloud');
       // Upload everything the user had locally so far as the initial snapshot.
+      // A brand-new account legitimately starts from whatever is in
+      // localStorage right now — including nothing, if this device was sealed
+      // by an earlier sign-out — so drop the sealed marker either way.
+      window.HT.clearSealedFlag();
       try { await window.HT.uploadInitialSnapshot(); } catch (e) { console.warn('initial snapshot failed:', e?.message); }
       window.HT.startBridge();
       setShowOnboarding(false);
@@ -1376,29 +1495,74 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
   };
 
   const submitCloudExisting = async () => {
-    if (onboardPass.length === 0) { setOnboardErr('Enter your passphrase.'); return; }
+    if (onboardPass.length === 0) { setOnboardErr('Enter your password.'); return; }
     setOnboardErr(''); setOnboardStep('busy');
     try {
       await window.HT.authenticate(onboardPass);
+      bootedRef.current = true;
+      bootDoneRef.current = true;
+      setHasVault(true);
+      setBooting(false);
       localStorage.setItem('ht-mode', 'cloud');
       setCloudMode('cloud');
-      window.HT.startBridge();
-      // Immediately pull remote so any data on this account shows up.
-      try { await window.HT.tick(); } catch {}
+      // Restore/reconcile, start the bridge, and pull so any data on this
+      // account shows up.
+      await afterUnlock();
       setShowOnboarding(false);
       setOnboardPass('');
     } catch (e) {
       setOnboardStep('cloudExisting');
       setOnboardErr(e?.message === 'wrong_passphrase'
-        ? 'Wrong passphrase. Try again, or use a different device.'
+        ? 'Wrong password. Try again, or use a different device.'
         : e?.message === 'passkey_assertion_cancelled'
           ? 'Face ID / Touch ID was cancelled. Try again.'
           : `Sign-in failed: ${e?.message ?? 'unknown error'}`);
     }
   };
 
+  // Unlock an already-enrolled device: password only, unwrapped against the
+  // locally-stored envelope. Never touches the passkey or the network. If this
+  // device has no vault (signed out, or wiped storage) we fall through to the
+  // full ceremony instead.
+  const submitUnlock = async () => {
+    if (onboardPass.length === 0) { setOnboardErr('Enter your password.'); return; }
+    if (!hasVault) return submitCloudExisting();
+    setOnboardErr(''); setOnboardStep('busy');
+    try {
+      await window.HT.unlockLocal(onboardPass);
+      await afterUnlock();
+      setShowOnboarding(false);
+      setOnboardPass('');
+    } catch (e) {
+      setOnboardStep('unlock');
+      setOnboardErr(e?.message === 'wrong_passphrase'
+        ? 'Wrong password. Try again.'
+        : `Unlock failed: ${e?.message ?? 'unknown error'}`);
+    }
+  };
+
+  // Switching this off doesn't kick the user out of the current tab — it just
+  // stops the key surviving a reload.
+  const toggleStaySignedIn = async (on) => {
+    setStaySignedIn(on);
+    window.HT.setRememberEnabled(on);
+    try {
+      if (on) await window.HT.persistCurrentKey();
+      else await window.HT.forgetStoredKey();
+    } catch (e) { console.warn('stay-signed-in toggle failed:', e?.message); }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      {/* Startup gate. Until `resume()` settles there is no DEK, and the bridge
+          drops every synced localStorage write — so the app must not be
+          editable yet. Sits above the onboarding modal's z-index. */}
+      {booting && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[110]">
+          <p className="text-sm text-gray-600">Unlocking your data…</p>
+        </div>
+      )}
+
       {/* API Key Prompt Modal */}
       {showApiKeyPrompt && !apiKey && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
@@ -1469,14 +1633,14 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                   className="w-full text-left px-4 py-3 mb-2 rounded-xl border-2 border-blue-500 bg-blue-50 hover:bg-blue-100"
                 >
                   <div className="font-semibold text-blue-900">Sync across my devices</div>
-                  <div className="text-xs text-blue-800 mt-1">Face ID + a passphrase. End-to-end encrypted. Sign in on iPhone, Mac, anywhere.</div>
+                  <div className="text-xs text-blue-800 mt-1">One password, end-to-end encrypted. Set up once per device, then it stays signed in.</div>
                 </button>
                 <button
                   onClick={beginCloudExisting}
                   className="w-full text-left px-4 py-3 mb-2 rounded-xl border border-gray-300 hover:bg-gray-50"
                 >
                   <div className="font-semibold">I already have an account</div>
-                  <div className="text-xs text-gray-600 mt-1">Sign in on a new device with your passphrase.</div>
+                  <div className="text-xs text-gray-600 mt-1">Add this device using your password.</div>
                 </button>
                 <button
                   onClick={chooseLocalOnly}
@@ -1491,24 +1655,37 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
               <>
                 <h2 className="text-xl font-bold mb-1">Create an account</h2>
                 <p className="text-sm text-gray-600 mb-4">
-                  Pick a passphrase to encrypt your data. You'll need it again on each new device. <strong>If you lose it, your data is gone — there is no recovery.</strong>
+                  Pick a password to encrypt your data. You'll need it again on each new device. <strong>If you lose it, your data is gone — there is no recovery.</strong>
                 </p>
                 <input
                   type="password"
                   autoFocus
+                  autoComplete="new-password"
                   value={onboardPass}
                   onChange={(e) => setOnboardPass(e.target.value)}
-                  placeholder="Passphrase (8+ characters)"
+                  placeholder="Password (8+ characters)"
                   className="w-full px-4 py-3 border rounded-xl mb-3"
                   onKeyDown={(e) => e.key === 'Enter' && submitCloudNew()}
                 />
+                <label className="flex items-center gap-2 text-sm text-gray-700 mb-3">
+                  <input
+                    type="checkbox"
+                    checked={staySignedIn}
+                    onChange={(e) => toggleStaySignedIn(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  Stay signed in on this device
+                </label>
                 {onboardErr && <p className="text-sm text-red-600 mb-3">{onboardErr}</p>}
                 <button
                   onClick={submitCloudNew}
                   className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold"
                 >
-                  Create passkey & encrypt
+                  Create account
                 </button>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Your device will ask for Face ID / Touch ID once to register this device with the server. You won't be asked again here.
+                </p>
                 <button
                   onClick={() => setOnboardStep('choose')}
                   className="w-full px-6 py-2 mt-2 text-gray-500 text-sm"
@@ -1519,19 +1696,29 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
             )}
             {htReady && onboardStep === 'cloudExisting' && (
               <>
-                <h2 className="text-xl font-bold mb-1">Sign in</h2>
+                <h2 className="text-xl font-bold mb-1">Add this device</h2>
                 <p className="text-sm text-gray-600 mb-4">
-                  Face ID / Touch ID will pick the right passkey automatically. Then enter your passphrase to decrypt your data.
+                  Enter your password. Face ID / Touch ID will confirm once, to register this device — after that this device just stays signed in.
                 </p>
                 <input
                   type="password"
                   autoFocus
+                  autoComplete="current-password"
                   value={onboardPass}
                   onChange={(e) => setOnboardPass(e.target.value)}
-                  placeholder="Passphrase"
+                  placeholder="Password"
                   className="w-full px-4 py-3 border rounded-xl mb-3"
                   onKeyDown={(e) => e.key === 'Enter' && submitCloudExisting()}
                 />
+                <label className="flex items-center gap-2 text-sm text-gray-700 mb-3">
+                  <input
+                    type="checkbox"
+                    checked={staySignedIn}
+                    onChange={(e) => toggleStaySignedIn(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  Stay signed in on this device
+                </label>
                 {onboardErr && <p className="text-sm text-red-600 mb-3">{onboardErr}</p>}
                 <button
                   onClick={submitCloudExisting}
@@ -1551,23 +1738,41 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
               <>
                 <h2 className="text-xl font-bold mb-1">Welcome back</h2>
                 <p className="text-sm text-gray-600 mb-4">
-                  Enter your passphrase to decrypt your data on this device.
+                  {hasVault
+                    ? 'Enter your password to unlock your data on this device.'
+                    : 'Face ID / Touch ID will pick your passkey, then enter your password.'}
                 </p>
                 <input
                   type="password"
                   autoFocus
+                  autoComplete="current-password"
                   value={onboardPass}
                   onChange={(e) => setOnboardPass(e.target.value)}
-                  placeholder="Passphrase"
+                  placeholder="Password"
                   className="w-full px-4 py-3 border rounded-xl mb-3"
-                  onKeyDown={(e) => e.key === 'Enter' && submitCloudExisting()}
+                  onKeyDown={(e) => e.key === 'Enter' && submitUnlock()}
                 />
+                <label className="flex items-center gap-2 text-sm text-gray-700 mb-3">
+                  <input
+                    type="checkbox"
+                    checked={staySignedIn}
+                    onChange={(e) => toggleStaySignedIn(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  Stay signed in on this device
+                </label>
                 {onboardErr && <p className="text-sm text-red-600 mb-3">{onboardErr}</p>}
                 <button
-                  onClick={submitCloudExisting}
+                  onClick={submitUnlock}
                   className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl font-semibold"
                 >
                   Unlock
+                </button>
+                <button
+                  onClick={() => { setOnboardErr(''); setOnboardPass(''); setOnboardStep('choose'); }}
+                  className="w-full px-6 py-2 mt-2 text-gray-500 text-sm"
+                >
+                  Use a different account
                 </button>
               </>
             )}
@@ -1585,6 +1790,42 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
             <h2 className="text-xl font-bold mb-4">Cloud sync settings</h2>
             <p className="text-xs text-gray-500 mb-1">SIGNED IN</p>
             <p className="text-sm mb-4">{window.HT.getUserId() ? window.HT.getUserId().slice(0, 16) + '…' : '(not signed in this session)'}</p>
+
+            {cloudMode === 'cloud' && (
+              <div className="border-t pt-4 mb-4">
+                <label className="flex items-center gap-2 text-sm text-gray-800">
+                  <input
+                    type="checkbox"
+                    checked={staySignedIn}
+                    onChange={(e) => toggleStaySignedIn(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  Stay signed in on this device
+                </label>
+                <p className="text-xs text-gray-500 mt-2">
+                  On: the app opens straight into your data, no password. Off: you enter your
+                  password once per visit. While the app is open and unlocked, anyone using
+                  this browser profile can read your data — lock it or close the tab when
+                  you're done.
+                </p>
+                <button
+                  onClick={async () => {
+                    // Seal first, while the key is still in memory: this
+                    // encrypts anything outstanding and removes the plaintext
+                    // from localStorage. Dropping the key alone would leave
+                    // every entry readable behind the modal. Reload so no
+                    // decrypted data survives in React state either.
+                    try { await window.HT.sealLocal(); }
+                    catch (e) { console.warn('seal failed:', e?.message); }
+                    await window.HT.lockDevice();
+                    window.location.reload();
+                  }}
+                  className="text-xs text-blue-600 mt-2"
+                >
+                  Lock now
+                </button>
+              </div>
+            )}
 
             <div className="border-t pt-4 mb-4">
               <p className="text-xs text-gray-500 mb-2">BACKEND URL</p>
@@ -1611,11 +1852,12 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
             <div className="border-t pt-4 mb-4 space-y-2">
               <button
                 onClick={async () => {
-                  if (!confirm('Sign out of this device? Your cloud data and other devices are untouched.')) return;
+                  if (!confirm('Sign out of this device? Your data stays in the cloud and on your other devices, and stays cached (encrypted) here — signing back in restores it without a re-download.')) return;
                   await window.HT.signOutThisDevice();
-                  setShowSettings(false);
-                  setShowOnboarding(true);
-                  setOnboardStep('choose');
+                  // Reload rather than re-rendering: sign-out removes the
+                  // plaintext from localStorage, but React state still holds a
+                  // decrypted copy until the page is torn down.
+                  window.location.reload();
                 }}
                 className="w-full px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-semibold text-sm"
               >
@@ -1790,12 +2032,13 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                 </div>
               )}
 
-              {/* Universal Log */}
+              {/* Universal Log. Enter inserts a newline — submitting is the
+                  Log Entry button only, so a stray Enter mid-thought can't
+                  fire off an analysis of a half-written day. */}
               <div className="mb-6 flex-1 flex flex-col min-h-0">
                 <textarea
                   value={logDescription}
                   onChange={(e) => setLogDescription(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addLog(); } }}
                   placeholder={logImages.length > 0 ? "Optional: add details like portion size, exercise duration..." : logPlaceholder}
                   className="w-full px-4 py-3 border rounded-xl resize-none mb-3 overflow-y-auto flex-1"
                   style={{minHeight: '2.5em'}}
@@ -2617,11 +2860,29 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
                   {syncStatus === 'syncing' && <span className="text-sm font-normal text-blue-500">Syncing...</span>}
                   {syncStatus === 'synced' && <span className="text-sm font-normal text-green-500">Synced</span>}
                   {syncStatus === 'error' && <span className="text-sm font-normal text-red-500">Sync Error</span>}
+                  {syncStatus === 'signin' && <span className="text-sm font-normal text-amber-600">Sync paused</span>}
                 </span>
               </h2>
               <p className="text-sm text-gray-600 mb-4">
-                Sync across your devices with end-to-end encryption. Your passphrase never leaves this device; the server only stores ciphertext.
+                Sync across your devices with end-to-end encryption. Your password never leaves this device; the server only stores ciphertext.
               </p>
+
+              {/* The session token expired. Everything still works locally —
+                  changes queue up and go out once this device is re-registered. */}
+              {cloudMode === 'cloud' && syncStatus === 'signin' && (
+                <div className="mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <p className="text-sm text-amber-900 mb-2">
+                    This device needs to re-register with the server. Your data is safe and
+                    still saving here — it'll upload once you do.
+                  </p>
+                  <button
+                    onClick={() => { setOnboardErr(''); setOnboardPass(''); setShowOnboarding(true); setOnboardStep('cloudExisting'); }}
+                    className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold text-sm"
+                  >
+                    Reconnect sync
+                  </button>
+                </div>
+              )}
 
               {cloudMode === 'local' && (
                 <button
