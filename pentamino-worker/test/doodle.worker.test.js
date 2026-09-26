@@ -280,7 +280,7 @@ describe('rate limits', () => {
     const ip = '203.0.113.88';
     // exhaust the Doodle Dash token bucket for this IP
     expect((await call('/dd/token', { method: 'POST', ip })).status).toBe(200);
-    await ddSql("UPDATE rl SET n = 2000 WHERE bucket LIKE 'tok:%'");
+    await ddSql("UPDATE rl SET n = 5000 WHERE bucket LIKE 'tok:%'");
     expect(await callJson('/dd/token', { method: 'POST', ip })).toMatchObject({ status: 429, body: { error: 'rate limited' } });
     expect((await call('/token', { method: 'POST', ip })).status).toBe(200);
     // and the other way round
@@ -289,14 +289,14 @@ describe('rate limits', () => {
     expect((await call('/dd/scores', { method: 'POST', ip, body: submitBody({ token: await agedToken(60) }) })).status).toBe(200);
   });
 
-  it('a classroom on one IP (30 kids, ~1 run/min for an hour) is not throttled', async () => {
+  it('a classroom on one IP (30 kids, 2.5 quick runs/min for an hour) is not throttled', async () => {
     const ip = '203.0.113.200';
     const statuses = new Map();
-    for (let batch = 0; batch < 60; batch++) {
+    for (let batch = 0; batch < 150; batch++) {
       const res = await Promise.all(Array.from({ length: 30 }, () => call('/dd/token', { method: 'POST', ip })));
       for (const r of res) statuses.set(r.status, (statuses.get(r.status) || 0) + 1);
     }
-    expect(Object.fromEntries(statuses)).toEqual({ 200: 1800 });
+    expect(Object.fromEntries(statuses)).toEqual({ 200: 4500 });
     for (let i = 0; i < 40; i++) {
       const r = await submit(submitBody({ adjIndex: i, score: 60 + i, token: await agedToken(120) }), { ip });
       expect(r.status).toBe(200);

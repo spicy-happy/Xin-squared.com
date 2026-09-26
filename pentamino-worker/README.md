@@ -120,7 +120,7 @@ still post a made-up score; these checks only make that slower:
 - A score is refused (403, token still used up) if it's more than
   90 pts/sec × seconds since the token was issued, with no small-score grace.
   90 must stay ≥ 1.2 × the client's `SPEED_MAX / 10`; `npm test` checks it.
-- Per-IP hourly limits: 2000 tokens, 120 submits (a whole classroom can
+- Per-IP hourly limits: 5000 tokens, 120 submits (a whole classroom can
   share one school IP), 30 admin calls. These are separate from Pentabomb's.
 - Token and score POSTs need an allowlisted `Origin`.
 

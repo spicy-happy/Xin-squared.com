@@ -365,8 +365,9 @@ const DD_MAX_SCORE = 1_000_000;
 const DD_MAX_PTS_PER_SEC = 90;
 const DD_MIN_WORLD_SCORE = 50;   // below this a run isn't worth a board slot
 const DD_TOKEN_TTL = 2 * 3600 * 1000; // ms; a run should finish within 2h
-// A whole classroom can share one NAT IP, so these are deliberately roomy.
-const DD_TOKENS_PER_HOUR = 2000;
+// A whole classroom can share one NAT IP, so these are deliberately roomy:
+// young kids die fast, so 30 of them can start ~2.5 runs a minute each.
+const DD_TOKENS_PER_HOUR = 5000;
 const DD_SUBMITS_PER_HOUR = 120;
 const DD_ADMIN_PER_HOUR = 30;    // brute-force brake on the admin key
 const DD_KEEP = 20;              // rows kept (all-time)
