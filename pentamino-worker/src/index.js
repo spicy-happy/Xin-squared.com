@@ -199,6 +199,7 @@ export default {
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers });
     }
+    if (url.pathname.startsWith('/dd/')) return doodle(request, env, url, origin, headers, ip);
 
     if (url.pathname === '/token' && request.method === 'POST') {
       if (!originAllowed(origin)) return json({ error: 'forbidden' }, 403, headers);
@@ -329,3 +330,282 @@ export default {
     return json({ error: 'method not allowed' }, 405, headers);
   },
 };
+
+// ===========================================================================
+// Doodle Dash (xin-squared.com/doodle-dash) — a kids' endless runner that
+// borrows this Worker as its host. Everything below is Doodle Dash only; the
+// Pentabomb code above is untouched apart from the one /dd/ dispatch line.
+//
+// POST /dd/token          -> { token }  (anonymous play token, fetched at run start)
+// GET  /dd/scores         -> { scores: [{adj, noun, heroId, score, date}, ...] } (top 5)
+// GET  /dd/words          -> { adj: [...], noun: [...], retiredAdj: [i...], retiredNoun: [i...] }
+// POST /dd/scores {adjIndex, nounIndex, heroId, score, token}
+//                         -> { scores: [...top 5], rank: 1-based | null }
+// POST /dd/admin/remove {adj, noun, score}  (Bearer DD_ADMIN_KEY) -> { removed, scores }
+// POST /dd/admin/reset                      (Bearer DD_ADMIN_KEY) -> { ok: true }
+//
+// Kids never type a name: they pick an "ADJ NOUN" nickname from fixed word
+// lists and submit indices, so no free text is ever stored or shown.
+//
+// Friction, not proof: the game runs client-side, so anyone determined can
+// still post a made-up score. The single-use token + elapsed-time ceiling only
+// make that slower and more annoying (a forged score needs a token held for
+// score / DD_MAX_PTS_PER_SEC seconds); the admin routes are the real remedy.
+//
+// Storage: all Doodle Dash state (board, tokens, rate-limit counters) lives in
+// the SQLite storage of one DoodleBoard Durable Object ("global"). /dd/* never
+// reads or writes KV, so Pentabomb's KV data and limits are unaffected.
+// ===========================================================================
+
+import { DurableObject } from 'cloudflare:workers';
+
+const DD_MAX_SCORE = 1_000_000;
+// Must stay >= 1.2 x SPEED_MAX / 10 of the client (doodle-dash/index.html);
+// test/source.node.test.js enforces it. No small-score grace allowance.
+const DD_MAX_PTS_PER_SEC = 90;
+const DD_MIN_WORLD_SCORE = 50;   // below this a run isn't worth a board slot
+const DD_TOKEN_TTL = 2 * 3600 * 1000; // ms; a run should finish within 2h
+// A whole classroom can share one NAT IP, so these are deliberately roomy.
+const DD_TOKENS_PER_HOUR = 2000;
+const DD_SUBMITS_PER_HOUR = 120;
+const DD_ADMIN_PER_HOUR = 30;    // brute-force brake on the admin key
+const DD_KEEP = 20;              // rows kept (all-time)
+const DD_SHOWN = 5;              // rows served
+const DD_MAX_BODY = 1024;        // bytes; a valid submit is ~150
+
+// Nickname word lists. APPEND-ONLY: clients submit indices, so never reorder
+// or delete. To retire a word, add its index to the matching RETIRED set — it
+// stops being offered or accepted, while stored entries keep their resolved
+// words (the board stores words, not indices), so history never changes.
+const DD_ADJ = ['BRAVE', 'BOUNCY', 'BRIGHT', 'BREEZY', 'CHEERY', 'CLEVER', 'COMFY', 'COSMIC', 'COZY', 'CURIOUS', 'DANDY', 'DAZZLING', 'EAGER', 'FEARLESS', 'FRIENDLY', 'FROSTY', 'FUZZY', 'GENTLE', 'GIGGLY', 'GLEAMING', 'GOLDEN', 'GRAND', 'HAPPY', 'JOLLY', 'JUMPY', 'KIND', 'LUCKY', 'MAGIC', 'MERRY', 'MIGHTY', 'NIFTY', 'PLUCKY', 'PEPPY', 'QUICK', 'RADIANT', 'SNAPPY', 'SPARKLY', 'SPEEDY', 'SUNNY', 'SUPER', 'SWIFT', 'TWINKLY', 'ZIPPY', 'ZOOMY'];
+const DD_NOUN = ['ACORN', 'BLUEBIRD', 'BUNNY', 'BUTTON', 'CACTUS', 'COMET', 'COOKIE', 'CRICKET', 'DOLPHIN', 'DRAGON', 'FALCON', 'FERN', 'FOX', 'GECKO', 'KOALA', 'LANTERN', 'LLAMA', 'MAPLE', 'MEADOW', 'MOOSE', 'NOODLE', 'OTTER', 'OWL', 'PANDA', 'PEBBLE', 'PENGUIN', 'PUFFIN', 'RACCOON', 'RAINBOW', 'ROBIN', 'ROCKET', 'SEAL', 'SPROUT', 'STAR', 'TIGER', 'TOUCAN', 'TURTLE', 'WAFFLE'];
+const DD_ADJ_RETIRED = new Set([]);
+const DD_NOUN_RETIRED = new Set([]);
+
+const DD_HERO_RE = /^[a-z0-9-]{1,40}$/;
+const DD_SUBMIT_KEYS = ['adjIndex', 'heroId', 'nounIndex', 'score', 'token'];
+// path -> allowed methods
+const DD_ROUTES = {
+  '/dd/token': ['POST'],
+  '/dd/scores': ['GET', 'POST'],
+  '/dd/words': ['GET'],
+  '/dd/admin/remove': ['POST'],
+  '/dd/admin/reset': ['POST'],
+};
+
+async function ddSha256(text) {
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+}
+
+// Rate-limit buckets are keyed by a hash of the IP so raw IPs never reach
+// storage (or logs). This is pseudonymisation, not anonymity — the IPv4 space
+// is small enough to brute-force — but the rows are dropped within the hour.
+async function ddIpHash(ip) {
+  const bytes = new Uint8Array(await ddSha256('dd-ip:' + ip));
+  return [...bytes.slice(0, 16)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Constant-time admin check: hash both sides to equal-length digests first.
+async function ddAdminOk(request, env) {
+  const expected = env.DD_ADMIN_KEY;
+  const m = /^Bearer (.+)$/.exec(request.headers.get('Authorization') || '');
+  if (typeof expected !== 'string' || !expected || !m) return false;
+  const [given, want] = await Promise.all([ddSha256(m[1]), ddSha256(expected)]);
+  return crypto.subtle.timingSafeEqual(given, want);
+}
+
+function ddWordOk(i, list, retired) {
+  return Number.isInteger(i) && i >= 0 && i < list.length && !retired.has(i);
+}
+
+// Shape-check a POST /dd/scores body. Returns { error } or the resolved entry.
+function ddParseSubmit(body, retiredAdj = DD_ADJ_RETIRED, retiredNoun = DD_NOUN_RETIRED) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return { error: 'invalid body' };
+  const keys = Object.keys(body).sort();
+  if (keys.length !== DD_SUBMIT_KEYS.length || keys.some((k, i) => k !== DD_SUBMIT_KEYS[i])) {
+    return { error: 'invalid fields' };
+  }
+  const { adjIndex, nounIndex, heroId, score, token } = body;
+  if (!ddWordOk(adjIndex, DD_ADJ, retiredAdj) || !ddWordOk(nounIndex, DD_NOUN, retiredNoun)) {
+    return { error: 'invalid name' };
+  }
+  if (typeof heroId !== 'string' || !DD_HERO_RE.test(heroId)) return { error: 'invalid hero' };
+  if (!Number.isInteger(score) || score < DD_MIN_WORLD_SCORE || score > DD_MAX_SCORE) {
+    return { error: 'invalid score' };
+  }
+  if (typeof token !== 'string' || !token || token.length > 64) return { error: 'missing token' };
+  return { adj: DD_ADJ[adjIndex], noun: DD_NOUN[nounIndex], heroId, score, token };
+}
+
+// exported only so tests can exercise word retirement with injected sets
+export { ddParseSubmit };
+
+async function doodle(request, env, url, origin, headers, ip) {
+  const methods = DD_ROUTES[url.pathname];
+  if (!methods) return json({ error: 'not found' }, 404, headers);
+  if (!methods.includes(request.method)) return json({ error: 'method not allowed' }, 405, headers);
+
+  if (url.pathname === '/dd/words') {
+    return json({
+      adj: DD_ADJ,
+      noun: DD_NOUN,
+      retiredAdj: [...DD_ADJ_RETIRED],
+      retiredNoun: [...DD_NOUN_RETIRED],
+    }, 200, { ...headers, 'Cache-Control': 'public, max-age=3600' });
+  }
+
+  const board = env.DOODLE.get(env.DOODLE.idFromName('global'));
+
+  if (url.pathname === '/dd/scores' && request.method === 'GET') {
+    return json({ scores: await board.top() }, 200, headers);
+  }
+
+  if (url.pathname.startsWith('/dd/admin/')) {
+    // curl-only: no Origin requirement, but a per-IP brake before the key check
+    if (!(await board.hit(await ddIpHash(ip), 'adm', DD_ADMIN_PER_HOUR))) {
+      return json({ error: 'rate limited' }, 429, headers);
+    }
+    if (!(await ddAdminOk(request, env))) return json({ error: 'unauthorized' }, 401, headers);
+    if (url.pathname === '/dd/admin/reset') {
+      await board.clearBoard();
+      return json({ ok: true }, 200, headers);
+    }
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json({ error: 'invalid json' }, 400, headers);
+    }
+    const { adj, noun, score } = body || {};
+    if (typeof adj !== 'string' || typeof noun !== 'string' || !Number.isInteger(score)) {
+      return json({ error: 'expected {adj, noun, score}' }, 400, headers);
+    }
+    return json(await board.remove(adj.toUpperCase(), noun.toUpperCase(), score), 200, headers);
+  }
+
+  // POST /dd/token and POST /dd/scores: browser-only
+  if (!originAllowed(origin)) return json({ error: 'forbidden' }, 403, headers);
+  const ipHash = await ddIpHash(ip);
+
+  if (url.pathname === '/dd/token') {
+    if (!(await board.hit(ipHash, 'tok', DD_TOKENS_PER_HOUR))) {
+      return json({ error: 'rate limited' }, 429, headers);
+    }
+    return json({ token: await board.issueToken() }, 200, headers);
+  }
+
+  // POST /dd/scores
+  if (!(await board.hit(ipHash, 'sub', DD_SUBMITS_PER_HOUR))) {
+    return json({ error: 'rate limited' }, 429, headers);
+  }
+  let body;
+  try {
+    const text = await request.text();
+    if (text.length > DD_MAX_BODY) throw new Error('too big');
+    body = JSON.parse(text);
+  } catch {
+    return json({ error: 'invalid json' }, 400, headers);
+  }
+  const entry = ddParseSubmit(body);
+  if (entry.error) return json({ error: entry.error }, 400, headers);
+  const res = await board.submit(entry);
+  return json(res.body, res.status, headers);
+}
+
+// Single global Doodle Dash board. Every method is synchronous SQL with no
+// awaits, so each call's read-check-write runs atomically inside the DO.
+//   board  — all-time top DD_KEEP; the implicit rowid breaks score ties
+//            (earlier insertion ranks higher). Words stored, not indices.
+//   tokens — issued play tokens; expired rows pruned on each issue.
+//   rl     — per-(bucket, IP-hash) hourly counters; old hours pruned.
+export class DoodleBoard extends DurableObject {
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.sql = ctx.storage.sql;
+    this.sql.exec(`
+      CREATE TABLE IF NOT EXISTS board (
+        adj TEXT NOT NULL, noun TEXT NOT NULL, heroId TEXT NOT NULL,
+        score INTEGER NOT NULL, date TEXT NOT NULL,
+        PRIMARY KEY (adj, noun, score)
+      );
+      CREATE TABLE IF NOT EXISTS tokens (id TEXT PRIMARY KEY, ts INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS rl (
+        bucket TEXT NOT NULL, hour INTEGER NOT NULL, n INTEGER NOT NULL,
+        PRIMARY KEY (bucket, hour)
+      );
+    `);
+  }
+
+  top() {
+    return this.sql.exec(
+      'SELECT adj, noun, heroId, score, date FROM board ORDER BY score DESC, rowid ASC LIMIT ?',
+      DD_SHOWN,
+    ).toArray();
+  }
+
+  // Count one request against (bucket, ipHash) for this hour. false = over limit.
+  hit(ipHash, bucket, limit) {
+    const hour = Math.floor(Date.now() / 3600000);
+    const key = bucket + ':' + ipHash;
+    return this.ctx.storage.transactionSync(() => {
+      this.sql.exec('DELETE FROM rl WHERE hour < ?', hour);
+      const row = this.sql.exec('SELECT n FROM rl WHERE bucket = ? AND hour = ?', key, hour).toArray()[0];
+      if (row && row.n >= limit) return false;
+      this.sql.exec(
+        'INSERT INTO rl (bucket, hour, n) VALUES (?, ?, 1) ON CONFLICT (bucket, hour) DO UPDATE SET n = n + 1',
+        key, hour,
+      );
+      return true;
+    });
+  }
+
+  issueToken() {
+    const id = crypto.randomUUID();
+    const now = Date.now();
+    this.ctx.storage.transactionSync(() => {
+      this.sql.exec('DELETE FROM tokens WHERE ts < ?', now - DD_TOKEN_TTL);
+      this.sql.exec('INSERT INTO tokens (id, ts) VALUES (?, ?)', id, now);
+    });
+    return id;
+  }
+
+  // entry: { adj, noun, heroId, score, token } already shape-checked by the Worker.
+  submit(entry) {
+    const now = Date.now();
+    return this.ctx.storage.transactionSync(() => {
+      // single use: the DELETE both checks and consumes, so of two concurrent
+      // submits with one token exactly one sees the row
+      const tok = this.sql.exec('DELETE FROM tokens WHERE id = ? RETURNING ts', entry.token).toArray()[0];
+      if (!tok || now - tok.ts > DD_TOKEN_TTL) return { status: 403, body: { error: 'invalid token' } };
+      // no grace allowance; a rejected submit still burns its token
+      if (entry.score > ((now - tok.ts) / 1000) * DD_MAX_PTS_PER_SEC) {
+        return { status: 403, body: { error: 'implausible score' } };
+      }
+      this.sql.exec(
+        'INSERT OR IGNORE INTO board (adj, noun, heroId, score, date) VALUES (?, ?, ?, ?, ?)',
+        entry.adj, entry.noun, entry.heroId, entry.score, new Date(now).toISOString().slice(0, 10),
+      );
+      this.sql.exec(
+        'DELETE FROM board WHERE rowid NOT IN (SELECT rowid FROM board ORDER BY score DESC, rowid ASC LIMIT ?)',
+        DD_KEEP,
+      );
+      const scores = this.top();
+      // same adj+noun+score is the same achievement, so a duplicate submit
+      // reports the rank of the entry already on the board
+      const rank = scores.findIndex(e => e.adj === entry.adj && e.noun === entry.noun && e.score === entry.score);
+      return { status: 200, body: { scores, rank: rank === -1 ? null : rank + 1 } };
+    });
+  }
+
+  remove(adj, noun, score) {
+    const removed = this.sql.exec(
+      'DELETE FROM board WHERE adj = ? AND noun = ? AND score = ? RETURNING 1', adj, noun, score,
+    ).toArray().length;
+    return { removed, scores: this.top() };
+  }
+
+  // Clears the board only; tokens and rate-limit counters are left alone.
+  clearBoard() {
+    this.sql.exec('DELETE FROM board');
+  }
+}

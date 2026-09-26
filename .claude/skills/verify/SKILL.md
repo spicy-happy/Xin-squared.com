@@ -51,7 +51,29 @@ are phone-first.
   `pentabomb/index.html`, `/event` + `/stats` in `pentamino-worker/`);
   localhost is an allowed origin, so local runs hit the live counters —
   stub `navigator.sendBeacon`/block the worker host if that matters.
-- **Bump `GAME_VERSION` in `pentabomb/index.html` and `pentapuzzle/index.html`
-  on every change to those files** — deployed pages compare it against the
-  server copy to reload themselves; forgetting the bump means players keep
-  the stale version.
+- **Bump `GAME_VERSION` in `pentabomb/index.html`, `pentapuzzle/index.html`
+  and `doodle-dash/index.html` on every change to those files** — deployed
+  pages compare it against the server copy to reload themselves; forgetting
+  the bump means players keep the stale version.
+
+## Doodle Dash (`/doodle-dash/`)
+
+- Endless runner; art comes from `doodle-dash/art/manifest.json` (built by
+  `doodle-dash/kit/process.py`). With no manifest it uses built-in
+  placeholder doodles, so the game always runs.
+- `window.__doodleDebug`: `state()`, `startNow(heroId?)` (skips hero select
+  and the GO!), `setSpeed(px/s | 0)`, `spawn('small'|'big'|'pair'|<jumpId>|{w,h})`,
+  `god(on)`, `measureJumps()`, `clearanceSim()` (`ok` must be true: every
+  window ≥ 120 ms). `?debug=1` draws masks, jump arcs and speed.
+- **Any hook call (or `?debug=1`) makes the page practice-only**: no token,
+  no world submit, no local save, "PRACTICE" tag. Reload to get a real run.
+- `window.__doodleReady === true` once art is loaded and hero select shows.
+- For deterministic gameplay checks, call `fixedStep(STEP)` in a loop from
+  the console with `inputDown('x')`/`inputUp('x')` instead of waiting on rAF
+  (globals `S`, `TRAJ`, `timeAbove`, `heroSprite` are script-level).
+- World scores hit the live Worker at `/dd/*` (localhost is an allowed
+  origin). Stub `window.fetch` for `DD_API` URLs to test the nickname flow
+  without touching the real board.
+- Pipeline tests: `cd doodle-dash/kit && .venv/bin/python -m unittest discover -s tests`
+  (venv: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`).
+  Worker tests: `cd pentamino-worker && npm test`.

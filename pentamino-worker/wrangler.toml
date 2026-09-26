@@ -15,9 +15,20 @@ id = "32a26b93642a4a9080087d14ef5db548"
 name = "LEADERBOARD"
 class_name = "Leaderboard"
 
+# Doodle Dash (/dd/*): board, play tokens and rate limits all live in one
+# SQLite-backed Durable Object ("global"); it never touches KV.
+[[durable_objects.bindings]]
+name = "DOODLE"
+class_name = "DoodleBoard"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Leaderboard"]
+
+# Doodle Dash board (see above).
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["DoodleBoard"]
 
 [observability]
 enabled = true

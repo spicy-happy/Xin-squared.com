@@ -1,0 +1,121 @@
+{
+  "_comment": "Single source of truth for the Doodle Dash kit. make_pdf.py draws from 'sheet' and 'card'; process.py reads everything. Inches unless noted. Tune 'mat' and 'key' during the dry run.",
+
+  "creditNames": [],
+  "creditFallback": "Art by young artists",
+
+  "mat": {
+    "widthIn": 24.0,
+    "heightIn": 18.0,
+    "_hue": "OpenCV HSV (H 0-180). Green poster board ~35-85. For a blue mat try [90, 130].",
+    "hue": [35, 85],
+    "satMin": 50,
+    "valMin": 35
+  },
+
+  "pxPerIn": 150,
+  "maxLongSidePx": 4032,
+  "minSourcePxPerIn": 110,
+  "maxTiltDeg": 15,
+
+  "camera": {
+    "_comment": "Only used to estimate tilt. EXIF FocalLengthIn35mmFilm wins when present; phone main cameras are ~26 mm equivalent.",
+    "defaultFocal35mm": 26
+  },
+
+  "key": {
+    "_labDist": "a*/b* distance from the mat median that still counts as mat",
+    "labDist": 22,
+    "openPx": 3,
+    "closePx": 5,
+    "minPieceIn2": 0.25,
+    "matEdgeRunIn": 0.6,
+    "_extra": "matErodeIn: distance from any non-mat pixel for a pixel to count as 'clearly mat'. fieldSigmaIn: smoothing of the local mat-colour field (copes with uneven light). roiMarginIn: strip ignored along the mat edge.",
+    "matErodeIn": 0.1,
+    "fieldSigmaIn": 1.5,
+    "roiMarginIn": 0.08
+  },
+
+  "piece": {
+    "boxLineBandIn": 0.1,
+    "stickerBorderIn": 0.06,
+    "maxDeskewDeg": 20,
+    "touchingOversize": 1.3,
+    "maskErode": 0.08,
+    "maskCells": 16,
+    "webpQuality": 85,
+    "_extra": "edgeRingIn: outer ring of every piece never counted as ink (mat/paper blend). inkDarkL / inkChroma: Lab L drop / a*b* distance from the white-balanced paper that counts as ink. rectangularity: area / min-area-rect area for 'roughly rectangular' (deskew + box-line check). blob*: size of a second drawing that triggers 'pieces touching?'.",
+    "padIn": 0.3,
+    "edgeRingIn": 0.03,
+    "despillBandIn": 0.06,
+    "inkDarkL": 15,
+    "inkChroma": 14,
+    "inkCloseIn": 0.03,
+    "speckIn2": 0.005,
+    "blankInkIn2": 0.03,
+    "rectangularity": 0.85,
+    "boxLineMinSideIn": 1.0,
+    "boxLineCoverage": 0.6,
+    "blobMinIn2": 0.4,
+    "blobMinFrac": 0.25
+  },
+
+  "scale": {
+    "jumpInPerUnit": 1.2,
+    "jumpMinUnits": 0.5,
+    "jumpMaxUnits": 2.0,
+    "sceneryInPerUnit": 0.6,
+    "sceneryMinUnits": 1.0,
+    "sceneryMaxUnits": 6.0
+  },
+
+  "export": {
+    "heroMaxPx": 192,
+    "jumpPxPerUnit": 128,
+    "sceneryPxPerUnit": 48
+  },
+
+  "overrideMatchIn": 0.5,
+  "duplicateHashDist": 6,
+  "duplicateColorDist": 12,
+
+  "order": {
+    "_comment": "Reading order: a piece joins the current row when its centroid is within max(rowBandMinIn, rowBandFrac x median piece height) below the row's first piece.",
+    "rowBandMinIn": 0.5,
+    "rowBandFrac": 0.5
+  },
+  "debugMaxPx": 1800,
+
+  "markers": { "hero": 10, "jump": 11, "ground": 12, "sky": 13 },
+  "arucoDict": "DICT_4X4_50",
+
+  "card": {
+    "_comment": "Tray card layout, relative to the card's top-left corner. scaleTol: allowed marker-size error after rectification. keepRemainderIn2: a blob mostly under the card mask keeps its outside part if that part is at least this big (a piece touching the card).",
+    "widthIn": 3.0,
+    "heightIn": 3.5,
+    "markerIn": 2.0,
+    "markerTopIn": 0.35,
+    "borderPt": 3,
+    "borderInsetIn": 0.12,
+    "maskMarginIn": 0.15,
+    "scaleTol": 0.08,
+    "keepRemainderIn2": 1.0
+  },
+
+  "sheet": {
+    "pageIn": [8.5, 11.0],
+    "marginIn": 0.5,
+    "boxLinePt": 2,
+    "_boxes": "x, y = top-left of the box, measured from the top-left of the page",
+    "boxes": [
+      { "cat": "hero",   "star": true,  "label": "MY HERO",          "arrow": true, "x": 0.50, "y": 1.45, "w": 2.4, "h": 2.4 },
+      { "cat": "jump",   "star": true,  "label": "JUMP-OVER THING",                 "x": 3.05, "y": 1.45, "w": 2.4, "h": 2.4 },
+      { "cat": "jump",   "star": true,  "label": "JUMP-OVER THING",                 "x": 5.60, "y": 1.45, "w": 2.4, "h": 2.4 },
+      { "cat": "jump",   "star": false, "label": "JUMP-OVER THING",                 "x": 0.50, "y": 4.15, "w": 2.4, "h": 2.4 },
+      { "cat": "jump",   "star": false, "label": "JUMP-OVER THING",                 "x": 3.05, "y": 4.15, "w": 2.4, "h": 2.4 },
+      { "cat": "ground", "star": false, "label": "GROUND THING (tree, house, rock…)", "x": 0.50, "y": 6.90, "w": 3.6, "h": 3.6 },
+      { "cat": "sky",    "star": false, "label": "SKY THING (cloud, bird, sun…)",    "x": 4.40, "y": 6.90, "w": 3.6, "h": 3.6 }
+    ],
+    "tips": { "x": 5.60, "y": 4.15, "w": 2.4, "h": 2.4 }
+  }
+}
