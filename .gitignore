@@ -1,2 +1,9 @@
 .DS_Store
 .DS_Store
+
+# Doodle Dash: class photos never get committed; pipeline reports are local
+doodle-dash/kit/photos/
+doodle-dash/kit/out/
+doodle-dash/kit/.venv/
+__pycache__/
+node_modules/

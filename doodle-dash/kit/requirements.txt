@@ -1,0 +1,7 @@
+# Doodle Dash kit: python -m venv .venv && .venv/bin/pip install -r requirements.txt
+opencv-python-headless>=4.8   # cv2.aruco.ArucoDetector API
+numpy
+pillow                        # WebP, EXIF orientation
+pillow-heif                   # HEIC photos from iPhones
+reportlab                     # make_pdf.py
+pymupdf                       # tests only: renders the PDF for the acceptance checks

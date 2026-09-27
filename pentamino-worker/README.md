@@ -65,3 +65,105 @@ with the most clears — so a hand-seeded placeholder disappears once the real
 run's entry is on the board. Note the seed merge only ever *adds* entries to
 the Durable Object's list; deleting one that's already on the board means
 shipping a code change or a storage edit, not just a KV edit + mark bump.
+
+## Doodle Dash (/dd/*)
+
+[/doodle-dash](../doodle-dash/index.html), a kids' endless runner, borrows
+this Worker as its host. Everything lives under `/dd/`; Pentabomb's routes,
+KV data and limits are untouched (the only edit to Pentabomb code is one
+dispatch line in `fetch`; `npm test` checks that against git).
+
+### API
+
+All responses are JSON with the same CORS headers as Pentabomb.
+
+- `POST /dd/token` → `{ token }` — single-use play token, fetched at run start.
+  Allowed `Origin` required.
+- `GET /dd/scores` → `{ scores: [{ adj, noun, heroId, score, date }, ...] }` —
+  all-time top 5 (ties: earlier entry first). `date` is `YYYY-MM-DD` (UTC).
+- `GET /dd/words` → `{ adj: [...], noun: [...], retiredAdj: [i...],
+  retiredNoun: [i...] }` — nickname word lists (cached 1h). The client builds
+  "ADJ NOUN" nicknames from these; kids never type a name.
+- `POST /dd/scores` with exactly `{ adjIndex, nounIndex, heroId, score, token }`
+  → `{ scores: [...top 5], rank: 1-based | null }`. Allowed `Origin` required.
+  Any other key (e.g. a free-text `name`) is a 400. `heroId` must match
+  `^[a-z0-9-]{1,40}$`; `score` is an integer 50..1,000,000. The board stores
+  the resolved words, not the indices.
+- `POST /dd/admin/remove` with `{ adj, noun, score }` → `{ removed, scores }`
+- `POST /dd/admin/reset` → `{ ok: true }` (clears the board only)
+
+Errors: `400 invalid json | invalid body | invalid fields | invalid name |
+invalid hero | invalid score | missing token`, `401 unauthorized`,
+`403 forbidden` (origin) `| invalid token | implausible score`,
+`404 not found`, `405 method not allowed`, `429 rate limited`.
+
+### Storage
+
+One SQLite-backed Durable Object, `DoodleBoard` (binding `DOODLE`, instance
+`"global"`, migration `v2`). `/dd/*` never reads or writes KV.
+
+- `board` — top 20 kept, top 5 served; same adj+noun+score is one entry.
+- `tokens` — issued tokens; rows older than 2h are pruned on each issue.
+- `rl` — per-IP hourly counters keyed by a truncated SHA-256 of the IP (raw
+  IPs are never stored or logged); past hours are pruned.
+
+Each DO call is synchronous SQL, so check-then-write can't interleave, and a
+token is consumed with `DELETE ... RETURNING`, so two simultaneous submits
+with one token can't both succeed.
+
+### Limits and anti-cheat
+
+Friction, not proof. The game runs in the browser, so anyone determined can
+still post a made-up score; these checks only make that slower:
+
+- Every submit needs a single-use server-issued token (2h lifetime).
+- A score is refused (403, token still used up) if it's more than
+  90 pts/sec × seconds since the token was issued, with no small-score grace.
+  90 must stay ≥ 1.2 × the client's `SPEED_MAX / 10`; `npm test` checks it.
+- Per-IP hourly limits: 5000 tokens, 120 submits (a whole classroom can
+  share one school IP), 30 admin calls. These are separate from Pentabomb's.
+- Token and score POSTs need an allowlisted `Origin`.
+
+The admin routes are the real remedy for a bad entry.
+
+### Owner commands
+
+Run from this directory. `DD_ADMIN_KEY` is a Worker secret; if it's unset the
+admin routes always answer 401.
+
+```sh
+npx wrangler@4 secret put DD_ADMIN_KEY     # set/rotate the admin key (prompts)
+npx wrangler@4 deploy                      # ship Worker + DoodleBoard migration
+
+W=https://pentamino-scores.mail-f78.workers.dev
+curl -s $W/dd/scores
+curl -s -X POST $W/dd/admin/remove -H "Authorization: Bearer $DD_ADMIN_KEY" \
+  -H 'Content-Type: application/json' -d '{"adj":"ZIPPY","noun":"OTTER","score":1234}'
+curl -s -X POST $W/dd/admin/reset -H "Authorization: Bearer $DD_ADMIN_KEY"
+```
+
+To retire a nickname word, add its index to `DD_ADJ_RETIRED` /
+`DD_NOUN_RETIRED` in `src/index.js` and deploy. Never reorder or delete from
+the word lists (append only): clients submit indices.
+
+**First Doodle Dash deploy:** `wrangler deploy` ships the whole Worker, so it
+also ships any Pentabomb changes that were committed but never deployed (the
+share/challenge counters on `/event`). After deploying, re-test Pentabomb:
+
+```sh
+curl -s -X POST $W/event -H 'Origin: https://xin-squared.com' -d '{"type":"share"}' # counts one real share
+curl -s $W/stats | head -c 300   # "shares" should have ticked up
+```
+
+### Tests
+
+```sh
+npm install
+npm test
+```
+
+Vitest with `@cloudflare/vitest-pool-workers`, fully local (no remote KV or
+secrets). The `workers` project runs in workerd against `wrangler.toml`, plus
+an auxiliary worker running Pentabomb's source from the branch's git
+merge-base so the same Pentabomb flow can be compared old vs new. The `node`
+project checks the source diff against git and the client's `SPEED_MAX`.
