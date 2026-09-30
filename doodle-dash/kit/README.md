@@ -126,8 +126,17 @@ before any art is committed.
 - Touching pieces are treated as one; the tool warns about very large pieces
   and ones cut off at the edge of the green area.
 
-This route only splits and cleans the images; it does not build
-`art/manifest.json` (the tray-card route via `process.py` still does that).
+Then put them in the game:
+
+```sh
+.venv/bin/python build_art.py     # cutouts/ -> ../art/<category>/*.webp + ../art/manifest.json
+```
+
+`build_art.py` uses the same sizing, collision masks and WebP encoding as
+`process.py`, and adds to the existing manifest (`--replace` starts over).
+Categories with no art keep the game's placeholder drawings (for example, no
+hero yet). To tag a whole scan as the hero page use `--category hero`;
+`--random-categories` deals jump/ground/sky at random.
 
 ---
 
