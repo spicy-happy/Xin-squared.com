@@ -45,8 +45,9 @@
     position: absolute; left: 50%; top: 2.5%; transform: translateX(-50%) rotate(-2deg);
     font-size: clamp(11px, 2.6vmin, 16px); letter-spacing: .12em; font-weight: bold;
     color: #fff; background: var(--accent2); padding: 2px 10px; border-radius: 6px;
-    display: none;
+    display: none; border: 0; font-family: inherit; cursor: pointer; pointer-events: auto;
   }
+  .linkBtn { font: inherit; color: var(--accent2); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
   #turnHint {
     position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%);
     font-size: 15px; color: var(--soft); pointer-events: none; display: none; white-space: nowrap;
@@ -130,7 +131,7 @@
   <canvas id="game" aria-label="Doodle Dash game"></canvas>
   <div id="hud">
     <button id="muteBtn" tabindex="-1" aria-label="Sound on or off">🔊</button>
-    <div id="practiceTag">PRACTICE</div>
+    <button id="practiceTag" type="button" title="Turn practice off">PRACTICE ✕</button>
   </div>
 </div>
 <div id="turnHint">↻ Turn your phone sideways for a bigger view</div>
@@ -144,6 +145,7 @@
       <p class="lead">Pick your hero!</p>
       <div id="heroGrid"></div>
       <p class="note">Tap, click, Space or ↑ to jump. Hold for a BIG jump.</p>
+      <p class="note" id="practiceSelectNote" style="display:none">Practice mode: scores aren't saved. <button class="linkBtn" id="practiceOff2" type="button">Turn practice off</button></p>
     </div>
   </div>
 </div>
@@ -152,7 +154,7 @@
   <div class="panel">
     <div class="bigScore" id="finalScore">0</div>
     <div id="newBest" style="display:none"><span class="badge">NEW BEST!</span></div>
-    <p class="note" id="practiceNote" style="display:none">Practice run — not saved.</p>
+    <p class="note" id="practiceNote" style="display:none">Practice run — not saved. <button class="linkBtn" id="practiceOff" type="button">Turn practice off</button></p>
 
     <div class="card" id="nickCard" style="display:none">
       <div class="lead">🌍 You made the WORLD TOP 5! Pick a nickname:</div>
@@ -1022,7 +1024,20 @@ function frame(now) {
 
 // ---------- Screens ----------
 function hideOverlays() { $('selectLayer').classList.remove('show'); $('overLayer').classList.remove('show'); }
-function setPracticeTag() { $('practiceTag').style.display = S.practice ? 'block' : 'none'; }
+// Practice comes from ?debug=1 or from using a debug hook. Turning it off = reload
+// without ?debug, so no debug state (god mode, locked speed) can leak into a scored run.
+function leavePractice() {
+  const u = new URL(location.href);
+  u.searchParams.delete('debug');
+  location.href = u.toString();
+}
+$('practiceTag').addEventListener('click', leavePractice);
+$('practiceOff').addEventListener('click', leavePractice);
+$('practiceOff2').addEventListener('click', leavePractice);
+function setPracticeTag() {
+  $('practiceTag').style.display = S.practice ? 'block' : 'none';
+  $('practiceSelectNote').style.display = S.practice ? 'block' : 'none';
+}
 
 function thumbCanvas(sp, size) {
   const c = document.createElement('canvas');
