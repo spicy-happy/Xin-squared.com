@@ -42,9 +42,9 @@ class PdfTests(unittest.TestCase):
         import pymupdf
         doc = pymupdf.open(self.pdf)
         self.assertEqual(doc.page_count, 2)
-        for page in doc:
-            self.assertAlmostEqual(page.rect.width / 72, 8.5, places=3)
-            self.assertAlmostEqual(page.rect.height / 72, 11.0, places=3)
+        for page, (w, h) in zip(doc, [(11.0, 8.5), (8.5, 11.0)]):  # kid sheet landscape, tray cards portrait
+            self.assertAlmostEqual(page.rect.width / 72, w, places=3)
+            self.assertAlmostEqual(page.rect.height / 72, h, places=3)
         doc.close()
 
     def test_boxes_match_config(self):

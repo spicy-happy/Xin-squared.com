@@ -244,7 +244,7 @@ class FailureTests(unittest.TestCase):
 
     def test_mat_colored_edge_warning(self):
         c = self.case("edge")
-        cloud = synth.make_piece(self.tmp.name, 5, "cloud", 3.0, cut="tight")  # coloured fill runs to the cut
+        cloud = synth.make_piece(self.tmp.name, 4, "cloud", 3.0, cut="tight")  # coloured fill runs to the cut
         c.shoot("IMG_3011", [(cloud, 3.5, 3.0, 0), (self.star, 7.5, 3.0, 0)])
         res = c.run()
         p = res["pieces"]

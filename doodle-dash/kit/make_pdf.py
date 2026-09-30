@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build kit/doodle-dash-sheets.pdf: page 1 = kid sheet, page 2 = tray cards.
+"""Build kit/doodle-dash-sheets.pdf: page 1 = kid sheet (landscape), page 2 = tray cards.
 
 All geometry comes from config.json ("sheet" and "card"), so process.py and
 the printed page can never disagree. Output is vector and byte-stable
@@ -13,7 +13,7 @@ import json
 import os
 
 import cv2
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import landscape, letter
 from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen import canvas
 
@@ -21,14 +21,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 IN = 72.0  # points per inch
 
 TIPS = [
-    "Do the ★ ones first",
-    "Hero faces the arrow →",
+    "Hero faces the arrow",
+    "Draw it big",
     "Jump things sit on the ground",
-    "Color it all in",
-    "No names or words on the front",
-    "Cut around it, leaving a thin white edge. (Little hands: cutting out the whole box is OK.)",
-    "Put each piece in its tray",
+    "Cut around your piece",
 ]
+TRAY_PAGE_IN = (8.5, 11.0)  # tray cards stay portrait; the kid sheet is landscape
 CARD_WORDS = {"hero": "HERO", "jump": "JUMP", "ground": "GROUND", "sky": "SKY"}
 
 
@@ -119,10 +117,7 @@ def kid_sheet(pg, cfg):
     pg.c.setFillGray(0)
     pg.c.setStrokeGray(0)
 
-    # header band y 0.5-1.25
-    pg.text(page_w / 2, 0.92, "DOODLE DASH", "Helvetica-Bold", 28, align="center")
-    pg.text(page_w / 2, 1.17, "Draw BIG • Color it all in • No names or words • Cut it out",
-            "Helvetica", 12, align="center")
+    pg.text(page_w / 2, 0.68, "DOODLE DASH", "Helvetica-Bold", 28, align="center")
 
     for b in sh["boxes"]:
         label = ("★ " if b["star"] else "") + b["label"]
@@ -134,19 +129,17 @@ def kid_sheet(pg, cfg):
     # text-only tips panel in the empty slot (no box line)
     t = sh["tips"]
     y = t["y"] + 0.2
-    pg.text(t["x"] + 0.05, y, "TIPS", "Helvetica-Bold", 12)
-    y += 0.24
-    size = 10
+    pg.text(t["x"] + 0.05, y, "TIPS", "Helvetica-Bold", 14)
+    y += 0.32
+    size = 12
     for tip in TIPS:
         lines = simpleSplit(tip, "Helvetica", size, (t["w"] - 0.25) * IN)
         for i, ln in enumerate(lines):
             if i == 0:
                 pg.text(t["x"] + 0.05, y, "•", "Helvetica", size)
             draw_rich(pg, t["x"] + 0.2, y, ln, "Helvetica", size)
-            y += 0.17
-        y += 0.06
-
-    footer(pg, cfg, "Print at 100% / Actual size • US Letter")
+            y += 0.2
+        y += 0.1
 
 
 def marker_cells(dict_name, marker_id):
@@ -155,10 +148,30 @@ def marker_cells(dict_name, marker_id):
     return cv2.aruco.generateImageMarker(d, marker_id, bits)  # 1 px per cell
 
 
+def draw_marker(pg, cfg, marker_id, mx, my, m):
+    """ArUco marker as vector squares: black square (m inches, top-left mx, my),
+    then white bit cells."""
+    cells = marker_cells(cfg["arucoDict"], marker_id)
+    n = cells.shape[0]
+    cell = m / n
+    pg.c.setFillGray(0)
+    pg.rect(mx, my, m, m, 0, stroke=False, fill=True)
+    # all white cells in ONE filled path: separate rects leave hairline
+    # seams between neighbours in some viewers/printers
+    pg.c.setFillGray(1)
+    path = pg.c.beginPath()
+    for r in range(n):
+        for c in range(n):
+            if cells[r, c] > 127:
+                path.rect((mx + c * cell) * IN, pg.y(my + (r + 1) * cell), cell * IN, cell * IN)
+    pg.c.drawPath(path, stroke=0, fill=1)
+    pg.c.setFillGray(0)
+
+
 def tray_cards(pg, cfg):
     card = cfg["card"]
     cw, ch = card["widthIn"], card["heightIn"]
-    page_w, page_h = cfg["sheet"]["pageIn"]
+    page_w, page_h = TRAY_PAGE_IN
     x0 = (page_w - 2 * cw) / 2
     y0 = (page_h - 2 * ch) / 2
     pg.c.setFillGray(0)
@@ -176,24 +189,10 @@ def tray_cards(pg, cfg):
         ins = card["borderInsetIn"]
         pg.rect(cx + ins, cy + ins, cw - 2 * ins, ch - 2 * ins, card["borderPt"])
 
-        # ArUco marker as vector squares: black square, then white bit cells
-        cells = marker_cells(cfg["arucoDict"], cfg["markers"][cat])
-        n = cells.shape[0]
         m = card["markerIn"]
         mx = cx + (cw - m) / 2
         my = cy + card["markerTopIn"]
-        cell = m / n
-        pg.c.setFillGray(0)
-        pg.rect(mx, my, m, m, 0, stroke=False, fill=True)
-        # all white cells in ONE filled path: separate rects leave hairline
-        # seams between neighbours in some viewers/printers
-        pg.c.setFillGray(1)
-        path = pg.c.beginPath()
-        for r in range(n):
-            for c in range(n):
-                if cells[r, c] > 127:
-                    path.rect((mx + c * cell) * IN, pg.y(my + (r + 1) * cell), cell * IN, cell * IN)
-        pg.c.drawPath(path, stroke=0, fill=1)
+        draw_marker(pg, cfg, cfg["markers"][cat], mx, my, m)
         pg.c.setFillGray(0)
         word_y = my + m + (ch - card["markerTopIn"] - m - ins) / 2 + 0.16
         pg.text(cx + cw / 2, word_y, CARD_WORDS[cat], "Helvetica-Bold", 30, align="center")
@@ -201,33 +200,79 @@ def tray_cards(pg, cfg):
     footer(pg, cfg, "Print at 100% / Actual size • each marker must measure exactly 2.00 in")
 
 
+def green_page(pg, cfg):
+    """The one reusable scan page: solid green with a marker in each corner."""
+    g = cfg["greenPage"]
+    x0, y0, x1, y1 = g["greenRectIn"]
+    m, pad = g["markerIn"], g["plaqueMarginIn"]
+    r, gr, b = g["rgb"]
+    pg.c.setFillColorRGB(r / 255, gr / 255, b / 255)
+    pg.rect(x0, y0, x1 - x0, y1 - y0, 0, stroke=False, fill=True)
+    for (mx, my), mid in zip(g["cornerAtIn"], g["corners"]):
+        pg.c.setFillGray(1)  # white plaque = quiet zone around the marker
+        pg.rect(mx - pad, my - pad, m + 2 * pad, m + 2 * pad, 0, stroke=False, fill=True)
+        draw_marker(pg, cfg, mid, mx, my, m)
+    mid_x = g["pageIn"][0] / 2
+    top = g["cornerAtIn"][0][1]
+    pg.c.setFillGray(1)
+    pg.text(mid_x, top + 0.38, "DOODLE DASH scan page", "Helvetica-Bold", 20, align="center")
+    pg.text(mid_x, top + 0.68, "Lay cutouts on the green, a finger-width apart", "Helvetica", 12, align="center")
+    pg.text(mid_x, y1 - 0.55, "Keep the black squares uncovered \u2022 lay flat \u2022 scan at 300 dpi",
+            "Helvetica", 12, align="center")
+    pg.c.setFillGray(0)
+
+
+def build_green(out_path):
+    cfg = load_config()
+    w, h = cfg["greenPage"]["pageIn"]
+    c = canvas.Canvas(out_path, pagesize=(w * IN, h * IN), invariant=1, pageCompression=1)
+    c.setTitle("Doodle Dash green scan page")
+    c.setAuthor("xin-squared.com")
+    green_page(Page(c, h), cfg)
+    c.showPage()
+    c.save()
+
+
 def footer(pg, cfg, s):
-    page_w, page_h = cfg["sheet"]["pageIn"]
+    page_w, page_h = TRAY_PAGE_IN
     pg.c.setFillGray(0.35)
     pg.text(page_w / 2, page_h - 0.25, s, "Helvetica", 8, align="center")
     pg.c.setFillGray(0)
 
 
-def build(out_path):
+def build(out_path, sheet_only=False):
     cfg = load_config()
     page_w, page_h = cfg["sheet"]["pageIn"]
-    assert (page_w * IN, page_h * IN) == letter
-    c = canvas.Canvas(out_path, pagesize=letter, invariant=1, pageCompression=1)
-    c.setTitle("Doodle Dash kit")
+    assert (page_w * IN, page_h * IN) == landscape(letter)
+    c = canvas.Canvas(out_path, pagesize=landscape(letter), invariant=1, pageCompression=1)
+    c.setTitle("Doodle Dash sheet" if sheet_only else "Doodle Dash kit")
     c.setAuthor("xin-squared.com")
     pg = Page(c, page_h)
     kid_sheet(pg, cfg)
     c.showPage()
-    tray_cards(pg, cfg)
-    c.showPage()
+    if not sheet_only:
+        c.setPageSize(letter)
+        pg = Page(c, TRAY_PAGE_IN[1])
+        tray_cards(pg, cfg)
+        c.showPage()
     c.save()
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=os.path.join(HERE, "doodle-dash-sheets.pdf"))
+    ap.add_argument("--green-pages", action="store_true",
+                    help="write the single reusable green scan page (corner markers) instead")
+    ap.add_argument("--sheet-only", action="store_true",
+                    help="kid sheet only (no tray cards), e.g. for a green-paper-only class")
     args = ap.parse_args()
-    build(args.out)
+    if args.green_pages:
+        out = args.out if args.out != os.path.join(HERE, "doodle-dash-sheets.pdf") \
+            else os.path.join(HERE, "doodle-dash-green-page.pdf")
+        build_green(out)
+        print("wrote", os.path.relpath(out))
+        return
+    build(args.out, sheet_only=args.sheet_only)
     print("wrote", os.path.relpath(args.out))
 
 
