@@ -132,6 +132,15 @@ Then put them in the game:
 .venv/bin/python build_art.py     # cutouts/ -> ../art/<category>/*.webp + ../art/manifest.json
 ```
 
+Photos of pieces laid out in the printed sheet's order (hero first, then jump
+things, then ground, sky last; two rows, left to right) can be sorted
+automatically: `--sheet-order`. Phone photos have no scale, so add
+`--frame-width 11` (assume the picture is about 11 in wide). Useful extras:
+`--join 0.07` (glue together a cutout whose green ink got keyed out),
+`--margin 0.03` (ignore printed page text at the border), `--split 0.045` (pull
+apart touching pieces). Pieces with names or writing: leave them out with
+`build_art.py --exclude ID...`.
+
 `build_art.py` uses the same sizing, collision masks and WebP encoding as
 `process.py`, and adds to the existing manifest (`--replace` starts over).
 Categories with no art keep the game's placeholder drawings (for example, no

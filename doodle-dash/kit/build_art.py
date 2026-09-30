@@ -21,7 +21,7 @@ import process
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-def build(cutouts_dir, art_dir, replace=False, log=print):
+def build(cutouts_dir, art_dir, replace=False, exclude=(), log=print):
     cfg = process.load_config(os.path.join(HERE, "config.json")) if hasattr(process, "load_config") else \
         json.load(open(os.path.join(HERE, "config.json"), encoding="utf-8"))
     with open(os.path.join(cutouts_dir, "pieces.json"), encoding="utf-8") as f:
@@ -37,6 +37,9 @@ def build(cutouts_dir, art_dir, replace=False, log=print):
             manifest[c] = list(old.get(c, []))
     added = 0
     for p in pieces:
+        if p["id"] in exclude:
+            log(f"skip {p['id']}: excluded")
+            continue
         cat = p.get("category")
         if cat not in process.CATS:
             log(f"skip {p['id']}: no category (run cutouts.py with --category or --random-categories)")
@@ -82,9 +85,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--cutouts", default=os.path.join(HERE, "cutouts"))
     ap.add_argument("--art", default=os.path.join(HERE, "..", "art"))
+    ap.add_argument("--exclude", nargs="+", default=[], metavar="ID",
+                    help="piece ids to leave out (e.g. drawings with names or writing on them)")
     ap.add_argument("--replace", action="store_true", help="start the manifest from scratch")
     a = ap.parse_args()
-    build(a.cutouts, a.art, a.replace)
+    build(a.cutouts, a.art, a.replace, set(a.exclude))
 
 
 if __name__ == "__main__":

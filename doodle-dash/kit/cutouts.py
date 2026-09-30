@@ -141,8 +141,46 @@ def find_page(rgb, cfg, min_corners=3):
 # --------------------------------------------------------------------------
 # one scan -> list of cutouts
 
+def split_touching(merged, ppi, split_in):
+    """Label the pieces in `merged` (bool). A piece is split only where a neck is thinner than about
+    2 * split_in inches AND every resulting part is substantial (>= 15% of the whole); parts that
+    vanish when eroded (thin arms, tails) go to the nearest core. -> (label image, count + 1)."""
+    out = np.zeros(merged.shape, np.int32)
+    n_orig, orig, st, _ = cv2.connectedComponentsWithStats(merged.astype(np.uint8), connectivity=8)
+    r = max(2, int(round(split_in * ppi)))
+    nxt = 1
+    for oid in range(1, n_orig):
+        x, y, w, h = st[oid, :4]
+        m = orig[y:y + h, x:x + w] == oid
+        seeds = np.zeros(m.shape, np.int32)
+        if split_in > 0:
+            core = cv2.erode(np.pad(m, 1).astype(np.uint8), disk(r))[1:-1, 1:-1] > 0
+            k, seeds = cv2.connectedComponents(core.astype(np.uint8), connectivity=8)
+        else:
+            k = 1
+        if k <= 2:                      # zero or one core: one piece
+            out[y:y + h, x:x + w][m] = nxt
+            nxt += 1
+            continue
+        # every pixel of the piece -> its nearest core
+        _, near = cv2.distanceTransformWithLabels((seeds == 0).astype(np.uint8), cv2.DIST_L2, 5,
+                                                  labelType=cv2.DIST_LABEL_CCOMP)
+        lut = np.zeros(int(near.max()) + 1, np.int32)
+        lut[near[seeds > 0]] = seeds[seeds > 0]
+        part = np.where(m, lut[near], 0)
+        ids, counts = np.unique(part[part > 0], return_counts=True)
+        if counts.min() < 0.15 * counts.sum():
+            out[y:y + h, x:x + w][m] = nxt
+            nxt += 1
+            continue
+        for i in ids:
+            out[y:y + h, x:x + w][part == i] = nxt
+            nxt += 1
+    return out, nxt
+
+
 def extract(rgb, dpi, tol=20.0, min_area_in2=0.08, shrink_in=0.008, mat=None, keep_holes=False, region=None,
-            split_in=0.04, log=print):
+            split_in=0.04, keep_edge=False, join_in=0.012, margin=0.0, log=print):
     """-> (list of dicts {rgba, box=(x, y, w, h), area_in2, warnings} in reading order, scan warnings).
     `region`: bool mask of where cutouts may be (the printed page's work area); default: find the paper."""
     ppi = float(dpi)
@@ -185,22 +223,17 @@ def extract(rgb, dpi, tol=20.0, min_area_in2=0.08, shrink_in=0.008, mat=None, ke
         region = np.ones(mat_like.shape, bool)
         warnings.append("no mat colour found in the scan (try --mat R,G,B)")
 
+    if margin > 0:  # ignore a strip round the picture (printed page text / marker edges)
+        inner = np.zeros(region.shape, bool)
+        my, mx = int(region.shape[0] * margin), int(region.shape[1] * margin)
+        inner[my:region.shape[0] - my, mx:region.shape[1] - mx] = True
+        region = region & inner
     fg = ~mat_like & region
     fg = cv2.morphologyEx(fg.astype(np.uint8), cv2.MORPH_OPEN, disk(max(1, ppi / 100))) > 0
     # bridge tiny gaps (a green mark cutting a white edge) so one cutout stays one piece
-    merged = cv2.morphologyEx(fg.astype(np.uint8), cv2.MORPH_CLOSE, disk(0.012 * ppi)) > 0
-    # pieces that only touch at a thin neck: label the cores, then grow the labels back
-    r = max(2, int(round(split_in * ppi)))
-    n0, seeds = cv2.connectedComponents((cv2.erode(merged.astype(np.uint8), disk(r)) > 0).astype(np.uint8), connectivity=8)
-    lab_img = seeds.astype(np.int32)
-    for _ in range(r + 2):
-        grown = cv2.dilate(lab_img.astype(np.float32), disk(1))
-        lab_img = np.where((lab_img == 0) & merged, grown.astype(np.int32), lab_img)
-    # anything the erosion removed entirely (thin slivers) is kept as its own pieces
-    rest = merged & (lab_img == 0)
-    n1, rl = cv2.connectedComponents(rest.astype(np.uint8), connectivity=8)
-    lab_img = np.where(rest, rl + n0, lab_img)
-    n = n0 + n1
+    merged = cv2.morphologyEx(fg.astype(np.uint8), cv2.MORPH_CLOSE, disk(join_in * ppi)) > 0
+    # pieces that only touch at a thin neck are split; thin arms/tails stay with their piece
+    lab_img, n = split_touching(merged, ppi, split_in)
     cc = lab_img
     st = np.zeros((n, 5), np.int64)
     for i in range(1, n):
@@ -209,6 +242,7 @@ def extract(rgb, dpi, tol=20.0, min_area_in2=0.08, shrink_in=0.008, mat=None, ke
             st[i] = (xs.min(), ys.min(), xs.max() - xs.min() + 1, ys.max() - ys.min() + 1, len(xs))
 
     pieces = []
+    dropped = []
     H, W = fg.shape
     for i in range(1, n):
         x, y, w, h, area = st[i]
@@ -217,10 +251,19 @@ def extract(rgb, dpi, tol=20.0, min_area_in2=0.08, shrink_in=0.008, mat=None, ke
         comp = cc == i
         m = (comp & fg) if keep_holes else fill_holes(comp)
         pw = []
+        touch = None
         if x <= 1 or y <= 1 or x + w >= W - 1 or y + h >= H - 1:
-            pw.append("touches the edge of the scan (cut off?)")
+            touch = "the edge of the picture"
         elif (cv2.dilate(comp.astype(np.uint8), disk(max(2, 0.02 * ppi))) > 0)[~region].any():
-            pw.append("touches the edge of the green area (cut off?)")
+            touch = "the edge of the green"
+        if touch:
+            cx, cy = x + w / 2, y + h / 2
+            in_corner = (cx < 0.12 * W or cx > 0.88 * W) and (cy < 0.12 * H or cy > 0.88 * H)
+            if in_corner and not keep_edge:
+                dropped.append(f"ignored a {w / ppi:.1f} x {h / ppi:.1f} in shape at {touch} in a corner of the picture "
+                               "(a cropped page marker); --keep-edge to keep such pieces")
+                continue
+            pw.append(f"touches {touch} (cut off?)")
         if max(w, h) / ppi > 9:
             pw.append("very large: two cutouts touching?")
         pieces.append(dict(mask=m, box=(x, y, w, h), area_in2=area / (ppi * ppi), warnings=pw))
@@ -254,7 +297,7 @@ def extract(rgb, dpi, tol=20.0, min_area_in2=0.08, shrink_in=0.008, mat=None, ke
             continue
         rgba = rgba[max(0, ys.min() - 2):ys.max() + 3, max(0, xs.min() - 2):xs.max() + 3]
         out.append(dict(rgba=rgba, box=p["box"], area_in2=p["area_in2"], warnings=p["warnings"]))
-    return out, warnings
+    return out, warnings + dropped
 
 
 # --------------------------------------------------------------------------
@@ -285,6 +328,26 @@ def review_sheet(items, path, cols=5, cell=220):
     cv2.imwrite(path, arr)
 
 
+def sheet_sort(pieces):
+    """Reading order of the printed kid sheet: two rows (the top floor(N/2) pieces, then the rest),
+    each left to right."""
+    n = len(pieces)
+    by_y = sorted(pieces, key=lambda p: p["box"][1] + p["box"][3] / 2)
+    top, bottom = by_y[:n // 2], by_y[n // 2:]
+    return sorted(top, key=lambda p: p["box"][0]) + sorted(bottom, key=lambda p: p["box"][0])
+
+
+def sheet_categories(n):
+    """Kid sheet order: hero first, sky last, ground before it, everything between is a jump thing."""
+    if n == 0:
+        return []
+    if n == 1:
+        return ["hero"]
+    if n == 2:
+        return ["hero", "sky"]
+    return ["hero"] + ["jump"] * (n - 3) + ["ground", "sky"]
+
+
 def gather(paths):
     files = []
     for p in paths:
@@ -296,7 +359,7 @@ def gather(paths):
 
 
 def run(paths, out_dir, dpi=None, tol=20.0, min_area=0.08, shrink=0.008, mat=None, keep_holes=False,
-        webp=False, markers=True, category=None, split=0.04, random_categories=False, seed=1, log=print):
+        webp=False, markers=True, category=None, split=0.04, frame_width=None, keep_edge=False, join=0.012, margin=0.0, random_categories=False, seed=1, sheet_order=False, log=print):
     rng = random.Random(seed)
     files = gather(paths)
     cfg = load_config()
@@ -315,6 +378,8 @@ def run(paths, out_dir, dpi=None, tol=20.0, min_area=0.08, shrink=0.008, mat=Non
             continue
         for name, rgb, sdpi in scans:
             cat, region, warns = category, None, []
+            if frame_width and not f.lower().endswith(".pdf"):
+                sdpi = rgb.shape[1] / frame_width   # no scale in the picture: assume it frames this many inches
             if markers:
                 flat, ppi, region, pwarns = find_page(rgb, cfg)
                 if flat is not None:
@@ -323,20 +388,25 @@ def run(paths, out_dir, dpi=None, tol=20.0, min_area=0.08, shrink=0.008, mat=Non
                 else:
                     warns += [f"{w}: falling back to plain green detection (sizes are only as good as the scan dpi)" for w in pwarns]
                     region = None
-            pieces, ew = extract(rgb, sdpi, tol, min_area, shrink, mat, keep_holes, region, split, log)
+            pieces, ew = extract(rgb, sdpi, tol, min_area, shrink, mat, keep_holes, region, split, keep_edge, join, margin, log)
             warns += ew
+            sheet_cats = None
+            if sheet_order:
+                pieces = sheet_sort(pieces)
+                sheet_cats = sheet_categories(len(pieces))
             log(f"{name}: {len(pieces)} cutouts" + (f" [{cat}]" if cat else "")
                 + (f", page found, {sdpi:g} px/in" if region is not None else f" ({sdpi:g} dpi, no page markers)"))
             for w in warns:
                 log(f"  WARNING {w}")
             for k, p in enumerate(pieces, 1):
                 pid = f"{name}-{k:02d}"
-                pcat = rng.choice(RANDOM_CATS) if random_categories else cat
-                rel = os.path.join(pcat, pid + ext) if random_categories else pid + ext
+                pcat = sheet_cats[k - 1] if sheet_cats else rng.choice(RANDOM_CATS) if random_categories else cat
+                assigned = bool(sheet_cats) or random_categories
+                rel = os.path.join(pcat, pid + ext) if assigned else pid + ext
                 os.makedirs(os.path.dirname(os.path.join(out_dir, rel)), exist_ok=True)
                 im = Image.fromarray(p["rgba"], "RGBA")
                 im.save(os.path.join(out_dir, rel), **({"quality": 92, "method": 6} if webp else {"optimize": True}))
-                review.append((pid + (f" {pcat}" if random_categories else "") + (" !" if p["warnings"] else ""), p["rgba"]))
+                review.append((pid + (f" {pcat}" if assigned else "") + (" !" if p["warnings"] else ""), p["rgba"]))
                 table.append({"id": pid, "file": rel, "scan": name, "category": pcat,
                               "widthIn": round((p["rgba"].shape[1] - 4) / sdpi, 3),
                               "heightIn": round((p["rgba"].shape[0] - 4) / sdpi, 3),
@@ -344,7 +414,11 @@ def run(paths, out_dir, dpi=None, tol=20.0, min_area=0.08, shrink=0.008, mat=Non
                 for w in p["warnings"]:
                     log(f"  WARNING {pid}: {w}")
     if review:
-        with open(os.path.join(out_dir, "pieces.json"), "w") as f:
+        pj = os.path.join(out_dir, "pieces.json")
+        if os.path.exists(pj):  # several runs into one folder accumulate (same id = newest wins)
+            with open(pj) as f:
+                table = [t for t in json.load(f) if t["id"] not in {n["id"] for n in table}] + table
+        with open(pj, "w") as f:
             json.dump(table, f, indent=1)
             f.write("\n")
         review_sheet(review, os.path.join(out_dir, "review.png"))
@@ -373,12 +447,28 @@ def main():
     ap.add_argument("--random-categories", action="store_true",
                     help="give each piece a random category (jump = obstacle, ground / sky = environment) "
                          "and save it in a folder of that name")
+    ap.add_argument("--frame-width", type=float,
+                    help="photos have no scale: assume each one frames this many inches across (e.g. 11); "
+                         "overrides --dpi. Sizes between pieces in one photo stay right.")
+    ap.add_argument("--keep-edge", action="store_true",
+                    help="keep pieces touching the edge in a corner of the picture (by default they are dropped as cropped page markers)")
+    ap.add_argument("--join", type=float, default=0.012,
+                    help="bits of one cutout closer than this many inches count as one piece (default 0.012; "
+                         "raise for a cutout whose green ink got keyed out and left it in fragments)")
+    ap.add_argument("--margin", type=float, default=0.0,
+                    help="ignore this fraction of the picture width/height all round (e.g. 0.025) to hide "
+                         "printed page text or marker edges at the border")
+    ap.add_argument("--sheet-order", action="store_true",
+                    help="pieces were laid out in the printed sheet's order (two rows, left to right): "
+                         "first = hero, then jump things, then ground, last = sky")
     ap.add_argument("--seed", type=int, default=1, help="seed for --random-categories (same seed = same result)")
     ap.add_argument("--webp", action="store_true", help="write WebP instead of PNG")
     a = ap.parse_args()
     mat = tuple(int(v) for v in a.mat.split(",")) if a.mat else None
-    sys.exit(run(a.scans, a.out, a.dpi, a.tol, a.min_area, a.shrink, mat, a.keep_holes, a.webp,
-                  not a.no_markers, a.category, a.split, a.random_categories, a.seed))
+    sys.exit(run(a.scans, a.out, dpi=a.dpi, tol=a.tol, min_area=a.min_area, shrink=a.shrink, mat=mat,
+                 keep_holes=a.keep_holes, webp=a.webp, markers=not a.no_markers, category=a.category,
+                 split=a.split, frame_width=a.frame_width, keep_edge=a.keep_edge, join=a.join, margin=a.margin,
+                 random_categories=a.random_categories, seed=a.seed, sheet_order=a.sheet_order))
 
 
 if __name__ == "__main__":
