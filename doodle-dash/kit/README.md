@@ -10,7 +10,7 @@ automated.
 | File | What it is |
 |---|---|
 | `doodle-dash-sheets.pdf` | Page 1 = kid sheet (print ~30). Page 2 = tray cards (print once, card stock). |
-| `make_pdf.py` | Rebuilds the PDF from `config.json`. |
+| `make_pdf.py` | Rebuilds the PDFs from `config.json` (`--sheet-only`, `--green-pages`). |
 | `process.py` | Photos → sprites + `art/manifest.json` + review sheet. |
 | `config.json` | Mat size and hue, thresholds, card layout, credit names. Tuned in the dry run. |
 | `overrides.json` | Manual fixes, each pinned to the piece's position on the mat. |
@@ -84,6 +84,50 @@ names only** in `config.json` → `creditNames`, e.g.
 `["Ava", "Ben", "Cal"]` → "Art by Ava, Ben and Cal". Leave it empty to show
 the generic `creditFallback` ("Art by young artists"). No school name or
 location, and no names anywhere else (sheet fronts, art, world board).
+
+---
+
+## Scan route (one green page, no tray cards)
+
+1. Print `doodle-dash-green-page.pdf` (one page, reusable) at
+   **100% / Actual size**. Rebuild with `.venv/bin/python make_pdf.py --green-pages`.
+   Matte paper works best; solid green uses a lot of ink, so "draft" quality is fine.
+2. Kids' cutouts go on the page, a finger-width apart, not
+   touching the black squares, not overlapping. Anything outside the green
+   working area (under the title strip, above the bottom strip) is ignored.
+   Scan as many times as you like: same page, new cutouts each time.
+3. Scan the page flat (200-300 dpi, JPG/PNG/TIFF/PDF; a phone photo also works)
+   and drop the files in `scans/`.
+4. Run:
+
+```sh
+cd doodle-dash/kit
+.venv/bin/python cutouts.py scans/            # or files: scan1.jpg scan2.pdf ...
+.venv/bin/python cutouts.py scans/hero --category hero   # optional: tag pieces for later
+```
+
+The four black corner squares let the tool straighten the scan (any rotation,
+upside down, a bit of perspective) and read the real scale (so sizes are true
+inches whatever the scan dpi). It needs 3 of the 4.
+
+Output goes to `kit/cutouts/`: `<scan>-01.png`, `-02.png`, ... in reading order,
+`pieces.json` (width/height in inches, px per inch, warnings per piece, and the category if you passed `--category`)
+and `review.png` (all pieces on a checkerboard; `!` = warning). `scans/` and
+`cutouts/` are git-ignored like `photos/`, so Gate A / Gate B still apply
+before any art is committed.
+
+- Markers not found (or a plain green sheet) still works, just without true
+  sizes; `--no-markers` skips the marker search.
+- Mat colour is found automatically (`--mat R,G,B` forces one). Green left
+  around pieces: raise `--tol` (default 20). Green drawings getting eaten: lower
+  it. Leave a white paper edge when cutting so green ink is never the outermost colour.
+- Holes inside a cutout are filled (green ink is safe); `--keep-holes` shows the
+  mat through them. `--webp` writes WebP.
+- Touching pieces are treated as one; the tool warns about very large pieces
+  and ones cut off at the edge of the green area.
+
+This route only splits and cleans the images; it does not build
+`art/manifest.json` (the tray-card route via `process.py` still does that).
 
 ---
 

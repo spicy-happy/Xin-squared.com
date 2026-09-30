@@ -102,20 +102,31 @@
     "keepRemainderIn2": 1.0
   },
 
-  "sheet": {
+  "greenPage": {
+    "_comment": "Printed green scan page (make_pdf.py --green-pages). Inches from the top-left of the page. Four corner markers TL,TR,BR,BL use ids 'corners'. cutouts.py reads the same geometry.",
     "pageIn": [8.5, 11.0],
+    "rgb": [46, 160, 64],
+    "greenRectIn": [0.30, 0.30, 8.20, 10.70],
+    "markerIn": 1.0,
+    "plaqueMarginIn": 0.15,
+    "corners": [20, 21, 22, 23],
+    "cornerAtIn": [[0.45, 0.45], [7.05, 0.45], [7.05, 9.55], [0.45, 9.55]],
+    "workAreaIn": [0.40, 1.75, 8.10, 9.25]
+  },
+
+  "sheet": {
+    "pageIn": [11.0, 8.5],
     "marginIn": 0.5,
     "boxLinePt": 2,
-    "_boxes": "x, y = top-left of the box, measured from the top-left of the page",
+    "_boxes": "x, y = top-left of the box, measured from the top-left of the page. Landscape: row 1 = tips + hero + 3 jump; row 2 = jump, ground, sky (one bonus jump box dropped: no room at these sizes)",
     "boxes": [
-      { "cat": "hero",   "star": true,  "label": "MY HERO",          "arrow": true, "x": 0.50, "y": 1.45, "w": 2.4, "h": 2.4 },
-      { "cat": "jump",   "star": true,  "label": "JUMP-OVER THING",                 "x": 3.05, "y": 1.45, "w": 2.4, "h": 2.4 },
-      { "cat": "jump",   "star": true,  "label": "JUMP-OVER THING",                 "x": 5.60, "y": 1.45, "w": 2.4, "h": 2.4 },
-      { "cat": "jump",   "star": false, "label": "JUMP-OVER THING",                 "x": 0.50, "y": 4.15, "w": 2.4, "h": 2.4 },
-      { "cat": "jump",   "star": false, "label": "JUMP-OVER THING",                 "x": 3.05, "y": 4.15, "w": 2.4, "h": 2.4 },
-      { "cat": "ground", "star": false, "label": "GROUND THING (tree, house, rock…)", "x": 0.50, "y": 6.90, "w": 3.6, "h": 3.6 },
-      { "cat": "sky",    "star": false, "label": "SKY THING (cloud, bird, sun…)",    "x": 4.40, "y": 6.90, "w": 3.6, "h": 3.6 }
+      { "cat": "hero",   "star": true,  "label": "MY HERO",          "arrow": true, "x": 3.05, "y": 1.10, "w": 2.4, "h": 2.4 },
+      { "cat": "jump",   "star": true,  "label": "JUMP-OVER THING",                 "x": 5.60, "y": 1.10, "w": 2.4, "h": 2.4 },
+      { "cat": "jump",   "star": true,  "label": "JUMP-OVER THING",                 "x": 8.15, "y": 1.10, "w": 2.4, "h": 2.4 },
+      { "cat": "jump",   "star": false, "label": "JUMP-OVER THING",                 "x": 0.50, "y": 3.95, "w": 2.4, "h": 2.4 },
+      { "cat": "ground", "star": false, "label": "GROUND THING (tree, house, rock…)", "x": 3.05, "y": 3.95, "w": 3.6, "h": 3.6 },
+      { "cat": "sky",    "star": false, "label": "SKY THING (cloud, bird, sun…)",    "x": 6.80, "y": 3.95, "w": 3.6, "h": 3.6 }
     ],
-    "tips": { "x": 5.60, "y": 4.15, "w": 2.4, "h": 2.4 }
+    "tips": { "x": 0.50, "y": 1.10, "w": 2.4, "h": 2.4 }
   }
 }
