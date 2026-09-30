@@ -360,9 +360,11 @@ export default {
 import { DurableObject } from 'cloudflare:workers';
 
 const DD_MAX_SCORE = 1_000_000;
-// Must stay >= 1.2 x SPEED_MAX / 10 of the client (doodle-dash/index.html);
-// test/source.node.test.js enforces it. No small-score grace allowance.
-const DD_MAX_PTS_PER_SEC = 90;
+// Must stay >= 1.2 x the client's peak scoring rate: distance at SPEED_MAX
+// x3 multiplier (3 x SPEED_MAX / 10) + clear bonuses (<= 110/s); see
+// doodle-dash/index.html scoreMult/CLEAR_BONUS. test/source.node.test.js
+// enforces it. No small-score grace allowance.
+const DD_MAX_PTS_PER_SEC = 480;
 const DD_MIN_WORLD_SCORE = 50;   // below this a run isn't worth a board slot
 const DD_TOKEN_TTL = 2 * 3600 * 1000; // ms; a run should finish within 2h
 // A whole classroom can share one NAT IP, so these are deliberately roomy:

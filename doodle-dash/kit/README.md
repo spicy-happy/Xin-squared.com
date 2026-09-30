@@ -138,8 +138,9 @@ automatically: `--sheet-order`. Phone photos have no scale, so add
 `--frame-width 11` (assume the picture is about 11 in wide). Useful extras:
 `--join 0.07` (glue together a cutout whose green ink got keyed out),
 `--margin 0.03` (ignore printed page text at the border), `--split 0.045` (pull
-apart touching pieces). Pieces with names or writing: leave them out with
-`build_art.py --exclude ID...`.
+apart touching pieces), `--cats hero,jump,...` (explicit categories in reading
+order), `--no-hero`, `--mat R,G,B` (when the green isn't found). Afterwards:
+`build_art.py --exclude ID...` leaves pieces out, `--set ID=category` moves one.
 
 `build_art.py` uses the same sizing, collision masks and WebP encoding as
 `process.py`, and adds to the existing manifest (`--replace` starts over).

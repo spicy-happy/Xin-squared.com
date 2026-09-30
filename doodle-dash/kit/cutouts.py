@@ -337,10 +337,12 @@ def sheet_sort(pieces):
     return sorted(top, key=lambda p: p["box"][0]) + sorted(bottom, key=lambda p: p["box"][0])
 
 
-def sheet_categories(n):
+def sheet_categories(n, hero=True):
     """Kid sheet order: hero first, sky last, ground before it, everything between is a jump thing."""
     if n == 0:
         return []
+    if not hero:  # a page with no hero piece: jump things, then ground, then sky
+        return ["jump"] * max(0, n - 2) + ["ground", "sky"][max(0, 2 - n):]
     if n == 1:
         return ["hero"]
     if n == 2:
@@ -359,7 +361,7 @@ def gather(paths):
 
 
 def run(paths, out_dir, dpi=None, tol=20.0, min_area=0.08, shrink=0.008, mat=None, keep_holes=False,
-        webp=False, markers=True, category=None, split=0.04, frame_width=None, keep_edge=False, join=0.012, margin=0.0, random_categories=False, seed=1, sheet_order=False, log=print):
+        webp=False, markers=True, category=None, split=0.04, frame_width=None, keep_edge=False, join=0.012, margin=0.0, random_categories=False, seed=1, sheet_order=False, no_hero=False, cats=None, log=print):
     rng = random.Random(seed)
     files = gather(paths)
     cfg = load_config()
@@ -393,7 +395,13 @@ def run(paths, out_dir, dpi=None, tol=20.0, min_area=0.08, shrink=0.008, mat=Non
             sheet_cats = None
             if sheet_order:
                 pieces = sheet_sort(pieces)
-                sheet_cats = sheet_categories(len(pieces))
+                sheet_cats = sheet_categories(len(pieces), hero=not no_hero)
+                if cats:
+                    if len(cats) != len(pieces):
+                        warns.append(f"--cats lists {len(cats)} categories but {len(pieces)} pieces were found; "
+                                     "using the default sheet order")
+                    else:
+                        sheet_cats = cats
             log(f"{name}: {len(pieces)} cutouts" + (f" [{cat}]" if cat else "")
                 + (f", page found, {sdpi:g} px/in" if region is not None else f" ({sdpi:g} dpi, no page markers)"))
             for w in warns:
@@ -461,6 +469,10 @@ def main():
     ap.add_argument("--sheet-order", action="store_true",
                     help="pieces were laid out in the printed sheet's order (two rows, left to right): "
                          "first = hero, then jump things, then ground, last = sky")
+    ap.add_argument("--cats", help="with --sheet-order: explicit categories in reading order, e.g. "
+                                   "hero,sky,jump,jump,jump (must match the number of pieces found)")
+    ap.add_argument("--no-hero", action="store_true",
+                    help="with --sheet-order: this page has no hero (first piece is a jump thing)")
     ap.add_argument("--seed", type=int, default=1, help="seed for --random-categories (same seed = same result)")
     ap.add_argument("--webp", action="store_true", help="write WebP instead of PNG")
     a = ap.parse_args()
@@ -468,7 +480,8 @@ def main():
     sys.exit(run(a.scans, a.out, dpi=a.dpi, tol=a.tol, min_area=a.min_area, shrink=a.shrink, mat=mat,
                  keep_holes=a.keep_holes, webp=a.webp, markers=not a.no_markers, category=a.category,
                  split=a.split, frame_width=a.frame_width, keep_edge=a.keep_edge, join=a.join, margin=a.margin,
-                 random_categories=a.random_categories, seed=a.seed, sheet_order=a.sheet_order))
+                 random_categories=a.random_categories, seed=a.seed, sheet_order=a.sheet_order, no_hero=a.no_hero,
+                 cats=a.cats.split(",") if a.cats else None))
 
 
 if __name__ == "__main__":

@@ -1,5 +1,4 @@
 // Plain-Node checks that need git / the filesystem.
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -12,35 +11,32 @@ const OPTIONS_BLOCK =
   '      return new Response(null, { status: 204, headers });\n' +
   '    }\n';
 
+// The Pentabomb part of the file (everything before the appended Doodle Dash
+// suffix, minus the one dispatch line). Works whether or not the merge-base
+// already contains Doodle Dash.
+const SUFFIX_RE = /\n\/\/ =+\n\/\/ Doodle Dash/;
+function pentabombPart(src) {
+  const i = src.search(SUFFIX_RE);
+  return (i < 0 ? src : src.slice(0, i)).replace(OPTIONS_BLOCK + DISPATCH, OPTIONS_BLOCK);
+}
+
 describe('Pentabomb source is untouched', () => {
   const base = baseCommit();
   const original = showAtBase(SRC, base);
   const current = fs.readFileSync(path.join(REPO_ROOT, SRC), 'utf8');
 
-  it('new file = original + one dispatch line after the OPTIONS block + an appended suffix', () => {
-    expect(original.split(OPTIONS_BLOCK)).toHaveLength(2); // anchor is unique
-    const expectedPrefix = original.replace(OPTIONS_BLOCK, OPTIONS_BLOCK + DISPATCH);
-    expect(current.startsWith(expectedPrefix)).toBe(true);
-    const suffix = current.slice(expectedPrefix.length);
-    expect(suffix).toMatch(/^\n\/\/ =+\n\/\/ Doodle Dash/);
-    // the suffix doesn't redefine Pentabomb pieces
-    expect(suffix).not.toMatch(/export default|class Leaderboard|function (cors|json|originAllowed|overLimit)\b/);
+  it(`Pentabomb part is byte-identical to the merge-base (${base.slice(0, 7)})`, () => {
+    expect(pentabombPart(original).split(OPTIONS_BLOCK)).toHaveLength(2); // anchor is unique
+    expect(pentabombPart(current)).toBe(pentabombPart(original));
   });
 
-  it(`git diff against the merge-base (${base.slice(0, 7)}) removes nothing`, () => {
-    const diff = execFileSync('git', ['diff', '--unified=0', base, '--', SRC], { cwd: REPO_ROOT, encoding: 'utf8' });
-    const removed = diff.split('\n').filter(l => l.startsWith('-') && !l.startsWith('---'));
-    expect(removed).toEqual([]);
-    const hunks = diff.split('\n').filter(l => l.startsWith('@@'));
-    const originalLines = original.split('\n').length - 1;
-    // hunk 1: the dispatch line; every other hunk starts past the original end
-    expect(hunks.length).toBeGreaterThanOrEqual(2);
-    const firstAdded = diff.split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++'))[0];
-    expect(firstAdded + '\n').toBe('+' + DISPATCH);
-    for (const h of hunks.slice(1)) {
-      const oldStart = Number(/^@@ -(\d+)/.exec(h)[1]);
-      expect(oldStart).toBeGreaterThanOrEqual(originalLines);
-    }
+  it('only change: one dispatch line after the OPTIONS block + an appended Doodle Dash suffix', () => {
+    expect(current.split(OPTIONS_BLOCK + DISPATCH)).toHaveLength(2);
+    const i = current.search(SUFFIX_RE);
+    expect(i).toBeGreaterThan(0);
+    const suffix = current.slice(i);
+    // the suffix doesn't redefine Pentabomb pieces
+    expect(suffix).not.toMatch(/export default|class Leaderboard|function (cors|json|originAllowed|overLimit)\b/);
   });
 });
 
@@ -56,14 +52,17 @@ describe('client/server score-rate ceiling', () => {
 
   it.skipIf(!clientExists)(
     clientExists
-      ? 'DD_MAX_PTS_PER_SEC >= 1.2 x SPEED_MAX / 10 (doodle-dash/index.html)'
-      : 'DD_MAX_PTS_PER_SEC >= 1.2 x SPEED_MAX / 10 — SKIPPED: doodle-dash/index.html does not exist yet',
+      ? 'DD_MAX_PTS_PER_SEC >= 1.2 x peak client rate (3 x SPEED_MAX / 10 + 110 bonus/s)'
+      : 'DD_MAX_PTS_PER_SEC >= 1.2 x peak client rate — SKIPPED: doodle-dash/index.html does not exist yet',
     () => {
       const client = fs.readFileSync(clientPath, 'utf8');
       const m = /const SPEED_MAX = (\d+(?:\.\d+)?)/.exec(client);
       expect(m, 'doodle-dash/index.html must declare `const SPEED_MAX = <number>`').not.toBeNull();
       const speedMax = Number(m[1]);
-      expect(Number(serverMatch[1])).toBeGreaterThanOrEqual(1.2 * speedMax / 10);
+      // peak: distance x3 multiplier at top speed + clear bonuses (3 things per full-hold air time x 30)
+      expect(client).toMatch(/function scoreMult\(d\) \{ return 1 \+ 2 \* clamp\(d, 0, 1\); \}/);
+      expect(client).toMatch(/const CLEAR_BONUS = 10;/);
+      expect(Number(serverMatch[1])).toBeGreaterThanOrEqual(1.2 * (3 * speedMax / 10 + 110));
     },
   );
 });
