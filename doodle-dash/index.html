@@ -41,13 +41,6 @@
     background: rgba(251,248,240,.85); border: 2px solid var(--pencil); border-radius: 10px;
     padding: 4px 8px; color: var(--ink); cursor: pointer;
   }
-  #practiceTag {
-    position: absolute; left: 50%; top: 2.5%; transform: translateX(-50%) rotate(-2deg);
-    font-size: clamp(11px, 2.6vmin, 16px); letter-spacing: .12em; font-weight: bold;
-    color: #fff; background: var(--accent2); padding: 2px 10px; border-radius: 6px;
-    display: none; border: 0; font-family: inherit; cursor: pointer; pointer-events: auto;
-  }
-  .linkBtn { font: inherit; color: var(--accent2); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
   #turnHint {
     position: fixed; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%);
     font-size: 15px; color: var(--soft); pointer-events: none; display: none; white-space: nowrap;
@@ -131,7 +124,6 @@
   <canvas id="game" aria-label="Doodle Dash game"></canvas>
   <div id="hud">
     <button id="muteBtn" tabindex="-1" aria-label="Sound on or off">🔊</button>
-    <button id="practiceTag" type="button" title="Turn practice off">PRACTICE ✕</button>
   </div>
 </div>
 <div id="turnHint">↻ Turn your phone sideways for a bigger view</div>
@@ -145,7 +137,6 @@
       <p class="lead">Pick your hero!</p>
       <div id="heroGrid"></div>
       <p class="note">Tap, click, Space or ↑ to jump. Hold for a BIG jump.</p>
-      <p class="note" id="practiceSelectNote" style="display:none">Practice mode: scores aren't saved. <button class="linkBtn" id="practiceOff2" type="button">Turn practice off</button></p>
     </div>
   </div>
 </div>
@@ -154,7 +145,6 @@
   <div class="panel">
     <div class="bigScore" id="finalScore">0</div>
     <div id="newBest" style="display:none"><span class="badge">NEW BEST!</span></div>
-    <p class="note" id="practiceNote" style="display:none">Practice run — not saved. <button class="linkBtn" id="practiceOff" type="button">Turn practice off</button></p>
 
     <div class="card" id="nickCard" style="display:none">
       <div class="lead">🌍 You made the WORLD TOP 5! Pick a nickname:</div>
@@ -220,11 +210,25 @@ const MIN_HOLD = 0.060;        // releases earlier than this apply at 60 ms: eve
 const WOBBLE = 2;              // physics ground wobble amplitude (±2 px)
 const JUMP_BUFFER = 0.12;
 const SPEED_MIN = 360;
-const SPEED_MAX = 720;
-const SPEED_TAU = 70;          // s; speed = 360 + 360(1 - e^(-t/70))
+const SPEED_MAX = 960;
+const SPEED_TAU = 90;          // s; speed = 360 + 600(1 - e^(-t/90)): 530 @30s, 650 @1min, 800 @2min, 920 @4min
+// Faster never makes a single jump harder (the takeoff window grows with
+// speed: less time spent over the thing). What keeps every run survivable is
+// the spawn gap, which never drops below FULL_HOLD_AIR x speed + width + 1 u
+// (always time to land and take off again), and every group being checked
+// against MIN_WINDOW_MS before it spawns.
 const STEP = 0.002;            // fixed physics step (s)
 const SMALL_MAX_U = 1.2;       // only things this small appear while d < 0.3
-const PAIR_ITEM_MAX_U = 1.0, PAIR_GAP_U = 0.5, PAIR_CHANCE = 0.15;
+const PAIR_ITEM_MAX_U = 1.0, PAIR_GAP_U = 0.5;
+const PAIR_FROM_D = 0.45, TRIPLE_FROM_D = 0.75;   // groups of 2 / 3 small things, jumped in one go
+function groupChance(d) {                          // -> [pair chance, triple chance]
+  return [d < PAIR_FROM_D ? 0 : 0.12 + 0.28 * (d - PAIR_FROM_D) / (1 - PAIR_FROM_D),
+          d < TRIPLE_FROM_D ? 0 : 0.06 + 0.14 * (d - TRIPLE_FROM_D) / (1 - TRIPLE_FROM_D)];
+}
+// Points: distance x a multiplier that climbs with speed (x1 -> x3), plus a
+// bonus for every jump thing cleared.
+function scoreMult(d) { return 1 + 2 * clamp(d, 0, 1); }
+const CLEAR_BONUS = 10;
 const MIN_WINDOW_MS = 120;
 
 function speedAt(t) { return SPEED_MIN + (SPEED_MAX - SPEED_MIN) * (1 - Math.exp(-t / SPEED_TAU)); }
@@ -574,13 +578,13 @@ async function loadArt(onProgress) {
 // ---------- Game state ----------
 const S = {
   mode: 'loading', // loading | select | go | run | crash | over
-  t: 0, distance: 0, speed: SPEED_MIN, speedLock: 0, score: 0,
+  t: 0, distance: 0, speed: SPEED_MIN, speedLock: 0, score: 0, scoreF: 0, popups: [],
   hero: null, body: newBody(),
   obstacles: [], sky: [], groundThings: [], particles: [],
   nextSpawnAt: 0, bag: [], bagSmall: null, lastJumpId: '',
   bufferT: -1, lastPressT: -99, goT: 0, crashT: 0, shake: 0,
   squash: 0, milestone: 0, best: +lsGet('best', '0') || 0, newBestShown: false,
-  god: false, practice: DEBUG_VIEW, paused: false, token: null, runId: 0,
+  god: false, cheated: false, paused: false, token: null, runId: 0,
   clock: 0, acc: 0, randomHero: false, bannerT: 0, overAt: 0, startBest: 0,
 };
 
@@ -592,7 +596,7 @@ function difficulty() { return (S.speed - SPEED_MIN) / (SPEED_MAX - SPEED_MIN); 
 function startRun(hero) {
   S.hero = hero;
   S.acc = 0; S.bannerT = 0;
-  S.mode = 'go'; S.goT = 0.6; S.t = 0; S.distance = 0; S.score = 0; S.speed = S.speedLock || SPEED_MIN;
+  S.mode = 'go'; S.goT = 0.6; S.t = 0; S.distance = 0; S.score = 0; S.scoreF = 0; S.popups = []; S.speed = S.speedLock || SPEED_MIN;
   S.body = newBody(); S.obstacles = []; S.particles = []; S.bag = []; S.bagSmall = null; S.lastJumpId = '';
   S.nextSpawnAt = 200; S.bufferT = -1; S.crashT = 0; S.shake = 0; S.squash = 0; S.milestone = 0;
   S.newBestShown = false; S.token = null; S.runId++;
@@ -600,8 +604,7 @@ function startRun(hero) {
   seedScenery();
   hideOverlays();
   sfx.start();
-  if (!S.practice) requestToken(S.runId);
-  setPracticeTag();
+  requestToken(S.runId);
 }
 
 // Shuffle bag over the allowed jump things, no back-to-back repeats.
@@ -628,19 +631,26 @@ function spawnObstacles(forced) {
   let width;
   const d = difficulty();
   const smalls = art.jump.filter(sp => Math.max(sp.w, sp.h) <= PAIR_ITEM_MAX_U);
-  let pair = null;
-  if (forced === 'pair' || (!forced && d > 0.6 && Math.random() < PAIR_CHANCE)) {
-    if (smalls.length >= 2) {
-      const [a, b] = shuffle(smalls.slice()).slice(0, 2);
-      const w = (a.w + PAIR_GAP_U + b.w) * UNIT, h = Math.max(a.h, b.h) * UNIT;
-      if (forced === 'pair' || windowMs('hold', w, h, S.speed) >= MIN_WINDOW_MS) pair = [a, b];
-    }
+  let group = null;
+  let want = 1;
+  if (forced === 'pair') want = 2;
+  else if (forced === 'triple') want = 3;
+  else if (!forced) {
+    const [pc, tc] = groupChance(d), r = Math.random();
+    want = r < tc ? 3 : r < tc + pc ? 2 : 1;
   }
-  if (pair) {
-    addObstacle(pair[0], spawnX);
-    addObstacle(pair[1], spawnX + (pair[0].w + PAIR_GAP_U) * UNIT);
-    width = (pair[0].w + PAIR_GAP_U + pair[1].w) * UNIT;
-    S.lastJumpId = pair[1].id;
+  // biggest group (<= want) that still has a >= MIN_WINDOW_MS takeoff window
+  for (let n = Math.min(want, smalls.length); n >= 2 && !group; n--) {
+    const g = shuffle(smalls.slice()).slice(0, n);
+    const w = (g.reduce((t, sp) => t + sp.w, 0) + (n - 1) * PAIR_GAP_U) * UNIT;
+    const h = Math.max(...g.map(sp => sp.h)) * UNIT;
+    if (forced === 'pair' || forced === 'triple' || windowMs('hold', w, h, S.speed) >= MIN_WINDOW_MS) group = g;
+  }
+  if (group) {
+    let x = spawnX;
+    for (const sp of group) { addObstacle(sp, x); x += (sp.w + PAIR_GAP_U) * UNIT; }
+    width = x - PAIR_GAP_U * UNIT - spawnX;
+    S.lastJumpId = group[group.length - 1].id;
   } else {
     let sp;
     if (forced && typeof forced === 'object') sp = debugBox(forced.w || 1, forced.h || 1);
@@ -652,10 +662,12 @@ function spawnObstacles(forced) {
   }
   // Gap to the next spawn (leading edge to leading edge): from ~1.6 s at the
   // start down to the physical minimum (full-hold air time x speed + this
-  // obstacle's width + 1 unit), plus some variety.
+  // obstacle's width + 1 unit) by d ~ 0.7, with less variety as it gets
+  // busier. Never below the minimum, so there is always time to land.
   const minGap = FULL_HOLD_AIR * S.speed + width + UNIT;
-  const gapT = 1.6 + (minGap / S.speed - 1.6) * clamp(d, 0, 1);
-  const gap = Math.max(minGap, gapT * S.speed * (1 + Math.random() * 0.45));
+  const e = clamp(d * 1.4, 0, 1);
+  const gapT = 1.6 + (minGap / S.speed - 1.6) * e;
+  const gap = Math.max(minGap, gapT * S.speed * (1 + Math.random() * 0.45 * (1 - 0.5 * e)));
   S.nextSpawnAt = S.distance + gap;
   return width;
 }
@@ -841,12 +853,22 @@ function fixedStep(dt) {
   if (S.distance >= S.nextSpawnAt) spawnObstacles();
   S.obstacles = S.obstacles.filter(o => o.x - S.distance + o.sp.w * UNIT > -20);
 
-  const newScore = Math.floor(S.distance / 10);
+  const mult = scoreMult(difficulty());
+  S.scoreF += S.speed * dt / 10 * mult;
+  for (const o of S.obstacles) {
+    if (!o.passed && o.x - S.distance + o.sp.w * UNIT < HERO_X - UNIT / 2) {
+      o.passed = true;
+      const bonus = Math.round(CLEAR_BONUS * mult);
+      S.scoreF += bonus;
+      S.popups.push({ x: HERO_X, y: groundY(S.distance + HERO_X) - S.body.h - UNIT * 1.4, t: 0, text: '+' + bonus });
+    }
+  }
+  const newScore = Math.floor(S.scoreF);
   if (newScore !== S.score) {
     S.score = newScore;
-    const m = Math.floor(S.score / 100);
+    const m = Math.floor(S.score / 250);
     if (m > S.milestone) { S.milestone = m; sfx.milestone(); }
-    if (!S.practice && !S.newBestShown && S.startBest > 0 && S.score > S.startBest) { S.newBestShown = true; S.bannerT = 1.4; sfx.win(); }
+    if (!S.newBestShown && S.startBest > 0 && S.score > S.startBest) { S.newBestShown = true; S.bannerT = 1.4; sfx.win(); }
   }
 
   if (!S.god) {
@@ -870,6 +892,7 @@ function puff(x, y, k) {
 function updateParticles(dt) {
   for (const p of S.particles) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.r += dt * 8; }
   S.particles = S.particles.filter(p => p.t < p.life);
+  if (S.popups) { for (const p of S.popups) p.t += dt; S.popups = S.popups.filter(p => p.t < 0.7); }
   if (S.bannerT) S.bannerT = Math.max(0, S.bannerT - dt);
 }
 
@@ -965,8 +988,21 @@ function drawHud() {
   if (S.mode !== 'select' && S.mode !== 'loading') {
     ctx.fillText(String(S.score).padStart(5, '0'), VIEW_W - 14, 10);
     ctx.font = '13px ' + HAND; ctx.fillStyle = '#8a8578';
-    ctx.fillText('BEST ' + (S.practice ? S.best : Math.max(S.best, S.score)), VIEW_W - 14, 38);
+    ctx.fillText('BEST ' + Math.max(S.best, S.score), VIEW_W - 14, 38);
+    const mult = scoreMult(difficulty());
+    if (S.mode === 'run' && mult >= 1.1) {
+      ctx.font = 'bold 14px ' + HAND; ctx.fillStyle = '#ff5a3c';
+      ctx.fillText('x' + mult.toFixed(1) + ' POINTS', VIEW_W - 14, 56);
+    }
   }
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 16px ' + HAND;
+  for (const p of S.popups || []) {
+    ctx.globalAlpha = Math.max(0, 1 - p.t / 0.7);
+    ctx.fillStyle = '#22a45d';
+    ctx.fillText(p.text, p.x, p.y - p.t * 40);
+  }
+  ctx.globalAlpha = 1;
   ctx.textAlign = 'center';
   if (S.mode === 'go') bigWord('GO!', '#22a45d');
   if (S.mode === 'crash') bigWord('OOPS!', '#ff5a3c');
@@ -1024,20 +1060,6 @@ function frame(now) {
 
 // ---------- Screens ----------
 function hideOverlays() { $('selectLayer').classList.remove('show'); $('overLayer').classList.remove('show'); }
-// Practice comes from ?debug=1 or from using a debug hook. Turning it off = reload
-// without ?debug, so no debug state (god mode, locked speed) can leak into a scored run.
-function leavePractice() {
-  const u = new URL(location.href);
-  u.searchParams.delete('debug');
-  location.href = u.toString();
-}
-$('practiceTag').addEventListener('click', leavePractice);
-$('practiceOff').addEventListener('click', leavePractice);
-$('practiceOff2').addEventListener('click', leavePractice);
-function setPracticeTag() {
-  $('practiceTag').style.display = S.practice ? 'block' : 'none';
-  $('practiceSelectNote').style.display = S.practice ? 'block' : 'none';
-}
 
 function thumbCanvas(sp, size) {
   const c = document.createElement('canvas');
@@ -1141,12 +1163,11 @@ function showGameOver() {
   held.clear();
   const score = S.score;
   const isBest = score > S.best;
-  if (isBest && !S.practice) { S.best = score; lsSet('best', String(score)); }
-  runResult = { score, heroId: heroSprite().id, token: S.token, practice: S.practice };
+  if (isBest) { S.best = score; lsSet('best', String(score)); }
+  runResult = { score, heroId: heroSprite().id, token: S.token, cheated: S.cheated };
 
   $('finalScore').textContent = score;
-  $('newBest').style.display = isBest && !S.practice && score > 0 ? 'block' : 'none';
-  $('practiceNote').style.display = S.practice ? 'block' : 'none';
+  $('newBest').style.display = isBest && score > 0 ? 'block' : 'none';
   $('nickCard').style.display = 'none';
   $('nameCard').style.display = 'none';
   $('nickMsg').textContent = ''; $('nameMsg').textContent = '';
@@ -1154,7 +1175,7 @@ function showGameOver() {
   // local: insert right away with the last name used, so nothing is lost;
   // the name box just renames this entry
   localMe = -1;
-  if (!S.practice && qualifiesLocal(score)) {
+  if (qualifiesLocal(score)) {
     const l = localScores();
     const entry = { name: cleanLocalName(lsGet('name', '')) || 'ME', score, date: new Date().toISOString().slice(0, 10) };
     l.push(entry); l.sort((a, b) => b.score - a.score);
@@ -1172,7 +1193,7 @@ function showGameOver() {
     .then(j => {
       world = { state: 'ok', scores: Array.isArray(j.scores) ? j.scores : [], me: -1 };
       renderWorld();
-      const qualifies = !runResult.practice && runResult.token && score >= DD_MIN_WORLD_SCORE &&
+      const qualifies = !runResult.cheated && runResult.token && score >= DD_MIN_WORLD_SCORE &&
         (world.scores.length < 5 || score > world.scores[Math.min(4, world.scores.length - 1)].score);
       if (qualifies) return loadWords().then(() => showNickPicker()).catch(() => showNameCard());
       showNameCard();
@@ -1201,7 +1222,7 @@ function showNickPicker() {
 }
 function submitWorld(choice) {
   const r = runResult;
-  if (!r || !r.token || r.practice) return;
+  if (!r || !r.token || r.cheated) return;
   const token = r.token; r.token = null; // single use
   [...$('nickRow').children].forEach(b => (b.disabled = true));
   $('nickMsg').textContent = 'Saving…';
@@ -1283,38 +1304,36 @@ function saveLocalNameQuiet() {
 }
 $('muteBtn').addEventListener('click', e => { unlockAudio(); setMuted(!muted); e.currentTarget.blur(); });
 
-// ---------- Debug hooks (any use makes the session practice-only) ----------
-function practiceOnly() { S.practice = true; setPracticeTag(); }
+// ---------- Debug hooks (?debug=1 only; god/speed/spawn/startNow quietly keep
+// that session's runs off the world board) ----------
+function cheat() { S.cheated = true; }
 function round(v, n = 1) { const k = Math.pow(10, n); return Math.round(v * k) / k; }
-window.__doodleDebug = {
+if (DEBUG_VIEW) window.__doodleDebug = {
   state() {
-    practiceOnly();
     return {
       mode: S.mode, score: S.score, speed: round(S.speed), distance: round(S.distance), t: round(S.t, 2),
       hero: { id: heroSprite() && heroSprite().id, h: round(S.body.h), vy: round(S.body.vy), grounded: S.body.grounded },
       obstacles: S.obstacles.map(o => ({ id: o.sp.id, x: round(o.x - S.distance), w: o.sp.w, h: o.sp.h })),
-      practice: S.practice, god: S.god, token: !!S.token, heroes: art.hero.length, jump: art.jump.length,
+      cheated: S.cheated, god: S.god, token: !!S.token, heroes: art.hero.length, jump: art.jump.length,
       ground: art.ground.length, sky: art.sky.length, placeholders: !!(art.hero[0] && art.hero[0].placeholder),
     };
   },
   startNow(heroId) {
-    practiceOnly();
+    cheat();
     const sp = art.hero.find(h => h.id === heroId) || S.hero || art.hero[0];
     startRun(sp);
     S.mode = 'run'; S.goT = 0;
     return true;
   },
-  setSpeed(v) { practiceOnly(); S.speedLock = v ? clamp(+v, 1, 2000) : 0; return S.speedLock; },
-  spawn(type) { practiceOnly(); if (S.mode !== 'run') return false; spawnObstacles(type || 'small'); return true; },
-  god(on) { practiceOnly(); S.god = on !== false; return S.god; },
+  setSpeed(v) { cheat(); S.speedLock = v ? clamp(+v, 1, 2000) : 0; return S.speedLock; },
+  spawn(type) { cheat(); if (S.mode !== 'run') return false; spawnObstacles(type || 'small'); return true; }, // 'small' | 'big' | 'pair' | 'triple' | {w,h} | id
+  god(on) { cheat(); S.god = on !== false; return S.god; },
   measureJumps() {
-    practiceOnly();
     const r = t => ({ apexPx: round(t.apex), apexU: round(t.apex / UNIT, 2), airS: round(t.air, 3) });
     return { tap0: r(trajectory(0)), tap60: r(trajectory(MIN_HOLD)), hold: r(trajectory(null)) };
   },
   clearanceSim() {
-    practiceOnly();
-    const dSmall = SPEED_MIN, dAll = speedAtD(0.3), dPair = speedAtD(0.6);
+    const dSmall = SPEED_MIN, dAll = speedAtD(0.3), dPair = speedAtD(PAIR_FROM_D), dTriple = speedAtD(TRIPLE_FROM_D);
     const sizes = [
       { name: '1x1', w: 1, h: 1, jump: 'tap', from: dSmall },
       { name: '1.2x1.2', w: 1.2, h: 1.2, jump: 'hold', from: dSmall },
@@ -1322,6 +1341,7 @@ window.__doodleDebug = {
       { name: '2x1', w: 2, h: 1, jump: 'hold', from: dAll },
       { name: '2x2', w: 2, h: 2, jump: 'hold', from: dAll },
       { name: 'pair 1+0.5+1', w: 2 * PAIR_ITEM_MAX_U + PAIR_GAP_U, h: PAIR_ITEM_MAX_U, jump: 'hold', from: dPair },
+      { name: 'triple 1+0.5+1+0.5+1', w: 3 * PAIR_ITEM_MAX_U + 2 * PAIR_GAP_U, h: PAIR_ITEM_MAX_U, jump: 'hold', from: dTriple },
     ];
     let ok = true, minMs = Infinity;
     const rows = sizes.map(s => {
@@ -1347,7 +1367,6 @@ window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', resize);
 resize();
 setMuted(muted);
-setPracticeTag();
 $('selectLayer').classList.add('show');
 S.mode = 'loading';
 loadArt(p => { $('loadFill').style.width = Math.round(p * 100) + '%'; }).then(() => {

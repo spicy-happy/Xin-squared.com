@@ -134,17 +134,17 @@ describe('tokens', () => {
   });
 });
 
-describe('time check (90 pts/sec, no grace)', () => {
-  it('rejects a score above elapsed x 90, even a small one', async () => {
-    // 50 pts at ~0.5s: limit 45
-    const t1 = await agedToken(0.5);
+describe('time check (480 pts/sec, no grace)', () => {
+  it('rejects a score above elapsed x 480, even a small one', async () => {
+    // 50 pts at ~0.1s: limit 48
+    const t1 = await agedToken(0.1);
     expect(await submit(submitBody({ score: 50, token: t1 }))).toMatchObject({ status: 403, body: { error: 'implausible score' } });
     // a fresh token from the API: ~0s elapsed
     const { body: { token } } = await callJson('/dd/token', { method: 'POST' });
     expect(await submit(submitBody({ score: 50, token }))).toMatchObject({ status: 403, body: { error: 'implausible score' } });
-    // just over the line at 10s (limit 900)
+    // just over the line at 10s (limit 4800)
     const t2 = await agedToken(10);
-    expect(await submit(submitBody({ score: 905, token: t2 }))).toMatchObject({ status: 403, body: { error: 'implausible score' } });
+    expect(await submit(submitBody({ score: 4805, token: t2 }))).toMatchObject({ status: 403, body: { error: 'implausible score' } });
   });
 
   it('a rejected submit still burns the token', async () => {
@@ -154,7 +154,7 @@ describe('time check (90 pts/sec, no grace)', () => {
   });
 
   it('accepts scores at or under the limit', async () => {
-    expect((await submit(submitBody({ score: 900, token: await agedToken(10) }))).status).toBe(200);
+    expect((await submit(submitBody({ score: 4800, token: await agedToken(10) }))).status).toBe(200);
     expect((await submit(submitBody({ adjIndex: 1, score: 50, token: await agedToken(0.6) }))).status).toBe(200);
     expect((await submit(submitBody({ adjIndex: 2, score: 1_000_000, token: await agedToken(11112) }))).status).toBe(403); // > TTL
     expect((await submit(submitBody({ adjIndex: 3, score: 647_000, token: await agedToken(7200 - 5) }))).status).toBe(200);
