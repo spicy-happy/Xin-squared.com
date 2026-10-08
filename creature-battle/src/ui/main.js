@@ -21,7 +21,7 @@ function button(parent,text,fn,id){const b=el('button',text);if(id)b.id=id;b.onc
 function home(){screen='home';orient();if(applyUpdate())return;const panel=page('Creature Battle');checkForUpdate().then(()=>{if(screen==='home')applyUpdate();});panel.append(el('p','Your drawings. Teams of three. One move at a time.'));
   const choices=el('div');choices.className='choices';panel.append(choices);
   for(const [kind,text]of [['ai','Solo Battle'],['friend','2 Player Battle']]){const b=button(choices,text,()=>{mode=kind;setup();},`play-${kind}`);b.disabled=!collection.length;}
-  button(choices,'See Creatures',()=>showCollection(),'collection');const sheet=el('a','Print Creature Sheet');sheet.id='print-sheet';sheet.href='output/pdf/creature-sheet.pdf?v=16';sheet.target='_blank';sheet.rel='noopener';choices.append(sheet);
+  button(choices,'See Creatures',()=>showCollection(),'collection');const sheet=el('a','Print Creature Sheet');sheet.id='print-sheet';sheet.href='output/pdf/creature-sheet.pdf?v=17';sheet.target='_blank';sheet.rel='noopener';choices.append(sheet);
 }
 function showCollection(){screen='collection';const panel=page('Creature collection');if(!collection.length)panel.append(el('p','No creatures yet. Make the first one!'));
   const cards=el('div');cards.className='cards';panel.append(cards);for(const c of collection){const card=el('article');const img=el('img');img.src=imageSrc(c);img.alt=c.name;img.style.height='100px';card.append(img,el('h2',c.name),el('p',`Drawn by ${c.trainer.nickname}`));cards.append(card);}button(panel,'Home',home);
