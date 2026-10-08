@@ -174,3 +174,7 @@ Battle narration retains paragraph and text-span nodes while effects extend the
 message. Run tools/messages-browser.mjs to check one row insertion per action,
 no duplicated effect text, switch send-out or faint prompt, and genuine later
 uses of the same move.
+
+After a miss, that player's next attack is guaranteed to hit, including after
+defending, switching or replacement. A landed attack clears the guarantee.
+Run tools/miss-browser.mjs for the seeded visible-control regression.

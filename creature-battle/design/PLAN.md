@@ -1,3 +1,7 @@
+> Version 31 playtest update (owner-directed): after a miss, that player’s next
+> attack is guaranteed to hit. Defense, switches and replacements preserve it;
+> a landed attack consumes it. Both sides follow this rule.
+
 > Version 29 playtest update (owner-directed): every move and voluntary switch
 > hands the turn to the other side. Mega Burst no longer skips a turn; its special
 > recharges for one turn while other moves remain usable. Delayed bot callbacks

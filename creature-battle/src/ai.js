@@ -6,7 +6,7 @@ import { teamRule } from './collection.js';
 // Copy only revealed fields. Neither battle rolls nor pairing coin memo enter AI code.
 export function publicBattle(state) {
   return { rules: state.rules, teams: state.teams, active: state.active, switchesLeft: state.switchesLeft,
-    round: state.round, slot: state.slot, order: state.order, needReplacement: state.needReplacement, over: state.over };
+    nextHitGuaranteed: state.nextHitGuaranteed, round: state.round, slot: state.slot, order: state.order, needReplacement: state.needReplacement, over: state.over };
 }
 const cur = (s, side) => s.teams[side][s.active[side]];
 const matchup = (r, me, foe) => typeMult(r, me.type, foe.type) / typeMult(r, foe.type, me.type);
@@ -19,12 +19,13 @@ function attackScore(s, side, action, difficulty) {
   const me = cur(s, side), foe = cur(s, 1-side), r = s.rules;
   const fallback = action.kind === 'fallback';
   const move = fallback ? r.fallback : r.moves[action.kind][me.moves[action.kind].id];
-  const context = { first: s.slot === 0, fallback };
+  const context = { first: s.slot === 0, fallback, guaranteedHit: s.nextHitGuaranteed?.[side] === true };
+  const accuracy = context.guaranteedHit ? 100 : move.accuracy;
   const expected = expectedDamage(r, me, foe, move, context);
   if (difficulty === 'easy') return expected;
   const sure = Math.max(0, damage(r, me, foe, move, context) - foe.shield);
   const lethal = sure >= foe.hp && !(r.hangOn && !foe.lastChanceUsed && foe.hp > 1 && sure >= Math.floor(foe.maxHp / 2));
-  if (lethal) return 100 + move.accuracy / 10 + (move.accuracy === 100 ? 5 : 0);
+  if (lethal) return 100 + accuracy / 10 + (accuracy === 100 ? 5 : 0);
   // A shield is public: use Regular to wear it down instead of spending specials.
   if (foe.shield > 0 && action.kind === 'special') return -20;
   let score = expected;

@@ -255,7 +255,7 @@ test('1000 AI battles alternate spent turns and never save the same creature twi
  for(let seed=0;seed<1000;seed++){
   let rng=seed;const random=()=>{let value;[value,rng]=next(rng);return value;};
   const teams=[0,1].map(()=>Array.from({length:3},()=>randomCreature(random)));
-  let {state:s}=createMatch({rules,teams,seed});const saved=new Set();let previous=null;
+  let {state:s}=createMatch({rules,teams,seed});const saved=new Set();const missed=[false,false];let previous=null;
   const policies=[{difficulty:'easy',aiRng:seed,lastSwitch:false},{difficulty:'normal',aiRng:(seed+1024)>>>0,lastSwitch:false}];
   while(!s.over){
    const t=whoseTurn(s),slots=[...s.active];let r;
@@ -268,6 +268,8 @@ test('1000 AI battles alternate spent turns and never save the same creature twi
    if(t.need==='action'&&!r.state.over&&r.state.needReplacement===null)assert.equal(whoseTurn(r.state).side,1-t.side,`turn must hand off, seed ${seed}`);
    for(const e of r.events){
     if(['use','switch','rest'].includes(e.t)){assert.notEqual(e.side,previous,`consecutive spent turns, seed ${seed}`);previous=e.side;}
+    if(e.t==='miss'){assert.equal(missed[e.side],false,`consecutive misses, seed ${seed}`);missed[e.side]=true;}
+    if(e.t==='hit')missed[e.side]=false;
     if(e.t==='hangOn'){const key=`${e.side}:${slots[e.side]}`;assert.ok(!saved.has(key),`second Last Chance ${key}, seed ${seed}`);saved.add(key);}
    }
    s=r.state;
@@ -290,4 +292,36 @@ test('Struggle remains legal during recharge if all other attacks and defenses a
  let {state:s}=match({...fast,moves:moves('steady','overload')},slow);active(s,0).pp.regular=0;active(s,0).pp.defense=0;active(s,0).recharging=true;s.switchesLeft[0]=0;
  assert.equal(getActions(s,0).find(a=>a.kind==='fallback').enabled,true);
  const r=act(s,'fallback');assert.equal(whoseTurn(r.state).side,1);assert.equal(active(r.state,0).recharging,false);
+});
+
+test('a miss guarantees the next attack, spends PP and restores normal accuracy after hitting',()=>{
+ let seed=0;while(next(seed)[0]<0.9)seed++;
+ let {state:s}=match(fast,slow,seed);
+ const missed=act(s,'special');assert.ok(ev(missed,'miss'));assert.deepEqual(missed.state.nextHitGuaranteed,[true,false]);assert.deepEqual(s.nextHitGuaranteed,[false,false]);
+ s=act(missed.state,'defense').state;
+ // This roll would miss again without the guarantee.
+ s.rng=seed;const hit=act(s,'special');assert.ok(ev(hit,'hit'));assert.ok(!ev(hit,'miss'));assert.equal(active(hit.state,0).pp.special,1);assert.equal(hit.state.rng,next(seed)[1]);assert.deepEqual(hit.state.nextHitGuaranteed,[false,false]);
+ s=act(hit.state,'defense').state;s.rng=seed;
+ const nextMiss=act(s,'special');assert.ok(ev(nextMiss,'miss'));assert.equal(nextMiss.state.nextHitGuaranteed[0],true);
+ assert.deepEqual(match(fast,slow).state.nextHitGuaranteed,[false,false]);
+});
+
+test('miss protection survives defense, switches and replacement, independently for each player',()=>{
+ let seed=0;while(next(seed)[0]<0.9)seed++;
+ let {state:s}=match(fast,slow,seed);s=act(s,'special').state;
+ s.rng=seed;s=act(s,'special').state;assert.deepEqual(s.nextHitGuaranteed,[true,true]);
+ s=act(s,'defense').state;s=act(s,'defense').state;assert.deepEqual(s.nextHitGuaranteed,[true,true]);
+ s=act(s,'switch',1).state;s=act(s,'defense').state;assert.deepEqual(s.nextHitGuaranteed,[true,true]);
+ // A forced replacement does not spend the banked hit or its inherited turn.
+ active(s,0).hp=0;s.needReplacement=0;s=chooseReplacement(s,0,2).state;
+ assert.deepEqual(s.nextHitGuaranteed,[true,true]);s.rng=seed;
+ const hit=act(s,'special');assert.ok(ev(hit,'hit'));assert.deepEqual(hit.state.nextHitGuaranteed,[false,true]);
+});
+
+test('guaranteed-accuracy attacks and Struggle consume banked miss protection',()=>{
+ for(const kind of ['regular','fallback']){
+  let {state:s}=match(fast,slow);s.nextHitGuaranteed[0]=true;
+  if(kind==='fallback'){active(s,0).pp.regular=0;active(s,0).pp.special=0;}
+  const hit=act(s,kind);assert.ok(ev(hit,'hit'));assert.equal(hit.state.nextHitGuaranteed[0],false);
+ }
 });

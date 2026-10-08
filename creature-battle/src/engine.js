@@ -66,7 +66,7 @@ export function createMatch({ rules, teams, seed }) {
       lastChanceUsed: false, shield: 0, toughened: false, recharging: false, damageDealt: 0 };
   }));
   const state = { rules, teams: instances, active: [0,0], rng: seed >>> 0, switchesLeft: [rules.switchLimit, rules.switchLimit],
-    round: 0, slot: 0, order: [], pairCoin: null, lastActor: null, needReplacement: null, over: false };
+    nextHitGuaranteed: [false, false], round: 0, slot: 0, order: [], pairCoin: null, lastActor: null, needReplacement: null, over: false };
   const events = [];
   enter(state, events, 0); enter(state, events, 1); startRound(state, events);
   return { state, events };
@@ -120,7 +120,9 @@ export function applyAction(input, side, action) {
         events.push({ t: 'shieldUp', side, amount: m.shield, shieldAfter: m.shield, ppAfter: { ...m.pp } });
       } else { m.toughened = true; events.push({ t: 'toughen', side, ppAfter: { ...m.pp } }); }
     } else {
-      const hit = move.accuracy === 100 || draw(s) * 100 < move.accuracy;
+      // A revealed miss banks one guaranteed hit for this player, across switches.
+      const hit = s.nextHitGuaranteed[side] || move.accuracy === 100 || draw(s) * 100 < move.accuracy;
+      s.nextHitGuaranteed[side] = !hit;
       if (!hit) events.push({ t: 'miss', side });
       else {
         const crit = !fallback && draw(s) * 100 < s.rules.crit.basePercent + s.rules.crit.perSpeedPercent * m.stats.speed;
