@@ -99,9 +99,9 @@ Serve the repo, then open `/creature-battle/?debug=1` at 844×390 and
 Prototype images are converted to 48×48, four-colour sprites at runtime. Originals stay unchanged.
 
 Two-player recipe: click `#play-friend`; choose three
-`.carousel-group:nth-child(2) .pick-card` buttons and `#team-done` (Start). Assert the full-screen look-away
-card contains no team names, click `#lookaway-ready`, choose player 2's
-portrait/team, click `#team-done` to start immediately. Player 1 is left.
+`.carousel-group:nth-child(2) .pick-card` buttons and `#team-done` (Start). The second
+team picker opens directly. Choose player 2's portrait/team and click `#team-done`
+to start immediately. Player 1 is left.
 For AI, use `#play-ai`; Normal is the default and Hard is the other option.
 Difficulty and team selection share one screen. Click `#difficulty`, then a
 Normal/Hard `[role=option]` in its custom pixel menu. Start is beside difficulty;
@@ -124,7 +124,9 @@ to select the correct `[data-side]`. For an action, tap its category (one tap; n
 and shows up to three lines; the turn prompt is part of the log. There is no
 round banner, turn tab or Battle Log button. Moves show category and PP fraction.
 Exhausted attacks are disabled; Tired Attack becomes available when both attack
-PP pools are empty. HP uses 20 pixel segments with the type chip beside the bar.
+PP pools are empty. HP uses a continuous fill inside a stepped border, with the type chip below the bar
+beside the HP numbers. Medium HP is amber; low HP is red and pulses (except with
+reduced motion).
 The creatures share one floor, with stepped shadows and small attack/defense effects.
 `kit/make_sounds.py` generates nine original WAV effects; `#sound-toggle` mutes
 the shared audio gain. Audio unlocks on the first user gesture.
@@ -134,3 +136,18 @@ a complete 3v3 acceptance battle: drive every action through the visible UI.
 Check both modes reach Result, take arena/result screenshots, ensure no
 button displays type effectiveness, and verify portrait dimensions show
 the rotate overlay. Supervised kid playtest remains a human checkpoint.
+
+Version 24 playtest refinements: creature maker credits appear on the large cards,
+not the three-pick summary. Trainer names copy from portraits into a separate
+battle-name input; edits never rename the portrait labels. The result has Play
+again (preselected original picks) and Home. Quit game and the nav title both
+confirm quitting a live battle. The background is a quiet pixel meadow.
+
+Engine revisions: voluntary switching spends an action. A creature fainting
+before its action is replaced immediately, and its replacement inherits that
+unspent slot. Last Chance can save a heavy lethal hit (post-shield damage at least
+floor(maxHp / 2)) once per creature if its HP was above 1. Healing and switching
+do not reset it. Normal's first bot creature is weak to the child's first pick
+when such a creature exists. Three approved non-prototype entries automatically
+retire TEST entries from the loaded collection. Run tools/playtest-browser.mjs
+for the UI checks, including replacement tray size and disabled fainted cards.

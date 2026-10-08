@@ -80,6 +80,7 @@ def make(out):
   s.box(x,y,1.65,.7,'attack '+move['label']);s.text(x+.825,y+.24,move['label'],13,True,True,width=1.5)
   lines=simpleSplit(move['hint'],'Helvetica',11,1.45*72);assert len(lines)<=2,(move['label'],'hint too tall')
   for k,text in enumerate(lines):s.text(x+.825,y+.47+k*.15,text,11,center=True,width=1.45)
+ s.text(.5,8.15,'Email Creature Battle images to hello@finalfinalstudios.com',10)
  c.showPage();c.save();print(f'Created {out} ({len(s.zones)} checked field zones)')
 if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,default=ROOT/'output/pdf/creature-sheet.pdf');args=parser.parse_args();args.out.parent.mkdir(parents=True,exist_ok=True);make(args.out)

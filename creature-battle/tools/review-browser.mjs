@@ -21,9 +21,9 @@ await p.evaluate(async()=>{
  if(app.querySelector('[data-side="0"] .stage img').alt!==oldName)throw Error('View ran ahead');
  window.reviewView={app,v,anim,get calls(){return calls},setState:s=>{state=s},initial};
 });
-const r=p.locator('#review');await r.locator('.message-line[data-text="The shield blocked 3!"]').waitFor();assert.ok(await r.locator('.message-line[data-text="It dealt 9 damage."]').count());await r.locator('.message-line[data-text="A critical hit!"]').waitFor();
-assert.equal(await r.locator('.message-line').count(),3);
-assert.equal(await r.locator('.message-line[data-text="A critical hit!"] .name-chip').count(),0);
+const r=p.locator('#review');await r.locator('.message-line[data-text*="It dealt 9 damage."]').waitFor();
+const paragraph=r.locator('.message-line[data-text*="A critical hit!"]');assert.match(await paragraph.getAttribute('data-text'),/It used Test! The shield blocked 3! It dealt 9 damage/);
+assert.equal(await paragraph.locator('.name-chip').count(),1);await p.waitForFunction(()=>document.querySelector('#review .name-chip')?.textContent==='It');assert.equal(await paragraph.locator('.name-chip').innerText(),'It');
 await r.locator('#battle-text').click();await p.waitForTimeout(450);assert.match(await r.locator('#battle-text').innerText(),/It dealt 9 damage/);
 await p.evaluate(async()=>{const {v,initial,setState,app}=reviewView;const s=structuredClone(initial);s.needReplacement=1;s.teams[1][s.active[1]].hp=0;setState(s);const a=v.animate([{t:'needReplace',side:1}]);app.querySelector('#battle-text').click();await a;});
 assert.ok(await r.locator('[data-side="1"] [data-bench]').count());assert.equal(await r.locator('[data-side="1"] button:enabled').count(),0);

@@ -23,7 +23,7 @@ function attackScore(s, side, action, difficulty) {
   const expected = expectedDamage(r, me, foe, move, context);
   if (difficulty === 'easy') return expected;
   const sure = Math.max(0, damage(r, me, foe, move, context) - foe.shield);
-  const lethal = sure >= foe.hp && !(r.hangOn && foe.hp === foe.maxHp);
+  const lethal = sure >= foe.hp && !(r.hangOn && !foe.lastChanceUsed && foe.hp > 1 && sure >= Math.floor(foe.maxHp / 2));
   if (lethal) return 100 + move.accuracy / 10 + (move.accuracy === 100 ? 5 : 0);
   // A shield is public: use Regular to wear it down instead of spending specials.
   if (foe.shield > 0 && action.kind === 'special') return -20;
@@ -93,4 +93,17 @@ export function chooseTeam(collection, { difficulty='easy', aiRng } = {}) {
     team.push(options[Math.floor(random.draw()*options.length)]);
   }
   return { team: structuredClone(team), aiRng:random.state };
+}
+
+// Normal mode gives the child a favourable first matchup using only the chosen
+// opening type. Hard mode and the balance harness keep their existing team policy.
+export function choosePracticeTeam(collection,{rules,openingType,aiRng}){
+ const chosen=chooseTeam(collection,{difficulty:'easy',aiRng});
+ const weak=collection.filter(c=>typeMult(rules,openingType,c.type)>1);
+ if(!weak.length)return chosen;
+ const random=randomSource(chosen.aiRng),first=weak[Math.floor(random.draw()*weak.length)];
+ const rest=chosen.team.filter(c=>c.id!==first.id);
+ for(const c of collection)if(rest.length<2&&c.id!==first.id&&!rest.some(m=>m.id===c.id))rest.push(structuredClone(c));
+ while(rest.length<2)rest.push(structuredClone(first));
+ return {team:[structuredClone(first),...rest.slice(0,2)],aiRng:random.state};
 }

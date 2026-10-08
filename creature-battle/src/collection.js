@@ -64,7 +64,9 @@ export function loadCollection(json, rules) {
     }
     used.add(canonical(c.name));
   }
-  return creatures;
+  // TEST entries retire automatically once three real submissions are available.
+  const submitted=creatures.filter(c=>!c.prototype && !/^cr-debug/.test(c.id));
+  return submitted.length>=3?submitted:creatures;
 }
 export function teamRule(collection) {
   return { canBattle: collection.length > 0, duplicates: collection.length < 3, size: 3 };

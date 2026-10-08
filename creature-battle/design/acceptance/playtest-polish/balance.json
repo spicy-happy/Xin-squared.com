@@ -1,0 +1,674 @@
+{
+  "results": [
+    {
+      "samples": {
+        "n": 1000,
+        "paired": 500,
+        "easy": 500,
+        "seed": 3
+      },
+      "rates": {
+        "type:ground": 50.74626865671642,
+        "move:quick": 49.89747095010253,
+        "move:blast": 50.92783505154639,
+        "move:toughen": 46.72663668165917,
+        "stat:health:0": 48.74429223744292,
+        "stat:attack:2": 50.85354896675651,
+        "stat:defense:5": 49.94124559341951,
+        "stat:speed:3": 48.73873873873874,
+        "type:grass": 50,
+        "move:steady": 48.17275747508306,
+        "move:risky": 51.62162162162162,
+        "move:heal": 54.71604938271605,
+        "stat:health:2": 49.45945945945946,
+        "stat:attack:5": 51.68674698795181,
+        "stat:defense:2": 49.42965779467681,
+        "stat:speed:1": 52.45579567779961,
+        "type:water": 48.933901918976545,
+        "move:pierce": 50.33783783783784,
+        "stat:attack:4": 50.33428844317096,
+        "stat:defense:3": 49.51370468611848,
+        "type:flying": 50,
+        "stat:attack:0": 50.175029171528585,
+        "stat:defense:4": 49.56605593056895,
+        "stat:speed:4": 49.13793103448276,
+        "type:electric": 50.58252427184466,
+        "stat:health:4": 51.14427860696517,
+        "stat:defense:1": 51.98836081474297,
+        "move:heavy": 51.54639175257732,
+        "stat:health:5": 52.046783625730995,
+        "stat:defense:0": 49.55456570155902,
+        "stat:attack:1": 47.93307086614173,
+        "stat:speed:5": 48.30230010952903,
+        "move:overload": 46.94555112881806,
+        "stat:health:3": 50.49594229035167,
+        "stat:attack:3": 49.340369393139845,
+        "move:recoil": 50.545221295702376,
+        "stat:speed:2": 49.00095147478592,
+        "stat:speed:0": 52.77777777777778,
+        "type:fire": 49.63655244029076,
+        "stat:health:1": 48.32535885167464,
+        "move:guard": 48.48024316109422
+      },
+      "transfers": {
+        "health→attack": 50.8,
+        "health→defense": 45.2,
+        "attack→defense": 48
+      },
+      "median": 35,
+      "p90": 53,
+      "draws": 0,
+      "caps": 0,
+      "hangOn": {
+        "count": 671,
+        "hits": 26545,
+        "percent": 2.5277830099830476
+      },
+      "doublePerBattle": 1.927,
+      "heavyExhaustion": 11.855670103092784,
+      "normalVsEasy": 69.6,
+      "largeCollectionNormalVsEasy": 76.6,
+      "actionOnlyNormalVsEasy": 68.8,
+      "gates": [
+        {
+          "metric": "type fire (47–53%)",
+          "value": 49.63655244029076,
+          "pass": true
+        },
+        {
+          "metric": "type water (47–53%)",
+          "value": 48.933901918976545,
+          "pass": true
+        },
+        {
+          "metric": "type grass (47–53%)",
+          "value": 50,
+          "pass": true
+        },
+        {
+          "metric": "type electric (47–53%)",
+          "value": 50.58252427184466,
+          "pass": true
+        },
+        {
+          "metric": "type ground (47–53%)",
+          "value": 50.74626865671642,
+          "pass": true
+        },
+        {
+          "metric": "type flying (47–53%)",
+          "value": 50,
+          "pass": true
+        },
+        {
+          "metric": "move steady (46–54%)",
+          "value": 48.17275747508306,
+          "pass": true
+        },
+        {
+          "metric": "move quick (46–54%)",
+          "value": 49.89747095010253,
+          "pass": true
+        },
+        {
+          "metric": "move pierce (46–54%)",
+          "value": 50.33783783783784,
+          "pass": true
+        },
+        {
+          "metric": "move heavy (46–54%)",
+          "value": 51.54639175257732,
+          "pass": true
+        },
+        {
+          "metric": "move blast (46–54%)",
+          "value": 50.92783505154639,
+          "pass": true
+        },
+        {
+          "metric": "move risky (46–54%)",
+          "value": 51.62162162162162,
+          "pass": true
+        },
+        {
+          "metric": "move recoil (46–54%)",
+          "value": 50.545221295702376,
+          "pass": true
+        },
+        {
+          "metric": "move overload (46–54%)",
+          "value": 46.94555112881806,
+          "pass": true
+        },
+        {
+          "metric": "move guard (46–54%)",
+          "value": 48.48024316109422,
+          "pass": true
+        },
+        {
+          "metric": "move heal (46–54%)",
+          "value": 54.71604938271605,
+          "pass": false
+        },
+        {
+          "metric": "move toughen (46–54%)",
+          "value": 46.72663668165917,
+          "pass": true
+        },
+        {
+          "metric": "health 5−0 (±3 points)",
+          "value": 3.3024913882880753,
+          "pass": false
+        },
+        {
+          "metric": "attack 5−0 (±3 points)",
+          "value": 1.5117178164232214,
+          "pass": true
+        },
+        {
+          "metric": "defense 5−0 (±3 points)",
+          "value": 0.38667989186048857,
+          "pass": true
+        },
+        {
+          "metric": "speed 5−0 (±3 points)",
+          "value": -4.47547766824875,
+          "pass": false
+        },
+        {
+          "metric": "paired health→attack (45–55%)",
+          "value": 50.8,
+          "pass": true
+        },
+        {
+          "metric": "paired health→defense (45–55%)",
+          "value": 45.2,
+          "pass": true
+        },
+        {
+          "metric": "paired attack→defense (45–55%)",
+          "value": 48,
+          "pass": true
+        },
+        {
+          "metric": "median actions (22–34)",
+          "value": 35,
+          "pass": false
+        },
+        {
+          "metric": "p90 actions (≤55)",
+          "value": 53,
+          "pass": true
+        },
+        {
+          "metric": "draws (0)",
+          "value": 0,
+          "pass": true
+        },
+        {
+          "metric": "safety-cap endings (0)",
+          "value": 0,
+          "pass": true
+        },
+        {
+          "metric": "Heavy exhausted (3–15%)",
+          "value": 11.855670103092784,
+          "pass": true
+        },
+        {
+          "metric": "3-creature Normal beats Easy (≥70%)",
+          "value": 69.6,
+          "pass": false
+        }
+      ],
+      "pass": false
+    },
+    {
+      "samples": {
+        "n": 1000,
+        "paired": 500,
+        "easy": 500,
+        "seed": 17
+      },
+      "rates": {
+        "type:ground": 50.49701789264414,
+        "move:pierce": 50.625,
+        "move:blast": 51.74029451137885,
+        "move:guard": 47.721705046545814,
+        "stat:health:1": 47.521865889212826,
+        "stat:attack:2": 49.86876640419948,
+        "stat:defense:4": 48.034515819750716,
+        "stat:speed:3": 48.61623616236162,
+        "move:risky": 51.61069225496916,
+        "move:toughen": 47.08249496981891,
+        "stat:attack:5": 48.11205846528624,
+        "stat:defense:0": 49.040767386091126,
+        "stat:speed:4": 48.09885931558935,
+        "move:steady": 49.90163934426229,
+        "move:heal": 55.30187721968544,
+        "stat:defense:3": 51.46520146520147,
+        "stat:speed:1": 49.60238568588469,
+        "move:quick": 47.659854976928145,
+        "move:recoil": 48.86877828054298,
+        "stat:defense:1": 52.9466791393826,
+        "type:electric": 51.90243902439025,
+        "stat:health:3": 48.858447488584474,
+        "stat:attack:3": 51.050228310502284,
+        "type:fire": 50.833333333333336,
+        "stat:health:5": 56.79824561403509,
+        "stat:attack:0": 50.055493895671475,
+        "stat:defense:2": 50.046772684752106,
+        "move:heavy": 51.84453227931489,
+        "stat:speed:2": 50.26978417266187,
+        "type:water": 48.25870646766169,
+        "stat:health:0": 46.06481481481482,
+        "stat:speed:5": 48.588235294117645,
+        "stat:attack:4": 50.892857142857146,
+        "type:flying": 51.71400587659158,
+        "stat:health:2": 49.56605593056895,
+        "stat:attack:1": 49.6124031007752,
+        "stat:defense:5": 47.816349384098544,
+        "stat:health:4": 51.36406396989652,
+        "move:overload": 47.86666666666667,
+        "stat:speed:0": 55.357142857142854,
+        "type:grass": 46.69379450661241
+      },
+      "transfers": {
+        "health→attack": 50.2,
+        "health→defense": 47.8,
+        "attack→defense": 46
+      },
+      "median": 35,
+      "p90": 53,
+      "draws": 0,
+      "caps": 0,
+      "hangOn": {
+        "count": 662,
+        "hits": 26559,
+        "percent": 2.4925637260439024
+      },
+      "doublePerBattle": 1.984,
+      "heavyExhaustion": 10.737812911725955,
+      "normalVsEasy": 72.4,
+      "largeCollectionNormalVsEasy": 73.8,
+      "actionOnlyNormalVsEasy": 70,
+      "gates": [
+        {
+          "metric": "type fire (47–53%)",
+          "value": 50.833333333333336,
+          "pass": true
+        },
+        {
+          "metric": "type water (47–53%)",
+          "value": 48.25870646766169,
+          "pass": true
+        },
+        {
+          "metric": "type grass (47–53%)",
+          "value": 46.69379450661241,
+          "pass": false
+        },
+        {
+          "metric": "type electric (47–53%)",
+          "value": 51.90243902439025,
+          "pass": true
+        },
+        {
+          "metric": "type ground (47–53%)",
+          "value": 50.49701789264414,
+          "pass": true
+        },
+        {
+          "metric": "type flying (47–53%)",
+          "value": 51.71400587659158,
+          "pass": true
+        },
+        {
+          "metric": "move steady (46–54%)",
+          "value": 49.90163934426229,
+          "pass": true
+        },
+        {
+          "metric": "move quick (46–54%)",
+          "value": 47.659854976928145,
+          "pass": true
+        },
+        {
+          "metric": "move pierce (46–54%)",
+          "value": 50.625,
+          "pass": true
+        },
+        {
+          "metric": "move heavy (46–54%)",
+          "value": 51.84453227931489,
+          "pass": true
+        },
+        {
+          "metric": "move blast (46–54%)",
+          "value": 51.74029451137885,
+          "pass": true
+        },
+        {
+          "metric": "move risky (46–54%)",
+          "value": 51.61069225496916,
+          "pass": true
+        },
+        {
+          "metric": "move recoil (46–54%)",
+          "value": 48.86877828054298,
+          "pass": true
+        },
+        {
+          "metric": "move overload (46–54%)",
+          "value": 47.86666666666667,
+          "pass": true
+        },
+        {
+          "metric": "move guard (46–54%)",
+          "value": 47.721705046545814,
+          "pass": true
+        },
+        {
+          "metric": "move heal (46–54%)",
+          "value": 55.30187721968544,
+          "pass": false
+        },
+        {
+          "metric": "move toughen (46–54%)",
+          "value": 47.08249496981891,
+          "pass": true
+        },
+        {
+          "metric": "health 5−0 (±3 points)",
+          "value": 10.733430799220272,
+          "pass": false
+        },
+        {
+          "metric": "attack 5−0 (±3 points)",
+          "value": -1.943435430385236,
+          "pass": true
+        },
+        {
+          "metric": "defense 5−0 (±3 points)",
+          "value": -1.224418001992582,
+          "pass": true
+        },
+        {
+          "metric": "speed 5−0 (±3 points)",
+          "value": -6.768907563025209,
+          "pass": false
+        },
+        {
+          "metric": "paired health→attack (45–55%)",
+          "value": 50.2,
+          "pass": true
+        },
+        {
+          "metric": "paired health→defense (45–55%)",
+          "value": 47.8,
+          "pass": true
+        },
+        {
+          "metric": "paired attack→defense (45–55%)",
+          "value": 46,
+          "pass": true
+        },
+        {
+          "metric": "median actions (22–34)",
+          "value": 35,
+          "pass": false
+        },
+        {
+          "metric": "p90 actions (≤55)",
+          "value": 53,
+          "pass": true
+        },
+        {
+          "metric": "draws (0)",
+          "value": 0,
+          "pass": true
+        },
+        {
+          "metric": "safety-cap endings (0)",
+          "value": 0,
+          "pass": true
+        },
+        {
+          "metric": "Heavy exhausted (3–15%)",
+          "value": 10.737812911725955,
+          "pass": true
+        },
+        {
+          "metric": "3-creature Normal beats Easy (≥70%)",
+          "value": 72.4,
+          "pass": true
+        }
+      ],
+      "pass": false
+    },
+    {
+      "samples": {
+        "n": 1000,
+        "paired": 500,
+        "easy": 500,
+        "seed": 101
+      },
+      "rates": {
+        "type:fire": 50.816522574447646,
+        "move:pierce": 50.7227332457293,
+        "move:recoil": 49.41740918437286,
+        "move:heal": 53.19781854238969,
+        "stat:health:4": 52.046783625730995,
+        "stat:attack:2": 50.98039215686274,
+        "stat:defense:0": 49.125,
+        "stat:speed:4": 50,
+        "type:ground": 50.77972709551657,
+        "move:heavy": 50.764951321279554,
+        "move:blast": 51.468624833110816,
+        "move:guard": 48.092369477911646,
+        "stat:health:3": 50.83848190644307,
+        "stat:defense:3": 50.08833922261484,
+        "stat:speed:2": 48.50615114235501,
+        "type:grass": 51.60965794768612,
+        "move:quick": 47.817460317460316,
+        "move:overload": 46.29753168779186,
+        "stat:defense:4": 48.367952522255194,
+        "stat:speed:0": 53.37837837837838,
+        "stat:health:0": 50.87310826542491,
+        "stat:attack:3": 50.09025270758123,
+        "stat:speed:3": 50.69324090121317,
+        "move:steady": 50.71989528795812,
+        "stat:health:1": 47.4827245804541,
+        "stat:attack:4": 51.31826741996233,
+        "stat:speed:1": 49.853085210577866,
+        "type:electric": 47.90996784565916,
+        "type:flying": 48.64321608040201,
+        "stat:attack:0": 48.616125150421176,
+        "stat:defense:5": 49.08675799086758,
+        "stat:speed:5": 47.53476611883691,
+        "move:toughen": 48.669010547463586,
+        "stat:health:5": 50.45977011494253,
+        "move:risky": 52.72020725388601,
+        "stat:attack:1": 48.42707340324118,
+        "stat:defense:2": 52.78716216216216,
+        "stat:defense:1": 49.74924774322969,
+        "stat:attack:5": 50.24154589371981,
+        "type:water": 50.04945598417409,
+        "stat:health:2": 48.49863512283894
+      },
+      "transfers": {
+        "health→attack": 49.8,
+        "health→defense": 48.4,
+        "attack→defense": 49.2
+      },
+      "median": 35,
+      "p90": 54,
+      "draws": 0,
+      "caps": 0,
+      "hangOn": {
+        "count": 643,
+        "hits": 26951,
+        "percent": 2.385811287150755
+      },
+      "doublePerBattle": 1.97,
+      "heavyExhaustion": 11.613351877607789,
+      "normalVsEasy": 71.6,
+      "largeCollectionNormalVsEasy": 75,
+      "actionOnlyNormalVsEasy": 69.2,
+      "gates": [
+        {
+          "metric": "type fire (47–53%)",
+          "value": 50.816522574447646,
+          "pass": true
+        },
+        {
+          "metric": "type water (47–53%)",
+          "value": 50.04945598417409,
+          "pass": true
+        },
+        {
+          "metric": "type grass (47–53%)",
+          "value": 51.60965794768612,
+          "pass": true
+        },
+        {
+          "metric": "type electric (47–53%)",
+          "value": 47.90996784565916,
+          "pass": true
+        },
+        {
+          "metric": "type ground (47–53%)",
+          "value": 50.77972709551657,
+          "pass": true
+        },
+        {
+          "metric": "type flying (47–53%)",
+          "value": 48.64321608040201,
+          "pass": true
+        },
+        {
+          "metric": "move steady (46–54%)",
+          "value": 50.71989528795812,
+          "pass": true
+        },
+        {
+          "metric": "move quick (46–54%)",
+          "value": 47.817460317460316,
+          "pass": true
+        },
+        {
+          "metric": "move pierce (46–54%)",
+          "value": 50.7227332457293,
+          "pass": true
+        },
+        {
+          "metric": "move heavy (46–54%)",
+          "value": 50.764951321279554,
+          "pass": true
+        },
+        {
+          "metric": "move blast (46–54%)",
+          "value": 51.468624833110816,
+          "pass": true
+        },
+        {
+          "metric": "move risky (46–54%)",
+          "value": 52.72020725388601,
+          "pass": true
+        },
+        {
+          "metric": "move recoil (46–54%)",
+          "value": 49.41740918437286,
+          "pass": true
+        },
+        {
+          "metric": "move overload (46–54%)",
+          "value": 46.29753168779186,
+          "pass": true
+        },
+        {
+          "metric": "move guard (46–54%)",
+          "value": 48.092369477911646,
+          "pass": true
+        },
+        {
+          "metric": "move heal (46–54%)",
+          "value": 53.19781854238969,
+          "pass": true
+        },
+        {
+          "metric": "move toughen (46–54%)",
+          "value": 48.669010547463586,
+          "pass": true
+        },
+        {
+          "metric": "health 5−0 (±3 points)",
+          "value": -0.41333815048238165,
+          "pass": true
+        },
+        {
+          "metric": "attack 5−0 (±3 points)",
+          "value": 1.6254207432986334,
+          "pass": true
+        },
+        {
+          "metric": "defense 5−0 (±3 points)",
+          "value": -0.03824200913241782,
+          "pass": true
+        },
+        {
+          "metric": "speed 5−0 (±3 points)",
+          "value": -5.843612259541466,
+          "pass": false
+        },
+        {
+          "metric": "paired health→attack (45–55%)",
+          "value": 49.8,
+          "pass": true
+        },
+        {
+          "metric": "paired health→defense (45–55%)",
+          "value": 48.4,
+          "pass": true
+        },
+        {
+          "metric": "paired attack→defense (45–55%)",
+          "value": 49.2,
+          "pass": true
+        },
+        {
+          "metric": "median actions (22–34)",
+          "value": 35,
+          "pass": false
+        },
+        {
+          "metric": "p90 actions (≤55)",
+          "value": 54,
+          "pass": true
+        },
+        {
+          "metric": "draws (0)",
+          "value": 0,
+          "pass": true
+        },
+        {
+          "metric": "safety-cap endings (0)",
+          "value": 0,
+          "pass": true
+        },
+        {
+          "metric": "Heavy exhausted (3–15%)",
+          "value": 11.613351877607789,
+          "pass": true
+        },
+        {
+          "metric": "3-creature Normal beats Easy (≥70%)",
+          "value": 71.6,
+          "pass": true
+        }
+      ],
+      "pass": false
+    }
+  ],
+  "pass": false
+}

@@ -1,5 +1,5 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE || 'playwright');import assert from 'node:assert/strict';import {mkdirSync,writeFileSync} from 'node:fs';
-const out=new URL('../design/acceptance/shared-arena/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
+const out=new URL('../design/acceptance/playtest-polish/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});const results=[];
 for(const [width,height]of [[320,740],[390,844],[844,390],[1024,768]]){
  const p=await browser.newPage({viewport:{width,height},hasTouch:true}),errors=[];p.on('pageerror',e=>errors.push(e.message));
@@ -31,6 +31,6 @@ for(const [width,height]of [[320,740],[390,844],[844,390],[1024,768]]){
  assert.ok(!(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth)));await p.screenshot({path:`${out}/picker-${width}x${height}.png`,fullPage:true});if(width===1024){await p.locator('#difficulty').click();await p.screenshot({path:`${out}/difficulty-menu.png`,fullPage:true});await p.keyboard.press('Escape');}
  await p.locator('#team-done').click();if(width<height){assert.ok(await p.locator('#rotate').isVisible());await p.setViewportSize({width:844,height:390});}
  await p.locator('#battle-text').click();await p.waitForTimeout(450);assert.equal(await p.locator('[data-side="1"] button:enabled').count(),0);assert.equal(await p.locator('.status .type-chip').count(),2);
- await p.screenshot({path:`${out}/battle-${width}x${height}.png`});assert.deepEqual(errors,[]);results.push({width,height,toggle:true,removableChips:true,loops:true,animatedArrows:true,touchSwipe:true,compactToolbar:true,customDropdown:true,pixelArt48:true,hardStarts:true,errors});await p.locator('#game-home').click();assert.ok(await p.locator('#play-ai').isVisible());await p.close();
+ await p.screenshot({path:`${out}/battle-${width}x${height}.png`});assert.deepEqual(errors,[]);results.push({width,height,toggle:true,removableChips:true,loops:true,animatedArrows:true,touchSwipe:true,compactToolbar:true,customDropdown:true,pixelArt48:true,hardStarts:true,errors});await p.locator('#game-home').click();await p.locator('#confirm-quit').click();assert.ok(await p.locator('#play-ai').isVisible());await p.close();
 }
 writeFileSync(out+'/results.json',JSON.stringify(results,null,2));await browser.close();console.log('Retro picker and battle checks pass at all four viewports.');

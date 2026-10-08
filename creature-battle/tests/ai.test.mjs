@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-import {match,creature,moves,stats,active} from './helpers.mjs';import {deepFreeze} from '../src/rules.js';
+import {rules,match,creature,moves,stats,active} from './helpers.mjs';import {deepFreeze} from '../src/rules.js';
 import {chooseAction,chooseTeam,chooseReplacement,publicBattle,scoreAction} from '../src/ai.js';
 import {applyAction,getActions} from '../src/engine.js';
 test('AI module never calls or imports engine transition APIs',()=>{
@@ -50,4 +50,13 @@ test('Normal replacements use revealed matchup; team selection has no opponent a
   }
   const {state}=match();state.teams[0][1].type='grass';state.teams[0][2].type='fire';active(state,0).hp=0;
   assert.equal(chooseReplacement(state,0,{difficulty:'normal',aiRng:12}).index,1);
+});
+
+test('Normal practice opener is weak to the player opening type, with a legal team',async()=>{
+ const {choosePracticeTeam}=await import('../src/ai.js');
+ const pool=Object.keys(rules.types).map((type,i)=>creature({type,id:`cr-open0${i}`}));
+ for(const openingType of Object.keys(rules.types))for(const seed of [3,17,101]){
+  const choice=choosePracticeTeam(pool,{rules,openingType,aiRng:seed});assert.equal(choice.team.length,3);assert.equal(new Set(choice.team.map(c=>c.id)).size,3);assert.ok(rules.types[openingType].strong.includes(choice.team[0].type));
+ }
+ const small=pool.slice(0,2);assert.equal(choosePracticeTeam(small,{rules,openingType:'fire',aiRng:3}).team.length,3);
 });
