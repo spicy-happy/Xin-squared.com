@@ -83,6 +83,7 @@ test('Last Chance is not reset by healing to full or switching out and back',()=
 });
 test('Guard persists, absorbs final crit/type damage, partial absorption and break; refill never stacks',()=>{
   let {state:s}=match({...fast,moves:moves('steady','blast','guard')},slow);
+  active(s,0).hp-=40;
   s=act(s,'defense').state;assert.equal(active(s,0).shield,29);
   assert.equal(getActions(s,0).find(a=>a.kind==='defense').enabled,false);
   let r=act(s);const h=ev(r,'hit');assert.equal(h.absorbed,damage(rules,active(s,1),active(s,0),rules.moves.regular.steady,{first:false,crit:h.crit}));
@@ -210,4 +211,16 @@ test('Struggle double faint resolves both replacements and final-hit victory det
  assert.equal(whoseTurn(act(s).state).side,0);
  s=match(fast,slow).state;s.teams.flat().forEach(m=>m.hp=0);active(s,0).hp=active(s,1).hp=1;active(s,0).pp.regular=active(s,0).pp.special=0;
  assert.equal(act(s,'fallback').state.winner,0);
+});
+
+
+test('Bubble Shield caps combined HP and shield at max HP at every health level',()=>{
+ for(let hp=1;hp<=96;hp++){
+  let {state:s}=match({...fast,moves:moves('steady','blast','guard')},slow);active(s,0).hp=hp;
+  let r=act(s,'defense');let m=active(r.state,0);
+  assert.equal(m.hp,hp);assert.equal(m.shield,Math.min(96-hp,29));assert.ok(m.hp+m.shield<=m.maxHp);
+  assert.equal(ev(r,'shieldUp').amount,m.shield);assert.equal(m.pp.defense,2);
+  s=r.state;s.slot=0;s.order=[0,1];r=act(s,'defense');m=active(r.state,0);
+  assert.equal(m.shield,Math.min(96-hp,29));assert.ok(m.hp+m.shield<=m.maxHp);
+ }
 });

@@ -153,3 +153,8 @@ The sole surviving creature enters automatically; defense remains usable while P
 remains, even at full HP or when already protected. Three approved non-prototype entries automatically
 retire TEST entries from the loaded collection. Run tools/playtest-browser.mjs
 for the UI checks, including replacement tray size and disabled fainted cards.
+
+Bubble Shield is capped at missing HP: HP + shield never exceeds max HP.
+At full HP it remains selectable while PP lasts, but adds no protection and the
+log explains that HP is already full. Hard AI scores only newly added protection.
+Run tools/bubble-browser.mjs for full, near-full and damaged-HP UI checks.

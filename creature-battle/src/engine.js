@@ -119,7 +119,7 @@ export function applyAction(input, side, action) {
         const amount = Math.min(m.maxHp - m.hp, fraction(m.maxHp, move.factor)); m.hp += amount;
         events.push({ t: 'heal', side, amount, hpAfter: m.hp, ppAfter: { ...m.pp } });
       } else if (id === 'guard') {
-        m.shield = fraction(m.maxHp, move.factor);
+        m.shield = Math.min(m.maxHp - m.hp, fraction(m.maxHp, move.factor));
         events.push({ t: 'shieldUp', side, amount: m.shield, shieldAfter: m.shield, ppAfter: { ...m.pp } });
       } else { m.toughened = true; events.push({ t: 'toughen', side, ppAfter: { ...m.pp } }); }
     } else {

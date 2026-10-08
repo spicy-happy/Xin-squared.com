@@ -39,7 +39,9 @@ test('Normal secure KO, early defenses, Heal threshold, shield use and Overload 
   state=match({stats:stats(2,3,0,5),moves:moves('steady','overload','guard')},{stats:stats(5,3,2,0)}).state;
   active(state,1).shield=10;assert.equal(scoreAction(state,0,{kind:'special'}),-20);
   active(state,1).shield=0;active(state,0).hp=5;assert.equal(scoreAction(state,0,{kind:'special'}),-30);
-  active(state,0).hp=active(state,0).maxHp;assert.equal(scoreAction(state,0,{kind:'defense'}),13);
+  active(state,0).hp=active(state,0).maxHp;assert.equal(scoreAction(state,0,{kind:'defense'}),-5);
+  active(state,0).hp-=29;assert.equal(scoreAction(state,0,{kind:'defense'}),13);
+  active(state,0).shield=29;assert.equal(scoreAction(state,0,{kind:'defense'}),-5);
 });
 test('Normal replacements use revealed matchup; team selection has no opponent and legal 0/1/2/3+ picks',()=>{
   const a=creature(),b=creature({id:'cr-test01',type:'grass'}),c=creature({id:'cr-test02',type:'fire'});
