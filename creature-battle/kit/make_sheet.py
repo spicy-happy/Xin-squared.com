@@ -15,7 +15,7 @@ INK='#2b2b33'
 PAGE_WIDTH,PAGE_HEIGHT=(v/72 for v in landscape(letter))
 class Sheet:
  def __init__(self,out):
-  self.c=canvas.Canvas(str(out),pagesize=landscape(letter),invariant=1);self.c.setTitle('My Battle Creature');self.zones=[]
+  self.c=canvas.Canvas(str(out),pagesize=landscape(letter),invariant=1);self.c.setTitle('Creature Battle');self.zones=[]
  def box(self,x,y,w,h,label):
   assert x>=.5 and y>=.5 and x+w<=PAGE_WIDTH-.49 and y+h<=PAGE_HEIGHT-.49,(label,'outside print area')
   for a,b,c,d,n in self.zones:
@@ -54,7 +54,7 @@ class Sheet:
 def make(out):
  s=Sheet(out);c=s.c
  for mid,x,y in [(30,.08,.08),(31,10.57,.08),(32,10.57,8.07),(33,.08,8.07)]:s.marker(mid,x,y)
- s.text(.5,.73,'MY BATTLE CREATURE',20,True)
+ s.text(.5,.73,'CREATURE BATTLE',20,True)
  s.box(.5,.95,4.3,4.85,'creature drawing');s.text(2.65,1.18,'Draw your creature here',13,True,True)
  s.box(.5,6.0,1.85,1.85,'trainer portrait');s.text(1.425,6.23,'Draw your trainer',12,True,True)
  s.text(2.7,6.55,"Creature's name",12,True);s.line(2.7,6.96,2.1)
