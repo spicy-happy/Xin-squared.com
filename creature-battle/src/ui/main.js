@@ -48,8 +48,8 @@ function start(){if(!firstPicks)firstPicks=structuredClone(picks);if(picks[0].tr
 function action(side,choice){if(view.isLocked())return;try{const result=applyAction(state,side,choice);state=result.state;view.animate(result.events);}catch(e){console.error(e);}}
 function replace(side,index){if(view.isLocked())return;const result=chooseReplacement(state,side,index);state=result.state;view.animate(result.events);}
 function drain(){if(screen!=='battle')return;if(state.over){if(state.reason==='cap')console.error('Battle safety cap triggered');result();return;}
-  const t=whoseTurn(state);if(mode==='ai'&&t.side===1){clearTimeout(aiTimer);aiTimer=setTimeout(()=>{
-    aiTimer=null;if(quitDialog.open){aiTimer=setTimeout(drain,400);return;}if(screen!=='battle'||!view||view.isLocked())return;
+  const t=whoseTurn(state);if(mode==='ai'&&t.side===1){clearTimeout(aiTimer);const scheduledState=state;aiTimer=setTimeout(()=>{
+    aiTimer=null;if(quitDialog.open){aiTimer=setTimeout(drain,400);return;}if(screen!=='battle'||!view||view.isLocked()||state!==scheduledState)return;
     const current=whoseTurn(state);if(current.over||current.side!==1)return;
     const opts={difficulty:botDifficulty(),aiRng,lastSwitch};if(current.need==='replacement'){const choice=aiReplacement(state,1,opts);aiRng=choice.aiRng;lastSwitch=false;replace(1,choice.index);}else{const choice=chooseAction(state,1,opts);aiRng=choice.aiRng;lastSwitch=choice.lastSwitch;action(1,choice.action);}
   },600+Math.floor(Math.random()*401));}

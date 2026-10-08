@@ -149,8 +149,10 @@ unspent slot. Last Chance can save a heavy lethal hit (post-shield damage at lea
 floor(maxHp / 2)) once per creature if its HP was above 1. Healing and switching
 do not reset it. Normal favours matchups for each child pick and uses 85% random legal choices.
 Speed decides the opening turn. Subsequent spent turns alternate through switches
-and replacements; the removed speed reordering cannot grant bonus actions. Overload
-rest still spends its creature's turn automatically.
+and replacements; the removed speed reordering cannot grant bonus actions. Mega Burst
+recharges its special for one turn, but Regular, Defense and Switch remain
+usable. No turn is automatically skipped; Struggle is available if recharge
+leaves no usable attacks.
 The sole surviving creature enters automatically; defense remains usable while PP
 remains, even at full HP or when already protected. Three approved non-prototype entries automatically
 retire TEST entries from the loaded collection. Run tools/playtest-browser.mjs
@@ -164,3 +166,6 @@ Run tools/bubble-browser.mjs for full, near-full and damaged-HP UI checks.
 Narration extensions type only their new suffix, preserving old damage and Last
 Chance text rather than replaying it. Screen readers announce the new effect
 only. Run tools/fair-turns-browser.mjs to verify Last Chance plus recoil narration.
+
+Run tools/switch-turn-browser.mjs to drive three real Solo switches, verify
+exactly one bot action each time, and check recharge keeps input available.

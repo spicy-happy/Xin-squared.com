@@ -1,3 +1,8 @@
+> Version 29 playtest update (owner-directed): every move and voluntary switch
+> hands the turn to the other side. Mega Burst no longer skips a turn; its special
+> recharges for one turn while other moves remain usable. Delayed bot callbacks
+> reject state from an older turn. See `acceptance/one-move-per-turn/README.md`.
+
 > Version 28 playtest update (owner-directed): speed chooses the opening turn;
 > subsequent spent turns alternate through switches and replacements. Overload
 > still spends its next turn resting. Last Chance remains once per creature, as

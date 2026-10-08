@@ -55,7 +55,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   const meter=el('div','meter-row'),hp=el('div','hp');hp.setAttribute('role','meter');hp.setAttribute('aria-label',`${m.name} HP`);hp.setAttribute('aria-valuemin','0');hp.setAttribute('aria-valuemax',String(m.maxHp));hp.setAttribute('aria-valuenow',String(m.hp));
   const ratio=m.hp/m.maxHp;hp.classList.toggle('hp-medium',ratio<=.5&&ratio>.2);hp.classList.toggle('hp-low',ratio<=.2&&m.hp>0);
   const fill=el('span','hp-fill');fill.style.width=`${100*ratio}%`;hp.append(fill);meter.append(hp);
-  const details=el('div','hp-details');details.append(el('span','hp-number',`${m.hp}/${m.maxHp}${m.shield?` +${m.shield}`:''}${m.resting?' · NAP':''}${m.toughened?' · TOUGH':''}`),typeChip(m.type));status.append(meter,details);
+  const details=el('div','hp-details');details.append(el('span','hp-number',`${m.hp}/${m.maxHp}${m.shield?` +${m.shield}`:''}${m.recharging?' · RECHARGE':''}${m.toughened?' · TOUGH':''}`),typeChip(m.type));status.append(meter,details);
   img.src=imageSrc(m);img.alt=m.name;img.style.opacity=fallen[side]?'0':'1';panels[side].fighter.classList.toggle('fainted',fallen[side]);
  }}
  function confirm(side,action,text){if(!twoTap())return perform(side,action);const key=JSON.stringify(action);if(selected===key)return perform(side,action);selected=key;
@@ -71,7 +71,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   for(let owner=0;owner<2;owner++){
    sides[owner].classList.toggle('active',!locked&&!guarded&&!turn.over&&turn.side===owner&&humanSides.includes(owner));const g=grids[owner];g.classList.remove('choosing');g.replaceChildren();
    const m=s.teams[owner][s.active[owner]],actions=getActions(s,owner);
-   const exhausted=m.pp.regular===0&&m.pp.special===0;
+   const exhausted=actions[0].kind==='fallback';
    for(const kind of ['regular','special','defense','switch']){
     if(exhausted&&kind==='special')continue;
     const label=kind==='switch'?'Switch':m.moves[kind].name;
@@ -88,7 +88,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
  }
  function applyEvent(e){if(e.t==='switch'){active(e.side).shield=0;active(e.side).toughened=false;view.active[e.side]=e.to;}if(e.t==='enter')view.active[e.side]=e.slot;if(['enter','switch'].includes(e.t))fallen[e.side]=false;if(e.t==='faint')fallen[e.side]=true;
   const owner=e.t==='hit'?e.target:e.side,m=owner===0||owner===1?active(owner):null;
-  if(m){if(e.hpAfter!==undefined)m.hp=e.hpAfter;if(e.ppAfter)m.pp={...e.ppAfter};if(e.shieldAfter!==undefined)m.shield=e.shieldAfter;if(e.t==='toughen')m.toughened=true;if(e.t==='rest')m.resting=false;if(e.t==='use'&&e.moveId==='overload')m.resting=true;if(e.t==='faint'){m.resting=false;m.toughened=false;}}
+  if(m){if(e.hpAfter!==undefined)m.hp=e.hpAfter;if(e.ppAfter)m.pp={...e.ppAfter};if(e.shieldAfter!==undefined)m.shield=e.shieldAfter;if(e.t==='toughen')m.toughened=true;if(e.rechargingAfter!==undefined)m.recharging=e.rechargingAfter;if(e.t==='faint'){m.recharging=false;m.toughened=false;}}
   if(e.switchesLeft!==undefined)view.switchesLeft[e.side]=e.switchesLeft;if(e.t==='round'){view.order=[...e.order];view.round=e.n;}
  }
  function effect(e){

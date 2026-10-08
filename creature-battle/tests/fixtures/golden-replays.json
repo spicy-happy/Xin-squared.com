@@ -85,15 +85,9 @@
         }
       },
       {
-        "side": 0,
-        "action": {
-          "kind": "regular"
-        }
-      },
-      {
         "side": 1,
         "action": {
-          "kind": "special"
+          "kind": "regular"
         }
       },
       {
@@ -119,6 +113,12 @@
         }
       },
       {
+        "side": 1,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
         "side": 0,
         "action": {
           "kind": "special"
@@ -135,6 +135,42 @@
         "action": {
           "kind": "regular"
         }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
       }
     ],
     "events": [
@@ -150,6 +186,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -164,6 +201,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -186,7 +224,8 @@
           "regular": 12,
           "special": 2,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
@@ -213,7 +252,8 @@
           "regular": 10,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": true
       },
       {
         "t": "hit",
@@ -246,7 +286,8 @@
           "regular": 12,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
@@ -268,7 +309,8 @@
           "special": 1,
           "defense": 3
         },
-        "shieldAfter": 0
+        "shieldAfter": 0,
+        "rechargingAfter": false
       },
       {
         "t": "needReplace",
@@ -286,6 +328,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -298,7 +341,8 @@
           "regular": 10,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": true
       },
       {
         "t": "hit",
@@ -335,7 +379,8 @@
           "regular": 12,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
@@ -349,57 +394,17 @@
         "hpAfter": 10
       },
       {
-        "t": "rest",
-        "side": 1
-      },
-      {
-        "t": "round",
-        "n": 4,
-        "order": [
-          0,
-          1
-        ],
-        "reason": "alternating",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 0,
-        "moveId": "quick",
-        "name": "Quick Strike",
-        "ppAfter": {
-          "regular": 11,
-          "special": 0,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 9,
-        "crit": true,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 1
-      },
-      {
-        "t": "hangOn",
-        "side": 1
-      },
-      {
         "t": "use",
         "side": 1,
         "slot": 1,
-        "moveId": "overload",
-        "name": "Mega Burst",
+        "moveId": "pierce",
+        "name": "Piercing Jab",
         "ppAfter": {
-          "regular": 10,
-          "special": 0,
+          "regular": 9,
+          "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
@@ -417,11 +422,12 @@
         "side": 0,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 11,
+          "regular": 12,
           "special": 0,
           "defense": 3
         },
-        "shieldAfter": 0
+        "shieldAfter": 0,
+        "rechargingAfter": false
       },
       {
         "t": "needReplace",
@@ -439,7 +445,59 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 4,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Wild Blast",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "overload",
+        "name": "Mega Burst",
+        "ppAfter": {
+          "regular": 9,
+          "special": 0,
+          "defense": 3
+        },
+        "rechargingAfter": true
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 45,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 37
       },
       {
         "t": "round",
@@ -459,68 +517,49 @@
         "name": "Wild Blast",
         "ppAfter": {
           "regular": 12,
-          "special": 2,
+          "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 1,
+        "amount": 9,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 0
+        "hpAfter": 1
       },
       {
-        "t": "faint",
-        "side": 1,
-        "hpAfter": 0,
-        "ppAfter": {
-          "regular": 10,
-          "special": 0,
-          "defense": 3
-        },
-        "shieldAfter": 0
-      },
-      {
-        "t": "enter",
-        "side": 1,
-        "slot": 2,
-        "name": "Test creature",
-        "hpAfter": 82,
-        "ppAfter": {
-          "regular": 10,
-          "special": 2,
-          "defense": 3
-        },
-        "shieldAfter": 0,
-        "switchesLeft": 3
+        "t": "hangOn",
+        "side": 1
       },
       {
         "t": "use",
         "side": 1,
-        "slot": 2,
-        "moveId": "overload",
-        "name": "Mega Burst",
+        "slot": 1,
+        "moveId": "pierce",
+        "name": "Piercing Jab",
         "ppAfter": {
-          "regular": 10,
-          "special": 1,
+          "regular": 8,
+          "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 1,
         "target": 0,
-        "amount": 45,
+        "amount": 12,
         "crit": false,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 37
+        "hpAfter": 25
       },
       {
         "t": "round",
@@ -540,61 +579,48 @@
         "name": "Wild Blast",
         "ppAfter": {
           "regular": 12,
-          "special": 1,
+          "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 72,
+        "amount": 1,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 10
+        "hpAfter": 0
       },
       {
-        "t": "rest",
-        "side": 1
-      },
-      {
-        "t": "round",
-        "n": 7,
-        "order": [
-          0,
-          1
-        ],
-        "reason": "alternating",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 1,
-        "moveId": "risky",
-        "name": "Wild Blast",
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
         "ppAfter": {
-          "regular": 12,
+          "regular": 8,
           "special": 0,
           "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 9,
-        "crit": true,
-        "eff": "strong",
-        "absorbed": 0,
+        },
         "shieldAfter": 0,
-        "hpAfter": 1
+        "rechargingAfter": false
       },
       {
-        "t": "hangOn",
-        "side": 1
+        "t": "enter",
+        "side": 1,
+        "slot": 2,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "rechargingAfter": false,
+        "switchesLeft": 3
       },
       {
         "t": "use",
@@ -604,16 +630,17 @@
         "name": "Mega Burst",
         "ppAfter": {
           "regular": 10,
-          "special": 0,
+          "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": true
       },
       {
         "t": "hit",
         "side": 1,
         "target": 0,
-        "amount": 36,
-        "crit": false,
+        "amount": 24,
+        "crit": true,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -625,7 +652,7 @@
       },
       {
         "t": "round",
-        "n": 8,
+        "n": 7,
         "order": [
           0,
           1
@@ -643,14 +670,213 @@
           "regular": 11,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 32,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 50
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 2,
+        "moveId": "pierce",
+        "name": "Piercing Jab",
+        "ppAfter": {
+          "regular": 9,
+          "special": 1,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 1,
+        "crit": true,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 0,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 11,
+          "special": 0,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "rechargingAfter": false
+      },
+      {
+        "t": "enter",
+        "side": 0,
+        "slot": 2,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 12,
+          "special": 3,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "rechargingAfter": false,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 8,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Wild Blast",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 2,
+        "moveId": "overload",
+        "name": "Mega Burst",
+        "ppAfter": {
+          "regular": 9,
+          "special": 0,
+          "defense": 3
+        },
+        "rechargingAfter": true
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 45,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 37
+      },
+      {
+        "t": "round",
+        "n": 9,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Wild Blast",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 49,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 1
+      },
+      {
+        "t": "hangOn",
+        "side": 1
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 2,
+        "moveId": "pierce",
+        "name": "Piercing Jab",
+        "ppAfter": {
+          "regular": 8,
+          "special": 0,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 12,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 25
+      },
+      {
+        "t": "round",
+        "n": 10,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Wild Blast",
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
         "amount": 1,
-        "crit": true,
+        "crit": false,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -661,11 +887,12 @@
         "side": 1,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 10,
+          "regular": 8,
           "special": 0,
           "defense": 3
         },
-        "shieldAfter": 0
+        "shieldAfter": 0,
+        "rechargingAfter": false
       },
       {
         "t": "win",
@@ -673,7 +900,7 @@
         "reason": "ko"
       }
     ],
-    "rng": 3471308035,
+    "rng": 943965355,
     "winner": 0
   },
   {
@@ -746,6 +973,12 @@
         }
       },
       {
+        "side": 1,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
         "side": 0,
         "action": {
           "kind": "special"
@@ -784,6 +1017,12 @@
         }
       },
       {
+        "side": 1,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
         "side": 0,
         "action": {
           "kind": "special"
@@ -803,12 +1042,6 @@
       },
       {
         "side": 1,
-        "action": {
-          "kind": "special"
-        }
-      },
-      {
-        "side": 0,
         "action": {
           "kind": "regular"
         }
@@ -817,24 +1050,6 @@
         "side": 0,
         "action": {
           "kind": "regular"
-        }
-      },
-      {
-        "side": 1,
-        "action": {
-          "kind": "special"
-        }
-      },
-      {
-        "side": 0,
-        "action": {
-          "kind": "special"
-        }
-      },
-      {
-        "side": 0,
-        "action": {
-          "kind": "special"
         }
       }
     ],
@@ -851,6 +1066,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -865,6 +1081,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -887,7 +1104,8 @@
           "regular": 12,
           "special": 2,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "miss",
@@ -903,7 +1121,8 @@
           "regular": 10,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": true
       },
       {
         "t": "hit",
@@ -936,15 +1155,36 @@
           "regular": 12,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "miss",
         "side": 0
       },
       {
-        "t": "rest",
-        "side": 1
+        "t": "use",
+        "side": 1,
+        "slot": 0,
+        "moveId": "pierce",
+        "name": "Piercing Jab",
+        "ppAfter": {
+          "regular": 9,
+          "special": 1,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 12,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 2
       },
       {
         "t": "round",
@@ -966,18 +1206,23 @@
           "regular": 12,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 72,
-        "crit": false,
+        "amount": 81,
+        "crit": true,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 10
+        "hpAfter": 1
+      },
+      {
+        "t": "hangOn",
+        "side": 1
       },
       {
         "t": "use",
@@ -986,17 +1231,18 @@
         "moveId": "overload",
         "name": "Mega Burst",
         "ppAfter": {
-          "regular": 10,
+          "regular": 9,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": true
       },
       {
         "t": "hit",
         "side": 1,
         "target": 0,
-        "amount": 13,
-        "crit": true,
+        "amount": 1,
+        "crit": false,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -1026,14 +1272,15 @@
           "regular": 11,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 10,
-        "crit": false,
+        "amount": 1,
+        "crit": true,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -1044,11 +1291,12 @@
         "side": 1,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 10,
+          "regular": 9,
           "special": 0,
           "defense": 3
         },
-        "shieldAfter": 0
+        "shieldAfter": 0,
+        "rechargingAfter": false
       },
       {
         "t": "needReplace",
@@ -1066,6 +1314,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -1078,14 +1327,15 @@
           "regular": 10,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": true
       },
       {
         "t": "hit",
         "side": 1,
         "target": 0,
         "amount": 1,
-        "crit": true,
+        "crit": false,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -1100,7 +1350,8 @@
           "special": 0,
           "defense": 3
         },
-        "shieldAfter": 0
+        "shieldAfter": 0,
+        "rechargingAfter": false
       },
       {
         "t": "needReplace",
@@ -1118,6 +1369,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -1140,22 +1392,47 @@
           "regular": 12,
           "special": 2,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 72,
-        "crit": false,
+        "amount": 81,
+        "crit": true,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 10
+        "hpAfter": 1
       },
       {
-        "t": "rest",
+        "t": "hangOn",
         "side": 1
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "pierce",
+        "name": "Piercing Jab",
+        "ppAfter": {
+          "regular": 9,
+          "special": 1,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 12,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 70
       },
       {
         "t": "round",
@@ -1177,45 +1454,70 @@
           "regular": 12,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 9,
+        "amount": 1,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 1
+        "hpAfter": 0
       },
       {
-        "t": "hangOn",
-        "side": 1
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 9,
+          "special": 1,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "rechargingAfter": false
+      },
+      {
+        "t": "enter",
+        "side": 1,
+        "slot": 2,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "rechargingAfter": false,
+        "switchesLeft": 3
       },
       {
         "t": "use",
         "side": 1,
-        "slot": 1,
+        "slot": 2,
         "moveId": "overload",
         "name": "Mega Burst",
         "ppAfter": {
           "regular": 10,
-          "special": 0,
+          "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": true
       },
       {
         "t": "hit",
         "side": 1,
         "target": 0,
-        "amount": 68,
-        "crit": true,
+        "amount": 45,
+        "crit": false,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 14
+        "hpAfter": 25
       },
       {
         "t": "round",
@@ -1237,70 +1539,43 @@
           "regular": 12,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 1,
+        "amount": 72,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 0
-      },
-      {
-        "t": "faint",
-        "side": 1,
-        "hpAfter": 0,
-        "ppAfter": {
-          "regular": 10,
-          "special": 0,
-          "defense": 3
-        },
-        "shieldAfter": 0
-      },
-      {
-        "t": "enter",
-        "side": 1,
-        "slot": 2,
-        "name": "Test creature",
-        "hpAfter": 82,
-        "ppAfter": {
-          "regular": 10,
-          "special": 2,
-          "defense": 3
-        },
-        "shieldAfter": 0,
-        "switchesLeft": 3
+        "hpAfter": 10
       },
       {
         "t": "use",
         "side": 1,
         "slot": 2,
-        "moveId": "overload",
-        "name": "Mega Burst",
+        "moveId": "pierce",
+        "name": "Piercing Jab",
         "ppAfter": {
-          "regular": 10,
+          "regular": 9,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 1,
         "target": 0,
-        "amount": 13,
+        "amount": 12,
         "crit": false,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 1
-      },
-      {
-        "t": "hangOn",
-        "side": 0
+        "hpAfter": 13
       },
       {
         "t": "round",
@@ -1322,188 +1597,31 @@
           "regular": 11,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 32,
+        "amount": 10,
         "crit": false,
         "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 50
-      },
-      {
-        "t": "rest",
-        "side": 1
-      },
-      {
-        "t": "round",
-        "n": 9,
-        "order": [
-          0,
-          1
-        ],
-        "reason": "alternating",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 1,
-        "moveId": "quick",
-        "name": "Quick Strike",
-        "ppAfter": {
-          "regular": 10,
-          "special": 0,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 32,
-        "crit": false,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 18
-      },
-      {
-        "t": "use",
-        "side": 1,
-        "slot": 2,
-        "moveId": "overload",
-        "name": "Mega Burst",
-        "ppAfter": {
-          "regular": 10,
-          "special": 0,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 1,
-        "target": 0,
-        "amount": 1,
-        "crit": false,
-        "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
         "hpAfter": 0
       },
       {
         "t": "faint",
-        "side": 0,
+        "side": 1,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 10,
-          "special": 0,
-          "defense": 3
-        },
-        "shieldAfter": 0
-      },
-      {
-        "t": "enter",
-        "side": 0,
-        "slot": 2,
-        "name": "Test creature",
-        "hpAfter": 82,
-        "ppAfter": {
-          "regular": 12,
-          "special": 3,
-          "defense": 3
-        },
-        "shieldAfter": 0,
-        "switchesLeft": 3
-      },
-      {
-        "t": "round",
-        "n": 10,
-        "order": [
-          0,
-          1
-        ],
-        "reason": "alternating",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 2,
-        "moveId": "risky",
-        "name": "Wild Blast",
-        "ppAfter": {
-          "regular": 12,
-          "special": 2,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 17,
-        "crit": false,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 1
-      },
-      {
-        "t": "hangOn",
-        "side": 1
-      },
-      {
-        "t": "rest",
-        "side": 1
-      },
-      {
-        "t": "round",
-        "n": 11,
-        "order": [
-          0,
-          1
-        ],
-        "reason": "alternating",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 2,
-        "moveId": "risky",
-        "name": "Wild Blast",
-        "ppAfter": {
-          "regular": 12,
+          "regular": 9,
           "special": 1,
           "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 1,
-        "crit": true,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 0
-      },
-      {
-        "t": "faint",
-        "side": 1,
-        "hpAfter": 0,
-        "ppAfter": {
-          "regular": 10,
-          "special": 0,
-          "defense": 3
         },
-        "shieldAfter": 0
+        "shieldAfter": 0,
+        "rechargingAfter": false
       },
       {
         "t": "win",
@@ -1511,7 +1629,7 @@
         "reason": "ko"
       }
     ],
-    "rng": 2207636704,
+    "rng": 1639742231,
     "winner": 0
   },
   {
@@ -1584,6 +1702,12 @@
         }
       },
       {
+        "side": 1,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
         "side": 0,
         "action": {
           "kind": "special"
@@ -1606,15 +1730,9 @@
         }
       },
       {
-        "side": 0,
-        "action": {
-          "kind": "regular"
-        }
-      },
-      {
         "side": 1,
         "action": {
-          "kind": "special"
+          "kind": "regular"
         }
       },
       {
@@ -1628,6 +1746,12 @@
         }
       },
       {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
         "side": 0,
         "action": {
           "kind": "special"
@@ -1666,6 +1790,42 @@
       {
         "side": 0,
         "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
           "kind": "regular"
         }
       },
@@ -1682,27 +1842,9 @@
         }
       },
       {
-        "side": 0,
-        "action": {
-          "kind": "regular"
-        }
-      },
-      {
         "side": 1,
         "action": {
-          "kind": "special"
-        }
-      },
-      {
-        "side": 0,
-        "action": {
-          "kind": "special"
-        }
-      },
-      {
-        "side": 0,
-        "action": {
-          "kind": "special"
+          "kind": "regular"
         }
       }
     ],
@@ -1719,6 +1861,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -1733,6 +1876,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -1755,7 +1899,8 @@
           "regular": 12,
           "special": 2,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "miss",
@@ -1771,7 +1916,8 @@
           "regular": 10,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": true
       },
       {
         "t": "hit",
@@ -1804,7 +1950,8 @@
           "regular": 12,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
@@ -1822,8 +1969,28 @@
         "side": 1
       },
       {
-        "t": "rest",
-        "side": 1
+        "t": "use",
+        "side": 1,
+        "slot": 0,
+        "moveId": "pierce",
+        "name": "Piercing Jab",
+        "ppAfter": {
+          "regular": 9,
+          "special": 1,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 19,
+        "crit": true,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 18
       },
       {
         "t": "round",
@@ -1845,7 +2012,8 @@
           "regular": 12,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
@@ -1863,11 +2031,12 @@
         "side": 1,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 10,
+          "regular": 9,
           "special": 1,
           "defense": 3
         },
-        "shieldAfter": 0
+        "shieldAfter": 0,
+        "rechargingAfter": false
       },
       {
         "t": "needReplace",
@@ -1885,6 +2054,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -1897,14 +2067,15 @@
           "regular": 10,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": true
       },
       {
         "t": "hit",
         "side": 1,
         "target": 0,
-        "amount": 36,
-        "crit": false,
+        "amount": 17,
+        "crit": true,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -1934,44 +2105,8 @@
           "regular": 11,
           "special": 0,
           "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 32,
-        "crit": false,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 50
-      },
-      {
-        "t": "rest",
-        "side": 1
-      },
-      {
-        "t": "round",
-        "n": 5,
-        "order": [
-          0,
-          1
-        ],
-        "reason": "alternating",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 0,
-        "moveId": "quick",
-        "name": "Quick Strike",
-        "ppAfter": {
-          "regular": 10,
-          "special": 0,
-          "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
@@ -1982,19 +2117,20 @@
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 3
+        "hpAfter": 35
       },
       {
         "t": "use",
         "side": 1,
         "slot": 1,
-        "moveId": "overload",
-        "name": "Mega Burst",
+        "moveId": "pierce",
+        "name": "Piercing Jab",
         "ppAfter": {
-          "regular": 10,
-          "special": 0,
+          "regular": 9,
+          "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
@@ -2012,11 +2148,12 @@
         "side": 0,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 10,
+          "regular": 11,
           "special": 0,
           "defense": 3
         },
-        "shieldAfter": 0
+        "shieldAfter": 0,
+        "rechargingAfter": false
       },
       {
         "t": "needReplace",
@@ -2034,7 +2171,59 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 5,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Wild Blast",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "overload",
+        "name": "Mega Burst",
+        "ppAfter": {
+          "regular": 9,
+          "special": 0,
+          "defense": 3
+        },
+        "rechargingAfter": true
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 45,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 37
       },
       {
         "t": "round",
@@ -2054,17 +2243,38 @@
         "name": "Wild Blast",
         "ppAfter": {
           "regular": 12,
-          "special": 2,
+          "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "miss",
         "side": 0
       },
       {
-        "t": "rest",
-        "side": 1
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "pierce",
+        "name": "Piercing Jab",
+        "ppAfter": {
+          "regular": 8,
+          "special": 0,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 12,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 25
       },
       {
         "t": "round",
@@ -2084,9 +2294,10 @@
         "name": "Wild Blast",
         "ppAfter": {
           "regular": 12,
-          "special": 1,
+          "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "miss",
@@ -2099,74 +2310,26 @@
         "moveId": "pierce",
         "name": "Piercing Jab",
         "ppAfter": {
-          "regular": 9,
+          "regular": 7,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 1,
         "target": 0,
-        "amount": 12,
-        "crit": false,
+        "amount": 19,
+        "crit": true,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 70
+        "hpAfter": 6
       },
       {
         "t": "round",
         "n": 8,
-        "order": [
-          0,
-          1
-        ],
-        "reason": "alternating",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 1,
-        "moveId": "risky",
-        "name": "Wild Blast",
-        "ppAfter": {
-          "regular": 12,
-          "special": 0,
-          "defense": 3
-        }
-      },
-      {
-        "t": "miss",
-        "side": 0
-      },
-      {
-        "t": "use",
-        "side": 1,
-        "slot": 1,
-        "moveId": "pierce",
-        "name": "Piercing Jab",
-        "ppAfter": {
-          "regular": 8,
-          "special": 0,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 1,
-        "target": 0,
-        "amount": 12,
-        "crit": false,
-        "eff": "weak",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 58
-      },
-      {
-        "t": "round",
-        "n": 9,
         "order": [
           0,
           1
@@ -2184,13 +2347,14 @@
           "regular": 11,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 2,
+        "amount": 34,
         "crit": true,
         "eff": "strong",
         "absorbed": 0,
@@ -2208,21 +2372,100 @@
         "moveId": "pierce",
         "name": "Piercing Jab",
         "ppAfter": {
-          "regular": 7,
+          "regular": 6,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 1,
         "target": 0,
-        "amount": 19,
-        "crit": true,
+        "amount": 6,
+        "crit": false,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 39
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 0,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 11,
+          "special": 0,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "rechargingAfter": false
+      },
+      {
+        "t": "enter",
+        "side": 0,
+        "slot": 2,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 12,
+          "special": 3,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "rechargingAfter": false,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 9,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Wild Blast",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "pierce",
+        "name": "Piercing Jab",
+        "ppAfter": {
+          "regular": 5,
+          "special": 0,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 12,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 70
       },
       {
         "t": "round",
@@ -2237,21 +2480,124 @@
       {
         "t": "use",
         "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Wild Blast",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "use",
+        "side": 1,
         "slot": 1,
+        "moveId": "pierce",
+        "name": "Piercing Jab",
+        "ppAfter": {
+          "regular": 4,
+          "special": 0,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 19,
+        "crit": true,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 51
+      },
+      {
+        "t": "round",
+        "n": 11,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Wild Blast",
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "pierce",
+        "name": "Piercing Jab",
+        "ppAfter": {
+          "regular": 3,
+          "special": 0,
+          "defense": 3
+        },
+        "rechargingAfter": false
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 12,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 39
+      },
+      {
+        "t": "round",
+        "n": 12,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
         "moveId": "quick",
         "name": "Quick Strike",
         "ppAfter": {
-          "regular": 10,
+          "regular": 11,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 0,
         "target": 1,
         "amount": 1,
-        "crit": false,
+        "crit": true,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -2262,11 +2608,12 @@
         "side": 1,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 7,
+          "regular": 3,
           "special": 0,
           "defense": 3
         },
-        "shieldAfter": 0
+        "shieldAfter": 0,
+        "rechargingAfter": false
       },
       {
         "t": "enter",
@@ -2280,6 +2627,7 @@
           "defense": 3
         },
         "shieldAfter": 0,
+        "rechargingAfter": false,
         "switchesLeft": 3
       },
       {
@@ -2292,7 +2640,8 @@
           "regular": 10,
           "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": true
       },
       {
         "t": "hit",
@@ -2311,7 +2660,7 @@
       },
       {
         "t": "round",
-        "n": 11,
+        "n": 13,
         "order": [
           0,
           1
@@ -2322,14 +2671,15 @@
       {
         "t": "use",
         "side": 0,
-        "slot": 1,
+        "slot": 2,
         "moveId": "quick",
         "name": "Quick Strike",
         "ppAfter": {
-          "regular": 9,
+          "regular": 10,
           "special": 0,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
@@ -2343,60 +2693,24 @@
         "hpAfter": 50
       },
       {
-        "t": "rest",
-        "side": 1
-      },
-      {
-        "t": "round",
-        "n": 12,
-        "order": [
-          0,
-          1
-        ],
-        "reason": "alternating",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 1,
-        "moveId": "quick",
-        "name": "Quick Strike",
-        "ppAfter": {
-          "regular": 8,
-          "special": 0,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 32,
-        "crit": false,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 18
-      },
-      {
         "t": "use",
         "side": 1,
         "slot": 2,
-        "moveId": "overload",
-        "name": "Mega Burst",
+        "moveId": "pierce",
+        "name": "Piercing Jab",
         "ppAfter": {
-          "regular": 10,
-          "special": 0,
+          "regular": 9,
+          "special": 1,
           "defense": 3
-        }
+        },
+        "rechargingAfter": false
       },
       {
         "t": "hit",
         "side": 1,
         "target": 0,
         "amount": 1,
-        "crit": true,
+        "crit": false,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -2407,118 +2721,20 @@
         "side": 0,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 8,
-          "special": 0,
-          "defense": 3
-        },
-        "shieldAfter": 0
-      },
-      {
-        "t": "enter",
-        "side": 0,
-        "slot": 2,
-        "name": "Test creature",
-        "hpAfter": 82,
-        "ppAfter": {
-          "regular": 12,
-          "special": 3,
-          "defense": 3
-        },
-        "shieldAfter": 0,
-        "switchesLeft": 3
-      },
-      {
-        "t": "round",
-        "n": 13,
-        "order": [
-          0,
-          1
-        ],
-        "reason": "alternating",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 2,
-        "moveId": "risky",
-        "name": "Wild Blast",
-        "ppAfter": {
-          "regular": 12,
-          "special": 2,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 17,
-        "crit": true,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 1
-      },
-      {
-        "t": "hangOn",
-        "side": 1
-      },
-      {
-        "t": "rest",
-        "side": 1
-      },
-      {
-        "t": "round",
-        "n": 14,
-        "order": [
-          0,
-          1
-        ],
-        "reason": "alternating",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 2,
-        "moveId": "risky",
-        "name": "Wild Blast",
-        "ppAfter": {
-          "regular": 12,
-          "special": 1,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 1,
-        "crit": false,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 0
-      },
-      {
-        "t": "faint",
-        "side": 1,
-        "hpAfter": 0,
-        "ppAfter": {
           "regular": 10,
           "special": 0,
           "defense": 3
         },
-        "shieldAfter": 0
+        "shieldAfter": 0,
+        "rechargingAfter": false
       },
       {
         "t": "win",
-        "side": 0,
+        "side": 1,
         "reason": "ko"
       }
     ],
-    "rng": 944088811,
-    "winner": 0
+    "rng": 312253141,
+    "winner": 1
   }
 ]
