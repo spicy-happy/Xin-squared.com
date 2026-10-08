@@ -1,22 +1,36 @@
 import { teamRule, validateTeam } from '../collection.js';
-export function teamPick({ app, collection, side, imageSrc, onDone }) {
-  app.replaceChildren();const panel=document.createElement('section');panel.className='panel';app.append(panel);
-  const title=document.createElement('h1');title.textContent=`Player ${side+1}: pick your team`;panel.append(title);
-  const label=document.createElement('label');label.textContent='Trainer portrait: ';
-  const select=document.createElement('select');select.id='trainer-pick';
-  collection.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=c.trainer.nickname;select.append(o);});
-  select.value=String(Math.min(side,collection.length-1));label.append(select);panel.append(label);
-  const note=document.createElement('p');note.textContent=teamRule(collection).duplicates?'Pick 3. Copies are okay with this small collection.':'Pick 3 different creatures.';panel.append(note);
-  const summary=document.createElement('div');summary.className='selection';panel.append(summary);
-  const cards=document.createElement('div');cards.className='cards';panel.append(cards);
-  const team=[];const done=document.createElement('button');done.id='team-done';done.textContent='Team ready!';done.disabled=true;
-  const reset=document.createElement('button');reset.textContent='Clear picks';reset.onclick=()=>{team.length=0;update();};
-  const update=()=>{summary.textContent=team.length?team.map(c=>c.name).join(' · '):'Choose your first creature';done.disabled=!validateTeam(team,collection);};
-  collection.forEach(c=>{const b=document.createElement('button');b.className='pick-card';b.dataset.creature=c.id;
-    const img=document.createElement('img');img.src=imageSrc(c);img.alt=c.name;
-    const n=document.createElement('strong');n.textContent=c.name;const type=document.createElement('span');type.textContent=c.type;
-    b.append(img,n,type);b.onclick=()=>{if(team.length<3&&(teamRule(collection).duplicates||!team.some(m=>m.id===c.id))){team.push(c);update();}};cards.append(b);
-  });
-  done.onclick=()=>{if(validateTeam(team,collection))onDone({team:[...team],trainer:collection[Number(select.value)].trainer});};
-  const actions=document.createElement('div');actions.className='choices';actions.append(reset,done);panel.append(actions);update();
+import { element as el, typeChip, shuffled, carousel } from './components.js';
+export function teamPick({app,collection,side,imageSrc,portraitSrc,onDone,onBack,solo=false,difficulty='normal',onDifficulty}){
+ app.replaceChildren();const panel=el('section','panel team-picker');app.append(panel);
+ const top=el('div','picker-heading');top.append(el('div','eyebrow',solo?'SOLO BATTLE':`PLAYER ${side+1}`),el('h1',null,'Choose Your Team'));
+ if(solo){const label=el('label','difficulty-label','Difficulty '),select=el('select');select.id='difficulty';
+  for(const [value,text]of [['normal','Normal'],['hard','Hard']]){const option=el('option',null,text);option.value=value;select.append(option);}select.value=difficulty;select.onchange=()=>onDifficulty(select.value);label.append(select);top.append(label);
+ }panel.append(top);
+ const team=[],rule=teamRule(collection),options=rule.duplicates?Array.from({length:3},(_,i)=>({c:collection[i%collection.length],key:`copy-${i}`})):collection.map(c=>({c,key:c.id}));
+ let trainer=collection[Math.min(side,collection.length-1)];
+ const summary=el('div','selection');summary.setAttribute('aria-label','Selected creatures');panel.append(summary);
+ const trainerHeading=el('h2',null,'Trainer Portrait'),trainerCards=[],creatureCards=[];
+ panel.append(trainerHeading);
+ const portraitRow=carousel(shuffled(collection),c=>{const b=el('button','trainer-card');b.dataset.trainer=c.id;
+  const img=el('img');img.src=portraitSrc(c.trainer,c.type);img.alt=c.trainer.nickname;b.append(img,el('span',null,c.trainer.nickname));
+  b.onclick=()=>{trainer=c;update();};trainerCards.push({b,c});return b;
+ },'trainer portraits');panel.append(portraitRow);
+ panel.append(el('h2',null,'Creatures'));
+ const creatureRow=carousel(shuffled(options),entry=>{const {c,key}=entry,b=el('button','pick-card');b.dataset.creature=c.id;b.dataset.pick=key;
+  const img=el('img');img.src=imageSrc(c);img.alt=c.name;const mark=el('span','picked-label','SELECTED');
+  b.append(mark,img,el('strong',null,c.name),typeChip(c.type));
+  b.onclick=()=>{const i=team.findIndex(m=>m.key===key);if(i>=0)team.splice(i,1);else if(team.length<3)team.push(entry);update();};creatureCards.push({b,key});return b;
+ },'creatures');panel.append(creatureRow);
+ const actions=el('div','choices picker-actions'),done=el('button','primary','Start');done.id='team-done';done.disabled=true;
+ const back=el('button',null,'Home');back.onclick=onBack;actions.append(back,done);panel.append(actions);
+ done.onclick=()=>{const creatures=team.map(e=>e.c);if(validateTeam(creatures,collection))onDone({team:creatures,trainer:{...trainer.trainer,type:trainer.type}});};
+ function update(){summary.replaceChildren();summary.append(el('span','selection-count',`${team.length}/3`));
+  if(!team.length)summary.append(el('span','selection-placeholder','Select three creatures'));
+  for(const entry of team){const chip=el('span','team-chip');chip.append(el('span',null,entry.c.name),typeChip(entry.c.type));
+   const remove=el('button','remove-creature','x');remove.setAttribute('aria-label',`Remove ${entry.c.name}`);remove.onclick=()=>{team.splice(team.indexOf(entry),1);update();};chip.append(remove);summary.append(chip);
+  }
+  for(const {b,c}of trainerCards){const selected=trainer.id===c.id;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));}
+  for(const {b,key}of creatureCards){const selected=team.some(e=>e.key===key);b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));b.disabled=!selected&&team.length===3;}
+  done.disabled=!validateTeam(team.map(e=>e.c),collection);
+ }update();
 }

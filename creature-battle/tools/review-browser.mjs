@@ -4,9 +4,9 @@ const BASE=process.env.BATTLE_ORIGIN || 'http://127.0.0.1:8902';
 const b=await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
 const p=await b.newPage({viewport:{width:844,height:390}}),errors=[];p.on('pageerror',e=>errors.push(e.message));
 await p.goto(`${BASE}/creature-battle/?debug=1`);await p.waitForFunction(()=>window.__battleReady);
-await p.locator('#play-ai').click();await p.locator('#start-picking').click();for(let i=0;i<3;i++)await p.locator('.pick-card').nth(i).click();await p.locator('#team-done').click();await p.locator('#start-battle').click();await p.locator('#battle-text').click();await p.waitForTimeout(450);
+await p.locator('#play-ai').click();for(let i=0;i<3;i++)await p.locator('.carousel-group:nth-child(2) .pick-card').nth(i).click();await p.locator('#team-done').click();await p.locator('#battle-text').click();await p.waitForTimeout(450);
 assert.equal(await p.locator('[data-side="1"] button:enabled').count(),0);
-assert.match(await p.locator('[data-side="1"] .portrait').getAttribute('src'),/practice-bot/);
+assert.match(await p.locator('[data-side="1"] .portrait').getAttribute('src'),/^data:image\/png/);
 assert.equal(await p.locator('#app').getAttribute('aria-live'),null);
 // Directly drive the view to cover replacement, message roles, and presentation snapshots.
 await p.evaluate(async()=>{

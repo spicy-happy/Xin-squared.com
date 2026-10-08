@@ -93,17 +93,27 @@ TEST and is never represented as a child's submission. `?debug=1` adds debug hoo
 ### Creature Battle browser drive
 
 Serve the repo, then open `/creature-battle/?debug=1` at 844×390 and
-1024×768. Production has no debug hooks and loads the empty public collection.
+1024×768. Production has no debug hooks and loads six labelled TEST creatures.
 `window.__battleReady` is debug-only. `__battleDebug` exposes `state()`,
 `seed(n)`, `force(side, action)`, `setHp(side, hp)`, `fixtures()`.
-Placeholder drawings say TEST and stay in `tests/fixtures/`.
+Prototype images are converted to 48×48, four-colour sprites at runtime. Originals stay unchanged.
 
-Two-player recipe: click `#play-friend`, `#start-picking`; choose three
-`.pick-card` buttons and `#team-done`. Assert the full-screen look-away
+Two-player recipe: click `#play-friend`; choose three
+`.carousel-group:nth-child(2) .pick-card` buttons and `#team-done` (Start). Assert the full-screen look-away
 card contains no team names, click `#lookaway-ready`, choose player 2's
-portrait/team, click `#team-done`, then `#start-battle`. Player 1 is left.
-For AI, use `#play-ai`; Easy is the default. After picking player 1,
-the independently chosen AI team is revealed.
+portrait/team, click `#team-done` to start immediately. Player 1 is left.
+For AI, use `#play-ai`; Normal is the default and Hard is the other option.
+Difficulty and team selection share one screen. Normal uses the random AI
+policy; Hard uses the tactical policy. Start is disabled until three creatures
+are picked. Clicking a selected card or its summary × clears that pick.
+Trainer and creature carousels have three synchronized copies; drive the
+middle copy for keyboard-accessible tests. Arrow buttons and native horizontal
+scrolling loop by recentering one complete cycle.
+
+Browser scripts: `tools/retro-browser.mjs` checks picker interactions, looping,
+pixel images and responsive layouts; `tools/prototype-browser.mjs` drives full
+Normal, Hard and two-player matches. Set `PLAYWRIGHT_MODULE`, `CHROME_PATH`,
+and `BATTLE_ORIGIN` for the local environment.
 
 During battle, wait until enabled `[data-action]` buttons are interactive
 (animations drain, then a 400 ms guard). Read `needReplacement`, or `order[slot]`, from `__battleDebug.state()`

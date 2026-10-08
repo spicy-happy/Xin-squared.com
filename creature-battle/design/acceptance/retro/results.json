@@ -1,0 +1,35 @@
+[
+  {
+    "width": 390,
+    "height": 844,
+    "toggle": true,
+    "removableChips": true,
+    "loops": true,
+    "touchSwipe": true,
+    "pixelArt48": true,
+    "hardStarts": true,
+    "errors": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "toggle": true,
+    "removableChips": true,
+    "loops": true,
+    "touchSwipe": true,
+    "pixelArt48": true,
+    "hardStarts": true,
+    "errors": []
+  },
+  {
+    "width": 1024,
+    "height": 768,
+    "toggle": true,
+    "removableChips": true,
+    "loops": true,
+    "touchSwipe": true,
+    "pixelArt48": true,
+    "hardStarts": true,
+    "errors": []
+  }
+]
