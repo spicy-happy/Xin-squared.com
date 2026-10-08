@@ -955,7 +955,11 @@ chooseReplacement(state, side, index)   → { state, events }
   `.claude/skills/verify/SKILL.md` with the `node --test` command. It
   currently says the site has no test suite. Phase 3 adds the debug hooks
   and the two-player drive recipe.
-- When launching: add a card to `games.html` and add the page to
+- Prototype testing override (owner instruction, October 8, 2026): keep the
+  direct URL unlisted and noindex, load the six labelled test creatures in
+  production, use single-tap moves, and link the printable sheet. This
+  overrides the empty-collection/debug-only placeholder policy for this prototype.
+- When a public launch is explicitly approved: add a card to `games.html` and add the page to
   `sitemap.xml`. `robots.txt` needs no change.
 - Analytics are optional and out of scope for v1. Nothing about children
   is sent anywhere.
