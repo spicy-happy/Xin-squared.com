@@ -1,0 +1,2167 @@
+[
+  {
+    "seed": 0,
+    "defs": [
+      {
+        "moves": {
+          "regular": {
+            "id": "quick",
+            "name": "Quick"
+          },
+          "special": {
+            "id": "risky",
+            "name": "Risky"
+          },
+          "defense": {
+            "id": "guard",
+            "name": "Guard"
+          }
+        },
+        "stats": {
+          "health": 0,
+          "attack": 5,
+          "defense": 0,
+          "speed": 5
+        },
+        "type": "water"
+      },
+      {
+        "moves": {
+          "regular": {
+            "id": "pierce",
+            "name": "Piercing"
+          },
+          "special": {
+            "id": "overload",
+            "name": "Overload"
+          },
+          "defense": {
+            "id": "heal",
+            "name": "Heal"
+          }
+        },
+        "stats": {
+          "health": 0,
+          "attack": 5,
+          "defense": 0,
+          "speed": 5
+        },
+        "type": "fire"
+      }
+    ],
+    "actions": [
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "replacement": 1
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "replacement": 1
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "replacement": 2
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "regular"
+        }
+      }
+    ],
+    "events": [
+      {
+        "t": "enter",
+        "side": 0,
+        "slot": 0,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 12,
+          "special": 3,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "enter",
+        "side": 1,
+        "slot": 0,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 1,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 0,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 81,
+        "crit": true,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 1
+      },
+      {
+        "t": "hangOn",
+        "side": 1
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 0,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 68,
+        "crit": true,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 14
+      },
+      {
+        "t": "round",
+        "n": 2,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 0,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 1,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "skip",
+        "side": 1,
+        "reason": "fainted"
+      },
+      {
+        "t": "needReplace",
+        "side": 1
+      },
+      {
+        "t": "enter",
+        "side": 1,
+        "slot": 1,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 3,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 14,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 0,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "skip",
+        "side": 0,
+        "reason": "fainted"
+      },
+      {
+        "t": "needReplace",
+        "side": 0
+      },
+      {
+        "t": "enter",
+        "side": 0,
+        "slot": 1,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 12,
+          "special": 3,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 4,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 81,
+        "crit": true,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 1
+      },
+      {
+        "t": "hangOn",
+        "side": 1
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "round",
+        "n": 5,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 1,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "skip",
+        "side": 1,
+        "reason": "fainted"
+      },
+      {
+        "t": "needReplace",
+        "side": 1
+      },
+      {
+        "t": "enter",
+        "side": 1,
+        "slot": 2,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 6,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": 0
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 72,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 10
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 2,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 45,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 37
+      },
+      {
+        "t": "round",
+        "n": 7,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "quick",
+        "name": "Quick",
+        "ppAfter": {
+          "regular": 11,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 10,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "win",
+        "side": 0,
+        "reason": "ko"
+      }
+    ],
+    "rng": 2903413562,
+    "winner": 0
+  },
+  {
+    "seed": 9,
+    "defs": [
+      {
+        "moves": {
+          "regular": {
+            "id": "quick",
+            "name": "Quick"
+          },
+          "special": {
+            "id": "risky",
+            "name": "Risky"
+          },
+          "defense": {
+            "id": "guard",
+            "name": "Guard"
+          }
+        },
+        "stats": {
+          "health": 0,
+          "attack": 5,
+          "defense": 0,
+          "speed": 5
+        },
+        "type": "water"
+      },
+      {
+        "moves": {
+          "regular": {
+            "id": "pierce",
+            "name": "Piercing"
+          },
+          "special": {
+            "id": "overload",
+            "name": "Overload"
+          },
+          "defense": {
+            "id": "heal",
+            "name": "Heal"
+          }
+        },
+        "stats": {
+          "health": 0,
+          "attack": 5,
+          "defense": 0,
+          "speed": 5
+        },
+        "type": "fire"
+      }
+    ],
+    "actions": [
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "replacement": 1
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "replacement": 1
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "replacement": 2
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "replacement": 2
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      }
+    ],
+    "events": [
+      {
+        "t": "enter",
+        "side": 0,
+        "slot": 0,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 12,
+          "special": 3,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "enter",
+        "side": 1,
+        "slot": 0,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 1,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 0,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        }
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 0,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 68,
+        "crit": true,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 14
+      },
+      {
+        "t": "round",
+        "n": 2,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 0,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "round",
+        "n": 3,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 0,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 72,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 10
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 0,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 14,
+        "crit": true,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 0,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "needReplace",
+        "side": 0
+      },
+      {
+        "t": "enter",
+        "side": 0,
+        "slot": 1,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 12,
+          "special": 3,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 4,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": 1
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 10,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 10,
+          "special": 0,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "needReplace",
+        "side": 1
+      },
+      {
+        "t": "enter",
+        "side": 1,
+        "slot": 1,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 5,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 45,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 37
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 72,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 10
+      },
+      {
+        "t": "round",
+        "n": 6,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 10,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "needReplace",
+        "side": 1
+      },
+      {
+        "t": "enter",
+        "side": 1,
+        "slot": 2,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 7,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 2,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 37,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 0,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "skip",
+        "side": 0,
+        "reason": "fainted"
+      },
+      {
+        "t": "needReplace",
+        "side": 0
+      },
+      {
+        "t": "enter",
+        "side": 0,
+        "slot": 2,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 12,
+          "special": 3,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 8,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": 1
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        }
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "round",
+        "n": 9,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 2,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 45,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 37
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 72,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 10
+      },
+      {
+        "t": "round",
+        "n": 10,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 10,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 10,
+          "special": 0,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "win",
+        "side": 0,
+        "reason": "ko"
+      }
+    ],
+    "rng": 2839472374,
+    "winner": 0
+  },
+  {
+    "seed": 123456,
+    "defs": [
+      {
+        "moves": {
+          "regular": {
+            "id": "quick",
+            "name": "Quick"
+          },
+          "special": {
+            "id": "risky",
+            "name": "Risky"
+          },
+          "defense": {
+            "id": "guard",
+            "name": "Guard"
+          }
+        },
+        "stats": {
+          "health": 0,
+          "attack": 5,
+          "defense": 0,
+          "speed": 5
+        },
+        "type": "water"
+      },
+      {
+        "moves": {
+          "regular": {
+            "id": "pierce",
+            "name": "Piercing"
+          },
+          "special": {
+            "id": "overload",
+            "name": "Overload"
+          },
+          "defense": {
+            "id": "heal",
+            "name": "Heal"
+          }
+        },
+        "stats": {
+          "health": 0,
+          "attack": 5,
+          "defense": 0,
+          "speed": 5
+        },
+        "type": "fire"
+      }
+    ],
+    "actions": [
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "replacement": 1
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "replacement": 1
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
+        "side": 1,
+        "replacement": 2
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "replacement": 2
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "regular"
+        }
+      }
+    ],
+    "events": [
+      {
+        "t": "enter",
+        "side": 0,
+        "slot": 0,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 12,
+          "special": 3,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "enter",
+        "side": 1,
+        "slot": 0,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 1,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 0,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        }
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 0,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 45,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 37
+      },
+      {
+        "t": "round",
+        "n": 2,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 0,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 81,
+        "crit": true,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 1
+      },
+      {
+        "t": "hangOn",
+        "side": 1
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "round",
+        "n": 3,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 0,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 1,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "skip",
+        "side": 1,
+        "reason": "fainted"
+      },
+      {
+        "t": "needReplace",
+        "side": 1
+      },
+      {
+        "t": "enter",
+        "side": 1,
+        "slot": 1,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 4,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 37,
+        "crit": true,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 0,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "skip",
+        "side": 0,
+        "reason": "fainted"
+      },
+      {
+        "t": "needReplace",
+        "side": 0
+      },
+      {
+        "t": "enter",
+        "side": 0,
+        "slot": 1,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 12,
+          "special": 3,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 5,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": 1
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 81,
+        "crit": true,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 1
+      },
+      {
+        "t": "hangOn",
+        "side": 1
+      },
+      {
+        "t": "round",
+        "n": 6,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 45,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 37
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "round",
+        "n": 7,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "round",
+        "n": 8,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 1,
+        "moveId": "pierce",
+        "name": "Piercing",
+        "ppAfter": {
+          "regular": 9,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 12,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 25
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "quick",
+        "name": "Quick",
+        "ppAfter": {
+          "regular": 11,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 1,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 9,
+          "special": 0,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "needReplace",
+        "side": 1
+      },
+      {
+        "t": "enter",
+        "side": 1,
+        "slot": 2,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 10,
+          "special": 2,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 9,
+        "order": [
+          1,
+          0
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 2,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 25,
+        "crit": true,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 0,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 11,
+          "special": 0,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "skip",
+        "side": 0,
+        "reason": "fainted"
+      },
+      {
+        "t": "needReplace",
+        "side": 0
+      },
+      {
+        "t": "enter",
+        "side": 0,
+        "slot": 2,
+        "name": "Test creature",
+        "hpAfter": 82,
+        "ppAfter": {
+          "regular": 12,
+          "special": 3,
+          "defense": 3
+        },
+        "shieldAfter": 0,
+        "switchesLeft": 3
+      },
+      {
+        "t": "round",
+        "n": 10,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 2,
+          "defense": 3
+        }
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "round",
+        "n": 11,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 72,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 10
+      },
+      {
+        "t": "use",
+        "side": 1,
+        "slot": 2,
+        "moveId": "overload",
+        "name": "Overload",
+        "ppAfter": {
+          "regular": 10,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 45,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 37
+      },
+      {
+        "t": "round",
+        "n": 12,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "risky",
+        "name": "Risky",
+        "ppAfter": {
+          "regular": 12,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "miss",
+        "side": 0
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "round",
+        "n": 13,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "coin",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 2,
+        "moveId": "quick",
+        "name": "Quick",
+        "ppAfter": {
+          "regular": 11,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 10,
+        "crit": true,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 0
+      },
+      {
+        "t": "faint",
+        "side": 1,
+        "hpAfter": 0,
+        "ppAfter": {
+          "regular": 10,
+          "special": 0,
+          "defense": 3
+        },
+        "shieldAfter": 0
+      },
+      {
+        "t": "win",
+        "side": 0,
+        "reason": "ko"
+      }
+    ],
+    "rng": 376194338,
+    "winner": 0
+  }
+]
