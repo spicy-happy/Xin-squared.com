@@ -18,7 +18,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
  const active=side=>view.teams[side][view.active[side]];
  const name=side=>active(0).name===active(1).name?`${trainers[side].nickname}'s ${active(side).name}`:active(side).name;
  function messages(e,previous){
-  if(e.t==='round')return e.double!==null?[{text:`${trainers[e.double].nickname} goes again!`,parts:[{text:`${trainers[e.double].nickname} goes again!`}]}]:[];
+  if(e.t==='round'||e.t==='needReplace')return [];
   let token='NAME_REF_';while(JSON.stringify([e,name(0),name(1),previous,trainers.map(t=>t.nickname)]).includes(token))token+='X';
   const refs=[name(0),name(1),...previous];return eventLines(e,{name:s=>`${token}${s}_END`,previous:s=>`${token}${s+2}_END`,trainer:s=>trainers[s].nickname}).map(text=>{
    const parts=text.split(new RegExp(`(${token}[0-3]_END)`)).filter(Boolean).map(part=>{if(!part.startsWith(token))return {text:part};const i=Number(part.slice(token.length,-4));return {text:refs[i],side:i%2};});return {parts,text:parts.map(p=>p.text).join('')};
@@ -41,28 +41,29 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   });
  }
  function turnLine(){const turn=whoseTurn(getState());const text=turn.over?'Battle complete.':turn.need==='replacement'?`${trainers[turn.side].nickname}, choose your next creature.`:humanSides.includes(turn.side)?`${trainers[turn.side].nickname}'s turn. Choose a move.`:`${trainers[turn.side].nickname} is choosing a move...`;return {text,parts:[{text}]};}
+ const join=(a,b)=>({text:a.text+' '+b.text,parts:[...a.parts,{text:' '},...b.parts]});
  function paint(){for(let side=0;side<2;side++){
   const m=active(side),{status,img}=panels[side];status.replaceChildren();const identity=el('div','identity'),portrait=el('img','portrait');portrait.src=portraitSrc(trainers[side]);portrait.alt=trainers[side].nickname;identity.append(portrait,el('span','creature-name',name(side)));status.append(identity);
   const meter=el('div','meter-row'),hp=el('div','hp');hp.setAttribute('role','meter');hp.setAttribute('aria-label',`${m.name} HP`);hp.setAttribute('aria-valuemin','0');hp.setAttribute('aria-valuemax',String(m.maxHp));hp.setAttribute('aria-valuenow',String(m.hp));
-  const total=Math.max(m.maxHp,m.hp+m.shield),health=Math.ceil(20*m.hp/total),shield=Math.ceil(20*m.shield/total);
-  for(let i=0;i<20;i++)hp.append(el('span',`hp-pixel ${i<health?'hp-full':i<health+shield?'hp-shield':'hp-empty'}`));
-  meter.append(hp,typeChip(m.type));status.append(meter,el('div','hp-number',`${m.hp}/${m.maxHp}${m.shield?` +${m.shield}`:''}${m.resting?' · NAP':''}${m.toughened?' · TOUGH':''}`));
+  const ratio=m.hp/m.maxHp;hp.classList.toggle('hp-medium',ratio<=.5&&ratio>.2);hp.classList.toggle('hp-low',ratio<=.2&&m.hp>0);
+  const fill=el('span','hp-fill');fill.style.width=`${100*ratio}%`;hp.append(fill);meter.append(hp);
+  const details=el('div','hp-details');details.append(el('span','hp-number',`${m.hp}/${m.maxHp}${m.shield?` +${m.shield}`:''}${m.resting?' · NAP':''}${m.toughened?' · TOUGH':''}`),typeChip(m.type));status.append(meter,details);
   img.src=imageSrc(m);img.alt=m.name;img.style.opacity=fallen[side]?'0':'1';panels[side].fighter.classList.toggle('fainted',fallen[side]);
  }}
  function confirm(side,action,text){if(!twoTap())return perform(side,action);const key=JSON.stringify(action);if(selected===key)return perform(side,action);selected=key;
   const bubble=el('div','confirm');bubble.append(el('div',null,text));const row=el('div','confirm-actions'),go=el('button',null,'GO!'),back=el('button',null,'Back');go.onclick=()=>perform(side,action);back.onclick=()=>{selected=null;controls();};row.append(go,back);bubble.append(row);grids[side].append(bubble);
  }
  function perform(side,action){if(disposed||locked||!humanSides.includes(side)||Date.now()<guardUntil)return;selected=null;onAction(side,action);}
- function tray(side,replacement){const s=view,g=grids[side];g.replaceChildren();const tray=el('div','tray');tray.append(el('strong',null,replacement?(humanSides.includes(side)?'Pick your next creature!':'Bot is choosing a creature...'):`Switches left: ${s.switchesLeft[side]}`));
-  s.teams[side].forEach((m,index)=>{if(index===s.active[side]||m.hp<=0)return;const b=el('button',null,`${m.name} ${m.hp}/${m.maxHp}`);b.dataset.bench=index;b.append(typeChip(m.type));b.disabled=locked||Date.now()<guardUntil||!humanSides.includes(side);
+ function tray(side,replacement){const s=view,g=grids[side];g.replaceChildren();const tray=el('div','tray');tray.classList.toggle('replacement-tray',replacement);grids.forEach(g=>g.classList.remove('choosing'));g.classList.add('choosing');tray.append(el('strong',null,replacement?(humanSides.includes(side)?'Pick your next creature!':'Bot is choosing a creature...'):`Switches left: ${s.switchesLeft[side]}`));
+  s.teams[side].forEach((m,index)=>{if(!replacement&&index===s.active[side])return;const b=el('button','bench-card');b.dataset.bench=index;const img=el('img');img.src=imageSrc(m);img.alt='';const text=el('span','bench-name',m.name);text.append(el('small',null,m.hp<=0?'Fainted':`${m.hp}/${m.maxHp}`));b.append(img,text,typeChip(m.type));b.classList.toggle('bench-fainted',m.hp<=0);b.disabled=m.hp<=0||index===s.active[side]||locked||Date.now()<guardUntil||!humanSides.includes(side);
    b.onclick=()=>{if(disposed||locked||!humanSides.includes(side)||Date.now()<guardUntil)return;if(replacement)onReplacement(side,index);else confirm(side,{kind:'switch',index},`Bring in ${m.name}.`);};tray.append(b);
   });if(!replacement){const back=el('button',null,'Back');back.onclick=controls;tray.append(back);}g.append(tray);
  }
  function controls(){if(disposed)return;const s=view,turn=locked?{side:animationSide,need:'action'}:whoseTurn(s),guarded=Date.now()<guardUntil;selected=null;
   for(let owner=0;owner<2;owner++){
-   sides[owner].classList.toggle('active',!locked&&!guarded&&!turn.over&&turn.side===owner&&humanSides.includes(owner));const g=grids[owner];g.replaceChildren();
+   sides[owner].classList.toggle('active',!locked&&!guarded&&!turn.over&&turn.side===owner&&humanSides.includes(owner));const g=grids[owner];g.classList.remove('choosing');g.replaceChildren();
    const m=s.teams[owner][s.active[owner]],actions=getActions(s,owner);
-   for(const [kind,label]of [['regular','Regular Attack'],['special','Special Attack'],['defense','Defense'],['switch','Switch']]){
+   for(const [kind,label]of [['regular','Reg Attack'],['special','Spec Attack'],['defense','Defense'],['switch','Switch']]){
     const a=kind==='switch'?actions.find(a=>a.kind==='switch'&&a.enabled)??actions.find(a=>a.kind==='switch'):actions.find(a=>a.kind===kind||(kind==='regular'&&a.kind==='fallback'));
     const fallback=a.kind==='fallback',move=kind==='switch'?null:fallback?s.rules.fallback:s.rules.moves[kind][m.moves[kind].id];
     const remaining=kind==='switch'?s.switchesLeft[owner]:m.pp[kind],maximum=kind==='switch'?s.rules.switchLimit:fallback?null:move.pp;
@@ -99,21 +100,18 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
  function eventSound(e){const sound=e.t==='use'?(view.rules.moves.special[e.moveId]?'special':view.rules.moves.defense[e.moveId]?null:'regular'):({hit:'hit',recoil:'hit',heal:'heal',shieldUp:'shield',toughen:'shield',switch:'switch',enter:'switch',faint:'faint',win:'win'})[e.t];if(sound)playSound(sound);}
  async function animate(events){
   animationSide=events.find(e=>['use','switch','rest'].includes(e.t))?.side??events.find(e=>e.t==='round')?.order[0]??whoseTurn(getState()).side??getState().winner??0;locked=true;controls();
-  let cancelled=false,wake,buffer=[],summary=[],pendingEntry=null;const seen=new Set();
+  let cancelled=false,wake,buffer=[],pendingEntry=null;const seen=new Set();
   skip=()=>{cancelled=true;finishTyping?.();for(const animation of effects)animation.cancel();wake?.();};
   for(const e of events){
    if(disposed)return;const previous=[name(0),name(1)],repeatedEntry=e.t==='enter'&&e.side===pendingEntry;pendingEntry=e.t==='switch'?e.side:null;applyEvent(e);paint();controls();if(repeatedEntry)continue;const lines=messages(e,previous);
-   if(e.t==='hit')summary=[lines.find(l=>l.text.startsWith('It dealt')),...lines.filter(l=>l.text.includes('effective')||l.text.includes('critical'))].slice(0,2);
-   else if(['heal','miss','recoil','faint','win','switch','rest','shieldUp','toughen'].includes(e.t))summary=summary[0]?.text.startsWith('It dealt')?[summary[0],lines[0]]:lines.slice(0,2);
-   if(cancelled){buffer=[...buffer,...lines].slice(-3);eventSound(e);continue;}if(!lines.length)continue;
-   const impact=effect(e);
-   // A long event can occupy multiple pages; every line gets shown before it scrolls out.
-   for(let i=0;i<lines.length;i+=3){const page=lines.slice(i,i+3);buffer=[...buffer,...page].slice(-3);if(cancelled)continue;
-    await Promise.all([line(buffer,seen),i===0?impact:Promise.resolve()]);for(const message of buffer)seen.add(message.text);
-    if(!cancelled&&['hit','heal','faint','switch','rest','win'].includes(e.t))await new Promise(resolve=>{const timer=setTimeout(resolve,Math.max(1100,page.reduce((n,l)=>n+l.text.split(/\s+/).length,0)*200));wake=()=>{clearTimeout(timer);resolve();};});
-   }
+   if(!lines.length)continue;const paragraph=lines.reduce((a,b)=>join(a,b));
+   if(['hit','miss','heal','shieldUp','toughen','shieldBreak','hangOn','recoil'].includes(e.t)&&buffer.length)buffer[buffer.length-1]=join(buffer.at(-1),paragraph);
+   else buffer=[...buffer,paragraph].slice(-2);
+   if(cancelled){eventSound(e);continue;}
+   await Promise.all([line(buffer,seen),effect(e)]);for(const message of buffer)seen.add(message.text);
+   if(!cancelled&&['hit','heal','faint','switch','rest','win'].includes(e.t))await new Promise(resolve=>{const timer=setTimeout(resolve,Math.max(1100,paragraph.text.split(/\s+/).length*200));wake=()=>{clearTimeout(timer);resolve();};});
   }
-  if(disposed)return;Object.assign(view,structuredClone(getState()));skip=null;locked=false;guardUntil=Date.now()+400;paint();controls();line([...(summary.length?summary:buffer).slice(-2),turnLine()]);
+  if(disposed)return;Object.assign(view,structuredClone(getState()));skip=null;locked=false;guardUntil=Date.now()+400;paint();controls();const prompt=turnLine(),last=buffer.at(-1);if(last&&/fainted/.test(last.text))buffer[buffer.length-1]=join(last,prompt);else buffer.push(prompt);line(buffer.slice(-3));
   setTimeout(()=>{if(!disposed){controls();onDrain();}},400);
  }
  box.onclick=()=>{if(locked&&skip)skip();};paint();controls();line([turnLine()]);

@@ -1,3 +1,8 @@
+> Version 24 playtest update (owner-directed): replacement creatures inherit an
+> unspent fainted turn, and Last Chance saves one heavy lethal hit per creature
+> rather than rearming at full HP. The UI and paper also supersede older layouts
+> below. See `acceptance/playtest-polish/README.md` for current rules and validation.
+
 # Kids' Creature Battle: Implementation Plan v2
 
 Children ages 6–10 draw a creature on a paper sheet and choose its type,

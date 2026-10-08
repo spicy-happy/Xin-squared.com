@@ -49,7 +49,7 @@ function advance(s, events) {
     }
     const side = s.order[s.slot];
     const m = current(s, side);
-    if (m.hp === 0) { events.push({ t: 'skip', side, reason: 'fainted' }); s.slot++; continue; }
+    if (m.hp === 0) { s.needReplacement=side;events.push({t:'needReplace',side});return; }
     if (m.resting) {
       m.resting = false;
       events.push({ t: 'rest', side });
@@ -68,7 +68,7 @@ export function createMatch({ rules, teams, seed }) {
     const m = structuredClone(def);
     return { ...m, maxHp: maxHp(rules, m.stats), hp: maxHp(rules, m.stats),
       pp: Object.fromEntries(['regular','special','defense'].map(slot => [slot, rules.moves[slot][m.moves[slot].id].pp])),
-      shield: 0, toughened: false, resting: false, damageDealt: 0 };
+      lastChanceUsed: false, shield: 0, toughened: false, resting: false, damageDealt: 0 };
   }));
   const state = { rules, teams: instances, active: [0,0], rng: seed >>> 0, switchesLeft: [rules.switchLimit, rules.switchLimit],
     round: 0, slot: 0, order: [], pairCoin: null, lastActor: null, needReplacement: null, over: false };
@@ -134,8 +134,8 @@ export function applyAction(input, side, action) {
         const raw = damage(s.rules, m, foe, move, { first: s.slot === 0, crit, fallback });
         const absorbed = Math.min(foe.shield, raw); foe.shield -= absorbed;
         let amount = Math.min(foe.hp, raw - absorbed);
-        const hangOn = s.rules.hangOn && foe.hp === foe.maxHp && amount === foe.hp;
-        if (hangOn) amount--;
+        const hangOn = s.rules.hangOn && !foe.lastChanceUsed && foe.hp > 1 && raw - absorbed >= Math.floor(foe.maxHp / 2) && amount === foe.hp;
+        if (hangOn) {amount--;foe.lastChanceUsed=true;}
         foe.hp -= amount; m.damageDealt += amount;
         const factor = fallback ? [1,1] : typeFactor(s.rules, m.type, foe.type);
         events.push({ t: 'hit', side, target, amount, crit, eff: factor[0] > factor[1] ? 'strong' : factor[0] < factor[1] ? 'weak' : null,
@@ -166,6 +166,8 @@ export function chooseReplacement(input, side, index) {
   const state = structuredClone({...input, rules: undefined}); state.rules = Object.isFrozen(input.rules) ? input.rules : loadRules(input.rules);
   const events = [];
   state.active[side] = index; state.pairCoin = null; state.needReplacement = null;
-  enter(state, events, side); startRound(state, events); advance(state, events);
+  // A replacement before its action inherits that unspent slot.
+  // At round end advance starts the next round after replacements are complete.
+  enter(state, events, side); advance(state, events);
   return { state, events };
 }

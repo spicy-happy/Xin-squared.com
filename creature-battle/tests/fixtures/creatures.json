@@ -26,15 +26,15 @@
       "moves": {
         "regular": {
           "id": "steady",
-          "name": "Steady"
+          "name": "Tackle"
         },
         "special": {
           "id": "blast",
-          "name": "Blast"
+          "name": "Energy Burst"
         },
         "defense": {
           "id": "guard",
-          "name": "Guard"
+          "name": "Bubble Shield"
         }
       },
       "added": "2026-10-07"
@@ -64,15 +64,15 @@
       "moves": {
         "regular": {
           "id": "quick",
-          "name": "Quick"
+          "name": "Quick Strike"
         },
         "special": {
           "id": "risky",
-          "name": "Risky"
+          "name": "Wild Blast"
         },
         "defense": {
           "id": "heal",
-          "name": "Heal"
+          "name": "Healing Glow"
         }
       },
       "added": "2026-10-07"
@@ -102,15 +102,15 @@
       "moves": {
         "regular": {
           "id": "pierce",
-          "name": "Piercing"
+          "name": "Piercing Jab"
         },
         "special": {
           "id": "recoil",
-          "name": "Recoil"
+          "name": "Double Rush"
         },
         "defense": {
           "id": "toughen",
-          "name": "Toughen"
+          "name": "Iron Hide"
         }
       },
       "added": "2026-10-07"
@@ -140,15 +140,15 @@
       "moves": {
         "regular": {
           "id": "heavy",
-          "name": "Heavy"
+          "name": "Body Slam"
         },
         "special": {
           "id": "overload",
-          "name": "Overload"
+          "name": "Mega Burst"
         },
         "defense": {
           "id": "guard",
-          "name": "Guard"
+          "name": "Bubble Shield"
         }
       },
       "added": "2026-10-07"
@@ -178,15 +178,15 @@
       "moves": {
         "regular": {
           "id": "steady",
-          "name": "Steady"
+          "name": "Tackle"
         },
         "special": {
           "id": "blast",
-          "name": "Blast"
+          "name": "Energy Burst"
         },
         "defense": {
           "id": "heal",
-          "name": "Heal"
+          "name": "Healing Glow"
         }
       },
       "added": "2026-10-07"
@@ -216,15 +216,15 @@
       "moves": {
         "regular": {
           "id": "quick",
-          "name": "Quick"
+          "name": "Quick Strike"
         },
         "special": {
           "id": "risky",
-          "name": "Risky"
+          "name": "Wild Blast"
         },
         "defense": {
           "id": "toughen",
-          "name": "Toughen"
+          "name": "Iron Hide"
         }
       },
       "added": "2026-10-07"

@@ -23,13 +23,13 @@ test('faster first; tie memoised only until either active changes, including re-
   if (before.slot === 1) { assert.equal(s.rng,next(before.rng)[1]); assert.equal(s.pairCoin,+(next(before.rng)[0]>=0.5)); }
   else assert.equal(s.pairCoin,null);
 });
-test('faint before action skips slot, replacement at round end re-compares speed; double after first-slot KO',()=>{
+test('faint before action gives the replacement the unspent turn',()=>{
   let {state:s}=match(fast,slow);active(s,1).hp=1;
-  const r=act(s);assert.deepEqual(r.events.map(e=>e.t),['use','hit','faint','skip','needReplace']);
+  const r=act(s);assert.deepEqual(r.events.map(e=>e.t),['use','hit','faint','needReplace']);
   assert.deepEqual(whoseTurn(r.state),{side:1,need:'replacement'});
   const replaced=chooseReplacement(deepFreeze(r.state),1,1);
-  assert.equal(ev(replaced,'round').double,0);assert.deepEqual(replaced.state.order,[0,1]);
-  assert.equal(replaced.state.switchesLeft[1],3);
+  assert.ok(!ev(replaced,'round'));assert.deepEqual(whoseTurn(replaced.state),{side:1,need:'action'});
+  assert.equal(replaced.state.switchesLeft[1],3);assert.equal(replaced.state.slot,1);
 });
 test('faint after action has no skip; faster replacement gives double after second-slot KO',()=>{
   let {state:s}=match(fast,slow);s.teams[0][1].stats.speed=0;s.teams[1][0].stats.speed=3;
@@ -44,14 +44,15 @@ test('switch preserves current order and next round can give consecutive turns',
 test('Overload automatic next-slot rest after KO, no rest action or switch window; faint discards rest',()=>{
   let {state:s}=match({...fast,moves:moves('steady','overload')},slow);active(s,1).hp=1;
   const r=act(s,'special');assert.equal(active(r.state,0).resting,true);
-  const repl=chooseReplacement(r.state,1,1);assert.ok(ev(repl,'rest'));assert.equal(whoseTurn(repl.state).side,1);
+  const repl=chooseReplacement(r.state,1,1);assert.ok(!ev(repl,'rest'));assert.equal(whoseTurn(repl.state).side,1);
+  const reply=act(repl.state);assert.ok(ev(reply,'rest'));repl.state=reply.state;
   assert.equal(active(repl.state,0).resting,false);assert.ok(!getActions(repl.state,0).some(a=>a.enabled));
   let {state:q}=match(fast,{...slow,moves:moves('steady','overload')});q=act(q).state;q=act(q,'special').state;
   active(q,1).hp=1;const killed=act(q);assert.ok(ev(killed,'faint'));assert.equal(active(killed.state,1).resting,false);assert.ok(!ev(killed,'rest'));
 });
 test('recoil uses actual HP loss, half-up, min 1; cannot KO or emit at 1 HP; shield-all means none',()=>{
   for(const hp of [1,2,6,10]) {
-    let {state:s}=match({...fast,moves:moves('steady','recoil')},slow);active(s,1).hp=hp;
+    let {state:s}=match({...fast,moves:moves('steady','recoil')},slow);active(s,1).hp=hp;active(s,1).lastChanceUsed=true;
     const r=act(s,'special');assert.equal(ev(r,'recoil').amount,Math.max(1,Math.floor(hp/4+0.5)));
   }
   let {state:s}=match({...fast,moves:moves('steady','recoil')},slow);active(s,0).hp=2;active(s,1).hp=20;
@@ -61,19 +62,24 @@ test('recoil uses actual HP loss, half-up, min 1; cannot KO or emit at 1 HP; shi
   s=match({...fast,moves:moves('steady','recoil')},slow).state;active(s,1).shield=1000;
   assert.equal(ev(act(s,'special'),'hit').amount,0);assert.ok(!ev(act(s,'special'),'recoil'));
 });
-test('Hang on only at full HP; Heal to full re-arms, partial Heal does not',()=>{
-  for(const full of [true,false]) {
+test('Last Chance saves a heavy lethal hit once above 1 HP, even below full health',()=>{
+  for(const hp of [30,29,2,1]){
     let {state:s}=match({...fast,type:'water',moves:moves('heavy','overload')},{...slow,type:'fire'});
-    active(s,1).maxHp=30;active(s,1).hp=full?30:29;
-    const r=act(s,'special');assert.equal(!!ev(r,'hangOn'),full);assert.equal(active(r.state,1).hp,full?1:0);
+    active(s,1).maxHp=30;active(s,1).hp=hp;
+    const r=act(s,'special');assert.equal(!!ev(r,'hangOn'),hp>1);assert.equal(active(r.state,1).hp,hp>1?1:0);
+    assert.equal(active(r.state,1).lastChanceUsed,hp>1);
   }
-  for(const starting of [80,40]) {
-    const testRules=structuredClone(rules);testRules.moves.regular.steady.power=1000;
-    let {state:s}=createMatch({rules:testRules,teams:[Array.from({length:3},()=>creature({...fast,moves:moves('steady','blast','heal')})),Array.from({length:3},()=>creature(slow))],seed:9});active(s,0).hp=starting;
-    s=act(s,'defense').state;
-    const full=active(s,0).hp===active(s,0).maxHp;
-    const r=act(s);assert.equal(!!ev(r,'hangOn'),full);
-  }
+});
+test('Last Chance is not reset by healing to full or switching out and back',()=>{
+  let {state:s}=match({...fast,type:'water',moves:moves('heavy','overload')},{...slow,type:'fire'});
+  active(s,1).hp=2;s=act(s,'special').state;assert.equal(active(s,1).hp,1);assert.equal(active(s,1).lastChanceUsed,true);
+  s=applyAction(s,1,{kind:'switch',index:1}).state;assert.equal(s.teams[1][0].lastChanceUsed,true);
+  // A creature healed back to full still has used its one chance.
+  s.teams[1][0].hp=s.teams[1][0].maxHp;s.teams[1][0].maxHp=30;s.teams[1][0].hp=30;
+  s=applyAction(s,1,{kind:'switch',index:0}).state;
+  // Wait for the fast attacker's slot; the saved creature's next lethal hit faints it.
+  if(whoseTurn(s).side!==0)s=act(s).state;
+  const r=applyAction(s,0,{kind:'special'});assert.ok(!ev(r,'hangOn'));assert.equal(active(r.state,1).hp,0);
 });
 test('Guard persists, absorbs final crit/type damage, partial absorption and break; refill never stacks',()=>{
   let {state:s}=match({...fast,moves:moves('steady','blast','guard')},slow);
@@ -155,4 +161,9 @@ test('rules stay deeply frozen after actions and replacements',()=>{
   s.needReplacement=0;active(s,0).hp=0;s=chooseReplacement(s,0,1).state;
   assert.ok(Object.isFrozen(s.rules.moves.defense.heal.factor));
   assert.throws(()=>{s.rules.moves.defense.heal.factor[0]=1000;},TypeError);
+});
+
+test('ordinary finishing hits do not trigger Last Chance; shields reduce the heavy-hit threshold',()=>{
+ let {state:s}=match(fast,slow);active(s,1).hp=2;const r=act(s);assert.ok(!ev(r,'hangOn'));assert.equal(active(r.state,1).hp,0);
+ s=match({...fast,moves:moves('steady','overload')},slow).state;active(s,1).hp=2;active(s,1).shield=50;const q=act(s,'special');assert.ok(!ev(q,'hangOn'));
 });

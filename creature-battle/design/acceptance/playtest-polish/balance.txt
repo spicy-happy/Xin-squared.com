@@ -1,0 +1,102 @@
+Samples: random 1000; each paired 500; Normal/Easy 500; seed 3
+PASS | type fire (47–53%) | 49.64
+PASS | type water (47–53%) | 48.93
+PASS | type grass (47–53%) | 50.00
+PASS | type electric (47–53%) | 50.58
+PASS | type ground (47–53%) | 50.75
+PASS | type flying (47–53%) | 50.00
+PASS | move steady (46–54%) | 48.17
+PASS | move quick (46–54%) | 49.90
+PASS | move pierce (46–54%) | 50.34
+PASS | move heavy (46–54%) | 51.55
+PASS | move blast (46–54%) | 50.93
+PASS | move risky (46–54%) | 51.62
+PASS | move recoil (46–54%) | 50.55
+PASS | move overload (46–54%) | 46.95
+PASS | move guard (46–54%) | 48.48
+FAIL | move heal (46–54%) | 54.72
+PASS | move toughen (46–54%) | 46.73
+FAIL | health 5−0 (±3 points) | 3.30
+PASS | attack 5−0 (±3 points) | 1.51
+PASS | defense 5−0 (±3 points) | 0.39
+FAIL | speed 5−0 (±3 points) | -4.48
+PASS | paired health→attack (45–55%) | 50.80
+PASS | paired health→defense (45–55%) | 45.20
+PASS | paired attack→defense (45–55%) | 48.00
+FAIL | median actions (22–34) | 35.00
+PASS | p90 actions (≤55) | 53.00
+PASS | draws (0) | 0.00
+PASS | safety-cap endings (0) | 0.00
+PASS | Heavy exhausted (3–15%) | 11.86
+FAIL | 3-creature Normal beats Easy (≥70%) | 69.60
+Action/replacement-only Normal/Easy on assigned random teams (diagnostic): 68.80%
+Hang on 671/26545 hits (2.5278%); double turns/battle 1.93
+24-creature collection Normal/Easy (diagnostic): 76.60%
+Samples: random 1000; each paired 500; Normal/Easy 500; seed 17
+PASS | type fire (47–53%) | 50.83
+PASS | type water (47–53%) | 48.26
+FAIL | type grass (47–53%) | 46.69
+PASS | type electric (47–53%) | 51.90
+PASS | type ground (47–53%) | 50.50
+PASS | type flying (47–53%) | 51.71
+PASS | move steady (46–54%) | 49.90
+PASS | move quick (46–54%) | 47.66
+PASS | move pierce (46–54%) | 50.63
+PASS | move heavy (46–54%) | 51.84
+PASS | move blast (46–54%) | 51.74
+PASS | move risky (46–54%) | 51.61
+PASS | move recoil (46–54%) | 48.87
+PASS | move overload (46–54%) | 47.87
+PASS | move guard (46–54%) | 47.72
+FAIL | move heal (46–54%) | 55.30
+PASS | move toughen (46–54%) | 47.08
+FAIL | health 5−0 (±3 points) | 10.73
+PASS | attack 5−0 (±3 points) | -1.94
+PASS | defense 5−0 (±3 points) | -1.22
+FAIL | speed 5−0 (±3 points) | -6.77
+PASS | paired health→attack (45–55%) | 50.20
+PASS | paired health→defense (45–55%) | 47.80
+PASS | paired attack→defense (45–55%) | 46.00
+FAIL | median actions (22–34) | 35.00
+PASS | p90 actions (≤55) | 53.00
+PASS | draws (0) | 0.00
+PASS | safety-cap endings (0) | 0.00
+PASS | Heavy exhausted (3–15%) | 10.74
+PASS | 3-creature Normal beats Easy (≥70%) | 72.40
+Action/replacement-only Normal/Easy on assigned random teams (diagnostic): 70.00%
+Hang on 662/26559 hits (2.4926%); double turns/battle 1.98
+24-creature collection Normal/Easy (diagnostic): 73.80%
+Samples: random 1000; each paired 500; Normal/Easy 500; seed 101
+PASS | type fire (47–53%) | 50.82
+PASS | type water (47–53%) | 50.05
+PASS | type grass (47–53%) | 51.61
+PASS | type electric (47–53%) | 47.91
+PASS | type ground (47–53%) | 50.78
+PASS | type flying (47–53%) | 48.64
+PASS | move steady (46–54%) | 50.72
+PASS | move quick (46–54%) | 47.82
+PASS | move pierce (46–54%) | 50.72
+PASS | move heavy (46–54%) | 50.76
+PASS | move blast (46–54%) | 51.47
+PASS | move risky (46–54%) | 52.72
+PASS | move recoil (46–54%) | 49.42
+PASS | move overload (46–54%) | 46.30
+PASS | move guard (46–54%) | 48.09
+PASS | move heal (46–54%) | 53.20
+PASS | move toughen (46–54%) | 48.67
+PASS | health 5−0 (±3 points) | -0.41
+PASS | attack 5−0 (±3 points) | 1.63
+PASS | defense 5−0 (±3 points) | -0.04
+FAIL | speed 5−0 (±3 points) | -5.84
+PASS | paired health→attack (45–55%) | 49.80
+PASS | paired health→defense (45–55%) | 48.40
+PASS | paired attack→defense (45–55%) | 49.20
+FAIL | median actions (22–34) | 35.00
+PASS | p90 actions (≤55) | 54.00
+PASS | draws (0) | 0.00
+PASS | safety-cap endings (0) | 0.00
+PASS | Heavy exhausted (3–15%) | 11.61
+PASS | 3-creature Normal beats Easy (≥70%) | 71.60
+Action/replacement-only Normal/Easy on assigned random teams (diagnostic): 69.20%
+Hang on 643/26951 hits (2.3858%); double turns/battle 1.97
+24-creature collection Normal/Easy (diagnostic): 75.00%

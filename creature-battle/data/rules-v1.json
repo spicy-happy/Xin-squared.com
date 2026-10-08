@@ -116,14 +116,14 @@
   "moves": {
     "regular": {
       "steady": {
-        "label": "Steady",
+        "label": "Tackle",
         "hint": "same every time",
         "power": 12,
         "pp": 12,
         "accuracy": 100
       },
       "quick": {
-        "label": "Quick",
+        "label": "Quick Strike",
         "hint": "strong if first",
         "power": 14,
         "pp": 12,
@@ -131,7 +131,7 @@
         "secondPower": 10
       },
       "pierce": {
-        "label": "Piercing",
+        "label": "Piercing Jab",
         "hint": "goes through Defense",
         "power": 11,
         "pp": 10,
@@ -139,7 +139,7 @@
         "piercing": true
       },
       "heavy": {
-        "label": "Heavy",
+        "label": "Body Slam",
         "hint": "big hit, 6 uses",
         "power": 15,
         "pp": 6,
@@ -148,21 +148,21 @@
     },
     "special": {
       "blast": {
-        "label": "Blast",
+        "label": "Energy Burst",
         "hint": "big, can miss",
         "power": 26,
         "pp": 3,
         "accuracy": 90
       },
       "risky": {
-        "label": "Risky",
+        "label": "Wild Blast",
         "hint": "huge, misses a lot",
         "power": 32,
         "pp": 3,
         "accuracy": 75
       },
       "recoil": {
-        "label": "Recoil",
+        "label": "Double Rush",
         "hint": "hurts you a little",
         "power": 30,
         "pp": 3,
@@ -173,7 +173,7 @@
         ]
       },
       "overload": {
-        "label": "Overload",
+        "label": "Mega Burst",
         "hint": "HUGE, then nap",
         "power": 40,
         "pp": 2,
@@ -183,7 +183,7 @@
     },
     "defense": {
       "guard": {
-        "label": "Guard",
+        "label": "Bubble Shield",
         "hint": "bubble shield",
         "pp": 3,
         "factor": [
@@ -192,7 +192,7 @@
         ]
       },
       "heal": {
-        "label": "Heal",
+        "label": "Healing Glow",
         "hint": "get health back",
         "pp": 3,
         "factor": [
@@ -201,7 +201,7 @@
         ]
       },
       "toughen": {
-        "label": "Toughen",
+        "label": "Iron Hide",
         "hint": "take less damage",
         "pp": 3,
         "factor": [
