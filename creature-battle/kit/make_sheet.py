@@ -58,6 +58,7 @@ def make(out):
  s.box(.5,.95,4.3,4.85,'creature drawing');s.text(2.65,1.18,'Draw your creature here',13,True,True)
  s.box(.5,6.0,1.85,1.85,'trainer portrait');s.text(1.425,6.23,'Draw your trainer',12,True,True)
  s.text(2.7,6.55,"Creature's name",12,True);s.line(2.7,6.96,2.1)
+ s.text(2.7,7.32,"Trainer's name",12,True);s.line(2.7,7.73,2.1)
  s.text(5.05,.73,'TYPE - circle one',13,True)
  for i,(kind,t) in enumerate(RULES['types'].items()):
   x=5.05+(i%3)*1.9;y=.95+(i//3)*.75

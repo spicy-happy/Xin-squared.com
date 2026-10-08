@@ -1,8 +1,25 @@
 const slots = ['regular', 'special', 'defense'];
-export function validName(name) {
-  return typeof name === 'string' && name.trim().length >= 1 && name.length <= 24 &&
-    !/https?:|www\.|\S+\.(com|net|org|io|edu)\b|[<>\u0000-\u001f]/i.test(name);
+export const cleanName = name => typeof name === 'string' ? name.normalize('NFKC').trim().replace(/\s+/g, ' ') : '';
+// Shared by the picker and collection intake. Check common disguises, keeping
+// short words bounded so innocent names such as Cassie and Dickens still work.
+const rudeRoots = /f[au]c+k|fuk|shit|bitch|asshole|arsehole|dickhead|cocksucker|nigg(?:er|a)|faggot|retard(?:ed)?/;
+const rudeWords = /^(?:ass|arse|bastard|bastards|crap|damn|hell|dick|dicks|cock|cocks|cunt|cunts|piss|slut|sluts|whore|whores|fag|fags|idiot|idiots|stupid|dumb|dumbass|loser|losers|ugly|moron|morons|fat|hate|hates|hating|kill|kills|killer|killers|killing|die|dies|dead|suicide|sex|sexy|porn|penis|vagina|boob|boobs|nazi|hitler|kike|spic|chink)$/;
+const meanPhrases = /shutup|youstink|yousuck|yousmell|nobodylikesyou|gotohell|ihate|hateyou|kill(?:you|yourself)|godie/;
+const lookalikes = {'а':'a','е':'e','і':'i','о':'o','р':'p','с':'c','х':'x','у':'y','ѕ':'s','ο':'o','ι':'i','α':'a','0':'o','1':'i','3':'e','4':'a','5':'s','7':'t'};
+export function nameError(name) {
+  if (typeof name !== 'string' || /[\p{Cc}\p{Cf}]/u.test(name)) return 'Use letters, numbers, spaces, hyphens or apostrophes.';
+  const clean = cleanName(name);
+  if (!clean || clean.length > 24) return 'Use a name with 1–24 characters.';
+  if (/https?:|www\.|\S+\.(com|net|org|io|edu)\b/i.test(clean) || !/^[\p{L}\p{M}\p{N} '\u2019-]+$/u.test(clean)) return 'Use letters, numbers, spaces, hyphens or apostrophes.';
+  const folded = clean.toLowerCase().normalize('NFKD').replace(/\p{M}/gu, '').replace(/[аеіорсхуѕοια013457]/g, c => lookalikes[c]);
+  const words = folded.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  const undecorated = clean.toLowerCase().normalize('NFKD').replace(/\p{M}/gu, '').replace(/\d/g, '').split(/[^\p{L}]+/u).filter(Boolean);
+  // Common given names that contain an otherwise blocked English fragment.
+  const joined = words.map(word => /^(ishita|shital|harshit|ashita)$/.test(word) ? 'friendly' : word).join('');
+  if (rudeRoots.test(joined) || [...words,...undecorated].some(word => rudeWords.test(word)) || rudeWords.test(joined) || meanPhrases.test(joined)) return 'Choose a kind, kid-friendly name.';
+  return '';
 }
+export function validName(name) { return !nameError(name); }
 export function validateCreature(c, rules) {
   const errors = [];
   if (c?.schema !== 1 || c.rulesVersion !== rules.version || c.sheet !== rules.sheet) errors.push('Unsupported schema, rulesVersion or sheet');
@@ -11,7 +28,9 @@ export function validateCreature(c, rules) {
   const values = ['health','attack','defense','speed'].map(k => c?.stats?.[k]);
   if (values.some(x => !Number.isInteger(x) || x < rules.stats.min || x > rules.stats.max) ||
       values.reduce((a,b) => a+b,0) !== rules.stats.budget) errors.push(`Stats must be integers 0–${rules.stats.max} totalling ${rules.stats.budget}`);
-  if (!validName(c?.name) || !validName(c?.trainer?.nickname)) errors.push('Names must be 1–24 characters, with no URLs');
+  for (const [label,name] of [['Creature name',c?.name],['Trainer name',c?.trainer?.nickname]]) {
+    const error = nameError(name); if (error) errors.push(`${label}: ${error}`);
+  }
   for (const slot of slots) if (!rules.moves[slot][c?.moves?.[slot]?.id] || !validName(c?.moves?.[slot]?.name)) errors.push(`Invalid ${slot} move`);
   const asset = (p, kind) => typeof p === 'string' && new RegExp(`^assets/${kind}/cr-[a-z0-9]+\\.[a-f0-9]{8,64}\\.webp$`).test(p);
   if (!asset(c?.image?.src, 'creatures') || !asset(c?.trainer?.portrait, 'portraits') ||
@@ -33,7 +52,8 @@ export function loadCollection(json, rules) {
   // Reserve explicit names (including existing numbered names) before allocating suffixes.
   const reserved = new Set(creatures.map(c => canonical(c.name))), used = new Set();
   for (const c of creatures) {
-    const base = c.name.trim();
+    c.trainer.nickname = cleanName(c.trainer.nickname);
+    const base = cleanName(c.name);
     c.name = base;
     if (used.has(canonical(base))) {
       let number = 1;

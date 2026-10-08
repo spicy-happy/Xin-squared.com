@@ -30,3 +30,20 @@ test('repeated 24-character names keep suffixes within the name limit',()=>{
   assert.deepEqual(loaded.map(c=>c.name),[base,'A'.repeat(22)+' 1','A'.repeat(22)+' 2']);
   assert.ok(loaded.every(c=>!validateCreature(c,rules).length));
 });
+
+test('both submitted names reject profanity, insults, threats and common disguises',()=>{
+  for(const name of ['Fuck','F U C K','f-u-c-k','fúck','ＦＵＣＫ','f4ck','Sh1t','ѕhіt','Dick','D1ck','Cunt1','Loser99','asshole','You are stupid','Loser','I hate you','Shut up','Go die','Kill yourself','Nazi','porn','www.example.com','Nice\u200bName','Nice\nName']){
+    for(const field of ['creature','trainer']){
+      const c=creature();if(field==='creature')c.name=name;else c.trainer.nickname=name;
+      assert.ok(validateCreature(c,rules).some(e=>e.startsWith(field==='creature'?'Creature name:':'Trainer name:')),`${field}: ${name}`);
+      assert.throws(()=>loadCollection({schema:1,creatures:[c]},rules));
+    }
+  }
+});
+test('friendly multilingual names, apostrophes and innocent word fragments remain usable',()=>{
+  for(const name of ['Ishita','Harshit','Cassie','Dickens','Scunthorpe','Butterfly','Captain Noodle','José','Zoë','O’Connor','Anne-Marie','小明','A','It','Go','Test Trainer 1']){
+    const c=creature({name,trainer:{...creature().trainer,nickname:name}});assert.deepEqual(validateCreature(c,rules),[],name);
+  }
+  const c=creature({name:'  Moss  Buddy ',trainer:{...creature().trainer,nickname:'  Zoë  Green '}});
+  const [loaded]=loadCollection({schema:1,creatures:[c]},rules);assert.equal(loaded.name,'Moss Buddy');assert.equal(loaded.trainer.nickname,'Zoë Green');assert.equal(c.trainer.nickname,'  Zoë  Green ');
+});
