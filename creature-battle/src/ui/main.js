@@ -38,7 +38,7 @@ function showCollection(){screen='collection';const panel=page('Creatures');
 function setup(previous=null){cleanup();if(!previous)difficulty='normal';picks=[];firstPicks=null;pick(0,previous);}
 function pick(side,previous=null){cleanup();screen='teampick';orient();teamPick({app,collection,side,initialChoice:previous?.[side],imageSrc,portraitSrc,solo:mode==='ai',difficulty,onDifficulty:value=>{difficulty=value;},onDone:choice=>{
   picks[side]=choice;if(side===0&&mode==='friend')pick(1,previous);else if(mode==='ai'){
-    const ai=difficulty==='normal'?choosePracticeTeam(collection,{rules,openingType:choice.team[0].type,aiRng}):chooseTeam(collection,{difficulty:botDifficulty(),aiRng});aiRng=ai.aiRng;picks[1]={team:ai.team,trainer:{bot:true,nickname:'Battle Bot',portrait:'assets/portraits/practice-bot.svg'}};start();
+    const ai=difficulty==='normal'?choosePracticeTeam(collection,{rules,openingType:choice.team[0].type,playerTeam:choice.team,aiRng}):chooseTeam(collection,{difficulty:botDifficulty(),aiRng});aiRng=ai.aiRng;picks[1]={team:ai.team,trainer:{bot:true,nickname:'Battle Bot',portrait:'assets/portraits/practice-bot.svg'}};start();
   }else start();
 }});}
 function start(){if(!firstPicks)firstPicks=structuredClone(picks);if(picks[0].trainer.nickname===picks[1].trainer.nickname)picks=picks.map((p,side)=>({...p,trainer:{...p.trainer,nickname:`${p.trainer.nickname.slice(0,22).trimEnd()} ${side+1}`}}));cleanup();screen='battle';orient();lastSwitch=false;const initial=createMatch({rules,teams:picks.map(p=>p.team),seed});state=initial.state;

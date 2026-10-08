@@ -60,3 +60,27 @@ test('Normal practice opener is weak to the player opening type, with a legal te
  }
  const small=pool.slice(0,2);assert.equal(choosePracticeTeam(small,{rules,openingType:'fire',aiRng:3}).team.length,3);
 });
+
+test('practice teams favour each child pick, randomising equally favourable choices',async()=>{
+ const {choosePracticeTeam}=await import('../src/ai.js');
+ const {typeMult}=await import('../src/rules.js');
+ const pool=Object.keys(rules.types).map((type,i)=>creature({type,id:`cr-favor${i}`}));
+ const playerTeam=pool.slice(0,3),openers=new Set();
+ for(let seed=0;seed<100;seed++){
+  const {team}=choosePracticeTeam(pool,{rules,playerTeam,openingType:playerTeam[0].type,aiRng:seed});
+  const remaining=[...pool];
+  team.forEach((c,i)=>{
+   const score=m=>typeMult(rules,playerTeam[i].type,m.type)/typeMult(rules,m.type,playerTeam[i].type);
+   assert.equal(score(c),Math.max(...remaining.map(score)));remaining.splice(remaining.findIndex(m=>m.id===c.id),1);
+  });openers.add(team[0].id);
+ }
+ assert.ok(openers.size>1);
+});
+test('practice AI frequently takes harmless or silly actions rather than strongest attacks',()=>{
+ const {state}=match({stats:stats(2,3,0,5)},{});let nonAttacks=0;
+ for(let seed=0;seed<1000;seed++){
+  const {action}=chooseAction(state,0,{difficulty:'easy',aiRng:seed});
+  if(['defense','switch'].includes(action.kind))nonAttacks++;
+ }
+ assert.ok(nonAttacks>450,`non-attacks: ${nonAttacks}`);
+});

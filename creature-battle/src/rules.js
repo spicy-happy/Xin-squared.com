@@ -33,7 +33,7 @@ export function loadRules(json) {
       if (m.recoil !== undefined && !fraction(m.recoil)) throw Error('Invalid recoil');
     }
   }
-  if (!positive(r.fallback?.power) || r.fallback.accuracy !== 100 || r.fallback.crit !== false) throw Error('Invalid fallback');
+  if (!positive(r.fallback?.power) || r.fallback.accuracy !== 100 || r.fallback.crit !== false || (r.fallback.recoil !== undefined && !fraction(r.fallback.recoil))) throw Error('Invalid fallback');
   return deepFreeze(r);
 }
 // All combat quantities use a single exact fraction and one half-up rounding.
@@ -64,7 +64,7 @@ export function expectedDamage(rules, attacker, defender, move, context = {}) {
   const actual = crit => {
     const hit = Math.max(0, damage(rules, attacker, defender, move, { ...context, crit }) - defender.shield);
     const capped = Math.min(hit, defender.hp);
-    return rules.hangOn && defender.hp === defender.maxHp && capped === defender.hp ? capped - 1 : capped;
+    return rules.hangOn && !defender.lastChanceUsed && defender.hp > 1 && hit >= Math.floor(defender.maxHp / 2) && capped === defender.hp ? capped - 1 : capped;
   };
   return ((1 - p) * actual(false) + p * actual(true)) * move.accuracy / 100;
 }
