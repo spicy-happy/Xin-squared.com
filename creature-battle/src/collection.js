@@ -28,7 +28,23 @@ export function loadCollection(json, rules) {
     if (errors.length) throw Error(`${c.id}: ${errors.join('; ')}`);
     ids.add(c.id);
   }
-  return structuredClone(json.creatures);
+  const creatures = structuredClone(json.creatures);
+  const canonical = name => name.normalize('NFKC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-US');
+  // Reserve explicit names (including existing numbered names) before allocating suffixes.
+  const reserved = new Set(creatures.map(c => canonical(c.name))), used = new Set();
+  for (const c of creatures) {
+    const base = c.name.trim();
+    c.name = base;
+    if (used.has(canonical(base))) {
+      let number = 1;
+      do {
+        const suffix = ` ${number++}`;
+        c.name = base.slice(0, 24 - suffix.length).trimEnd() + suffix;
+      } while (reserved.has(canonical(c.name)) || used.has(canonical(c.name)));
+    }
+    used.add(canonical(c.name));
+  }
+  return creatures;
 }
 export function teamRule(collection) {
   return { canBattle: collection.length > 0, duplicates: collection.length < 3, size: 3 };

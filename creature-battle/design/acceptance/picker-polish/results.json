@@ -1,0 +1,58 @@
+[
+  {
+    "width": 320,
+    "height": 740,
+    "toggle": true,
+    "removableChips": true,
+    "loops": true,
+    "animatedArrows": true,
+    "touchSwipe": true,
+    "compactToolbar": true,
+    "customDropdown": true,
+    "pixelArt48": true,
+    "hardStarts": true,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "toggle": true,
+    "removableChips": true,
+    "loops": true,
+    "animatedArrows": true,
+    "touchSwipe": true,
+    "compactToolbar": true,
+    "customDropdown": true,
+    "pixelArt48": true,
+    "hardStarts": true,
+    "errors": []
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "toggle": true,
+    "removableChips": true,
+    "loops": true,
+    "animatedArrows": true,
+    "touchSwipe": true,
+    "compactToolbar": true,
+    "customDropdown": true,
+    "pixelArt48": true,
+    "hardStarts": true,
+    "errors": []
+  },
+  {
+    "width": 1024,
+    "height": 768,
+    "toggle": true,
+    "removableChips": true,
+    "loops": true,
+    "animatedArrows": true,
+    "touchSwipe": true,
+    "compactToolbar": true,
+    "customDropdown": true,
+    "pixelArt48": true,
+    "hardStarts": true,
+    "errors": []
+  }
+]

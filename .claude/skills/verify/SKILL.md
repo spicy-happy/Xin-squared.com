@@ -103,12 +103,14 @@ Two-player recipe: click `#play-friend`; choose three
 card contains no team names, click `#lookaway-ready`, choose player 2's
 portrait/team, click `#team-done` to start immediately. Player 1 is left.
 For AI, use `#play-ai`; Normal is the default and Hard is the other option.
-Difficulty and team selection share one screen. Normal uses the random AI
+Difficulty and team selection share one screen. Click `#difficulty`, then a
+Normal/Hard `[role=option]` in its custom pixel menu. Start is beside difficulty;
+there is no visible title or Home button. `#game-home` returns to the home screen. Normal uses the random AI
 policy; Hard uses the tactical policy. Start is disabled until three creatures
 are picked. Clicking a selected card or its summary × clears that pick.
 Trainer and creature carousels have three synchronized copies; drive the
-middle copy for keyboard-accessible tests. Arrow buttons and native horizontal
-scrolling loop by recentering one complete cycle.
+middle copy for keyboard-accessible tests. Arrow buttons animate over 240 ms (respecting reduced motion); native horizontal
+scrolling loops by recentering one complete cycle. Focus uses inverted colours.
 
 Browser scripts: `tools/retro-browser.mjs` checks picker interactions, looping,
 pixel images and responsive layouts; `tools/prototype-browser.mjs` drives full
