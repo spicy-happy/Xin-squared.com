@@ -66,7 +66,8 @@ export function chooseAction(state, side, { difficulty = 'easy', aiRng, lastSwit
   if (!['easy','normal'].includes(difficulty)) throw Error('Invalid difficulty');
   const s=publicBattle(state), random=randomSource(aiRng);
   let actions=getActions(s,side).filter(a=>a.enabled);
-  if (difficulty==='easy' && lastSwitch) actions=actions.filter(a=>a.kind!=='switch');
+  // A new creature must use a move before another voluntary switch.
+  if (lastSwitch) actions=actions.filter(a=>a.kind!=='switch');
   if (!actions.length) throw Error('No legal action');
   const mistake=random.draw() < (difficulty==='easy' ? 0.85 : 0.1);
   const action=mistake ? actions[Math.floor(random.draw()*actions.length)] :
@@ -81,7 +82,7 @@ export function chooseReplacement(state, side, { difficulty='easy', aiRng } = {}
   const index=difficulty==='easy'?options[Math.floor(random.draw()*options.length)].i:
     options.reduce((best,a)=>matchup(s.rules,a.m,foe)>matchup(s.rules,best.m,foe) ||
       (matchup(s.rules,a.m,foe)===matchup(s.rules,best.m,foe) && a.m.hp>best.m.hp)?a:best).i;
-  return { index, aiRng: random.state, lastSwitch: false };
+  return { index, aiRng: random.state, lastSwitch: true };
 }
 // Team choice has no opponent argument; it cannot inspect a hidden team.
 export function chooseTeam(collection, { difficulty='easy', aiRng } = {}) {

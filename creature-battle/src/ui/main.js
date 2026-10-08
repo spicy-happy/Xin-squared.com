@@ -51,7 +51,7 @@ function drain(){if(screen!=='battle')return;if(state.over){if(state.reason==='c
   const t=whoseTurn(state);if(mode==='ai'&&t.side===1){clearTimeout(aiTimer);const scheduledState=state;aiTimer=setTimeout(()=>{
     aiTimer=null;if(quitDialog.open){aiTimer=setTimeout(drain,400);return;}if(screen!=='battle'||!view||view.isLocked()||state!==scheduledState)return;
     const current=whoseTurn(state);if(current.over||current.side!==1)return;
-    const opts={difficulty:botDifficulty(),aiRng,lastSwitch};if(current.need==='replacement'){const choice=aiReplacement(state,1,opts);aiRng=choice.aiRng;lastSwitch=false;replace(1,choice.index);}else{const choice=chooseAction(state,1,opts);aiRng=choice.aiRng;lastSwitch=choice.lastSwitch;action(1,choice.action);}
+    const opts={difficulty:botDifficulty(),aiRng,lastSwitch};if(current.need==='replacement'){const choice=aiReplacement(state,1,opts);aiRng=choice.aiRng;lastSwitch=choice.lastSwitch;replace(1,choice.index);}else{const choice=chooseAction(state,1,opts);aiRng=choice.aiRng;lastSwitch=choice.lastSwitch;action(1,choice.action);}
   },600+Math.floor(Math.random()*401));}
 }
 function result(){screen='result';orient();const panel=page(`${picks[state.winner].trainer.nickname} wins!`);panel.append(el('p',`Good try, ${picks[1-state.winner].trainer.nickname}!`));const lineup=el('div');lineup.className='result-team';for(const c of picks[state.winner].team){const card=el('article');const img=el('img');img.src=imageSrc(c);img.alt=c.name;card.append(img,el('span',c.name),typeChip(c.type));lineup.append(card);}panel.append(lineup);const choices=el('div');choices.className='choices';panel.append(choices);
