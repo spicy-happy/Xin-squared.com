@@ -1,14 +1,15 @@
 import { getActions, whoseTurn } from '../engine.js';
 import { eventLines } from '../messages.js';
+import { typeChip } from './components.js';
 const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x;};
-const icon={regular:'✦',special:'◆',defense:'⬡',switch:'⇄'};
+const icon={regular:'+',special:'*',defense:'#',switch:'<>'};
 export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,onAction,onReplacement,onDrain,twoTap,humanSides=[0,1]}) {
   const view=structuredClone(initial),log=[];let locked=false,guardUntil=0,skip=null,selected=null,disposed=false,newPair=true,animationSide=null;
   app.replaceChildren();const arena=el('section','arena');app.append(arena);const round=el('div','round');arena.append(round);
   const body=el('div','battle-body');arena.append(body);const sides=[],grids=[],panels=[];
   const center=el('div','center'),tab=el('div','turn-tab'),box=el('button','text-box');box.id='battle-text';
   const announcement=el('div','sr-only');announcement.setAttribute('role','status');announcement.setAttribute('aria-live','polite');announcement.setAttribute('aria-atomic','true');center.append(announcement);
-  const history=el('button',null,'📜 Last 10 lines');history.id='battle-history';center.append(tab,box,history);
+  const history=el('button',null,'Battle Log');history.id='battle-history';center.append(tab,box,history);
   for(let side=0;side<2;side++){
     const section=el('section','side');section.dataset.side=side;const status=el('div','status'),stage=el('div','stage'),grid=el('div','grid');
     grid.dataset.grid=side;section.append(status,stage,grid);sides.push(section);grids.push(grid);panels.push({status,stage});
@@ -33,13 +34,13 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
         const chip=el('span',`name-chip ${part.side?'right':'left'}`),portrait=el('img');portrait.src=portraitSrc(trainers[part.side]);portrait.alt='';chip.append(portrait,document.createTextNode(part.text));row.append(chip);
       }box.append(row);
     }
-    box.append(el('small',null,locked?'⏩ Tap here to skip':humanSides.includes(whoseTurn(getState()).side)?'Choose a move':'Bot is thinking…'));
+    box.append(el('small',null,locked?'>> Tap to skip':humanSides.includes(whoseTurn(getState()).side)?'Choose a move':'Bot is thinking…'));
     announcement.textContent=lines.map(l=>l.text).join(' ');
   }
   function paint(){for(let side=0;side<2;side++){
     const m=active(side),{status,stage}=panels[side];status.replaceChildren();const identity=el('div','identity');const p=el('img','portrait');p.src=portraitSrc(trainers[side]);p.alt=trainers[side].nickname;identity.append(p,document.createTextNode(name(side)));status.append(identity);
     const hp=el('div','hp'),fill=el('div','hp-fill'),shield=el('div','shield-fill');const total=Math.max(m.maxHp,m.hp+m.shield);fill.style.width=`${100*m.hp/total}%`;shield.style.width=`${100*m.shield/total}%`;hp.append(fill,shield);status.append(hp);
-    const badges=el('div','badges');badges.append(el('span',null,`${m.hp}/${m.maxHp}${m.shield?` +${m.shield}`:''}`),el('span',null,`${m.type} ${m.toughened?'Tough ':''}${m.resting?'💤 next turn':''}`));status.append(badges);
+    const badges=el('div','badges');badges.append(el('span',null,`${m.hp}/${m.maxHp}${m.shield?` +${m.shield}`:''}`),typeChip(m.type),el('span',null,`${m.toughened?'Tough ':''}${m.resting?'NAP next turn':''}`));status.append(badges);
     stage.replaceChildren();const img=el('img');img.src=imageSrc(m);img.alt=m.name;stage.append(img);
   }}
   function confirm(side,action,text){if(!twoTap())return perform(side,action);const key=JSON.stringify(action);
@@ -48,7 +49,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   }
   function perform(side,action){if(disposed||locked||!humanSides.includes(side)||Date.now()<guardUntil)return;selected=null;onAction(side,action);}
   function tray(side,replacement){const s=view,g=grids[side];g.replaceChildren();const tray=el('div','tray');tray.append(el('strong',null,replacement?(humanSides.includes(side)?'Pick your next creature!':'Bot is choosing a creature…'):`Switches left: ${s.switchesLeft[side]}`));
-    s.teams[side].forEach((m,index)=>{if(index===s.active[side]||m.hp<=0)return;const b=el('button',null,`${m.name} ${m.hp}/${m.maxHp}`);b.dataset.bench=index;
+    s.teams[side].forEach((m,index)=>{if(index===s.active[side]||m.hp<=0)return;const b=el('button',null,`${m.name} ${m.hp}/${m.maxHp}`);b.dataset.bench=index;b.append(typeChip(m.type));
       b.disabled=locked||!humanSides.includes(side);b.onclick=()=>{if(disposed||locked||!humanSides.includes(side)||Date.now()<guardUntil)return;if(replacement){onReplacement(side,index);}else confirm(side,{kind:'switch',index},`Bring in ${m.name}. Uses one switch.`);};tray.append(b);
     });if(!replacement){const cancel=el('button',null,'Back');cancel.onclick=controls;tray.append(cancel);}g.append(tray);
   }
