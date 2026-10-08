@@ -9,3 +9,7 @@ Validation: 40 Node tests; targeted browser regressions in `tools/review-browser
 The default balance CLI checks each of seeds 3, 17, and 101 independently. All type, move, stat, transfer, duration, exhaustion, draw and safety-cap gates pass on each seed. The shared three-creature Normal/Easy gate fails at 68.58%, 68.03%, and 70.92% respectively (target ≥70% for every seed). This remains an AI-tuning issue; thresholds and AI policy have not been changed to mask it. Full output is in `review-balance.{json,txt}`. The previous phase-2 report used a larger collection and does not establish launch difficulty acceptance.
 
 Supervised kid playtesting remains a human checkpoint.
+
+## Production publication
+
+The owner explicitly requested production launch on October 8, 2026 after receiving the balance results. Publication adds the Games card and sitemap entry, removes noindex, and sets GAME_VERSION 12. No supervised playtest or AI-tuning success is claimed. The public collection remains empty, so battle buttons are disabled until real creatures are imported. All 40 Node tests pass after these launch changes.
