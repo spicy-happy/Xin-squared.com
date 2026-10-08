@@ -21,12 +21,19 @@ await p.evaluate(async()=>{
  if(app.querySelector('[data-side="0"] .stage img').alt!==oldName)throw Error('View ran ahead');
  window.reviewView={app,v,anim,get calls(){return calls},setState:s=>{state=s},initial};
 });
-const r=p.locator('#review');await p.waitForTimeout(1450);
-assert.equal(await r.locator('.message-line').count(),2);
-assert.equal(await r.locator('#battle-text .name-chip').count(),0); // It dealt… and A critical hit!
+const r=p.locator('#review');await r.locator('.message-line[data-text="A critical hit!"]').waitFor();
+assert.equal(await r.locator('.message-line').count(),3);
+assert.equal(await r.locator('.message-line[data-text="A critical hit!"] .name-chip').count(),0);
 await r.locator('#battle-text').click();await p.waitForTimeout(450);assert.match(await r.locator('#battle-text').innerText(),/It dealt 9 damage/);
 await p.evaluate(async()=>{const {v,initial,setState,app}=reviewView;const s=structuredClone(initial);s.needReplacement=1;s.teams[1][s.active[1]].hp=0;setState(s);const a=v.animate([{t:'needReplace',side:1}]);app.querySelector('#battle-text').click();await a;});
 assert.ok(await r.locator('[data-side="1"] [data-bench]').count());assert.equal(await r.locator('[data-side="1"] button:enabled').count(),0);
 assert.equal(await r.locator('[data-side="1"].active').count(),0);
 await r.locator('[data-side="1"] [data-bench]').first().evaluate(e=>e.onclick());assert.equal(await p.evaluate(()=>reviewView.calls),0);
-assert.deepEqual(errors,[]);await b.close();console.log('Review regressions pass: bot actions/replacements, snapshot controls, 2-message pacing, damage retention, short names, portrait, live region.');
+await p.evaluate(async()=>{const {battleView}=await import(`/creature-battle/src/ui/battle.js?v=${GAME_VERSION}`);reviewView.v.dispose();const s=structuredClone(reviewView.initial);for(const team of s.teams)for(const c of team)c.pp.special=0;window.ppState=s;window.ppView=battleView({app:reviewView.app,initial:s,trainers:[{nickname:'Human'},{nickname:'Bot'}],humanSides:[0,1],imageSrc:()=>'/creature-battle/tests/fixtures/placeholder.svg',portraitSrc:()=>'/creature-battle/tests/fixtures/portrait.svg',getState:()=>s,onAction:()=>{},onReplacement:()=>{},onDrain:()=>{},twoTap:()=>false});});
+assert.equal(await r.locator('[data-action="special"].exhausted:disabled').count(),2);assert.ok((await r.locator('[data-action="special"] .pp').allTextContents()).every(t=>/^0\/\d+$/.test(t)));
+await p.evaluate(async()=>{ppView.dispose();for(const team of ppState.teams)for(const c of team)c.pp.regular=0;const {battleView}=await import(`/creature-battle/src/ui/battle.js?v=${GAME_VERSION}`);window.ppView=battleView({app:reviewView.app,initial:ppState,trainers:[{nickname:'Human'},{nickname:'Bot'}],humanSides:[0,1],imageSrc:()=>'/creature-battle/tests/fixtures/placeholder.svg',portraitSrc:()=>'/creature-battle/tests/fixtures/portrait.svg',getState:()=>ppState,onAction:()=>{},onReplacement:()=>{},onDrain:()=>{},twoTap:()=>false});});
+assert.ok((await r.locator('[data-action="regular"] .category').allTextContents()).every(t=>t==='Tired Attack'));assert.equal(await r.locator('[data-action="regular"]:enabled').count(),1);
+await p.evaluate(async()=>{ppView.dispose();const {battleView}=await import(`/creature-battle/src/ui/battle.js?v=${GAME_VERSION}`);const initial=structuredClone(reviewView.initial);initial.teams[0][initial.active[0]].hp=2;const state=structuredClone(initial);state.teams[0][state.active[0]].hp=0;state.needReplacement=0;window.faintView=battleView({app:reviewView.app,initial,trainers:[{nickname:'Human'},{nickname:'Bot'}],humanSides:[0,1],imageSrc:()=>'/creature-battle/tests/fixtures/placeholder.svg',portraitSrc:()=>'/creature-battle/tests/fixtures/portrait.svg',getState:()=>state,onAction:()=>{},onReplacement:()=>{},onDrain:()=>{},twoTap:()=>false});faintView.animate([{t:'hit',side:1,target:0,amount:2,hpAfter:0,crit:false,eff:'neutral'},{t:'faint',side:0},{t:'needReplace',side:0}]);});
+assert.equal(await r.locator('[data-side="0"] .creature-sprite').evaluate(e=>e.style.opacity),'1');
+await r.locator('[data-side="0"] .fighter.fainted').waitFor();assert.equal(await r.locator('[data-side="0"] .pixel-shadow').evaluate(e=>getComputedStyle(e).opacity),'0');await r.locator('#battle-text').click();await p.waitForTimeout(450);assert.equal(await r.locator('[data-side="0"] .creature-sprite').evaluate(e=>e.style.opacity),'0');
+assert.deepEqual(errors,[]);await b.close();console.log('Review regressions pass: bot actions/replacements, snapshot controls, 3-line typed messages, damage retention, short names, portrait, live region.');

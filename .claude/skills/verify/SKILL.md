@@ -120,7 +120,16 @@ and `BATTLE_ORIGIN` for the local environment.
 During battle, wait until enabled `[data-action]` buttons are interactive
 (animations drain, then a 400 ms guard). Read `needReplacement`, or `order[slot]`, from `__battleDebug.state()`
 to select the correct `[data-side]`. For an action, tap its category (one tap; no confirmation setting); for replacement, click `[data-bench]` in the mandatory tray. Only
-`#battle-text` skips the message queue. Never use `setHp` or `force` to claim
+`#battle-text` finishes the current action. Its full-width top log types letters
+and shows up to three lines; the turn prompt is part of the log. There is no
+round banner, turn tab or Battle Log button. Moves show category and PP fraction.
+Exhausted attacks are disabled; Tired Attack becomes available when both attack
+PP pools are empty. HP uses 20 pixel segments with the type chip beside the bar.
+The creatures share one floor, with stepped shadows and small attack/defense effects.
+`kit/make_sounds.py` generates nine original WAV effects; `#sound-toggle` mutes
+the shared audio gain. Audio unlocks on the first user gesture.
+`tools/arena-browser.mjs` checks the arena layout, typing, effects and decoded
+sounds at landscape phone and tablet sizes. Never use `setHp` or `force` to claim
 a complete 3v3 acceptance battle: drive every action through the visible UI.
 Check both modes reach Result, take arena/result screenshots, ensure no
 button displays type effectiveness, and verify portrait dimensions show
