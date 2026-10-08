@@ -54,20 +54,20 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
  }
  function perform(side,action){if(disposed||locked||!humanSides.includes(side)||Date.now()<guardUntil)return;selected=null;onAction(side,action);}
  function tray(side,replacement){const s=view,g=grids[side];g.replaceChildren();const tray=el('div','tray');tray.append(el('strong',null,replacement?(humanSides.includes(side)?'Pick your next creature!':'Bot is choosing a creature...'):`Switches left: ${s.switchesLeft[side]}`));
-  s.teams[side].forEach((m,index)=>{if(index===s.active[side]||m.hp<=0)return;const b=el('button',null,`${m.name} ${m.hp}/${m.maxHp}`);b.dataset.bench=index;b.append(typeChip(m.type));b.disabled=locked||!humanSides.includes(side);
+  s.teams[side].forEach((m,index)=>{if(index===s.active[side]||m.hp<=0)return;const b=el('button',null,`${m.name} ${m.hp}/${m.maxHp}`);b.dataset.bench=index;b.append(typeChip(m.type));b.disabled=locked||Date.now()<guardUntil||!humanSides.includes(side);
    b.onclick=()=>{if(disposed||locked||!humanSides.includes(side)||Date.now()<guardUntil)return;if(replacement)onReplacement(side,index);else confirm(side,{kind:'switch',index},`Bring in ${m.name}.`);};tray.append(b);
   });if(!replacement){const back=el('button',null,'Back');back.onclick=controls;tray.append(back);}g.append(tray);
  }
- function controls(){if(disposed)return;const s=view,turn=locked?{side:animationSide,need:'action'}:whoseTurn(s);selected=null;
+ function controls(){if(disposed)return;const s=view,turn=locked?{side:animationSide,need:'action'}:whoseTurn(s),guarded=Date.now()<guardUntil;selected=null;
   for(let owner=0;owner<2;owner++){
-   sides[owner].classList.toggle('active',!locked&&!turn.over&&turn.side===owner&&humanSides.includes(owner));const g=grids[owner];g.replaceChildren();
+   sides[owner].classList.toggle('active',!locked&&!guarded&&!turn.over&&turn.side===owner&&humanSides.includes(owner));const g=grids[owner];g.replaceChildren();
    const m=s.teams[owner][s.active[owner]],actions=getActions(s,owner);
    for(const [kind,label]of [['regular','Regular Attack'],['special','Special Attack'],['defense','Defense'],['switch','Switch']]){
     const a=kind==='switch'?actions.find(a=>a.kind==='switch'&&a.enabled)??actions.find(a=>a.kind==='switch'):actions.find(a=>a.kind===kind||(kind==='regular'&&a.kind==='fallback'));
     const fallback=a.kind==='fallback',move=kind==='switch'?null:fallback?s.rules.fallback:s.rules.moves[kind][m.moves[kind].id];
     const remaining=kind==='switch'?s.switchesLeft[owner]:m.pp[kind],maximum=kind==='switch'?s.rules.switchLimit:fallback?null:move.pp;
     const b=el('button',kind);b.dataset.action=kind;b.append(el('span','category',fallback?'Tired Attack':label),el('span','pp',fallback?'--':`${remaining}/${maximum}`));
-    b.classList.toggle('exhausted',!fallback&&remaining===0);b.disabled=locked||!humanSides.includes(owner)||!a.enabled;b.setAttribute('aria-disabled',String(b.disabled));b.title=a.enabled?'':a.reason;
+    b.classList.toggle('exhausted',!fallback&&remaining===0);b.disabled=locked||guarded||!humanSides.includes(owner)||!a.enabled;b.setAttribute('aria-disabled',String(b.disabled));b.title=a.enabled?'':a.reason;
     b.setAttribute('aria-label',`${fallback?'Tired Attack, always available':`${label}, ${remaining} of ${maximum} uses left`}${!a.enabled?`. ${a.reason}`:''}`);
     b.onclick=()=>{if(disposed||locked||!humanSides.includes(owner)||Date.now()<guardUntil)return;if(kind==='switch')tray(owner,false);else confirm(owner,{kind:a.kind},label);};g.append(b);
    }
@@ -83,7 +83,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   if(matchMedia('(prefers-reduced-motion: reduce)').matches){eventSound(e);return Promise.resolve();}eventSound(e);const jobs=[];
   const animate=(node,frames,duration=260)=>{const animation=node.animate(frames,{duration,easing:'steps(8,end)'});effects.add(animation);jobs.push(animation.finished.catch(()=>{}).finally(()=>effects.delete(animation)));};
   const side=e.t==='hit'?e.target:e.side,img=panels[side]?.img;
-  if(e.t==='use'||e.t==='fallback'){
+  if(e.t==='use'){
    if(view.rules.moves.defense[e.moveId])return Promise.resolve();
    const special=!!view.rules.moves.special[e.moveId];if(special){const source=panels[e.side].img.getBoundingClientRect(),target=panels[1-e.side].img.getBoundingClientRect(),area=fx.getBoundingClientRect(),spark=el('div',`projectile type-${active(e.side).type}`);spark.style.left=`${source.x+source.width/2-area.x}px`;spark.style.top=`${source.y+source.height/2-area.y}px`;fx.append(spark);
     animate(spark,[{transform:'translate(0,0)'},{transform:`translate(${target.x-source.x}px,${target.y-source.y}px)`}],300);jobs.at(-1).then(()=>spark.remove());
@@ -96,13 +96,13 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   else if(e.t==='faint')animate(img,[{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(24px)'}],300);
   return Promise.all(jobs);
  }
- function eventSound(e){const sound=e.t==='use'?(view.rules.moves.special[e.moveId]?'special':view.rules.moves.defense[e.moveId]?null:'regular'):({fallback:'regular',hit:'hit',recoil:'hit',heal:'heal',shieldUp:'shield',toughen:'shield',switch:'switch',enter:'switch',faint:'faint',win:'win'})[e.t];if(sound)playSound(sound);}
+ function eventSound(e){const sound=e.t==='use'?(view.rules.moves.special[e.moveId]?'special':view.rules.moves.defense[e.moveId]?null:'regular'):({hit:'hit',recoil:'hit',heal:'heal',shieldUp:'shield',toughen:'shield',switch:'switch',enter:'switch',faint:'faint',win:'win'})[e.t];if(sound)playSound(sound);}
  async function animate(events){
   animationSide=events.find(e=>['use','switch','rest'].includes(e.t))?.side??events.find(e=>e.t==='round')?.order[0]??whoseTurn(getState()).side??getState().winner??0;locked=true;controls();
-  let cancelled=false,wake,buffer=[],summary=[];const seen=new Set();
+  let cancelled=false,wake,buffer=[],summary=[],pendingEntry=null;const seen=new Set();
   skip=()=>{cancelled=true;finishTyping?.();for(const animation of effects)animation.cancel();wake?.();};
   for(const e of events){
-   if(disposed)return;const previous=[name(0),name(1)];applyEvent(e);paint();controls();const lines=messages(e,previous);
+   if(disposed)return;const previous=[name(0),name(1)],repeatedEntry=e.t==='enter'&&e.side===pendingEntry;pendingEntry=e.t==='switch'?e.side:null;applyEvent(e);paint();controls();if(repeatedEntry)continue;const lines=messages(e,previous);
    if(e.t==='hit')summary=[lines.find(l=>l.text.startsWith('It dealt')),...lines.filter(l=>l.text.includes('effective')||l.text.includes('critical'))].slice(0,2);
    else if(['heal','miss','recoil','faint','win','switch','rest','shieldUp','toughen'].includes(e.t))summary=summary[0]?.text.startsWith('It dealt')?[summary[0],lines[0]]:lines.slice(0,2);
    if(cancelled){buffer=[...buffer,...lines].slice(-3);eventSound(e);continue;}if(!lines.length)continue;
