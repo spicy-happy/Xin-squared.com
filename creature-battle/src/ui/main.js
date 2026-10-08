@@ -11,7 +11,7 @@ initAudio();
 const app=document.querySelector('#app'),debug=new URLSearchParams(location.search).get('debug')==='1';
 const tag=document.querySelector('#debug-tag');tag.hidden=!debug;
 const rotate=document.querySelector('#rotate'),orientation=matchMedia('(orientation: portrait)');
-let ready=false,screen='home',rules,collection,mode='ai',difficulty='normal',picks=[],state,view,seed=Date.now()>>>0,aiRng=571,lastSwitch=false,aiTimer=null,updateAvailable=false,firstPicks=null;
+let ready=false,screen='home',rules,collection,mode='ai',difficulty='normal',picks=[],state,view,seed=Date.now()>>>0,aiRng=crypto.getRandomValues(new Uint32Array(1))[0],lastSwitch=false,aiTimer=null,updateAvailable=false,firstPicks=null;
 const imageSrc=c=>spriteSrc(debug?'tests/fixtures/placeholder.svg':c.image.src,c.type);
 const portraitSrc=(t,type=t.type??collection?.find(c=>c.trainer.portrait===t.portrait)?.type??'grass')=>spriteSrc(t.bot?'assets/portraits/practice-bot.svg':debug?'tests/fixtures/portrait.svg':t.portrait,t.bot?'water':type);
 const botDifficulty=()=>difficulty==='hard'?'normal':'easy';
@@ -19,7 +19,7 @@ const el=(tag,text)=>{const x=document.createElement(tag);if(text!==undefined)x.
 const quitDialog=document.querySelector('#quit-dialog'),quitButton=document.querySelector('#quit-game');
 function askQuit(){if(screen==='battle')quitDialog.showModal();else home();}
 quitButton.onclick=askQuit;document.querySelector('#keep-playing').onclick=()=>quitDialog.close();document.querySelector('#confirm-quit').onclick=()=>{quitDialog.close();home();};
-function orient(){setMusic(screen==='battle'?'battle':screen==='result'?'victory':'title');rotate.hidden=screen!=='battle'||!orientation.matches;quitButton.hidden=screen!=='battle';document.querySelector('.prototype-tag').hidden=screen==='battle';}
+function orient(){setMusic(screen==='battle'?'battle':screen==='result'?'victory':'title');rotate.hidden=screen!=='battle'||!orientation.matches;document.body.classList.toggle('in-battle',screen==='battle');document.body.classList.toggle('rotate-required',!rotate.hidden);quitButton.hidden=screen!=='battle';document.querySelector('.prototype-tag').hidden=screen==='battle';}
 orientation.addEventListener('change',orient);
 async function checkForUpdate(){try{const r=await fetch(location.pathname,{cache:'no-store'});const html=r.ok?await r.text():'';const m=html.match(/GAME_VERSION\s*=\s*(\d+)/);if(m&&+m[1]!==window.GAME_VERSION)updateAvailable=true;}catch{}return updateAvailable;}
 function applyUpdate(){if(!updateAvailable)return false;try{if(sessionStorage.getItem('cb-reloadedFor')===String(window.GAME_VERSION))return false;sessionStorage.setItem('cb-reloadedFor',String(window.GAME_VERSION));}catch{}location.replace(location.pathname+'?v='+Date.now()+(debug?'&debug=1':''));return true;}

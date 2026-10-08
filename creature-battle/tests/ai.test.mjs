@@ -101,3 +101,14 @@ test('AI uses the revealed next-hit guarantee without reading random rolls',()=>
  assert.ok(Math.abs(expectedDamage(rules,me,foe,move,{guaranteedHit:true})-ordinary*100/move.accuracy)<1e-9);
  assert.ok(scoreAction(s,side,{kind:'special'},'easy')>scoreAction({...s,nextHitGuaranteed:[false,false]},side,{kind:'special'},'easy'));
 });
+
+test('Hard scoring avoids repeated Iron Hide and values Quick by current speed',()=>{
+ const {state:s}=match({moves:moves('quick','blast','toughen')});
+ const side=s.order[0],me=active(s,side),foe=active(s,1-side);
+ me.moves=moves('quick','blast','toughen');me.toughened=true;
+ assert.equal(scoreAction(s,side,{kind:'defense'},'normal'),-5);
+ for(const speed of [0,2,5]){
+  me.stats.speed=speed;s.slot=1;
+  assert.equal(scoreAction(s,side,{kind:'regular'},'easy'),expectedDamage(rules,me,foe,rules.moves.regular.quick,{first:speed>foe.stats.speed}));
+ }
+});

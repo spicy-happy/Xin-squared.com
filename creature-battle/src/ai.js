@@ -19,7 +19,7 @@ function attackScore(s, side, action, difficulty) {
   const me = cur(s, side), foe = cur(s, 1-side), r = s.rules;
   const fallback = action.kind === 'fallback';
   const move = fallback ? r.fallback : r.moves[action.kind][me.moves[action.kind].id];
-  const context = { first: s.slot === 0, fallback, guaranteedHit: s.nextHitGuaranteed?.[side] === true };
+  const context = { first: me.stats.speed > foe.stats.speed, fallback, guaranteedHit: s.nextHitGuaranteed?.[side] === true };
   const accuracy = context.guaranteedHit ? 100 : move.accuracy;
   const expected = expectedDamage(r, me, foe, move, context);
   if (difficulty === 'easy') return expected;
@@ -35,7 +35,7 @@ function attackScore(s, side, action, difficulty) {
     // Estimate one reply; recharging blocks only the next special, not the turn.
     const replies = ['regular','special'].filter(k => foe.pp[k] > 0 && !(k === 'special' && foe.recharging)).map(k => r.moves[k][foe.moves[k].id]);
     if (!replies.length) replies.push(r.fallback);
-    const reply = Math.max(...replies.map(m => damage(r, foe, me, m, { first: false })));
+    const reply = Math.max(...replies.map(m => damage(r, foe, me, m, { first: foe.stats.speed > me.stats.speed })));
     if (me.hp <= reply) return -30;
     score *= 0.6;
   }
@@ -55,7 +55,7 @@ export function scoreAction(s, side, action, difficulty = 'normal') {
       const gain = Math.max(0,Math.min(me.maxHp-me.hp,full)-me.shield);
       return gain ? (frac > 0.6 ? 13 : 4)*gain/full : -5;
     }
-    return frac > 0.6 ? 13 : 4;
+    return me.toughened ? -5 : frac > 0.6 ? 13 : 4;
   }
   const ratio=matchup(s.rules,me,foe), bench=s.teams[side][action.index];
   if (ratio > 0.5 || frac <= 0.3) return -30;
