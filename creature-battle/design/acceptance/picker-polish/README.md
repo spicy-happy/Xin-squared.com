@@ -1,4 +1,4 @@
-# Picker polish — version 19
+# Picker polish — version 20
 
 VT323 replaces Tiny5 as the active game font. VT323 is bundled locally with its
 OFL license from google/fonts (`ofl/vt323`). Frames use solid pixel borders;
