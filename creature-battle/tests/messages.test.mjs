@@ -12,10 +12,16 @@ test('every event message with 24-character names fits two lines per text page',
   assert.throws(()=>eventLines({t:'unknown'}));
 });
 test('HP damage and shield blocked are separate lines; table wording',()=>{
-  assert.deepEqual(eventLines({t:'hit',side:0,amount:0,absorbed:18,crit:false,eff:null}),['The shield blocked 18!','It dealt 0 damage.']);
+  assert.deepEqual(eventLines({t:'hit',side:0,amount:0,absorbed:18,crit:false,eff:null}),['The shield blocked 18!']);
   assert.deepEqual(eventLines({t:'miss',side:0}),['So close! It missed!']);
 });
 
 test('round messages never ask for an undefined side name',()=>{
   assert.deepEqual(eventLines({t:'round',n:1,order:[0,1],reason:'speed',double:null},{name:side=>{assert.ok(side===0||side===1);return 'Fluff';}}),['Fluff is faster!']);
+});
+
+test('fully blocked hits omit damage, effectiveness and critical narration',()=>{
+ assert.deepEqual(eventLines({t:'hit',side:0,amount:0,absorbed:10,crit:true,eff:'weak'}),['The shield blocked 10!']);
+ assert.deepEqual(eventLines({t:'shieldUp',side:0,amount:29,unchanged:true}),['Bubble Shield is already fully charged.']);
+ assert.deepEqual(eventLines({t:'toughen',side:0,unchanged:true}),['Creature 1 is already toughened.']);
 });

@@ -128,7 +128,7 @@
       },
       "quick": {
         "label": "Quick Strike",
-        "hint": "strong if first",
+        "hint": "strong if faster",
         "power": 14,
         "pp": 12,
         "accuracy": 100,

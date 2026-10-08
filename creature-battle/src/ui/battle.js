@@ -7,6 +7,8 @@ const shortMove=name=>innerWidth>740?name:name.replace('Piercing','Pierce').repl
 const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x;};
 export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,onAction,onReplacement,onDrain,twoTap,humanSides=[0,1]}){
  const view=structuredClone(initial),fallen=initial.active.map((slot,side)=>initial.teams[side][slot].hp<=0);let locked=false,guardUntil=0,skip=null,selected=null,disposed=false,animationSide=null,typingFrame=0,finishTyping=null;
+ // Retain the action through disabled animation frames and the input guard.
+ let focusAction=null,focusPending=false,openTray=null;
  let messageId=0;const messageRows=new Map();
  app.replaceChildren();const arena=el('section','arena');app.append(arena);
  const box=el('div','text-box');box.id='battle-text';box.setAttribute('aria-label','Battle messages.');arena.append(box);
@@ -45,8 +47,9 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
    }
   }
   const newText=spoken.join('').trim();if(newText)announcement.textContent=newText;box.classList.toggle('writing',count>0);
+  box.scrollTop=box.scrollHeight;
   if(!count)return Promise.resolve();
-  return new Promise(resolve=>{const started=performance.now();const draw=n=>segments.forEach(s=>{s.node.textContent=s.prefix+s.text.slice(0,Math.max(0,n-s.start));});
+  return new Promise(resolve=>{const started=performance.now();const draw=n=>{segments.forEach(s=>{s.node.textContent=s.prefix+s.text.slice(0,Math.max(0,n-s.start));});box.scrollTop=box.scrollHeight;};
    finishTyping=()=>{cancelAnimationFrame(typingFrame);draw(count);box.classList.remove('writing');finishTyping=null;resolve();};
    const tick=now=>{if(disposed){finishTyping?.();return;}const n=Math.floor((now-started)/18);draw(n);if(n<count)typingFrame=requestAnimationFrame(tick);else finishTyping?.();};typingFrame=requestAnimationFrame(tick);
   });
@@ -65,12 +68,14 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   const bubble=el('div','confirm');bubble.append(el('div',null,text));const row=el('div','confirm-actions'),go=el('button',null,'GO!'),back=el('button',null,'Back');go.onclick=()=>perform(side,action);back.onclick=()=>{selected=null;controls();};row.append(go,back);bubble.append(row);grids[side].append(bubble);
  }
  function perform(side,action){if(disposed||locked||!humanSides.includes(side)||Date.now()<guardUntil)return;selected=null;onAction(side,action);}
- function tray(side,replacement){const s=view,g=grids[side];g.replaceChildren();const tray=el('div','tray');tray.classList.toggle('replacement-tray',replacement);grids.forEach(g=>g.classList.remove('choosing'));g.classList.add('choosing');tray.append(el('strong',null,replacement?(humanSides.includes(side)?'Pick your next creature!':'Bot is choosing a creature...'):`Switches left: ${s.switchesLeft[side]}`));
+ function tray(side,replacement){openTray={side,replacement};if(!replacement)focusAction='switch';const s=view,g=grids[side];g.replaceChildren();const tray=el('div','tray');tray.classList.toggle('replacement-tray',replacement);grids.forEach(g=>g.classList.remove('choosing'));g.classList.add('choosing');tray.append(el('strong',null,replacement?(humanSides.includes(side)?'Pick your next creature!':'Bot is choosing a creature...'):`Switches left: ${s.switchesLeft[side]}`));
   s.teams[side].forEach((m,index)=>{if(!replacement&&index===s.active[side])return;const b=el('button','bench-card');b.dataset.bench=index;const img=el('img');img.src=imageSrc(m);img.alt='';const text=el('span','bench-name',m.name);text.append(el('small',null,m.hp<=0?'Fainted':`${m.hp}/${m.maxHp}`));b.append(img,text,typeChip(m.type));b.classList.toggle('bench-fainted',m.hp<=0);b.disabled=m.hp<=0||index===s.active[side]||locked||Date.now()<guardUntil||!humanSides.includes(side);
    b.onclick=()=>{if(disposed||locked||!humanSides.includes(side)||Date.now()<guardUntil)return;if(replacement)onReplacement(side,index);else confirm(side,{kind:'switch',index},`Bring in ${m.name}.`);};tray.append(b);
-  });if(!replacement){const back=el('button',null,'Back');back.onclick=controls;tray.append(back);}g.append(tray);
+  });if(!replacement){const back=el('button',null,'Back');back.onclick=()=>closeTray(side);tray.append(back);}g.append(tray);if(!locked&&(document.activeElement===document.body||arena.contains(document.activeElement))){const first=tray.querySelector('button:enabled');if(first){first.focus({preventScroll:true});focusPending=false;}}
  }
- function controls(){if(disposed)return;const s=view,turn=locked?{side:animationSide,need:'action'}:whoseTurn(s),guarded=Date.now()<guardUntil;selected=null;
+ function closeTray(side){openTray=null;focusAction='switch';focusPending=true;controls(side);}
+ arena.addEventListener('keydown',e=>{if(e.key==='Escape'&&openTray&&!openTray.replacement){e.preventDefault();closeTray(openTray.side);}});
+ function controls(returnSide){if(disposed)return;const focused=document.activeElement;if(arena.contains(focused)){focusPending=true;focusAction=focused.dataset.action??focusAction;}openTray=null;const s=view,turn=locked?{side:animationSide,need:'action'}:whoseTurn(s),guarded=Date.now()<guardUntil;selected=null;
   for(let owner=0;owner<2;owner++){
    sides[owner].classList.toggle('active',!locked&&!guarded&&!turn.over&&turn.side===owner&&humanSides.includes(owner));const g=grids[owner];g.classList.remove('choosing');g.replaceChildren();
    const m=s.teams[owner][s.active[owner]],actions=getActions(s,owner);
@@ -88,6 +93,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
    }
    if(!locked&&turn.need==='replacement'&&turn.side===owner)tray(owner,true);
   }
+  if(focusPending&&!locked&&!guarded&&!turn.over&&turn.need==='action'&&(document.activeElement===document.body||arena.contains(document.activeElement))){const grid=grids[returnSide??turn.side],next=grid.querySelector(`[data-action="${focusAction}"]:enabled`)??grid.querySelector('[data-action]:enabled');if(next){next.focus({preventScroll:true});focusPending=false;}}
  }
  function applyEvent(e){if(e.t==='switch'){active(e.side).shield=0;active(e.side).toughened=false;view.active[e.side]=e.to;}if(e.t==='enter')view.active[e.side]=e.slot;if(['enter','switch'].includes(e.t))fallen[e.side]=false;if(e.t==='faint')fallen[e.side]=true;
   const owner=e.t==='hit'?e.target:e.side,m=owner===0||owner===1?active(owner):null;

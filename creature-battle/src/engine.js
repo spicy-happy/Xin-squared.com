@@ -116,9 +116,10 @@ export function applyAction(input, side, action) {
         const amount = Math.min(m.maxHp - m.hp, fraction(m.maxHp, move.factor)); m.hp += amount;
         events.push({ t: 'heal', side, amount, hpAfter: m.hp, ppAfter: { ...m.pp } });
       } else if (id === 'guard') {
+        const before = m.shield;
         m.shield = Math.min(m.maxHp - m.hp, fraction(m.maxHp, move.factor));
-        events.push({ t: 'shieldUp', side, amount: m.shield, shieldAfter: m.shield, ppAfter: { ...m.pp } });
-      } else { m.toughened = true; events.push({ t: 'toughen', side, ppAfter: { ...m.pp } }); }
+        events.push({ t: 'shieldUp', side, amount: m.shield, unchanged: m.shield === before, shieldAfter: m.shield, ppAfter: { ...m.pp } });
+      } else { const unchanged = m.toughened; m.toughened = true; events.push({ t: 'toughen', side, unchanged, ppAfter: { ...m.pp } }); }
     } else {
       // A revealed miss banks one guaranteed hit for this player, across switches.
       const hit = s.nextHitGuaranteed[side] || move.accuracy === 100 || draw(s) * 100 < move.accuracy;
@@ -126,7 +127,8 @@ export function applyAction(input, side, action) {
       if (!hit) events.push({ t: 'miss', side });
       else {
         const crit = !fallback && draw(s) * 100 < s.rules.crit.basePercent + s.rules.crit.perSpeedPercent * m.stats.speed;
-        const raw = damage(s.rules, m, foe, move, { first: s.slot === 0, crit, fallback });
+        // Quick Strike rewards the current matchup speed, independent of turn slots.
+        const raw = damage(s.rules, m, foe, move, { first: m.stats.speed > foe.stats.speed, crit, fallback });
         const absorbed = Math.min(foe.shield, raw); foe.shield -= absorbed;
         let amount = Math.min(foe.hp, raw - absorbed);
         const hangOn = s.rules.hangOn && !foe.lastChanceUsed && foe.hp > 1 && raw - absorbed >= Math.floor(foe.maxHp / 2) && amount === foe.hp;

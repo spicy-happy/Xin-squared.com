@@ -108,7 +108,7 @@ test('Piercing ignores Defense, respects Toughen and shield',()=>{
   const r=act(s);const hit=ev(r,'hit');const zero=structuredClone(active(s,1));zero.stats.defense=0;
   assert.equal(hit.amount+hit.absorbed,damage(rules,active(s,0),zero,rules.moves.regular.pierce,{crit:hit.crit}));
 });
-test('Quick 14 first and 10 second, including a previous mid-round switch',()=>{
+test('Quick uses 14 when faster and 10 when slower, including a mid-round switch',()=>{
   let {state:s}=match({...fast,moves:moves('quick')},{...slow,moves:moves('quick')});
   let r=act(s);let h=ev(r,'hit');assert.equal(h.amount,damage(rules,active(s,0),active(s,1),{power:14},{crit:h.crit}));
   s=r.state;r=act(s);h=ev(r,'hit');assert.equal(h.amount,damage(rules,active(s,1),active(s,0),{power:10},{crit:h.crit}));
@@ -323,5 +323,27 @@ test('guaranteed-accuracy attacks and Struggle consume banked miss protection',(
   let {state:s}=match(fast,slow);s.nextHitGuaranteed[0]=true;
   if(kind==='fallback'){active(s,0).pp.regular=0;active(s,0).pp.special=0;}
   const hit=act(s,kind);assert.ok(ev(hit,'hit'));assert.equal(hit.state.nextHitGuaranteed[0],false);
+ }
+});
+
+test('Quick bonus follows matchup speed even in the second slot, and excludes ties',()=>{
+ for(const [a,b] of [[slow,fast],[fast,slow],[fast,fast]]){
+  let {state:s}=match({...a,moves:moves('quick')},{...b,moves:moves('quick')});
+  // Reverse the opening matchup without changing the alternating turn order.
+  [active(s,0).stats.speed,active(s,1).stats.speed]=[active(s,1).stats.speed,active(s,0).stats.speed];
+  for(let i=0;i<4;i++){
+   const side=whoseTurn(s).side,me=active(s,side),foe=active(s,1-side),r=act(s),h=ev(r,'hit');
+   assert.equal(h.amount,Math.min(foe.hp,damage(rules,me,foe,{power:me.stats.speed>foe.stats.speed?14:10},{crit:h.crit})));
+   s=r.state;
+  }
+ }
+});
+test('defense events flag repeats that do not change protection',()=>{
+ for(const id of ['guard','toughen']){
+  let {state:s}=match({...fast,moves:moves('steady','blast',id)},slow);
+  active(s,0).hp-=40;
+  const first=act(s,'defense');assert.equal(ev(first,id==='guard'?'shieldUp':'toughen').unchanged,false);
+  s=first.state;s=act(s,'defense').state;
+  const repeated=act(s,'defense');assert.equal(ev(repeated,id==='guard'?'shieldUp':'toughen').unchanged,true);
  }
 });

@@ -740,12 +740,12 @@
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 32,
+        "amount": 23,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 50
+        "hpAfter": 59
       },
       {
         "t": "use",
@@ -876,7 +876,7 @@
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 49,
+        "amount": 58,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
@@ -2152,12 +2152,12 @@
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 32,
+        "amount": 23,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 50
+        "hpAfter": 59
       },
       {
         "t": "use",
@@ -2241,7 +2241,7 @@
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 49,
+        "amount": 58,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
@@ -2443,12 +2443,12 @@
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 32,
+        "amount": 23,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 50
+        "hpAfter": 59
       },
       {
         "t": "use",
@@ -2528,7 +2528,7 @@
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 49,
+        "amount": 58,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,

@@ -24,7 +24,7 @@ export async function playSound(name){if(muted||!context)return;await ready;if(m
 }
 export function soundState(){return {muted,decoded:buffers.size,played,state:context?.state??'locked',music:musicTrack,musicPaused:music.paused,musicTime:music.currentTime,musicVolume:music.volume,musicLoop:music.loop,musicReady:music.readyState};}
 export function initAudio(){
- const button=document.querySelector('#sound-toggle');const update=()=>{button.textContent=muted?'Sound off':'Sound on';button.setAttribute('aria-pressed',String(!muted));button.setAttribute('aria-label',muted?'Turn sound on':'Mute sound');};
+ const button=document.querySelector('#sound-toggle');const update=()=>{button.textContent=muted?'Sound off':'Sound on';button.setAttribute('aria-pressed',String(!muted));button.removeAttribute('aria-label');};
  button.onclick=()=>{muted=!muted;if(muted)music.pause();else resumeMusic();if(volume)volume.gain.setValueAtTime(muted?0:.55,context.currentTime);update();unlock();};update();
  document.addEventListener('visibilitychange',()=>{if(document.hidden)music.pause();else resumeMusic();});
  document.addEventListener('pointerdown',unlock,{passive:true});document.addEventListener('keydown',unlock);
