@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-import {rules,match,creature,moves,stats,active} from './helpers.mjs';import {deepFreeze} from '../src/rules.js';
+import {rules,match,creature,moves,stats,active} from './helpers.mjs';import {deepFreeze,expectedDamage} from '../src/rules.js';
 import {chooseAction,chooseTeam,chooseReplacement,publicBattle,scoreAction} from '../src/ai.js';
 import {applyAction,getActions} from '../src/engine.js';
 test('AI module never calls or imports engine transition APIs',()=>{
@@ -90,4 +90,14 @@ test('practice AI frequently takes harmless or silly actions rather than stronge
 test('practice selection safely handles an empty collection',async()=>{
  const {choosePracticeTeam}=await import('../src/ai.js');
  assert.deepEqual(choosePracticeTeam([],{rules,openingType:'fire',aiRng:12}),{team:[],aiRng:12});
+});
+
+
+test('AI uses the revealed next-hit guarantee without reading random rolls',()=>{
+ const {state:s}=match();const side=s.order[0],me=active(s,side),foe=active(s,1-side),move=rules.moves.special[me.moves.special.id];
+ const ordinary=expectedDamage(rules,me,foe,move);
+ s.nextHitGuaranteed[side]=true;
+ assert.equal(publicBattle(s).nextHitGuaranteed[side],true);
+ assert.ok(Math.abs(expectedDamage(rules,me,foe,move,{guaranteedHit:true})-ordinary*100/move.accuracy)<1e-9);
+ assert.ok(scoreAction(s,side,{kind:'special'},'easy')>scoreAction({...s,nextHitGuaranteed:[false,false]},side,{kind:'special'},'easy'));
 });

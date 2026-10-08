@@ -66,5 +66,5 @@ export function expectedDamage(rules, attacker, defender, move, context = {}) {
     const capped = Math.min(hit, defender.hp);
     return rules.hangOn && !defender.lastChanceUsed && defender.hp > 1 && hit >= Math.floor(defender.maxHp / 2) && capped === defender.hp ? capped - 1 : capped;
   };
-  return ((1 - p) * actual(false) + p * actual(true)) * move.accuracy / 100;
+  return ((1 - p) * actual(false) + p * actual(true)) * (context.guaranteedHit ? 1 : move.accuracy / 100);
 }
