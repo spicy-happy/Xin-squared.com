@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
 import {rules,match,creature,moves,stats,active} from './helpers.mjs';import {deepFreeze,expectedDamage} from '../src/rules.js';
 import {chooseAction,chooseTeam,chooseReplacement,publicBattle,scoreAction} from '../src/ai.js';
-import {applyAction,getActions} from '../src/engine.js';
+import {applyAction,getActions,chooseReplacement as replaceCreature,whoseTurn} from '../src/engine.js';
 test('AI module never calls or imports engine transition APIs',()=>{
   const source=readFileSync(new URL('../src/ai.js',import.meta.url),'utf8');
   assert.ok(!source.includes('applyAction'));assert.ok(!source.includes('state.rng'));assert.ok(!source.includes('state.pairCoin'));
@@ -111,4 +111,35 @@ test('Hard scoring avoids repeated Iron Hide and values Quick by current speed',
   me.stats.speed=speed;s.slot=1;
   assert.equal(scoreAction(s,side,{kind:'regular'},'easy'),expectedDamage(rules,me,foe,rules.moves.regular.quick,{first:speed>foe.stats.speed}));
  }
+});
+
+test('AI uses a move after a faint replacement in both difficulty modes',()=>{
+ for(const difficulty of ['easy','normal'])for(let seed=0;seed<300;seed++){
+  let {state}=match({stats:stats(2,3,0,5)},{stats:stats(5,3,2,0)});
+  active(state,1).hp=1;
+  state=applyAction(state,0,{kind:'regular'}).state;
+  assert.deepEqual(whoseTurn(state),{side:1,need:'replacement'});
+  const replacement=chooseReplacement(deepFreeze(state),1,{difficulty,aiRng:seed});
+  assert.equal(replacement.lastSwitch,true);
+  state=replaceCreature(state,1,replacement.index).state;
+  assert.deepEqual(whoseTurn(state),{side:1,need:'action'});
+  assert.ok(getActions(state,1).some(a=>a.enabled&&a.kind==='switch'),'engine still permits human switches');
+  const choice=chooseAction(deepFreeze(state),1,{difficulty,...replacement});
+  assert.notEqual(choice.action.kind,'switch',`${difficulty}, seed ${seed}`);
+  assert.equal(choice.lastSwitch,false,'using a move clears the AI switch restriction');
+  const result=applyAction(state,1,choice.action);
+  assert.ok(result.events.some(e=>e.t==='use'));
+  assert.equal(result.state.switchesLeft[1],3);
+ }
+});
+test('Hard also avoids consecutive voluntary switches',()=>{
+ let {state}=match({type:'water',stats:stats(2,3,0,5)},{type:'fire',stats:stats(5,3,2,0)});
+ state=applyAction(state,0,{kind:'defense'}).state;
+ state.teams[1][1].type='grass';
+ // This matchup gives switching a higher score than attacks, rather than relying on random mistakes.
+ assert.ok(scoreAction(state,1,{kind:'switch',index:1})>scoreAction(state,1,{kind:'regular'}));
+ for(let seed=0;seed<300;seed++)assert.notEqual(chooseAction(state,1,{difficulty:'normal',aiRng:seed,lastSwitch:true}).action.kind,'switch');
+ const choices=new Set();
+ for(let seed=0;seed<100;seed++)choices.add(chooseAction(state,1,{difficulty:'normal',aiRng:seed,lastSwitch:false}).action.kind);
+ assert.ok(choices.has('switch'),'switching remains available after a move');
 });
