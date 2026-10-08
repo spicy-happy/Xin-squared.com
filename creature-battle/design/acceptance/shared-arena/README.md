@@ -1,4 +1,4 @@
-# Shared arena — version 21
+# Shared arena — version 22
 
 The battle view has one full-width message box at the top and one shared floor.
 Smaller sprites stand over stepped oval shadows. Trainer portraits have no extra
@@ -13,7 +13,9 @@ two-line presentation following the owner’s request to show more per screen.
 Move buttons show only category and remaining/max PP. Spent moves grey out;
 when both attack pools are spent, Tired Attack remains available to prevent a
 softlock. Human ownership, the event presentation snapshot and the input guard
-remain enforced.
+remain enforced. Buttons stay disabled through the input guard, so enabled
+controls reliably accept taps. Name colours remain readable on the inverted
+keyboard focus background.
 
 Regular attacks lunge, special attacks send a coloured pixel projectile, hits
 blink/shake, defensive moves pulse with pixel sparks, and switches/faints animate

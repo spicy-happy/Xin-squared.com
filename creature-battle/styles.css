@@ -26,3 +26,5 @@
 
 .fighter.fainted .pixel-shadow{opacity:0}.side[data-side="1"] .pixel-shadow{width:84px;height:24px;left:30px}
 @media(min-height:600px){.side[data-side="1"] .pixel-shadow{width:140px;height:40px;left:26px}}
+
+.text-box:focus-visible .name-chip{color:inherit}.text-box:focus-visible.writing::after{background:var(--surface)}
