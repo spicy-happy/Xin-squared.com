@@ -6,3 +6,5 @@
 @keyframes trainer-pulse{50%{box-shadow:0 0 0 4px #ffe69a}}.side.active .portrait{animation:trainer-pulse 1.5s infinite}
 
 .turn-tab{position:absolute;top:46px;left:38%;right:38%;z-index:2;background:var(--paper);border-radius:8px;overflow-wrap:anywhere}.coin-portrait{width:20px;height:20px;vertical-align:middle;margin:0 4px}.coin-portrait.flip{animation:coin-flip 1s}@keyframes coin-flip{50%{transform:rotateY(180deg)}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+
+.message-line + .message-line{margin-top:8px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}

@@ -68,10 +68,10 @@ test('Hang on only at full HP; Heal to full re-arms, partial Heal does not',()=>
     const r=act(s,'special');assert.equal(!!ev(r,'hangOn'),full);assert.equal(active(r.state,1).hp,full?1:0);
   }
   for(const starting of [80,40]) {
-    let {state:s}=match({...fast,moves:moves('steady','blast','heal')},slow);active(s,0).hp=starting;
+    const testRules=structuredClone(rules);testRules.moves.regular.steady.power=1000;
+    let {state:s}=createMatch({rules:testRules,teams:[Array.from({length:3},()=>creature({...fast,moves:moves('steady','blast','heal')})),Array.from({length:3},()=>creature(slow))],seed:9});active(s,0).hp=starting;
     s=act(s,'defense').state;
     const full=active(s,0).hp===active(s,0).maxHp;
-    s.rules.moves.regular.steady.power=1000;
     const r=act(s);assert.equal(!!ev(r,'hangOn'),full);
   }
 });
@@ -146,4 +146,13 @@ test('KO victory after action; no draws; cap fraction, damage, and final coin ti
 });
 test('10,000 seeded random-policy battles terminate without safety cap',()=>{
   for(let seed=0;seed<10000;seed++)assert.equal(runRandom(seed).reason,'ko',`seed ${seed}`);
+});
+
+test('rules stay deeply frozen after actions and replacements',()=>{
+  let {state:s}=match(fast,slow);s=act(s).state;
+  assert.ok(Object.isFrozen(s.rules.moves.regular.steady));
+  assert.throws(()=>{s.rules.moves.regular.steady.power=1000;},TypeError);
+  s.needReplacement=0;active(s,0).hp=0;s=chooseReplacement(s,0,1).state;
+  assert.ok(Object.isFrozen(s.rules.moves.defense.heal.factor));
+  assert.throws(()=>{s.rules.moves.defense.heal.factor[0]=1000;},TypeError);
 });

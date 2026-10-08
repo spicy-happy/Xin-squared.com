@@ -1,0 +1,1 @@
+Review regressions pass: bot actions/replacements, snapshot controls, 2-message pacing, damage retention, short names, portrait, live region.
