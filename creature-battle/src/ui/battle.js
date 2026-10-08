@@ -102,12 +102,16 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   let cancelled=false,wake,buffer=[],summary=[];const seen=new Set();
   skip=()=>{cancelled=true;finishTyping?.();for(const animation of effects)animation.cancel();wake?.();};
   for(const e of events){
-   if(disposed)return;const previous=[name(0),name(1)];applyEvent(e);paint();controls();const lines=messages(e,previous);buffer=[...buffer,...lines].slice(-3);
+   if(disposed)return;const previous=[name(0),name(1)];applyEvent(e);paint();controls();const lines=messages(e,previous);
    if(e.t==='hit')summary=[lines.find(l=>l.text.startsWith('It dealt')),...lines.filter(l=>l.text.includes('effective')||l.text.includes('critical'))].slice(0,2);
    else if(['heal','miss','recoil','faint','win','switch','rest','shieldUp','toughen'].includes(e.t))summary=summary[0]?.text.startsWith('It dealt')?[summary[0],lines[0]]:lines.slice(0,2);
-   if(cancelled){eventSound(e);continue;}if(!lines.length)continue;
-   await Promise.all([line(buffer,seen),effect(e)]);for(const message of buffer)seen.add(message.text);
-   if(!cancelled&&['hit','heal','faint','switch','rest','win'].includes(e.t))await new Promise(resolve=>{const timer=setTimeout(resolve,Math.max(1100,lines.reduce((n,l)=>n+l.text.split(/\s+/).length,0)*200));wake=()=>{clearTimeout(timer);resolve();};});
+   if(cancelled){buffer=[...buffer,...lines].slice(-3);eventSound(e);continue;}if(!lines.length)continue;
+   const impact=effect(e);
+   // A long event can occupy multiple pages; every line gets shown before it scrolls out.
+   for(let i=0;i<lines.length;i+=3){const page=lines.slice(i,i+3);buffer=[...buffer,...page].slice(-3);if(cancelled)continue;
+    await Promise.all([line(buffer,seen),i===0?impact:Promise.resolve()]);for(const message of buffer)seen.add(message.text);
+    if(!cancelled&&['hit','heal','faint','switch','rest','win'].includes(e.t))await new Promise(resolve=>{const timer=setTimeout(resolve,Math.max(1100,page.reduce((n,l)=>n+l.text.split(/\s+/).length,0)*200));wake=()=>{clearTimeout(timer);resolve();};});
+   }
   }
   if(disposed)return;Object.assign(view,structuredClone(getState()));skip=null;locked=false;guardUntil=Date.now()+400;paint();controls();line([...(summary.length?summary:buffer).slice(-2),turnLine()]);
   setTimeout(()=>{if(!disposed){controls();onDrain();}},400);
