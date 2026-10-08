@@ -78,13 +78,30 @@ test('practice teams favour each child pick, randomising equally favourable choi
  }
  assert.ok(openers.size>1);
 });
-test('practice AI frequently takes harmless or silly actions rather than strongest attacks',()=>{
- const {state}=match({stats:stats(2,3,0,5)},{});let nonAttacks=0;
- for(let seed=0;seed<1000;seed++){
+test('Normal usually follows a simple strategy but sometimes picks a weaker move',()=>{
+ const {state}=match({stats:stats(2,3,0,5)},{});let weaker=0;const kinds=new Set();
+ const legal=getActions(state,0).filter(a=>a.enabled&&['regular','special'].includes(a.kind));
+ const best=Math.max(...legal.map(a=>scoreAction(state,0,a,'normal')));
+ for(let seed=0;seed<2000;seed++){
   const {action}=chooseAction(state,0,{difficulty:'easy',aiRng:seed});
-  if(['defense','switch'].includes(action.kind))nonAttacks++;
+  assert.ok(['regular','special'].includes(action.kind),'no switches or full-HP healing');
+  kinds.add(action.kind);
+  if(scoreAction(state,0,action,'normal')<best)weaker++;
  }
- assert.ok(nonAttacks>200,`non-attacks: ${nonAttacks}`);
+ assert.equal(kinds.size,2);
+ assert.ok(weaker>500&&weaker<700,`weaker move rate: ${weaker}/2000`);
+});
+test('Normal random choices remain legal and avoid defense moves with no benefit',()=>{
+ for(const defense of ['heal','guard','toughen']){
+  const {state}=match({stats:stats(2,3,0,5),moves:moves('steady','blast',defense)},{});
+  if(defense==='guard'){active(state,0).hp-=29;active(state,0).shield=29;}
+  if(defense==='toughen')active(state,0).toughened=true;
+  for(let seed=0;seed<100;seed++){
+   const {action}=chooseAction(state,0,{difficulty:'easy',aiRng:seed});
+   assert.notEqual(action.kind,'defense');assert.notEqual(action.kind,'switch');
+   assert.ok(getActions(state,0).some(a=>a.enabled&&a.kind===action.kind));
+  }
+ }
 });
 
 test('practice selection safely handles an empty collection',async()=>{
