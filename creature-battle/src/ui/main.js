@@ -9,7 +9,7 @@ import { typeChip, carousel, shuffled } from './components.js';
 const app=document.querySelector('#app'),debug=new URLSearchParams(location.search).get('debug')==='1';
 const tag=document.querySelector('#debug-tag');tag.hidden=!debug;
 const rotate=document.querySelector('#rotate'),orientation=matchMedia('(orientation: portrait)');
-let screen='home',rules,collection,mode='ai',difficulty='normal',picks=[],state,view,seed=Date.now()>>>0,aiRng=571,lastSwitch=false,aiTimer=null,updateAvailable=false;
+let ready=false,screen='home',rules,collection,mode='ai',difficulty='normal',picks=[],state,view,seed=Date.now()>>>0,aiRng=571,lastSwitch=false,aiTimer=null,updateAvailable=false;
 const imageSrc=c=>spriteSrc(debug?'tests/fixtures/placeholder.svg':c.image.src,c.type);
 const portraitSrc=(t,type=t.type??collection?.find(c=>c.trainer.portrait===t.portrait)?.type??'grass')=>spriteSrc(t.bot?'assets/portraits/practice-bot.svg':debug?'tests/fixtures/portrait.svg':t.portrait,t.bot?'water':type);
 const botDifficulty=()=>difficulty==='hard'?'normal':'easy';
@@ -21,6 +21,7 @@ function applyUpdate(){if(!updateAvailable)return false;try{if(sessionStorage.ge
 function cleanup(){if(view)view.dispose();view=null;clearTimeout(aiTimer);aiTimer=null;}
 function page(title){cleanup();app.replaceChildren();const panel=el('section');panel.className='panel';panel.append(el('h1',title));app.append(panel);return panel;}
 function button(parent,text,fn,id){const b=el('button',text);if(id)b.id=id;b.onclick=fn;parent.append(b);return b;}
+document.querySelector('#game-home').onclick=e=>{e.preventDefault();if(ready)home();};
 function home(){screen='home';orient();if(applyUpdate())return;const panel=page('Creature Battle');checkForUpdate().then(()=>{if(screen==='home')applyUpdate();});panel.append(el('p','Your drawings. Teams of three. One move at a time.'));
   const choices=el('div');choices.className='choices';panel.append(choices);
   for(const [kind,text]of [['ai','Solo Battle'],['friend','2 Player Battle']]){const b=button(choices,text,()=>{mode=kind;setup();},`play-${kind}`);b.disabled=!collection.length;}
@@ -30,7 +31,7 @@ function showCollection(){screen='collection';const panel=page('Creatures');
   panel.append(carousel(shuffled(collection),c=>{const card=el('article');card.className='collection-card';const img=el('img');img.src=imageSrc(c);img.alt=c.name;card.append(img,el('h2',c.name),typeChip(c.type),el('p',c.trainer.nickname));return card;},'collection creatures'));button(panel,'Home',home);
 }
 function setup(){cleanup();difficulty='normal';picks=[];pick(0);}
-function pick(side){cleanup();screen='teampick';orient();teamPick({app,collection,side,imageSrc,portraitSrc,solo:mode==='ai',difficulty,onDifficulty:value=>{difficulty=value;},onBack:home,onDone:choice=>{
+function pick(side){cleanup();screen='teampick';orient();teamPick({app,collection,side,imageSrc,portraitSrc,solo:mode==='ai',difficulty,onDifficulty:value=>{difficulty=value;},onDone:choice=>{
   picks[side]=choice;if(side===0&&mode==='friend')lookAway();else if(mode==='ai'){
     const ai=chooseTeam(collection,{difficulty:botDifficulty(),aiRng});aiRng=ai.aiRng;picks[1]={team:ai.team,trainer:{bot:true,nickname:'Battle Bot',portrait:'assets/portraits/practice-bot.svg'}};start();
   }else start();
@@ -57,5 +58,5 @@ try{
   rules=loadRules(await fetchJSON('data/rules-v1.json'));collection=loadCollection(await fetchJSON('data/creatures.json'),rules);
   if(debug){collection=loadCollection(await fetchJSON('tests/fixtures/creatures.json'),rules);window.__battleDebug={state:()=>structuredClone(state),seed:n=>{seed=n>>>0;},force:(side,a)=>{if(view?.isLocked())throw Error('Animation or input guard active');action(side,a);},setHp:(side,hp)=>{if(!state||view.isLocked())throw Error('Not ready');const m=state.teams[side][state.active[side]];m.hp=Math.max(1,Math.min(m.maxHp,Math.floor(hp)));/* Debug view is deliberately rebuilt for a forced value. */ view.dispose();view=battleView({app,humanSides:mode==='ai'?[0]:[0,1],initial:state,trainers:picks.map(p=>p.trainer),imageSrc,portraitSrc,getState:()=>state,twoTap:()=>false,onAction:action,onReplacement:replace,onDrain:drain});},fixtures:()=>structuredClone(collection)};}
   await prepareSprites(collection,{debug});
-  home();if(debug)window.__battleReady=true;setTimeout(()=>checkForUpdate().then(()=>{if(screen==='home')applyUpdate();}),4000);
+  ready=true;home();if(debug)window.__battleReady=true;setTimeout(()=>checkForUpdate().then(()=>{if(screen==='home')applyUpdate();}),4000);
 }catch(error){app.textContent=`We couldn't load the collection. ${error.message}`;console.error(error);}
