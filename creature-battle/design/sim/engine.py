@@ -1,5 +1,5 @@
 """Throwaway balance simulator used for the design review (see ../PLAN.md, section 4).
-Rulesets: 'proposed' (original plan), 'codex' (Codex review values), 'v4' (Playtest Ruleset 1).
+Rulesets: 'proposed' (original plan), 'codex' (Codex review values), 'v4' (Ruleset 1 draft), 'v5' (Playtest Ruleset 1).
 The real engine will be creature-battle/src/engine.js; port this to tools/balance-sim.mjs, do not extend it."""
 import random, itertools
 
@@ -291,3 +291,9 @@ RULES['v3'] = V3
 V4 = dict(RULES['v3']); V4.update(ko_replacement_acts=False)
 RULES['v4'] = V4
 V4N = dict(V4); V4N.update(sturdy=False); RULES['v4_nosturdy'] = V4N
+# v5 (= Playtest Ruleset 1, revised after the second design review): Health counts twice
+# (Heal and the shield scale with max HP), so its per-point value drops; Quick 14/10 so it
+# no longer strictly beats Heavy for a faster creature.
+V5 = dict(V4); V5.update(hp_base=82, hp_per=7,
+    basic=dict(V4['basic'], quick=dict(pow=12, pp=12, first_pow=(14, 10))))
+RULES['v5'] = V5
