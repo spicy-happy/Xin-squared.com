@@ -5,7 +5,7 @@ export function eventLines(event, { name = side => `Creature ${side + 1}`, train
     case 'enter': return [`Go, ${n}!`];
     case 'round': if (event.reason === 'alternating') return ['The next round begins.']; return [event.reason === 'speed' ? `${name(event.order[0])} is faster!` : `Coin toss: ${name(event.order[0])} goes first!`,
       ...(event.double !== null ? [`${name(event.double)} goes again!`] : [])];
-    case 'use': return [`${n} used ${event.name}!`, ...(event.moveId === 'overload' ? [`Mega Burst recharges next turn. Choose another move.`] : [])];
+    case 'use': return [`${n} used ${event.name}!`, ...(event.moveId === 'overload' ? [`Its special recharges next turn.`] : [])];
     case 'fallback': return [`${n} has no attacks left.`];
     case 'miss': return ['So close! It missed!'];
     case 'hit': return [...(event.absorbed ? [`The shield blocked ${event.absorbed}!`] : []), `It dealt ${event.amount} damage.`,
