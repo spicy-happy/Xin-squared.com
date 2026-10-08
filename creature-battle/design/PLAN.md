@@ -1051,7 +1051,7 @@ and art and paper last, as both reviews recommended.
 
 | Phase | Deliverable | Acceptance |
 |---|---|---|
-| **0. Design review** (this document) | Ruleset 1, sim evidence, plan | Owner accepts or edits §13 decisions |
+| **0. Design review** (this document) | Ruleset 1, sim evidence, plan | Owner accepts or edits §13 decisions. **Done: all defaults accepted.** |
 | **1. Rules engine** | `rules-v1.json`, `rules.js`, `rng.js`, `engine.js`, `messages.js`; tests §10.1; verify-skill test command | All unit tests pass; every legal action has one defined outcome; no priority overrides Speed |
 | **2. Balance harness + AI** | `ai.js` (Easy/Normal), `tools/balance-sim.mjs` (port of `design/sim`) | §10.2 gates pass; Easy loses to Normal ≥70% |
 | **3. Playable prototype** | Bare UI: team pick (look-away), battle grid, two-tap buttons, text log, no art polish; import map + version test; debug fixtures; verify-skill drive recipe | Full 3v3 vs AI and hot-seat on a 844×390 phone and an iPad; no effectiveness on buttons; **first supervised kid playtest** (§12 metrics) |
@@ -1099,10 +1099,11 @@ Record these in every supervised session (paper tally is fine):
 
 ## 13. Owner decisions
 
-None of these reopen a confirmed requirement. Each has a recommended
-default.
+None of these reopen a confirmed requirement. **Accepted October 8 2026:
+the owner took every recommended default below.** The alternatives stay
+listed only as fallbacks for playtesting.
 
-| Decision | Recommended default | Alternative |
+| Decision | Decided (was the recommended default) | Alternative |
 |---|---|---|
 | Type chart | Balanced 2-and-2 chart (§3.3) | Codex single cycle, or keep Version 1 (measurably unfair) |
 | Hang on rule | Keep (one line, removes the worst moment) | Drop; one-shots stay rare (0.1%) at HP 82+ |
