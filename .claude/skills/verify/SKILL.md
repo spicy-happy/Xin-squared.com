@@ -178,3 +178,8 @@ uses of the same move.
 After a miss, that player's next attack is guaranteed to hit, including after
 defending, switching or replacement. A landed attack clears the guarantee.
 Run tools/miss-browser.mjs for the seeded visible-control regression.
+
+Background music uses the supplied title, battle and victory MP3s.
+Run tools/music-browser.mjs for media playback, menu/battle/quit transitions,
+looping and mute checks. Complete prototype-browser matches also verify track
+selection on the real Result screen.
