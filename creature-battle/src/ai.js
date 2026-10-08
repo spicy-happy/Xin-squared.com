@@ -2,6 +2,7 @@ import { getActions } from './engine.js';
 import { expectedDamage, damage, typeMult, roundHalfUp } from './rules.js';
 import { next } from './rng.js';
 import { teamRule } from './collection.js';
+import { tacticalState, tacticalScore, replacementScore, hasDefenseGain } from './tactics.js';
 
 // Copy only revealed fields. Neither battle rolls nor pairing coin memo enter AI code.
 export function publicBattle(state) {
@@ -66,22 +67,31 @@ export function chooseAction(state, side, { difficulty = 'easy', aiRng, lastSwit
   if (!['easy','normal'].includes(difficulty)) throw Error('Invalid difficulty');
   const s=publicBattle(state), random=randomSource(aiRng);
   let actions=getActions(s,side).filter(a=>a.enabled);
-  // A new creature must use a move before another voluntary switch.
-  if (lastSwitch) actions=actions.filter(a=>a.kind!=='switch');
+  // UI Normal uses the easy policy: stay in until a forced replacement.
+  // UI Hard uses the normal policy: purposeful choices, with random ties only.
+  if (difficulty==='easy' || lastSwitch) actions=actions.filter(a=>a.kind!=='switch');
   if (!actions.length) throw Error('No legal action');
-  const mistake=random.draw() < (difficulty==='easy' ? 0.85 : 0.1);
-  const action=mistake ? actions[Math.floor(random.draw()*actions.length)] :
-    actions.reduce((best,a)=>scoreAction(s,side,a,difficulty)>scoreAction(s,side,best,difficulty)?a:best);
+  let action;
+  if (difficulty==='easy') {
+    const playful=random.draw()<0.85;
+    action=playful ? actions[Math.floor(random.draw()*actions.length)] :
+      actions.reduce((best,a)=>scoreAction(s,side,a,'easy')>scoreAction(s,side,best,'easy')?a:best);
+  } else {
+    const model=tacticalState(s,side,lastSwitch);
+    const useful=actions.filter(a=>a.kind!=='defense'||hasDefenseGain(s.rules,cur(s,side)));
+    const scored=useful.map(a=>({action:a,score:tacticalScore(model,side,a)}));
+    const best=Math.max(...scored.map(a=>a.score)),ties=scored.filter(a=>Math.abs(a.score-best)<1e-8);
+    action=ties[Math.floor(random.draw()*ties.length)].action;
+  }
   return { action: { kind: action.kind, ...(action.index === undefined ? {} : {index:action.index}) },
     aiRng: random.state, lastSwitch: action.kind==='switch' };
 }
 export function chooseReplacement(state, side, { difficulty='easy', aiRng } = {}) {
-  const s=publicBattle(state), random=randomSource(aiRng), foe=cur(s,1-side);
+  const s=publicBattle(state), random=randomSource(aiRng);
   const options=s.teams[side].map((m,i)=>({m,i})).filter(({m,i})=>m.hp>0 && i!==s.active[side]);
   if (!options.length) throw Error('No replacement');
   const index=difficulty==='easy'?options[Math.floor(random.draw()*options.length)].i:
-    options.reduce((best,a)=>matchup(s.rules,a.m,foe)>matchup(s.rules,best.m,foe) ||
-      (matchup(s.rules,a.m,foe)===matchup(s.rules,best.m,foe) && a.m.hp>best.m.hp)?a:best).i;
+    options.map(a=>({...a,score:replacementScore(s,side,a.i)})).reduce((best,a)=>a.score>best.score?a:best).i;
   return { index, aiRng: random.state, lastSwitch: true };
 }
 // Team choice has no opponent argument; it cannot inspect a hidden team.
