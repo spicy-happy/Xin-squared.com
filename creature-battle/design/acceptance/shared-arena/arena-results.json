@@ -1,0 +1,50 @@
+[
+  {
+    "width": 667,
+    "height": 375,
+    "sharedArena": true,
+    "threeLineLog": true,
+    "typewriter": true,
+    "attackAnimation": true,
+    "pixelHP": true,
+    "shadows": true,
+    "audio": {
+      "muted": false,
+      "decoded": 9,
+      "played": 15,
+      "state": "running"
+    }
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "sharedArena": true,
+    "threeLineLog": true,
+    "typewriter": true,
+    "attackAnimation": true,
+    "pixelHP": true,
+    "shadows": true,
+    "audio": {
+      "muted": false,
+      "decoded": 9,
+      "played": 15,
+      "state": "running"
+    }
+  },
+  {
+    "width": 1024,
+    "height": 768,
+    "sharedArena": true,
+    "threeLineLog": true,
+    "typewriter": true,
+    "attackAnimation": true,
+    "pixelHP": true,
+    "shadows": true,
+    "audio": {
+      "muted": false,
+      "decoded": 9,
+      "played": 15,
+      "state": "running"
+    }
+  }
+]

@@ -29,11 +29,12 @@ export function carousel(items,renderItem,label){
   for(const item of items){const card=renderItem(item);if(cycle!==1){card.tabIndex=-1;card.setAttribute('aria-hidden','true');}group.append(card);}groups.push(group);track.append(group);
  }
  rail.append(track);wrapper.append(previous,rail,next);
- let frame=0,animating=false,destination=0;
+ let frame=0,animating=false,pressing=false,destination=0;
  const period=()=>groups[0].getBoundingClientRect().width+12;
  const recenter=()=>{const p=period(),before=rail.scrollLeft;if(!p||!rail.isConnected)return 0;let position=before;while(position<p*.5)position+=p;while(position>p*1.5)position-=p;if(position!==before)rail.scrollLeft=position;return rail.scrollLeft-before;};
- rail.addEventListener('scroll',()=>{if(!animating)recenter();},{passive:true});
- const stop=()=>{cancelAnimationFrame(frame);animating=false;recenter();};rail.addEventListener('pointerdown',stop);
+ rail.addEventListener('scroll',()=>{if(!animating&&!pressing)recenter();},{passive:true});
+ const release=()=>{pressing=false;document.removeEventListener('pointerup',release);document.removeEventListener('pointercancel',release);requestAnimationFrame(()=>{if(!animating)recenter();});};
+ rail.addEventListener('pointerdown',()=>{cancelAnimationFrame(frame);animating=false;pressing=true;document.addEventListener('pointerup',release,{once:true});document.addEventListener('pointercancel',release,{once:true});});
  const step=direction=>{
   const card=groups[0].firstElementChild;if(!card)return;
   const distance=direction*(card.getBoundingClientRect().width+12);destination=(animating?destination:rail.scrollLeft)+distance;

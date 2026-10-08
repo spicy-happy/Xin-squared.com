@@ -26,7 +26,7 @@ export function eventLines(event, { name = side => `Creature ${side + 1}`, train
     default: throw Error(`Unknown event: ${event.t}`);
   }
 }
-// Message queue shows one short sentence per page, at most two wrapped lines.
+// Wrap a sentence for message-validation tools.
 export function wrapLine(text, columns = 56) {
   const lines = [''];
   for (const word of text.split(' ')) {

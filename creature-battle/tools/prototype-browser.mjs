@@ -9,7 +9,7 @@ for(const mode of ['normal','hard','friend']){
  await p.locator('#play-'+(mode==='friend'?'friend':'ai')).click();if(mode!=='friend'){await p.locator('#difficulty').click();await p.getByRole('option',{name:mode==='hard'?'Hard':'Normal',exact:true}).click();}for(let i=0;i<3;i++)await p.locator('.carousel-group:nth-child(2) .pick-card').nth(i).click();await p.locator('#team-done').click();
  if(mode==='friend'){await p.locator('#lookaway-ready').click();for(let i=0;i<3;i++)await p.locator('.carousel-group:nth-child(2) .pick-card').nth(i+3).click();await p.locator('#team-done').click();}
  await p.locator('#battle-text').click();await p.waitForTimeout(450);
- const chosen=p.locator('[data-side="0"] [data-action="regular"]:enabled');if(await chosen.count()){await chosen.click();assert.equal(await p.locator('.confirm').count(),0);assert.match(await p.locator('#battle-text').innerText(),/used/);}
+ const chosen=p.locator('[data-side="0"] [data-action="regular"]:enabled');if(await chosen.count()){await chosen.click();assert.equal(await p.locator('.confirm').count(),0);assert.ok(await p.locator('#battle-text .message-line').evaluateAll(es=>es.some(e=>e.dataset.text.includes('used'))));}
  if(mode!=='friend')assert.equal(await p.locator('[data-side="1"] button:enabled').count(),0);
  const deadline=Date.now()+180000;
  while(!await p.locator('#rematch').count()){
