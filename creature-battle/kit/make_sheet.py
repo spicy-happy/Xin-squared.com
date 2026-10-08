@@ -65,19 +65,20 @@ def make(out):
  s.text(5.05,2.55,'STATS - 10 dots max',13,True)
  for row,stat in enumerate(['Health','Attack','Defense','Speed']):
   y=2.75+row*.49;s.text(5.05,y+.25,stat,12,True,width=.85)
-  for n in range(RULES['stats']['max']+1):
-   x=5.95+n*.8;s.box(x,y,.55,.45,f'{stat} {n}');s.text(x+.275,y+.22,str(n),14,True,True)
+  for n in range(1,RULES['stats']['max']+1):
+   x=5.95+(n-1)*.9625;s.box(x,y,.7,.45,f'{stat} {n}');s.text(x+.35,y+.22,str(n),14,True,True)
    c.setFillColor(INK)
-   for d in range(n):c.circle((x+.275+(d-(n-1)/2)*.067)*72,(PAGE_HEIGHT-y-.34)*72,1.25,fill=1,stroke=0)
+   for d in range(n):c.circle((x+.35+(d-(n-1)/2)*.067)*72,(PAGE_HEIGHT-y-.34)*72,1.25,fill=1,stroke=0)
  s.text(5.05,4.98,'ATTACKS: Select 3',15,True)
- s.text(5.05,5.18,'Choose any 3 from the options below.',11)
  # One shared grid: choices are not constrained to the old move categories.
- moves=[move for slot in RULES['moves'].values() for move in slot.values()]
+ # Omit Piercing and Recoil to keep nine easier-to-explain choices.
+ moves=[move for slot in RULES['moves'].values() for mid,move in slot.items() if mid not in {'pierce','recoil'}]
+ assert len(moves)==9
  for i,move in enumerate(moves):
-  x=5.05+(i%3)*1.9;y=5.38+(i//3)*.65
-  s.box(x,y,1.65,.6,'attack '+move['label']);s.text(x+.825,y+.21,move['label'],13,True,True,width=1.5)
+  x=5.05+(i%3)*1.9;y=5.24+(i//3)*.9
+  s.box(x,y,1.65,.7,'attack '+move['label']);s.text(x+.825,y+.24,move['label'],13,True,True,width=1.5)
   lines=simpleSplit(move['hint'],'Helvetica',11,1.45*72);assert len(lines)<=2,(move['label'],'hint too tall')
-  for k,text in enumerate(lines):s.text(x+.825,y+.39+k*.14,text,11,center=True,width=1.45)
+  for k,text in enumerate(lines):s.text(x+.825,y+.47+k*.15,text,11,center=True,width=1.45)
  c.showPage();c.save();print(f'Created {out} ({len(s.zones)} checked field zones)')
 if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,default=ROOT/'output/pdf/creature-sheet.pdf');args=parser.parse_args();args.out.parent.mkdir(parents=True,exist_ok=True);make(args.out)
