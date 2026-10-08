@@ -1,0 +1,233 @@
+{
+  "schema": 1,
+  "creatures": [
+    {
+      "schema": 1,
+      "id": "cr-debug00",
+      "rulesVersion": 1,
+      "sheet": "S1",
+      "name": "Test fire",
+      "trainer": {
+        "nickname": "Test Trainer 1",
+        "portrait": "assets/portraits/cr-debug00.12345678.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-test00.12345678.webp",
+        "w": 512,
+        "h": 400
+      },
+      "type": "fire",
+      "stats": {
+        "health": 2,
+        "attack": 3,
+        "defense": 0,
+        "speed": 5
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Steady"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Blast"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Guard"
+        }
+      },
+      "added": "2026-10-07"
+    },
+    {
+      "schema": 1,
+      "id": "cr-debug01",
+      "rulesVersion": 1,
+      "sheet": "S1",
+      "name": "Test water",
+      "trainer": {
+        "nickname": "Test Trainer 2",
+        "portrait": "assets/portraits/cr-debug01.12345678.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-test00.12345678.webp",
+        "w": 512,
+        "h": 400
+      },
+      "type": "water",
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 2,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick"
+        },
+        "special": {
+          "id": "risky",
+          "name": "Risky"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Heal"
+        }
+      },
+      "added": "2026-10-07"
+    },
+    {
+      "schema": 1,
+      "id": "cr-debug02",
+      "rulesVersion": 1,
+      "sheet": "S1",
+      "name": "Test grass",
+      "trainer": {
+        "nickname": "Test Trainer 3",
+        "portrait": "assets/portraits/cr-debug02.12345678.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-test00.12345678.webp",
+        "w": 512,
+        "h": 400
+      },
+      "type": "grass",
+      "stats": {
+        "health": 2,
+        "attack": 2,
+        "defense": 5,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "pierce",
+          "name": "Piercing"
+        },
+        "special": {
+          "id": "recoil",
+          "name": "Recoil"
+        },
+        "defense": {
+          "id": "toughen",
+          "name": "Toughen"
+        }
+      },
+      "added": "2026-10-07"
+    },
+    {
+      "schema": 1,
+      "id": "cr-debug03",
+      "rulesVersion": 1,
+      "sheet": "S1",
+      "name": "Test electric",
+      "trainer": {
+        "nickname": "Test Trainer 4",
+        "portrait": "assets/portraits/cr-debug03.12345678.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-test00.12345678.webp",
+        "w": 512,
+        "h": 400
+      },
+      "type": "electric",
+      "stats": {
+        "health": 2,
+        "attack": 3,
+        "defense": 0,
+        "speed": 5
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Heavy"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Overload"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Guard"
+        }
+      },
+      "added": "2026-10-07"
+    },
+    {
+      "schema": 1,
+      "id": "cr-debug04",
+      "rulesVersion": 1,
+      "sheet": "S1",
+      "name": "Test ground",
+      "trainer": {
+        "nickname": "Test Trainer 5",
+        "portrait": "assets/portraits/cr-debug04.12345678.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-test00.12345678.webp",
+        "w": 512,
+        "h": 400
+      },
+      "type": "ground",
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 2,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Steady"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Blast"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Heal"
+        }
+      },
+      "added": "2026-10-07"
+    },
+    {
+      "schema": 1,
+      "id": "cr-debug05",
+      "rulesVersion": 1,
+      "sheet": "S1",
+      "name": "Test flying",
+      "trainer": {
+        "nickname": "Test Trainer 6",
+        "portrait": "assets/portraits/cr-debug05.12345678.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-test00.12345678.webp",
+        "w": 512,
+        "h": 400
+      },
+      "type": "flying",
+      "stats": {
+        "health": 2,
+        "attack": 2,
+        "defense": 5,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick"
+        },
+        "special": {
+          "id": "risky",
+          "name": "Risky"
+        },
+        "defense": {
+          "id": "toughen",
+          "name": "Toughen"
+        }
+      },
+      "added": "2026-10-07"
+    }
+  ]
+}

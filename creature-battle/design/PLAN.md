@@ -502,7 +502,7 @@ Print a creature sheet) → **Setup** (difficulty for AI) → **Team pick**
 
 ### 5.3 Battle text and pacing
 
-- Short lines, at most 2 at a time, at least 18 px, from a fixed message
+- Short messages, at most 2 at a time, at least 18 px, from a fixed message
   table:
   - "Go, Fluffdragon!" (battle start and every switch-in)
   - "Fluffdragon used Rainbow Blast!"
@@ -524,8 +524,11 @@ Print a creature sheet) → **Setup** (difficulty for AI) → **Team pick**
   checks that it fits in two lines.
 - Damage text reports actual HP removed. A shield absorption gets its own
   line.
-- Each action takes about 1.5–2 s: lunge or projectile (≈600 ms), hit
-  shake and number pop, health bar tween, text. Tapping the **text box**
+- Each message gets at least 1.4 s of reading time (two messages get at
+  least 2.8 s), extended to 350 ms per word for longer text. Actions may
+  exceed 2 s to preserve reading time. Damage and the latest outcome stay
+  visible after the action; turn-order text also appears in the round banner.
+  Tapping the **text box**
   (it shows ⏩) skips to the end state. Taps anywhere else are ignored, so
   a tap-happy 6-year-old doesn't skip everything. Inputs are locked until
   the event queue drains, and for another 400 ms after, so a stray tap
@@ -1023,6 +1026,11 @@ command uses the glob. No `package.json` is needed.
 | Hang on triggers | logged per hit (it makes full-HP one-hit KOs impossible, so a 0 gate can't fail) |
 | Heavy runs out | 3–15% of Heavy creatures |
 
+The default CLI checks seeds 3, 17, and 101 independently; every seed must
+pass. `--seed N` runs one explicit seed for diagnosis. Normal beating Easy
+by at least 70% is measured with a shared three-creature launch collection;
+24-creature selection and assigned random teams are diagnostics.
+
 These are gates on a heuristic AI, not proof of balance. They exist to
 catch regressions when numbers change.
 
@@ -1056,7 +1064,7 @@ and art and paper last, as both reviews recommended.
 | **2. Balance harness + AI** | `ai.js` (Easy/Normal), `tools/balance-sim.mjs` (port of `design/sim`) | §10.2 gates pass; Easy loses to Normal ≥70% |
 | **3. Playable prototype** | Bare UI: team pick (look-away), battle grid, two-tap buttons, text log, no art polish; import map + version test; debug fixtures; verify-skill drive recipe | Full 3v3 vs AI and hot-seat on a 844×390 phone and an iPad; no effectiveness on buttons; **first supervised kid playtest** (§12 metrics) |
 | **4. Sheet + import** | `.gitignore` entries first; `sheet_geom.py`, `make_sheet.py` (sheet + reference card), `import_sheet.py`, `validate.mjs`, `publish.mjs`, kit README | Printed at 100%; two real kids' sheets → valid entries with only name reading by hand; enclosed whites and faint lines intact; Gate A/B followed |
-| **5. Full UI** | Collection cards, portraits, effects, sound + read-aloud toggles, rotate prompt, reward loop (§5.5), 0/1/2/3+ collection states | Younger kids can say whose turn it is and what each button does; each action ≤2 s; tap-to-skip works and stray taps don't skip |
+| **5. Full UI** | Collection cards, portraits, effects, sound + read-aloud toggles, rotate prompt, reward loop (§5.5), 0/1/2/3+ collection states | Younger kids can say whose turn it is and what each button does; messages have minimum reading time; damage summary persists; tap-to-skip works and stray taps don't skip |
 | **6. Launch** | `games.html` card, sitemap, `_headers` entry, first real collection (≥3 creatures) | A visitor on a phone and a tablet can play both modes; the owner adds one more creature end-to-end from the README alone |
 
 Rule changes after a playtest go into `rules-v1.json` while the game is

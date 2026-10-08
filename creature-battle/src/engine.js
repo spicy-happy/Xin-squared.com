@@ -102,7 +102,8 @@ export function getActions(state, side) {
 }
 export function applyAction(input, side, action) {
   if (!action || !getActions(input, side).some(a => a.enabled && a.kind === action.kind && a.index === action.index)) throw Error('Illegal action');
-  const state = structuredClone(input), s = state, events = [];
+  const state = structuredClone({...input, rules: undefined}); state.rules = Object.isFrozen(input.rules) ? input.rules : loadRules(input.rules);
+  const s = state, events = [];
   const m = current(s, side), target = 1 - side, foe = current(s, target);
   if (action.kind === 'switch') {
     leave(m);
@@ -162,7 +163,8 @@ export function chooseReplacement(input, side, index) {
   const turn = whoseTurn(input);
   if (turn.over || turn.need !== 'replacement' || turn.side !== side || !Number.isInteger(index) ||
       index === input.active[side] || !(input.teams[side][index]?.hp > 0)) throw Error('Illegal replacement');
-  const state = structuredClone(input), events = [];
+  const state = structuredClone({...input, rules: undefined}); state.rules = Object.isFrozen(input.rules) ? input.rules : loadRules(input.rules);
+  const events = [];
   state.active[side] = index; state.pairCoin = null; state.needReplacement = null;
   enter(state, events, side); startRound(state, events); advance(state, events);
   return { state, events };

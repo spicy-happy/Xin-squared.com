@@ -15,3 +15,7 @@ test('HP damage and shield blocked are separate lines; table wording',()=>{
   assert.deepEqual(eventLines({t:'hit',side:0,amount:0,absorbed:18,crit:false,eff:null}),['The shield blocked 18!','It dealt 0 damage.']);
   assert.deepEqual(eventLines({t:'miss',side:0}),['So close! It missed!']);
 });
+
+test('round messages never ask for an undefined side name',()=>{
+  assert.deepEqual(eventLines({t:'round',n:1,order:[0,1],reason:'speed',double:null},{name:side=>{assert.ok(side===0||side===1);return 'Fluff';}}),['Fluff is faster!']);
+});

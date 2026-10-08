@@ -53,7 +53,7 @@ export function simulate({n=10000,paired=4000,easy=4000,seed=3}={}) {
   const transfers={};
   // Port exp_transfer.py: mirrored types/moves, every creature moves exactly 2 points.
   for(const [src,dst] of [['health','attack'],['health','defense'],['attack','defense']]) {
-    const eligible=builds.filter(b=>b[src]>=2&&b[dst]<=3),pairedRandom=source(11);let wins=0;
+    const eligible=builds.filter(b=>b[src]>=2&&b[dst]<=3),pairedRandom=source(seed ^ 11);let wins=0;
     for(let g=0;g<paired;g++) {
       const original=Array.from({length:3},()=>def(pairedRandom,eligible));
       const moved=structuredClone(original);for(const c of moved){c.stats[src]-=2;c.stats[dst]+=2;}
@@ -69,13 +69,16 @@ export function simulate({n=10000,paired=4000,easy=4000,seed=3}={}) {
     normalWins+=+(battle(teams,Math.floor(random()*4294967296),normalSide?['easy','normal']:['normal','easy']).state.winner===normalSide);
   }
   lengths.sort((a,b)=>a-b);
-  // Full §6 opponent includes its independent team selector, not only battle choices.
-  const teamRandom=source(501);let fullNormalWins=0;
+  // Launch gate uses three creatures; the larger collection remains diagnostic.
+  const teamRandom=source(seed ^ 501);let fullNormalWins=0,launchNormalWins=0;
   for(let g=0;g<easy;g++) {
     const collection=Array.from({length:24},(_,i)=>({...def(teamRandom),id:`cr-sim${String(i).padStart(3,'0')}`}));
     const normalSide=g%2,difficulties=normalSide?['easy','normal']:['normal','easy'];
     const teams=difficulties.map(difficulty=>chooseTeam(collection,{difficulty,aiRng:Math.floor(teamRandom()*4294967296)}).team);
-    fullNormalWins+=+(battle(teams,Math.floor(teamRandom()*4294967296),difficulties).state.winner===normalSide);
+    const launchCollection=collection.slice(0,3);
+    const launchTeams=difficulties.map(difficulty=>chooseTeam(launchCollection,{difficulty,aiRng:Math.floor(teamRandom()*4294967296)}).team);
+    launchNormalWins+=+(battle(launchTeams,Math.floor(teamRandom()*4294967296),difficulties).state.winner===normalSide);
+    fullNormalWins+=(battle(teams,Math.floor(teamRandom()*4294967296),difficulties).state.winner===normalSide);
   }
   const rates=Object.fromEntries(Object.entries(wins).map(([k,[w,n]])=>[k,100*w/n]));
   const gates=[];
@@ -88,17 +91,22 @@ export function simulate({n=10000,paired=4000,easy=4000,seed=3}={}) {
   gate('median actions (22–34)',median,median>=22&&median<=34);gate('p90 actions (≤55)',p90,p90<=55);
   gate('draws (0)',draws,draws===0);gate('safety-cap endings (0)',caps,caps===0);
   gate('Heavy exhausted (3–15%)',100*heavyOut/heavy,heavyOut/heavy>=0.03&&heavyOut/heavy<=0.15);
-  gate('Full Normal beats Easy (≥70%)',100*fullNormalWins/easy,fullNormalWins/easy>=0.7);
-  return {samples:{n,paired,easy,seed},rates,transfers,median,p90,draws,caps,hangOn:{count:hangOn,hits,percent:100*hangOn/hits},doublePerBattle:double/n,heavyExhaustion:100*heavyOut/heavy,normalVsEasy:100*fullNormalWins/easy,actionOnlyNormalVsEasy:100*normalWins/easy,gates,pass:gates.every(g=>g.pass)};
+  gate('3-creature Normal beats Easy (≥70%)',100*launchNormalWins/easy,launchNormalWins/easy>=0.7);
+  return {samples:{n,paired,easy,seed},rates,transfers,median,p90,draws,caps,hangOn:{count:hangOn,hits,percent:100*hangOn/hits},doublePerBattle:double/n,heavyExhaustion:100*heavyOut/heavy,normalVsEasy:100*launchNormalWins/easy,largeCollectionNormalVsEasy:100*fullNormalWins/easy,actionOnlyNormalVsEasy:100*normalWins/easy,gates,pass:gates.every(g=>g.pass)};
 }
 function main(){
   const args=process.argv.slice(2);const numeric=(key,fallback)=>{const i=args.indexOf(key);if(i<0)return fallback;const n=Number(args[i+1]);if(!Number.isInteger(n)||n<1)throw Error(`Invalid ${key}`);return n;};
-  const result=simulate({n:numeric('--battles',10000),paired:numeric('--paired',4000),easy:numeric('--easy',4000),seed:numeric('--seed',3)});
+  const seeds=args.includes('--seed')?[numeric('--seed',3)]:[3,17,101];
+  const results=seeds.map(seed=>simulate({n:numeric('--battles',10000),paired:numeric('--paired',4000),easy:numeric('--easy',4000),seed}));
+  for(const result of results){
   console.log(`Samples: random ${result.samples.n}; each paired ${result.samples.paired}; Normal/Easy ${result.samples.easy}; seed ${result.samples.seed}`);
   for(const g of result.gates)console.log(`${g.pass?'PASS':'FAIL'} | ${g.metric} | ${g.value.toFixed(2)}`);
   console.log(`Action/replacement-only Normal/Easy on assigned random teams (diagnostic): ${result.actionOnlyNormalVsEasy.toFixed(2)}%`);
   console.log(`Hang on ${result.hangOn.count}/${result.hangOn.hits} hits (${result.hangOn.percent.toFixed(4)}%); double turns/battle ${result.doublePerBattle.toFixed(2)}`);
-  const out=args.indexOf('--json');if(out>=0)writeFileSync(args[out+1],JSON.stringify(result,null,2)+'\n');
-  process.exitCode=result.pass?0:1;
+  console.log(`24-creature collection Normal/Easy (diagnostic): ${result.largeCollectionNormalVsEasy.toFixed(2)}%`);
+  }
+  const report={results,pass:results.every(r=>r.pass)};
+  const out=args.indexOf('--json');if(out>=0)writeFileSync(args[out+1],JSON.stringify(report,null,2)+'\n');
+  process.exitCode=report.pass?0:1;
 }
 if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1])main();

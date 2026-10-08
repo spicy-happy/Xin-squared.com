@@ -1,0 +1,9 @@
+{
+  "twoTap": true,
+  "confirmMin56": true,
+  "textSkipOnly": true,
+  "inputGuard400": true,
+  "longMirrorTextLines": 2,
+  "midBattleNoReload": true,
+  "errors": []
+}

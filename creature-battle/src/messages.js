@@ -1,11 +1,11 @@
 // Text is rendered with textContent by the UI; no child-supplied HTML.
 export function eventLines(event, { name = side => `Creature ${side + 1}`, trainer = side => `Trainer ${side + 1}`, previous = name } = {}) {
-  const n = name(event.side);
+  const n = event.side === 0 || event.side === 1 ? name(event.side) : '';
   switch (event.t) {
     case 'enter': return [`Go, ${n}!`];
     case 'round': return [event.reason === 'speed' ? `${name(event.order[0])} is faster!` : `Coin toss: ${name(event.order[0])} goes first!`,
       ...(event.double !== null ? [`${name(event.double)} goes again!`] : [])];
-    case 'use': return [`${n} used ${event.name}!`, ...(event.moveId === 'overload' ? ['Next turn: nap.'] : [])];
+    case 'use': return [`${n} used ${event.name}!`, ...(event.moveId === 'overload' ? [`${n} used a huge move. Next turn: nap.`] : [])];
     case 'fallback': return [`${n} is worn out… Tired Tackle!`];
     case 'miss': return ['So close! It missed!'];
     case 'hit': return [...(event.absorbed ? [`The shield blocked ${event.absorbed}!`] : []), `It dealt ${event.amount} damage.`,
