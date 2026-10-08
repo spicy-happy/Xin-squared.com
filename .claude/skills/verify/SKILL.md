@@ -148,7 +148,9 @@ before its action is replaced immediately, and its replacement inherits that
 unspent slot. Last Chance can save a heavy lethal hit (post-shield damage at least
 floor(maxHp / 2)) once per creature if its HP was above 1. Healing and switching
 do not reset it. Normal favours matchups for each child pick and uses 85% random legal choices.
-After a faint, consecutive turns across the next round boundary are prevented.
+Speed decides the opening turn. Subsequent spent turns alternate through switches
+and replacements; the removed speed reordering cannot grant bonus actions. Overload
+rest still spends its creature's turn automatically.
 The sole surviving creature enters automatically; defense remains usable while PP
 remains, even at full HP or when already protected. Three approved non-prototype entries automatically
 retire TEST entries from the loaded collection. Run tools/playtest-browser.mjs
@@ -158,3 +160,7 @@ Bubble Shield is capped at missing HP: HP + shield never exceeds max HP.
 At full HP it remains selectable while PP lasts, but adds no protection and the
 log explains that HP is already full. Hard AI scores only newly added protection.
 Run tools/bubble-browser.mjs for full, near-full and damaged-HP UI checks.
+
+Narration extensions type only their new suffix, preserving old damage and Last
+Chance text rather than replaying it. Screen readers announce the new effect
+only. Run tools/fair-turns-browser.mjs to verify Last Chance plus recoil narration.

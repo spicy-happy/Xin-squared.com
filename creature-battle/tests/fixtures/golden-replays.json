@@ -85,6 +85,12 @@
         }
       },
       {
+        "side": 0,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
         "side": 1,
         "action": {
           "kind": "special"
@@ -101,12 +107,6 @@
         }
       },
       {
-        "side": 0,
-        "action": {
-          "kind": "special"
-        }
-      },
-      {
         "side": 1,
         "action": {
           "kind": "special"
@@ -114,6 +114,18 @@
       },
       {
         "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 0,
+        "action": {
+          "kind": "special"
+        }
+      },
+      {
+        "side": 1,
         "action": {
           "kind": "special"
         }
@@ -221,7 +233,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -310,7 +322,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -344,11 +356,38 @@
         "t": "round",
         "n": 4,
         "order": [
-          1,
-          0
+          0,
+          1
         ],
-        "reason": "coin",
-        "double": 1
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 0,
+        "moveId": "quick",
+        "name": "Quick Strike",
+        "ppAfter": {
+          "regular": 11,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 9,
+        "crit": true,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 1
+      },
+      {
+        "t": "hangOn",
+        "side": 1
       },
       {
         "t": "use",
@@ -378,7 +417,7 @@
         "side": 0,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 12,
+          "regular": 11,
           "special": 0,
           "defense": 3
         },
@@ -403,6 +442,16 @@
         "switchesLeft": 3
       },
       {
+        "t": "round",
+        "n": 5,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
         "t": "use",
         "side": 0,
         "slot": 1,
@@ -411,47 +460,6 @@
         "ppAfter": {
           "regular": 12,
           "special": 2,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 9,
-        "crit": false,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 1
-      },
-      {
-        "t": "hangOn",
-        "side": 1
-      },
-      {
-        "t": "round",
-        "n": 5,
-        "order": [
-          1,
-          0
-        ],
-        "reason": "coin",
-        "double": null
-      },
-      {
-        "t": "rest",
-        "side": 1
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 1,
-        "moveId": "risky",
-        "name": "Wild Blast",
-        "ppAfter": {
-          "regular": 12,
-          "special": 1,
           "defense": 3
         }
       },
@@ -490,16 +498,6 @@
         },
         "shieldAfter": 0,
         "switchesLeft": 3
-      },
-      {
-        "t": "round",
-        "n": 6,
-        "order": [
-          1,
-          0
-        ],
-        "reason": "coin",
-        "double": null
       },
       {
         "t": "use",
@@ -525,6 +523,53 @@
         "hpAfter": 37
       },
       {
+        "t": "round",
+        "n": 6,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Wild Blast",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 72,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 10
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "round",
+        "n": 7,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
         "t": "use",
         "side": 0,
         "slot": 1,
@@ -540,7 +585,7 @@
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 81,
+        "amount": 9,
         "crit": true,
         "eff": "strong",
         "absorbed": 0,
@@ -552,18 +597,41 @@
         "side": 1
       },
       {
-        "t": "round",
-        "n": 7,
-        "order": [
-          1,
-          0
-        ],
-        "reason": "coin",
-        "double": null
+        "t": "use",
+        "side": 1,
+        "slot": 2,
+        "moveId": "overload",
+        "name": "Mega Burst",
+        "ppAfter": {
+          "regular": 10,
+          "special": 0,
+          "defense": 3
+        }
       },
       {
-        "t": "rest",
-        "side": 1
+        "t": "hit",
+        "side": 1,
+        "target": 0,
+        "amount": 36,
+        "crit": false,
+        "eff": "weak",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 1
+      },
+      {
+        "t": "hangOn",
+        "side": 0
+      },
+      {
+        "t": "round",
+        "n": 8,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
       },
       {
         "t": "use",
@@ -594,7 +662,7 @@
         "hpAfter": 0,
         "ppAfter": {
           "regular": 10,
-          "special": 1,
+          "special": 0,
           "defense": 3
         },
         "shieldAfter": 0
@@ -605,7 +673,7 @@
         "reason": "ko"
       }
     ],
-    "rng": 4103143705,
+    "rng": 3471308035,
     "winner": 0
   },
   {
@@ -716,18 +784,6 @@
         }
       },
       {
-        "side": 1,
-        "action": {
-          "kind": "special"
-        }
-      },
-      {
-        "side": 0,
-        "action": {
-          "kind": "special"
-        }
-      },
-      {
         "side": 0,
         "action": {
           "kind": "special"
@@ -736,13 +792,13 @@
       {
         "side": 1,
         "action": {
-          "kind": "regular"
+          "kind": "special"
         }
       },
       {
         "side": 0,
         "action": {
-          "kind": "regular"
+          "kind": "special"
         }
       },
       {
@@ -867,7 +923,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -897,7 +953,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -957,7 +1013,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -1071,7 +1127,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -1105,11 +1161,38 @@
         "t": "round",
         "n": 6,
         "order": [
-          1,
-          0
+          0,
+          1
         ],
-        "reason": "coin",
-        "double": 1
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "risky",
+        "name": "Wild Blast",
+        "ppAfter": {
+          "regular": 12,
+          "special": 1,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 9,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 1
+      },
+      {
+        "t": "hangOn",
+        "side": 1
       },
       {
         "t": "use",
@@ -1135,34 +1218,14 @@
         "hpAfter": 14
       },
       {
-        "t": "use",
-        "side": 0,
-        "slot": 1,
-        "moveId": "risky",
-        "name": "Wild Blast",
-        "ppAfter": {
-          "regular": 12,
-          "special": 1,
-          "defense": 3
-        }
-      },
-      {
-        "t": "miss",
-        "side": 0
-      },
-      {
         "t": "round",
         "n": 7,
         "order": [
-          1,
-          0
+          0,
+          1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
-      },
-      {
-        "t": "rest",
-        "side": 1
       },
       {
         "t": "use",
@@ -1172,66 +1235,6 @@
         "name": "Wild Blast",
         "ppAfter": {
           "regular": 12,
-          "special": 0,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 9,
-        "crit": false,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 1
-      },
-      {
-        "t": "hangOn",
-        "side": 1
-      },
-      {
-        "t": "round",
-        "n": 8,
-        "order": [
-          1,
-          0
-        ],
-        "reason": "coin",
-        "double": null
-      },
-      {
-        "t": "use",
-        "side": 1,
-        "slot": 1,
-        "moveId": "pierce",
-        "name": "Piercing Jab",
-        "ppAfter": {
-          "regular": 9,
-          "special": 0,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 1,
-        "target": 0,
-        "amount": 12,
-        "crit": false,
-        "eff": "weak",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 2
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 1,
-        "moveId": "quick",
-        "name": "Quick Strike",
-        "ppAfter": {
-          "regular": 11,
           "special": 0,
           "defense": 3
         }
@@ -1252,7 +1255,7 @@
         "side": 1,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 9,
+          "regular": 10,
           "special": 0,
           "defense": 3
         },
@@ -1273,16 +1276,6 @@
         "switchesLeft": 3
       },
       {
-        "t": "round",
-        "n": 9,
-        "order": [
-          1,
-          0
-        ],
-        "reason": "coin",
-        "double": null
-      },
-      {
         "t": "use",
         "side": 1,
         "slot": 2,
@@ -1298,7 +1291,7 @@
         "t": "hit",
         "side": 1,
         "target": 0,
-        "amount": 1,
+        "amount": 13,
         "crit": false,
         "eff": "weak",
         "absorbed": 0,
@@ -1308,6 +1301,53 @@
       {
         "t": "hangOn",
         "side": 0
+      },
+      {
+        "t": "round",
+        "n": 8,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "quick",
+        "name": "Quick Strike",
+        "ppAfter": {
+          "regular": 11,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 32,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 50
+      },
+      {
+        "t": "rest",
+        "side": 1
+      },
+      {
+        "t": "round",
+        "n": 9,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
       },
       {
         "t": "use",
@@ -1325,59 +1365,12 @@
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 23,
+        "amount": 32,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
-        "hpAfter": 59
-      },
-      {
-        "t": "round",
-        "n": 10,
-        "order": [
-          1,
-          0
-        ],
-        "reason": "coin",
-        "double": null
-      },
-      {
-        "t": "rest",
-        "side": 1
-      },
-      {
-        "t": "use",
-        "side": 0,
-        "slot": 1,
-        "moveId": "quick",
-        "name": "Quick Strike",
-        "ppAfter": {
-          "regular": 9,
-          "special": 0,
-          "defense": 3
-        }
-      },
-      {
-        "t": "hit",
-        "side": 0,
-        "target": 1,
-        "amount": 23,
-        "crit": false,
-        "eff": "strong",
-        "absorbed": 0,
-        "shieldAfter": 0,
-        "hpAfter": 36
-      },
-      {
-        "t": "round",
-        "n": 11,
-        "order": [
-          1,
-          0
-        ],
-        "reason": "coin",
-        "double": null
+        "hpAfter": 18
       },
       {
         "t": "use",
@@ -1407,7 +1400,7 @@
         "side": 0,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 9,
+          "regular": 10,
           "special": 0,
           "defense": 3
         },
@@ -1428,6 +1421,16 @@
         "switchesLeft": 3
       },
       {
+        "t": "round",
+        "n": 10,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
         "t": "use",
         "side": 0,
         "slot": 2,
@@ -1443,7 +1446,7 @@
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 35,
+        "amount": 17,
         "crit": false,
         "eff": "strong",
         "absorbed": 0,
@@ -1455,18 +1458,18 @@
         "side": 1
       },
       {
-        "t": "round",
-        "n": 12,
-        "order": [
-          1,
-          0
-        ],
-        "reason": "coin",
-        "double": null
-      },
-      {
         "t": "rest",
         "side": 1
+      },
+      {
+        "t": "round",
+        "n": 11,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
       },
       {
         "t": "use",
@@ -1485,7 +1488,7 @@
         "side": 0,
         "target": 1,
         "amount": 1,
-        "crit": false,
+        "crit": true,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -1508,7 +1511,7 @@
         "reason": "ko"
       }
     ],
-    "rng": 4039202517,
+    "rng": 2207636704,
     "winner": 0
   },
   {
@@ -1679,6 +1682,12 @@
         }
       },
       {
+        "side": 0,
+        "action": {
+          "kind": "regular"
+        }
+      },
+      {
         "side": 1,
         "action": {
           "kind": "special"
@@ -1782,7 +1791,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -1823,7 +1832,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -1912,7 +1921,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -1949,7 +1958,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -2034,7 +2043,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -2064,7 +2073,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -2113,7 +2122,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -2162,7 +2171,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -2222,7 +2231,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -2307,7 +2316,7 @@
           0,
           1
         ],
-        "reason": "coin",
+        "reason": "alternating",
         "double": null
       },
       {
@@ -2341,11 +2350,34 @@
         "t": "round",
         "n": 12,
         "order": [
-          1,
-          0
+          0,
+          1
         ],
-        "reason": "coin",
-        "double": 1
+        "reason": "alternating",
+        "double": null
+      },
+      {
+        "t": "use",
+        "side": 0,
+        "slot": 1,
+        "moveId": "quick",
+        "name": "Quick Strike",
+        "ppAfter": {
+          "regular": 8,
+          "special": 0,
+          "defense": 3
+        }
+      },
+      {
+        "t": "hit",
+        "side": 0,
+        "target": 1,
+        "amount": 32,
+        "crit": false,
+        "eff": "strong",
+        "absorbed": 0,
+        "shieldAfter": 0,
+        "hpAfter": 18
       },
       {
         "t": "use",
@@ -2364,7 +2396,7 @@
         "side": 1,
         "target": 0,
         "amount": 1,
-        "crit": false,
+        "crit": true,
         "eff": "weak",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -2375,7 +2407,7 @@
         "side": 0,
         "hpAfter": 0,
         "ppAfter": {
-          "regular": 9,
+          "regular": 8,
           "special": 0,
           "defense": 3
         },
@@ -2396,6 +2428,16 @@
         "switchesLeft": 3
       },
       {
+        "t": "round",
+        "n": 13,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
+      },
+      {
         "t": "use",
         "side": 0,
         "slot": 2,
@@ -2411,8 +2453,8 @@
         "t": "hit",
         "side": 0,
         "target": 1,
-        "amount": 49,
-        "crit": false,
+        "amount": 17,
+        "crit": true,
         "eff": "strong",
         "absorbed": 0,
         "shieldAfter": 0,
@@ -2423,18 +2465,18 @@
         "side": 1
       },
       {
-        "t": "round",
-        "n": 13,
-        "order": [
-          1,
-          0
-        ],
-        "reason": "coin",
-        "double": null
-      },
-      {
         "t": "rest",
         "side": 1
+      },
+      {
+        "t": "round",
+        "n": 14,
+        "order": [
+          0,
+          1
+        ],
+        "reason": "alternating",
+        "double": null
       },
       {
         "t": "use",
@@ -2476,7 +2518,7 @@
         "reason": "ko"
       }
     ],
-    "rng": 3407490294,
+    "rng": 944088811,
     "winner": 0
   }
 ]
