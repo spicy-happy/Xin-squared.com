@@ -86,8 +86,9 @@ Pure ES modules, tested with Node 22 built-ins (no build or npm dependencies):
 node --test 'creature-battle/tests/*.test.mjs'
 ```
 
-The production collection starts empty. Only tests and `?debug=1` may load
-placeholder creatures; never publish test art as a child's submission.
+The owner has authorised six labelled prototype creatures at the direct production
+URL for testing. The game is unlisted and noindex. Prototype art remains labelled
+TEST and is never represented as a child's submission. `?debug=1` adds debug hooks.
 
 ### Creature Battle browser drive
 
@@ -106,8 +107,7 @@ the independently chosen AI team is revealed.
 
 During battle, wait until enabled `[data-action]` buttons are interactive
 (animations drain, then a 400 ms guard). Read `needReplacement`, or `order[slot]`, from `__battleDebug.state()`
-to select the correct `[data-side]`. For an action, tap its category and then
-GO!; for replacement, click `[data-bench]` in the mandatory tray. Only
+to select the correct `[data-side]`. For an action, tap its category (one tap; no confirmation setting); for replacement, click `[data-bench]` in the mandatory tray. Only
 `#battle-text` skips the message queue. Never use `setHp` or `force` to claim
 a complete 3v3 acceptance battle: drive every action through the visible UI.
 Check both modes reach Result, take arena/result screenshots, ensure no

@@ -8,7 +8,7 @@ test('every src module maps to the exact GAME_VERSION; CSS and entry point pinne
   for(const p of all)assert.equal(map['./'+p],'./'+p+'?v='+version);
   assert.match(html,new RegExp(`src="src/ui/main.js\\?v=${version}"`));assert.match(html,new RegExp(`href="styles.css\\?v=${version}"`));
 });
-test('all module imports resolve to versioned keys, JSON no-cache, debug-only hooks, discoverable production page',()=>{
+test('all module imports resolve to versioned keys, JSON no-cache, debug-only hooks, unlisted prototype page',()=>{
   for(const p of modules()){
     const source=readFileSync(new URL(p,root),'utf8');
     for(const m of source.matchAll(/from ['"]([^'"]+)['"]/g)){
@@ -16,6 +16,8 @@ test('all module imports resolve to versioned keys, JSON no-cache, debug-only ho
     }
   }
   const source=readFileSync(new URL('src/ui/main.js',root),'utf8');assert.match(source,/cache:'no-cache'/);assert.match(source,/if\(debug\).*window\.__battleDebug/s);assert.match(source,/if\(debug\)window\.__battleReady=true/);
-  assert.doesNotMatch(html,/name="robots" content="noindex"/);
-  assert.deepEqual(JSON.parse(readFileSync(new URL('data/creatures.json',root))),{schema:1,creatures:[]});
+  assert.match(html,/name="robots" content="noindex"/);
+  const publicCollection=JSON.parse(readFileSync(new URL('data/creatures.json',root)));assert.equal(publicCollection.creatures.length,6);
+  for(const c of publicCollection.creatures){assert.match(c.name,/^Test /);for(const path of [c.image.src,c.trainer.portrait])assert.ok(readFileSync(new URL(path,root)).length>0);}
+  assert.doesNotMatch(html,/confirm-setting|Two taps/);
 });
