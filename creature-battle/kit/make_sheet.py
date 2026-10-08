@@ -14,7 +14,7 @@ RULES=json.loads((ROOT/'data/rules-v1.json').read_text())
 INK='#2b2b33'
 class Sheet:
  def __init__(self,out):
-  self.c=canvas.Canvas(str(out),pagesize=letter,invariant=1);self.c.setTitle('My Battle Creature - Ruleset 1 / Sheet S1');self.zones=[]
+  self.c=canvas.Canvas(str(out),pagesize=letter,invariant=1);self.c.setTitle('My Battle Creature');self.zones=[]
  def box(self,x,y,w,h,label):
   assert x>=.5 and y>=.5 and x+w<=8.01 and y+h<=10.51,(label,'outside print area')
   for a,b,c,d,n in self.zones:
@@ -54,35 +54,28 @@ def make(out):
  s=Sheet(out);c=s.c
  for mid,x,y in [(30,.08,.08),(31,8.07,.08),(32,8.07,10.57),(33,.08,10.57)]:s.marker(mid,x,y)
  s.text(.5,.73,'MY BATTLE CREATURE',20,True);
- s.text(6.15,.73,f'Ruleset {RULES["version"]} / Sheet {RULES["sheet"]}',11,width=1.85)
- s.text(.5,.94,'Draw your creature. Circle one choice in each type, stat, and move row.',11)
- s.box(.5,1.05,4.6,3.5,'creature drawing');s.text(2.8,1.28,'Draw your creature here',13,True,True)
- s.box(5.4,1.05,2,2,'trainer portrait');s.text(6.4,1.28,'Draw your trainer',12,True,True);s.text(6.4,2.86,'A drawing, not a photo',11,center=True)
- s.text(5.4,3.33,"Creature's name",12,True);s.line(5.4,3.67,2.6)
- s.text(5.4,3.94,'Trainer nickname',12,True);s.line(5.4,4.28,2.6);s.text(5.4,4.48,'Use a made-up name.',11)
+ s.box(.5,.95,4.6,3.6,'creature drawing');s.text(2.8,1.18,'Draw your creature here',13,True,True)
+ s.box(5.4,.95,2.6,2.6,'trainer portrait');s.text(6.7,1.18,'Draw your trainer',12,True,True)
+ s.text(5.4,3.94,"Creature's name",12,True);s.line(5.4,4.28,2.6)
  s.text(.5,4.78,'TYPE - circle one',13,True)
  for i,(kind,t) in enumerate(RULES['types'].items()):
   x=.5+i*1.25;s.box(x,4.9,1,.5,'type '+kind);s.icon(kind,x+.5,5.06);s.text(x+.5,5.3,t['label'],13,True,True,width=.96)
- s.text(.5,5.67,'STATS - circle one number in each row',13,True)
+ s.text(.5,5.67,'STATS - 10 dots max',13,True)
  for row,stat in enumerate(['Health','Attack','Defense','Speed']):
   y=5.83+row*.49;s.text(.5,y+.25,stat,12,True,width=1)
   for n in range(RULES['stats']['max']+1):
    x=1.65+n*.8;s.box(x,y,.55,.45,f'{stat} {n}');s.text(x+.275,y+.22,str(n),14,True,True)
    c.setFillColor(INK)
    for d in range(n):c.circle((x+.275+(d-(n-1)/2)*.067)*72,(11-y-.34)*72,1.25,fill=1,stroke=0)
- for i,text in enumerate(['Grown-up:','check the dots','add up to 10','before the photo.']):s.text(6.6,6.16+i*.22,text,11,bold=i==0,width=1.4)
- s.text(.5,8.0,'Count your dots:',11,True)
- for n in range(RULES['stats']['budget']):
-  c.rect((1.82+n*.23)*72,(11-8.02)*72,.16*72,.16*72,stroke=1,fill=0)
- s.text(4.22,8,'Fill all 10 boxes = done!',11,width=3.7)
- for row,slot in enumerate(['regular','special','defense']):
-  y=8.15+row*.75;s.icon(slot,.62,y+.15);s.text(.79,y+.19,slot.upper(),13,True,width=1.08)
-  s.text(.5,y+.39,'Name (optional)',11,width=1.35);s.line(.5,y+.59,1.25)
-  for i,(mid,move) in enumerate(RULES['moves'][slot].items()):
-   x=1.9+i*1.55;s.box(x,y,1.3,.6,slot+' '+mid);s.text(x+.65,y+.2,move['label'],13,True,True,width=1.2)
-   lines=simpleSplit(move['hint'],'Helvetica',11,1.16*72);assert len(lines)<=2,(mid,'hint too tall')
-   for k,text in enumerate(lines):s.text(x+.65,y+.39+k*.15,text,11,center=True,width=1.16)
- s.text(.5,10.47,'Print at 100% / actual size. Photo: whole page, flat, good light, all 4 squares.',11,width=7.5)
+ s.text(.5,8.05,'ATTACKS: Select 3',15,True)
+ s.text(.5,8.29,'Choose any 3 from the options below.',11)
+ # One shared grid: choices are not constrained to the old move categories.
+ moves=[move for slot in RULES['moves'].values() for move in slot.values()]
+ for i,move in enumerate(moves):
+  x=.5+(i%4)*1.9333333333;y=8.46+(i//4)*.67
+  s.box(x,y,1.7,.57,'attack '+move['label']);s.text(x+.85,y+.21,move['label'],13,True,True,width=1.55)
+  lines=simpleSplit(move['hint'],'Helvetica',11,1.5*72);assert len(lines)<=2,(move['label'],'hint too tall')
+  for k,text in enumerate(lines):s.text(x+.85,y+.39+k*.14,text,11,center=True,width=1.5)
  c.showPage();c.save();print(f'Created {out} ({len(s.zones)} checked field zones)')
 if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('--out',type=Path,default=ROOT/'output/pdf/creature-sheet.pdf');args=parser.parse_args();args.out.parent.mkdir(parents=True,exist_ok=True);make(args.out)
