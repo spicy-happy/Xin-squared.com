@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#fbf8f0">
+<title>Creature Battle</title>
+<link rel="stylesheet" href="styles.css?v=10">
+<script>const GAME_VERSION = 10; window.GAME_VERSION = GAME_VERSION;</script>
+<script type="importmap">{"imports":{"./src/rules.js":"./src/rules.js?v=10","./src/rng.js":"./src/rng.js?v=10","./src/engine.js":"./src/engine.js?v=10","./src/messages.js":"./src/messages.js?v=10","./src/collection.js":"./src/collection.js?v=10","./src/ai.js":"./src/ai.js?v=10","./src/ui/main.js":"./src/ui/main.js?v=10","./src/ui/teampick.js":"./src/ui/teampick.js?v=10","./src/ui/battle.js":"./src/ui/battle.js?v=10"}}</script>
+</head>
+<body>
+<header><a href="../games.html">← Games</a><strong>Creature Battle</strong><span id="debug-tag" hidden>DEBUG</span><label><input id="confirm-setting" type="checkbox" checked> Two taps</label></header>
+<main id="app" aria-live="polite">Loading the collection…</main>
+<div id="rotate" hidden>Turn your screen sideways to battle!</div>
+<script type="module" src="src/ui/main.js?v=10"></script>
+</body>
+</html>

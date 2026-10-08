@@ -1,0 +1,36 @@
+{
+  mode: 'ai',
+  width: 844,
+  height: 390,
+  actions: 18,
+  rounds: 17,
+  winner: 1,
+  reason: 'ko'
+}
+{
+  mode: 'friend',
+  width: 844,
+  height: 390,
+  actions: 26,
+  rounds: 13,
+  winner: 1,
+  reason: 'ko'
+}
+{
+  mode: 'ai',
+  width: 1024,
+  height: 768,
+  actions: 18,
+  rounds: 17,
+  winner: 1,
+  reason: 'ko'
+}
+{
+  mode: 'friend',
+  width: 1024,
+  height: 768,
+  actions: 26,
+  rounds: 13,
+  winner: 1,
+  reason: 'ko'
+}

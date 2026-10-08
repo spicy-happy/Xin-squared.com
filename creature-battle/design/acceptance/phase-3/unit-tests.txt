@@ -1,0 +1,238 @@
+TAP version 13
+# Subtest: AI module never calls or imports engine transition APIs
+ok 1 - AI module never calls or imports engine transition APIs
+  ---
+  duration_ms: 1.372125
+  type: 'test'
+  ...
+# Subtest: AI cannot read battle RNG or coin memo, and deep-frozen state is unchanged
+ok 2 - AI cannot read battle RNG or coin memo, and deep-frozen state is unchanged
+  ---
+  duration_ms: 4.52475
+  type: 'test'
+  ...
+# Subtest: replaying same actions after arbitrary AI draws leaves battle replay unchanged
+ok 3 - replaying same actions after arbitrary AI draws leaves battle replay unchanged
+  ---
+  duration_ms: 4.245542
+  type: 'test'
+  ...
+# Subtest: Easy never switches twice in a row and choices depend on separate aiRng
+ok 4 - Easy never switches twice in a row and choices depend on separate aiRng
+  ---
+  duration_ms: 1.046625
+  type: 'test'
+  ...
+# Subtest: Normal secure KO, early defenses, Heal threshold, shield use and Overload punish scoring
+ok 5 - Normal secure KO, early defenses, Heal threshold, shield use and Overload punish scoring
+  ---
+  duration_ms: 0.717209
+  type: 'test'
+  ...
+# Subtest: Normal replacements use revealed matchup; team selection has no opponent and legal 0/1/2/3+ picks
+ok 6 - Normal replacements use revealed matchup; team selection has no opponent and legal 0/1/2/3+ picks
+  ---
+  duration_ms: 0.55075
+  type: 'test'
+  ...
+# Subtest: balance CLI runs real engine from another cwd and fails non-zero on failed gates
+ok 7 - balance CLI runs real engine from another cwd and fails non-zero on failed gates
+  ---
+  duration_ms: 368.528958
+  type: 'test'
+  ...
+# Subtest: empty/one/two/three collection team rules
+ok 8 - empty/one/two/three collection team rules
+  ---
+  duration_ms: 0.777416
+  type: 'test'
+  ...
+# Subtest: collection schema, stats, names, move slots, paths and stable IDs
+ok 9 - collection schema, stats, names, move slots, paths and stable IDs
+  ---
+  duration_ms: 2.473708
+  type: 'test'
+  ...
+# Subtest: faster first; tie memoised only until either active changes, including re-meeting
+ok 10 - faster first; tie memoised only until either active changes, including re-meeting
+  ---
+  duration_ms: 4.61625
+  type: 'test'
+  ...
+# Subtest: faint before action skips slot, replacement at round end re-compares speed; double after first-slot KO
+ok 11 - faint before action skips slot, replacement at round end re-compares speed; double after first-slot KO
+  ---
+  duration_ms: 0.850791
+  type: 'test'
+  ...
+# Subtest: faint after action has no skip; faster replacement gives double after second-slot KO
+ok 12 - faint after action has no skip; faster replacement gives double after second-slot KO
+  ---
+  duration_ms: 0.556833
+  type: 'test'
+  ...
+# Subtest: switch preserves current order and next round can give consecutive turns
+ok 13 - switch preserves current order and next round can give consecutive turns
+  ---
+  duration_ms: 1.304125
+  type: 'test'
+  ...
+# Subtest: Overload automatic next-slot rest after KO, no rest action or switch window; faint discards rest
+ok 14 - Overload automatic next-slot rest after KO, no rest action or switch window; faint discards rest
+  ---
+  duration_ms: 0.7705
+  type: 'test'
+  ...
+# Subtest: recoil uses actual HP loss, half-up, min 1; cannot KO or emit at 1 HP; shield-all means none
+ok 15 - recoil uses actual HP loss, half-up, min 1; cannot KO or emit at 1 HP; shield-all means none
+  ---
+  duration_ms: 2.196292
+  type: 'test'
+  ...
+# Subtest: Hang on only at full HP; Heal to full re-arms, partial Heal does not
+ok 16 - Hang on only at full HP; Heal to full re-arms, partial Heal does not
+  ---
+  duration_ms: 1.791167
+  type: 'test'
+  ...
+# Subtest: Guard persists, absorbs final crit/type damage, partial absorption and break; refill never stacks
+ok 17 - Guard persists, absorbs final crit/type damage, partial absorption and break; refill never stacks
+  ---
+  duration_ms: 1.025333
+  type: 'test'
+  ...
+# Subtest: Toughen cannot stack, switch clears; Heal disabled at full and capped
+ok 18 - Toughen cannot stack, switch clears; Heal disabled at full and capped
+  ---
+  duration_ms: 0.770458
+  type: 'test'
+  ...
+# Subtest: Piercing ignores Defense, respects Toughen and shield
+ok 19 - Piercing ignores Defense, respects Toughen and shield
+  ---
+  duration_ms: 0.522584
+  type: 'test'
+  ...
+# Subtest: Quick 14 first and 10 second, including a previous mid-round switch
+ok 20 - Quick 14 first and 10 second, including a previous mid-round switch
+  ---
+  duration_ms: 0.548542
+  type: 'test'
+  ...
+# Subtest: miss spends PP, RNG draws accuracy then crit only on hit; guaranteed attacks draw only crit
+ok 21 - miss spends PP, RNG draws accuracy then crit only on hit; guaranteed attacks draw only crit
+  ---
+  duration_ms: 0.5055
+  type: 'test'
+  ...
+# Subtest: fallback only when both attacks exhausted; no type/crit or RNG draw; Toughen and shield still apply
+ok 22 - fallback only when both attacks exhausted; no type/crit or RNG draw; Toughen and shield still apply
+  ---
+  duration_ms: 0.666875
+  type: 'test'
+  ...
+# Subtest: three voluntary switches only; illegal actions and replacements reject without mutation
+ok 23 - three voluntary switches only; illegal actions and replacements reject without mutation
+  ---
+  duration_ms: 0.893916
+  type: 'test'
+  ...
+# Subtest: deep-frozen input and definitions unchanged; duplicates independent; state JSON round-trip
+ok 24 - deep-frozen input and definitions unchanged; duplicates independent; state JSON round-trip
+  ---
+  duration_ms: 0.654375
+  type: 'test'
+  ...
+# Subtest: KO victory after action; no draws; cap fraction, damage, and final coin tiebreak
+ok 25 - KO victory after action; no draws; cap fraction, damage, and final coin tiebreak
+  ---
+  duration_ms: 1.051417
+  type: 'test'
+  ...
+# Subtest: 10,000 seeded random-policy battles terminate without safety cap
+ok 26 - 10,000 seeded random-policy battles terminate without safety cap
+  ---
+  duration_ms: 32942.4955
+  type: 'test'
+  ...
+# Subtest: every event message with 24-character names fits two lines per text page
+ok 27 - every event message with 24-character names fits two lines per text page
+  ---
+  duration_ms: 1.219291
+  type: 'test'
+  ...
+# Subtest: HP damage and shield blocked are separate lines; table wording
+ok 28 - HP damage and shield blocked are separate lines; table wording
+  ---
+  duration_ms: 0.693042
+  type: 'test'
+  ...
+# Subtest: round messages never ask for an undefined side name
+ok 29 - round messages never ask for an undefined side name
+  ---
+  duration_ms: 0.120042
+  type: 'test'
+  ...
+# Subtest: golden complete replay seed 0
+ok 30 - golden complete replay seed 0
+  ---
+  duration_ms: 5.577417
+  type: 'test'
+  ...
+# Subtest: golden complete replay seed 9
+ok 31 - golden complete replay seed 9
+  ---
+  duration_ms: 2.544125
+  type: 'test'
+  ...
+# Subtest: golden complete replay seed 123456
+ok 32 - golden complete replay seed 123456
+  ---
+  duration_ms: 2.818625
+  type: 'test'
+  ...
+# Subtest: Rules loader freezes a copy and rejects malformed rules
+ok 33 - Rules loader freezes a copy and rejects malformed rules
+  ---
+  duration_ms: 1.339917
+  type: 'test'
+  ...
+# Subtest: 20 hand-computed integer damage cases
+ok 34 - 20 hand-computed integer damage cases
+  ---
+  duration_ms: 0.393042
+  type: 'test'
+  ...
+# Subtest: all powers, A/D, types, crit, Toughen and Piercing match BigInt half-up reference
+ok 35 - all powers, A/D, types, crit, Toughen and Piercing match BigInt half-up reference
+  ---
+  duration_ms: 10.2445
+  type: 'test'
+  ...
+# Subtest: mulberry32 known values; uint32 accumulator wraps
+ok 36 - mulberry32 known values; uint32 accumulator wraps
+  ---
+  duration_ms: 0.353125
+  type: 'test'
+  ...
+# Subtest: every src module maps to the exact GAME_VERSION; CSS and entry point pinned
+ok 37 - every src module maps to the exact GAME_VERSION; CSS and entry point pinned
+  ---
+  duration_ms: 2.605875
+  type: 'test'
+  ...
+# Subtest: all module imports resolve to versioned keys, JSON no-cache, debug-only hooks, noindex
+ok 38 - all module imports resolve to versioned keys, JSON no-cache, debug-only hooks, noindex
+  ---
+  duration_ms: 2.234833
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 33101.950333
