@@ -3,7 +3,7 @@ export function eventLines(event, { name = side => `Creature ${side + 1}`, train
   const n = event.side === 0 || event.side === 1 ? name(event.side) : '';
   switch (event.t) {
     case 'enter': return [`Go, ${n}!`];
-    case 'round': return [event.reason === 'speed' ? `${name(event.order[0])} is faster!` : `Coin toss: ${name(event.order[0])} goes first!`,
+    case 'round': if (event.reason === 'alternating') return ['The next round begins.']; return [event.reason === 'speed' ? `${name(event.order[0])} is faster!` : `Coin toss: ${name(event.order[0])} goes first!`,
       ...(event.double !== null ? [`${name(event.double)} goes again!`] : [])];
     case 'use': return [`${n} used ${event.name}!`, ...(event.moveId === 'overload' ? [`${n} used a huge move. Next turn: nap.`] : [])];
     case 'fallback': return [`${n} has no attacks left.`];

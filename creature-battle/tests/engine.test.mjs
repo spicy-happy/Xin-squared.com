@@ -37,9 +37,9 @@ test('faint after action prevents a consecutive turn after second-slot KO',()=>{
   const r=act(s);assert.ok(ev(r,'faint'));assert.ok(!ev(r,'skip'));
   const replaced=chooseReplacement(r.state,0,1);assert.equal(ev(replaced,'round').double,null);assert.equal(whoseTurn(replaced.state).side,0);
 });
-test('switch preserves current order and next round can give consecutive turns',()=>{
+test('switch preserves alternating turns even when the new creature is faster',()=>{
   let {state:s}=match(fast,slow);s=act(s).state;s.teams[1][1].stats.speed=5;active(s,0).stats.speed=1;
-  const r=applyAction(s,1,{kind:'switch',index:1});assert.deepEqual(ev(r,'round').order,[1,0]);assert.equal(ev(r,'round').double,1);
+  const r=applyAction(s,1,{kind:'switch',index:1});assert.deepEqual(ev(r,'round').order,[0,1]);assert.equal(ev(r,'round').double,null);
 });
 test('Overload automatic next-slot rest after KO, no rest action or switch window; faint discards rest',()=>{
   let {state:s}=match({...fast,moves:moves('steady','overload')},slow);active(s,1).hp=1;
@@ -222,5 +222,51 @@ test('Bubble Shield caps combined HP and shield at max HP at every health level'
   assert.equal(ev(r,'shieldUp').amount,m.shield);assert.equal(m.pp.defense,2);
   s=r.state;s.slot=0;s.order=[0,1];r=act(s,'defense');m=active(r.state,0);
   assert.equal(m.shield,Math.min(96-hp,29));assert.ok(m.hp+m.shield<=m.maxHp);
+ }
+});
+
+
+test('turns keep alternating for multiple rounds after a faster replacement',()=>{
+ let {state:s}=match(fast,slow);s.teams[1][1].stats.speed=5;active(s,0).stats.speed=3;active(s,1).hp=1;
+ const actors=[];
+ for(let i=0;i<8;i++){
+  if(whoseTurn(s).need==='replacement')s=chooseReplacement(s,1,1).state;
+  const side=whoseTurn(s).side;actors.push(side);s=applyAction(s,side,{kind:i===0?'regular':i<7?'defense':'regular'}).state;
+ }
+ assert.deepEqual(actors,[0,1,0,1,0,1,0,1]);
+});
+test('a real heal after Last Chance cannot grant that same creature a second chance',()=>{
+ let {state:s}=match({...fast,type:'water',moves:moves('heavy','blast')},{...slow,type:'fire',moves:moves('steady','blast','heal')});
+ active(s,1).maxHp=30;active(s,1).hp=2;
+ const first=act(s,'regular');assert.ok(ev(first,'hangOn'));s=first.state;
+ const healed=act(s,'defense');assert.ok(ev(healed,'heal').amount>0);s=healed.state;
+ const second=act(s,'regular');assert.equal(ev(second,'hangOn'),undefined);assert.ok(ev(second,'faint'));assert.equal(s.teams[1][0].lastChanceUsed,true);
+ // Another creature has its own independent chance.
+ s=chooseReplacement(second.state,1,1).state;s=act(s,'defense').state;
+ active(s,1).maxHp=30;active(s,1).hp=2;
+ assert.ok(ev(act(s,'regular'),'hangOn'));
+});
+
+test('1000 AI battles alternate spent turns and never save the same creature twice',async()=>{
+ const {chooseAction,chooseReplacement:botReplacement}=await import('../src/ai.js');
+ const {randomCreature}=await import('./helpers.mjs');
+ for(let seed=0;seed<1000;seed++){
+  let rng=seed;const random=()=>{let value;[value,rng]=next(rng);return value;};
+  const teams=[0,1].map(()=>Array.from({length:3},()=>randomCreature(random)));
+  let {state:s}=createMatch({rules,teams,seed});const saved=new Set();let previous=null;
+  const policies=[{difficulty:'easy',aiRng:seed,lastSwitch:false},{difficulty:'normal',aiRng:(seed+1024)>>>0,lastSwitch:false}];
+  while(!s.over){
+   const t=whoseTurn(s),slots=[...s.active];let r;
+   if(t.need==='replacement'){
+    const choice=botReplacement(s,t.side,policies[t.side]);policies[t.side]={...policies[t.side],...choice};r=chooseReplacement(s,t.side,choice.index);
+   }else{
+    const choice=chooseAction(s,t.side,policies[t.side]);policies[t.side]={...policies[t.side],...choice};r=applyAction(s,t.side,choice.action);
+   }
+   for(const e of r.events){
+    if(['use','switch','rest'].includes(e.t)){assert.notEqual(e.side,previous,`consecutive spent turns, seed ${seed}`);previous=e.side;}
+    if(e.t==='hangOn'){const key=`${e.side}:${slots[e.side]}`;assert.ok(!saved.has(key),`second Last Chance ${key}, seed ${seed}`);saved.add(key);}
+   }
+   s=r.state;
+  }
  }
 });

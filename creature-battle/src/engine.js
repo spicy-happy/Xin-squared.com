@@ -29,12 +29,12 @@ function startRound(s, events) {
   s.round++;
   s.slot = 0;
   const speeds = [current(s, 0).stats.speed, current(s, 1).stats.speed];
-  const reason = speeds[0] === speeds[1] ? 'coin' : 'speed';
+  let reason = speeds[0] === speeds[1] ? 'coin' : 'speed';
   if (reason === 'coin' && s.pairCoin === null) s.pairCoin = draw(s) < 0.5 ? 0 : 1;
   let first = reason === 'coin' ? s.pairCoin : +(speeds[1] > speeds[0]);
-  // After a faint, never chain the inherited slot into another action.
-  if (s.faintTurnGuard && first === s.lastActor) first = 1 - first;
-  s.faintTurnGuard = false;
+  // Speed chooses the opening turn. Switching or replacing never grants
+  // a bonus action by reversing the order at a later round boundary.
+  if (s.lastActor !== null) { first = 1 - s.lastActor; reason = 'alternating'; }
   s.order = [first, 1 - first];
   events.push({ t: 'round', n: s.round, order: [...s.order], reason, double: s.lastActor === first ? first : null });
 }
@@ -144,7 +144,7 @@ export function applyAction(input, side, action) {
         }
         if (move.rest) m.resting = true;
         for (const [faintedSide, creature] of [[target,foe],[side,m]]) if (creature.hp === 0) {
-          creature.resting = false; leave(creature); s.pairCoin = null; s.faintTurnGuard = true;
+          creature.resting = false; leave(creature); s.pairCoin = null;
           events.push({t:'faint',side:faintedSide,...snapshot(creature)});
         }
         // A final hit wins even if Struggle's recoil also faints its user.

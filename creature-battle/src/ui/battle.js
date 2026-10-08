@@ -25,18 +25,25 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
    const parts=text.split(new RegExp(`(${token}[0-3]_END)`)).filter(Boolean).map(part=>{if(!part.startsWith(token))return {text:part};const i=Number(part.slice(token.length,-4));return {text:refs[i],side:i%2};});return {parts,text:parts.map(p=>p.text).join('')};
   });
  }
- // Announce the complete page once; typed letters are purely visual.
+ // Announce only new text; typed letters are purely visual.
  function line(lines,seen=null){
-  finishTyping?.();box.replaceChildren();const segments=[];let count=0;
+  finishTyping?.();box.replaceChildren();const segments=[],spoken=[];let count=0;
   for(const message of lines.slice(-3)){
    const row=el('div','message-line');row.dataset.text=message.text;
+   // Extending a paragraph reveals only its new suffix. Replaying the old
+   // prefix made a single Last Chance look like it happened again on recoil.
+   const revealed=seen?Math.max(0,...[...seen].filter(text=>message.text===text||message.text.startsWith(text+' ')).map(text=>text.length)):message.text.length;
+   spoken.push(seen?message.text.slice(revealed).trim():message.text);
+   let offset=0;
    for(const part of message.parts){const span=el('span',part.side===undefined?null:`name-chip ${part.side?'right':'left'}`);row.append(span);
-    if(!seen||seen.has(message.text))span.textContent=part.text;else{segments.push({node:span,text:part.text,start:count});count+=part.text.length;}
+    const stable=Math.max(0,Math.min(part.text.length,revealed-offset)),prefix=part.text.slice(0,stable),suffix=part.text.slice(stable);span.textContent=prefix;
+    if(suffix){segments.push({node:span,prefix,text:suffix,start:count});count+=suffix.length;}
+    offset+=part.text.length;
    }box.append(row);
   }
-  announcement.textContent=lines.map(l=>l.text).join(' ');box.classList.toggle('writing',count>0);
+  const newText=spoken.filter(Boolean).join(' ');if(newText)announcement.textContent=newText;box.classList.toggle('writing',count>0);
   if(!count)return Promise.resolve();
-  return new Promise(resolve=>{const started=performance.now();const draw=n=>segments.forEach(s=>{s.node.textContent=s.text.slice(0,Math.max(0,n-s.start));});
+  return new Promise(resolve=>{const started=performance.now();const draw=n=>segments.forEach(s=>{s.node.textContent=s.prefix+s.text.slice(0,Math.max(0,n-s.start));});
    finishTyping=()=>{cancelAnimationFrame(typingFrame);draw(count);box.classList.remove('writing');finishTyping=null;resolve();};
    const tick=now=>{if(disposed){finishTyping?.();return;}const n=Math.floor((now-started)/18);draw(n);if(n<count)typingFrame=requestAnimationFrame(tick);else finishTyping?.();};typingFrame=requestAnimationFrame(tick);
   });
@@ -115,7 +122,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
    await Promise.all([line(buffer,seen),effect(e)]);for(const message of buffer)seen.add(message.text);
    if(!cancelled&&['hit','heal','faint','switch','rest','win'].includes(e.t))await new Promise(resolve=>{const timer=setTimeout(resolve,Math.max(1100,paragraph.text.split(/\s+/).length*200));wake=()=>{clearTimeout(timer);resolve();};});
   }
-  if(disposed)return;Object.assign(view,structuredClone(getState()));skip=null;locked=false;guardUntil=Date.now()+400;paint();controls();const prompt=turnLine(),last=buffer.at(-1);if(last&&/fainted/.test(last.text))buffer[buffer.length-1]=join(last,prompt);else buffer.push(prompt);line(buffer.slice(-3));
+  if(disposed)return;Object.assign(view,structuredClone(getState()));skip=null;locked=false;guardUntil=Date.now()+400;paint();controls();const prompt=turnLine(),last=buffer.at(-1);if(last&&/fainted/.test(last.text))buffer[buffer.length-1]=join(last,prompt);else buffer.push(prompt);line(buffer.slice(-3));announcement.textContent=prompt.text;
   setTimeout(()=>{if(!disposed){controls();onDrain();}},400);
  }
  paint();controls();line([turnLine()]);

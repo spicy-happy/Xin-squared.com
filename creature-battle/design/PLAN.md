@@ -1,3 +1,9 @@
+> Version 28 playtest update (owner-directed): speed chooses the opening turn;
+> subsequent spent turns alternate through switches and replacements. Overload
+> still spends its next turn resting. Last Chance remains once per creature, as
+> confirmed by the owner; Bubble Shield cannot exceed missing HP. See
+> `acceptance/fair-turns/README.md` for the reproduced defect and verification.
+
 > Version 24 playtest update (owner-directed): replacement creatures inherit an
 > unspent fainted turn, and Last Chance saves one heavy lethal hit per creature
 > rather than rearming at full HP. The UI and paper also supersede older layouts
