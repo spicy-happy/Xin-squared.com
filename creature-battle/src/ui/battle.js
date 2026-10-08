@@ -110,7 +110,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   else if(e.t==='faint')animate(img,[{opacity:1,transform:'translateY(0)'},{opacity:1,transform:`translateY(${panels[e.side].stage.clientHeight+img.clientHeight}px)`}],560);
   return Promise.all(jobs);
  }
- function eventSound(e){const sound=e.t==='use'?(view.rules.moves.special[e.moveId]?'special':view.rules.moves.defense[e.moveId]?null:'regular'):({hit:'hit',recoil:'hit',heal:'heal',shieldUp:'shield',toughen:'shield',switch:'switch',enter:'switch',faint:'faint',win:'win'})[e.t];if(sound)playSound(sound);}
+ function eventSound(e){const sound=e.t==='use'?(view.rules.moves.special[e.moveId]?'special':view.rules.moves.defense[e.moveId]?null:'regular'):({hit:'hit',recoil:'hit',heal:'heal',shieldUp:'shield',toughen:'shield',switch:'switch',enter:'switch',faint:'faint'})[e.t];if(sound)playSound(sound);}
  async function animate(events){
   animationSide=events.find(e=>['use','switch','rest'].includes(e.t))?.side??events.find(e=>e.t==='round')?.order[0]??whoseTurn(getState()).side??getState().winner??0;locked=true;controls();
   let cancelled=false,wake,buffer=[],pendingEntry=null;

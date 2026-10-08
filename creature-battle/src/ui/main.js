@@ -3,7 +3,7 @@ import { loadCollection } from '../collection.js';
 import { createMatch, applyAction, chooseReplacement, whoseTurn } from '../engine.js';
 import { chooseAction, chooseTeam, choosePracticeTeam, chooseReplacement as aiReplacement } from '../ai.js';
 import { teamPick } from './teampick.js';
-import { initAudio } from './audio.js';
+import { initAudio, setMusic } from './audio.js';
 import { battleView } from './battle.js';
 import { spriteSrc, prepareSprites } from './pixels.js';
 import { typeChip, carousel, shuffled } from './components.js';
@@ -19,7 +19,7 @@ const el=(tag,text)=>{const x=document.createElement(tag);if(text!==undefined)x.
 const quitDialog=document.querySelector('#quit-dialog'),quitButton=document.querySelector('#quit-game');
 function askQuit(){if(screen==='battle')quitDialog.showModal();else home();}
 quitButton.onclick=askQuit;document.querySelector('#keep-playing').onclick=()=>quitDialog.close();document.querySelector('#confirm-quit').onclick=()=>{quitDialog.close();home();};
-function orient(){rotate.hidden=screen!=='battle'||!orientation.matches;quitButton.hidden=screen!=='battle';document.querySelector('.prototype-tag').hidden=screen==='battle';}
+function orient(){setMusic(screen==='battle'?'battle':screen==='result'?'victory':'title');rotate.hidden=screen!=='battle'||!orientation.matches;quitButton.hidden=screen!=='battle';document.querySelector('.prototype-tag').hidden=screen==='battle';}
 orientation.addEventListener('change',orient);
 async function checkForUpdate(){try{const r=await fetch(location.pathname,{cache:'no-store'});const html=r.ok?await r.text():'';const m=html.match(/GAME_VERSION\s*=\s*(\d+)/);if(m&&+m[1]!==window.GAME_VERSION)updateAvailable=true;}catch{}return updateAvailable;}
 function applyUpdate(){if(!updateAvailable)return false;try{if(sessionStorage.getItem('cb-reloadedFor')===String(window.GAME_VERSION))return false;sessionStorage.setItem('cb-reloadedFor',String(window.GAME_VERSION));}catch{}location.replace(location.pathname+'?v='+Date.now()+(debug?'&debug=1':''));return true;}
