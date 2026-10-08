@@ -84,3 +84,8 @@ test('practice AI frequently takes harmless or silly actions rather than stronge
  }
  assert.ok(nonAttacks>450,`non-attacks: ${nonAttacks}`);
 });
+
+test('practice selection safely handles an empty collection',async()=>{
+ const {choosePracticeTeam}=await import('../src/ai.js');
+ assert.deepEqual(choosePracticeTeam([],{rules,openingType:'fire',aiRng:12}),{team:[],aiRng:12});
+});

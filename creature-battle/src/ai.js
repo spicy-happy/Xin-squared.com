@@ -99,6 +99,7 @@ export function chooseTeam(collection, { difficulty='easy', aiRng } = {}) {
 // Select from the weakest matchups first, with random ties; Hard stays unchanged.
 export function choosePracticeTeam(collection,{rules,openingType,playerTeam=[],aiRng}){
  const random=randomSource(aiRng),rule=teamRule(collection),team=[];
+ if(!rule.canBattle)return {team,aiRng:random.state};
  const types=playerTeam.length?playerTeam.map(c=>c.type):[openingType];
  for(let i=0;i<rule.size;i++){
   const options=collection.filter(c=>rule.duplicates||!team.some(m=>m.id===c.id));
