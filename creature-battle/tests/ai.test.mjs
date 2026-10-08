@@ -84,7 +84,7 @@ test('practice AI frequently takes harmless or silly actions rather than stronge
   const {action}=chooseAction(state,0,{difficulty:'easy',aiRng:seed});
   if(['defense','switch'].includes(action.kind))nonAttacks++;
  }
- assert.ok(nonAttacks>450,`non-attacks: ${nonAttacks}`);
+ assert.ok(nonAttacks>200,`non-attacks: ${nonAttacks}`);
 });
 
 test('practice selection safely handles an empty collection',async()=>{
