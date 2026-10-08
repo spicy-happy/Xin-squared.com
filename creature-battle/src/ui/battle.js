@@ -2,15 +2,16 @@ import { getActions, whoseTurn } from '../engine.js';
 import { eventLines } from '../messages.js';
 import { typeChip } from './components.js';
 import { playSound } from './audio.js';
+import { battleJuice } from './juice.js';
 const shortMove=name=>innerWidth>740?name:name.replace('Piercing','Pierce').replace('Shield','Shld').replace('Healing','Heal');
 const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x;};
 export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,onAction,onReplacement,onDrain,twoTap,humanSides=[0,1]}){
  const view=structuredClone(initial),fallen=initial.active.map((slot,side)=>initial.teams[side][slot].hp<=0);let locked=false,guardUntil=0,skip=null,selected=null,disposed=false,animationSide=null,typingFrame=0,finishTyping=null;
  let messageId=0;const messageRows=new Map();
- const effects=new Set();app.replaceChildren();const arena=el('section','arena');app.append(arena);
+ app.replaceChildren();const arena=el('section','arena');app.append(arena);
  const box=el('div','text-box');box.id='battle-text';box.setAttribute('aria-label','Battle messages.');arena.append(box);
  const announcement=el('div','sr-only');announcement.setAttribute('role','status');announcement.setAttribute('aria-live','polite');announcement.setAttribute('aria-atomic','true');arena.append(announcement);
- const body=el('div','battle-body');arena.append(body);const sides=[],grids=[],panels=[];
+ const body=el('div','battle-body');arena.append(body);const scenery=el('div','battle-scenery');scenery.setAttribute('aria-hidden','true');body.append(scenery);const sides=[],grids=[],panels=[];
  for(let side=0;side<2;side++){
   const section=el('section','side');section.dataset.side=side;const status=el('div','status'),stage=el('div','stage'),grid=el('div','grid');grid.dataset.grid=side;
   const fighter=el('div','fighter'),img=el('img','creature-sprite'),shadow=el('div','pixel-shadow');shadow.setAttribute('aria-hidden','true');fighter.append(shadow,img);stage.append(fighter);
@@ -93,40 +94,27 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   if(m){if(e.hpAfter!==undefined)m.hp=e.hpAfter;if(e.ppAfter)m.pp={...e.ppAfter};if(e.shieldAfter!==undefined)m.shield=e.shieldAfter;if(e.t==='toughen')m.toughened=true;if(e.rechargingAfter!==undefined)m.recharging=e.rechargingAfter;if(e.t==='faint'){m.recharging=false;m.toughened=false;}}
   if(e.switchesLeft!==undefined)view.switchesLeft[e.side]=e.switchesLeft;if(e.t==='round'){view.order=[...e.order];view.round=e.n;}
  }
- function effect(e){
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches){eventSound(e);return Promise.resolve();}eventSound(e);const jobs=[];
-  const animate=(node,frames,duration=260)=>{const animation=node.animate(frames,{duration,easing:'steps(8,end)'});effects.add(animation);jobs.push(animation.finished.catch(()=>{}).finally(()=>effects.delete(animation)));};
-  const side=e.t==='hit'?e.target:e.side,img=panels[side]?.img;
-  if(e.t==='use'){
-   if(view.rules.moves.defense[e.moveId])return Promise.resolve();
-   const special=!!view.rules.moves.special[e.moveId];if(special){const source=panels[e.side].img.getBoundingClientRect(),target=panels[1-e.side].img.getBoundingClientRect(),area=fx.getBoundingClientRect(),spark=el('div',`projectile type-${active(e.side).type}`);spark.style.left=`${source.x+source.width/2-area.x}px`;spark.style.top=`${source.y+source.height/2-area.y}px`;fx.append(spark);
-    animate(spark,[{transform:'translate(0,0)'},{transform:`translate(${target.x-source.x}px,${target.y-source.y}px)`}],300);jobs.at(-1).then(()=>spark.remove());
-   }else animate(img,[{transform:'translateX(0)'},{transform:`translateX(${e.side===0?16:-16}px)`},{transform:'translateX(0)'}]);
-  }else if(['hit','recoil'].includes(e.t))animate(img,[{opacity:1,transform:'translateX(0)'},{opacity:.2,transform:'translateX(-4px)'},{opacity:1,transform:'translateX(4px)'},{opacity:.2,transform:'translateX(-4px)'},{opacity:1,transform:'translateX(0)'}]);
-  else if(e.t==='miss')animate(panels[1-e.side].img,[{transform:'translateX(0)'},{transform:`translateX(${e.side===0?12:-12}px)`},{transform:'translateX(0)'}]);
-  else if(['heal','shieldUp','toughen'].includes(e.t)){animate(img,[{filter:'brightness(1)'},{filter:'brightness(1.8)'},{filter:'brightness(1)'}],320);
-   for(let i=0;i<3;i++){const spark=el('div',`defense-spark ${e.t==='heal'?'heal-spark':'shield-spark'}`);spark.style.left=`${40+i*24}px`;spark.style.bottom=`${24+i*8}px`;panels[e.side].fighter.append(spark);animate(spark,[{transform:'translateY(0)',opacity:1},{transform:'translateY(-32px)',opacity:0}],320);jobs.at(-1).then(()=>spark.remove());}
-  }else if(['enter','switch'].includes(e.t))animate(img,[{opacity:0,transform:'translateY(-12px)'},{opacity:1,transform:'translateY(0)'}],220);
-  else if(e.t==='faint')animate(img,[{opacity:1,transform:'translateY(0)'},{opacity:1,transform:`translateY(${panels[e.side].stage.clientHeight+img.clientHeight}px)`}],560);
-  return Promise.all(jobs);
- }
+ const juice=battleJuice({panels,fx,scenery,active});
+ function effect(e,onImpact){if(!['hit','recoil'].includes(e.t)||matchMedia('(prefers-reduced-motion: reduce)').matches)eventSound(e);return juice.effect(e,onImpact);}
  function eventSound(e){const sound=e.t==='use'?(view.rules.moves.special[e.moveId]?'special':view.rules.moves.defense[e.moveId]?null:'regular'):({hit:'hit',recoil:'hit',heal:'heal',shieldUp:'shield',toughen:'shield',switch:'switch',enter:'switch',faint:'faint'})[e.t];if(sound)playSound(sound);}
  async function animate(events){
   animationSide=events.find(e=>['use','switch','rest'].includes(e.t))?.side??events.find(e=>e.t==='round')?.order[0]??whoseTurn(getState()).side??getState().winner??0;locked=true;controls();
   let cancelled=false,wake,buffer=[],pendingEntry=null;
-  skip=()=>{cancelled=true;finishTyping?.();for(const animation of effects)animation.cancel();wake?.();};
+  skip=()=>{cancelled=true;finishTyping?.();juice.cancel();wake?.();};
   for(const e of events){
-   if(disposed)return;const previous=[name(0),name(1)],repeatedEntry=e.t==='enter'&&e.side===pendingEntry;pendingEntry=e.t==='switch'?e.side:null;applyEvent(e);paint();controls();if(repeatedEntry)continue;const lines=messages(e,previous);
+   if(disposed)return;
+   if(e.t==='switch'&&!cancelled){await juice.exit(e.side);if(disposed)return;}
+   const previous=[name(0),name(1)],repeatedEntry=e.t==='enter'&&e.side===pendingEntry;pendingEntry=e.t==='switch'?e.side:null;const delayedHit=e.t==='hit'&&!cancelled&&!matchMedia('(prefers-reduced-motion: reduce)').matches;if(!delayedHit)applyEvent(e);paint();controls();if(repeatedEntry)continue;const lines=messages(e,previous);
    if(!lines.length)continue;const paragraph=lines.reduce((a,b)=>join(a,b));
    if(['hit','miss','heal','shieldUp','toughen','shieldBreak','hangOn','recoil'].includes(e.t)&&buffer.length)buffer[buffer.length-1]=join(buffer.at(-1),paragraph);
    else buffer=[...buffer,paragraph].slice(-2);
    if(cancelled){eventSound(e);continue;}
-   await Promise.all([line(buffer,true),effect(e)]);
+   await Promise.all([line(buffer,true),effect(e,delayedHit?()=>{applyEvent(e);paint();controls();}:undefined)]);
    if(!cancelled&&['hit','heal','faint','switch','rest','win'].includes(e.t))await new Promise(resolve=>{const timer=setTimeout(resolve,Math.max(1100,paragraph.text.split(/\s+/).length*200));wake=()=>{clearTimeout(timer);resolve();};});
   }
   if(disposed)return;Object.assign(view,structuredClone(getState()));skip=null;locked=false;guardUntil=Date.now()+400;paint();controls();const prompt=turnLine(),last=buffer.at(-1);if(last?.kind==='faint')buffer[buffer.length-1]=join(last,prompt);else buffer.push(prompt);line(buffer.slice(-3));announcement.textContent=prompt.text;
   setTimeout(()=>{if(!disposed){controls();onDrain();}},400);
  }
  paint();controls();line([turnLine()]);
- return {animate,dispose(){disposed=true;if(skip)skip();finishTyping?.();for(const animation of effects)animation.cancel();},isLocked:()=>locked||Date.now()<guardUntil,refresh:paint};
+ return {animate,dispose(){disposed=true;if(skip)skip();finishTyping?.();juice.cancel();},isLocked:()=>locked||Date.now()<guardUntil,refresh:paint};
 }

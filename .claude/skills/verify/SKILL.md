@@ -183,3 +183,9 @@ Background music uses the supplied title, battle and victory MP3s.
 Run tools/music-browser.mjs for media playback, menu/battle/quit transitions,
 looping and mute checks. Complete prototype-browser matches also verify track
 selection on the real Result screen.
+
+Version 33 uses src/ui/juice.js for distinct move timelines, windup/contact/
+recovery, battlefield-only shake/flash, switch-out hops, entrances and fainting.
+Hit HP and sound updates wait for contact. Reduced motion skips visuals.
+Run tools/juice-browser.mjs for all 11 moves plus Struggle, lifecycle cleanup,
+small-screen layouts and reduced motion. arena-browser checks real HP timing.

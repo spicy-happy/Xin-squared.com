@@ -1,0 +1,9 @@
+# Version 33: combat juice
+
+Each of all 11 supported moves plus Struggle has a distinct presentation: Tackle lunges; Quick Strike leaves three afterimages; Piercing Jab makes a pointed slash; Body Slam jumps and sends out a ground ring; Energy Burst charges an orb; Wild Blast fires three jagged bolts; Double Rush makes two contact hops; Mega Burst gathers particles and fires a large charged projectile; Bubble Shield expands an elastic pixel bubble; Healing Glow lifts the creature among green hearts; Iron Hide raises armor plates and shards; Struggle flails with dust.
+
+Every move has windup, contact and recovery. HP updates and hit sounds land at contact. Impacts squash/stretch the target, use one low-opacity warm flash, scatter pixel particles and shake the battlefield 2–6 pixels; narration, HP labels and controls stay still. Entrances hop and squash on landing; voluntary switches hop the old creature out before changing its image, then hop the new one in. Fainting compresses, tips and drops the sprite below the stage. Smaller screens use lower arcs and extra sprite headroom.
+
+Presentation never draws battle RNG or changes rules, PP or turn flow. Reduced motion skips added movement, particles, shake and flashes while still applying events, playing audio and showing narration. Dispose cancels animations and removes temporary nodes.
+
+Verification: version/message tests pass. tools/juice-browser.mjs checks distinct timelines for all 12 actions, entrances on both sides, hopping out, faint/miss/Last Chance/shield break, cleanup and cancellation, static log/buttons and reduced motion at 1024×768, 667×375 and 844×390. tools/arena-browser.mjs drives real buttons and verifies HP waits through anticipation, then updates at impact; layout, controls, typing and audio pass at three sizes. Full Normal, Hard and two-player matches and the stable-message regression pass.
