@@ -15,7 +15,7 @@ export function eventLines(event, { name = side => `Creature ${side + 1}`, train
     case 'hangOn': return [`${n} hung on with 1 HP!`];
     case 'recoil': return [`${n} got hurt too! (−${event.amount})`];
     case 'heal': return [event.amount ? `${n} healed ${event.amount}!` : `${n} already has full HP.`];
-    case 'shieldUp': return ['A bubble shield popped up!'];
+    case 'shieldUp': return [event.amount ? `Bubble Shield protects ${event.amount} HP!` : `${n} already has full HP.`];
     case 'toughen': return [`${n} got tougher!`];
     case 'rest': return [`${n} is taking a nap... zZ`];
     case 'switch': return [`Come back, ${previous(event.side)}!`, `Go, ${n}!`];

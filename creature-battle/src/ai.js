@@ -49,7 +49,11 @@ export function scoreAction(s, side, action, difficulty = 'normal') {
     // Value the real gain rather than a fixed small score that attacks always beat.
     const [num,den]=s.rules.moves.defense[id].factor;
     if (id==='heal') return frac < 0.45 ? Math.min(me.maxHp-me.hp, roundHalfUp(me.maxHp*num,den))*0.85 : -5;
-    if (id==='guard') return frac > 0.6 ? 13 : 4;
+    if (id==='guard') {
+      const full = roundHalfUp(me.maxHp*num,den);
+      const gain = Math.max(0,Math.min(me.maxHp-me.hp,full)-me.shield);
+      return gain ? (frac > 0.6 ? 13 : 4)*gain/full : -5;
+    }
     return frac > 0.6 ? 13 : 4;
   }
   const ratio=matchup(s.rules,me,foe), bench=s.teams[side][action.index];
