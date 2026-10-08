@@ -119,12 +119,12 @@ and `BATTLE_ORIGIN` for the local environment.
 
 During battle, wait until enabled `[data-action]` buttons are interactive
 (animations drain, then a 400 ms guard). Read `needReplacement`, or `order[slot]`, from `__battleDebug.state()`
-to select the correct `[data-side]`. For an action, tap its category (one tap; no confirmation setting); for replacement, click `[data-bench]` in the mandatory tray. Only
-`#battle-text` finishes the current action. Its full-width top log types letters
+to select the correct `[data-side]`. For an action, tap its category (one tap; no confirmation setting); for replacement, click `[data-bench]` in the mandatory tray. The read-only `#battle-text` log types letters
 and shows up to three lines; the turn prompt is part of the log. There is no
-round banner, turn tab or Battle Log button. Moves show category and PP fraction.
-Exhausted attacks are disabled; Tired Attack becomes available when both attack
-PP pools are empty. HP uses a continuous fill inside a stepped border, with the type chip below the bar
+round banner, turn tab or Battle Log button. Moves show their actual names (abbreviated on small screens) and PP fraction.
+Exhausted attacks are disabled; the two attack buttons combine into Struggle when both attack
+PP pools are empty. Struggle deals small neutral damage with recoil that can faint
+its user. HP uses a continuous fill inside a stepped border, with the type chip below the bar
 beside the HP numbers. Medium HP is amber; low HP is red and pulses (except with
 reduced motion).
 The creatures share one floor, with stepped shadows and small attack/defense effects.
@@ -147,7 +147,9 @@ Engine revisions: voluntary switching spends an action. A creature fainting
 before its action is replaced immediately, and its replacement inherits that
 unspent slot. Last Chance can save a heavy lethal hit (post-shield damage at least
 floor(maxHp / 2)) once per creature if its HP was above 1. Healing and switching
-do not reset it. Normal's first bot creature is weak to the child's first pick
-when such a creature exists. Three approved non-prototype entries automatically
+do not reset it. Normal favours matchups for each child pick and uses 85% random legal choices.
+After a faint, consecutive turns across the next round boundary are prevented.
+The sole surviving creature enters automatically; defense remains usable while PP
+remains, even at full HP or when already protected. Three approved non-prototype entries automatically
 retire TEST entries from the loaded collection. Run tools/playtest-browser.mjs
 for the UI checks, including replacement tray size and disabled fainted cards.

@@ -31,11 +31,11 @@ test('faint before action gives the replacement the unspent turn',()=>{
   assert.ok(!ev(replaced,'round'));assert.deepEqual(whoseTurn(replaced.state),{side:1,need:'action'});
   assert.equal(replaced.state.switchesLeft[1],3);assert.equal(replaced.state.slot,1);
 });
-test('faint after action has no skip; faster replacement gives double after second-slot KO',()=>{
+test('faint after action prevents a consecutive turn after second-slot KO',()=>{
   let {state:s}=match(fast,slow);s.teams[0][1].stats.speed=0;s.teams[1][0].stats.speed=3;
   s=act(s).state;active(s,0).hp=1;
   const r=act(s);assert.ok(ev(r,'faint'));assert.ok(!ev(r,'skip'));
-  const replaced=chooseReplacement(r.state,0,1);assert.equal(ev(replaced,'round').double,1);
+  const replaced=chooseReplacement(r.state,0,1);assert.equal(ev(replaced,'round').double,null);assert.equal(whoseTurn(replaced.state).side,0);
 });
 test('switch preserves current order and next round can give consecutive turns',()=>{
   let {state:s}=match(fast,slow);s=act(s).state;s.teams[1][1].stats.speed=5;active(s,0).stats.speed=1;
@@ -92,12 +92,12 @@ test('Guard persists, absorbs final crit/type damage, partial absorption and bre
   active(s,0).shield=2;r=act(s);assert.equal(ev(r,'hit').absorbed,2);assert.ok(ev(r,'shieldBreak'));assert.equal(active(r.state,0).shield,0);
   s=r.state;active(s,0).shield=20;s=act(s,'switch',1).state;assert.equal(s.teams[0][0].shield,0);
 });
-test('Toughen cannot stack, switch clears; Heal disabled at full and capped',()=>{
+test('Toughen cannot stack, switch clears; Heal usable at full and capped',()=>{
   let {state:s}=match({...fast,moves:moves('steady','blast','toughen')},slow);
   s=act(s,'defense').state;s=act(s).state;
-  assert.equal(getActions(s,0).find(a=>a.kind==='defense').reason,'Already tough!');
+  assert.equal(getActions(s,0).find(a=>a.kind==='defense').enabled,true);
   s=act(s,'switch',1).state;assert.equal(s.teams[0][0].toughened,false);
-  s=match(fast,slow).state;assert.equal(getActions(s,0).find(a=>a.kind==='defense').reason,'Already full!');
+  s=match(fast,slow).state;assert.equal(getActions(s,0).find(a=>a.kind==='defense').enabled,true);
   active(s,0).hp--;const r=act(s,'defense');assert.equal(ev(r,'heal').amount,1);assert.equal(active(r.state,0).hp,96);
 });
 test('Piercing ignores Defense, respects Toughen and shield',()=>{
@@ -166,4 +166,48 @@ test('rules stay deeply frozen after actions and replacements',()=>{
 test('ordinary finishing hits do not trigger Last Chance; shields reduce the heavy-hit threshold',()=>{
  let {state:s}=match(fast,slow);active(s,1).hp=2;const r=act(s);assert.ok(!ev(r,'hangOn'));assert.equal(active(r.state,1).hp,0);
  s=match({...fast,moves:moves('steady','overload')},slow).state;active(s,1).hp=2;active(s,1).shield=50;const q=act(s,'special');assert.ok(!ev(q,'hangOn'));
+});
+
+test('a replacement inherits one turn but cannot chain another after a faint',()=>{
+ let {state:s}=match(fast,slow);s.teams[1][1].stats.speed=5;active(s,0).stats.speed=3;active(s,1).hp=1;
+ s=act(s).state;s=chooseReplacement(s,1,1).state;
+ assert.equal(whoseTurn(s).side,1);s=act(s).state;
+ assert.equal(whoseTurn(s).side,0);assert.deepEqual(s.order,[0,1]);
+});
+test('the sole surviving creature enters automatically without spending its turn or switch',()=>{
+ let {state:s}=match(fast,slow);active(s,1).hp=1;s.teams[1][1].hp=0;
+ const r=act(s);assert.equal(r.state.active[1],2);assert.ok(ev(r,'enter'));assert.ok(!ev(r,'needReplace'));
+ assert.equal(whoseTurn(r.state).side,1);assert.equal(r.state.switchesLeft[1],3);
+});
+test('defenses can be repeated or used at full HP while PP remains, without stacking',()=>{
+ for(const id of ['heal','guard','toughen']){
+  let {state:s}=match({...fast,moves:moves('steady','blast',id)},slow);
+  for(let i=0;i<3;i++){
+   assert.equal(getActions(s,0).find(a=>a.kind==='defense').enabled,true);
+   const r=act(s,'defense');assert.equal(active(r.state,0).pp.defense,2-i);
+   if(id==='heal'&&i===0)assert.equal(ev(r,'heal').amount,0);
+   s=act(r.state,'defense').state;
+  }
+  assert.equal(getActions(s,0).find(a=>a.kind==='defense').enabled,false);
+ }
+});
+test('Struggle causes small recoil even against a shield and can faint its user',()=>{
+ let {state:s}=match(fast,slow);active(s,0).pp.regular=active(s,0).pp.special=0;
+ active(s,1).shield=999;active(s,0).hp=1;s.teams[0][1].hp=0;
+ const r=act(s,'fallback');assert.equal(ev(r,'hit').amount,0);assert.equal(ev(r,'recoil').amount,1);
+ assert.equal(ev(r,'faint').side,0);assert.equal(r.state.active[0],2);assert.ok(!ev(r,'needReplace'));
+ assert.equal(whoseTurn(r.state).side,1);assert.equal(r.state.rng,s.rng);
+ s=match(fast,slow).state;active(s,0).pp.regular=active(s,0).pp.special=0;
+ s.teams[0].forEach(m=>m.hp=0);active(s,0).hp=1;
+ assert.equal(act(s,'fallback').state.winner,1);
+});
+
+test('Struggle double faint resolves both replacements and final-hit victory deterministically',()=>{
+ let {state:s}=match(fast,slow);active(s,0).pp.regular=active(s,0).pp.special=0;active(s,0).hp=active(s,1).hp=1;
+ const r=act(s,'fallback');assert.equal(r.events.filter(e=>e.t==='faint').length,2);
+ s=chooseReplacement(r.state,0,1).state;assert.deepEqual(whoseTurn(s),{side:1,need:'replacement'});
+ s=chooseReplacement(s,1,1).state;assert.deepEqual(whoseTurn(s),{side:1,need:'action'});
+ assert.equal(whoseTurn(act(s).state).side,0);
+ s=match(fast,slow).state;s.teams.flat().forEach(m=>m.hp=0);active(s,0).hp=active(s,1).hp=1;active(s,0).pp.regular=active(s,0).pp.special=0;
+ assert.equal(act(s,'fallback').state.winner,0);
 });

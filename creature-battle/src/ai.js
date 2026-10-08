@@ -63,7 +63,7 @@ export function chooseAction(state, side, { difficulty = 'easy', aiRng, lastSwit
   let actions=getActions(s,side).filter(a=>a.enabled);
   if (difficulty==='easy' && lastSwitch) actions=actions.filter(a=>a.kind!=='switch');
   if (!actions.length) throw Error('No legal action');
-  const mistake=random.draw() < (difficulty==='easy' ? 0.5 : 0.1);
+  const mistake=random.draw() < (difficulty==='easy' ? 0.85 : 0.1);
   const action=mistake ? actions[Math.floor(random.draw()*actions.length)] :
     actions.reduce((best,a)=>scoreAction(s,side,a,difficulty)>scoreAction(s,side,best,difficulty)?a:best);
   return { action: { kind: action.kind, ...(action.index === undefined ? {} : {index:action.index}) },
@@ -95,15 +95,17 @@ export function chooseTeam(collection, { difficulty='easy', aiRng } = {}) {
   return { team: structuredClone(team), aiRng:random.state };
 }
 
-// Normal mode gives the child a favourable first matchup using only the chosen
-// opening type. Hard mode and the balance harness keep their existing team policy.
-export function choosePracticeTeam(collection,{rules,openingType,aiRng}){
- const chosen=chooseTeam(collection,{difficulty:'easy',aiRng});
- const weak=collection.filter(c=>typeMult(rules,openingType,c.type)>1);
- if(!weak.length)return chosen;
- const random=randomSource(chosen.aiRng),first=weak[Math.floor(random.draw()*weak.length)];
- const rest=chosen.team.filter(c=>c.id!==first.id);
- for(const c of collection)if(rest.length<2&&c.id!==first.id&&!rest.some(m=>m.id===c.id))rest.push(structuredClone(c));
- while(rest.length<2)rest.push(structuredClone(first));
- return {team:[structuredClone(first),...rest.slice(0,2)],aiRng:random.state};
+// Normal openly uses the child's chosen team to offer favourable matchups.
+// Select from the weakest matchups first, with random ties; Hard stays unchanged.
+export function choosePracticeTeam(collection,{rules,openingType,playerTeam=[],aiRng}){
+ const random=randomSource(aiRng),rule=teamRule(collection),team=[];
+ const types=playerTeam.length?playerTeam.map(c=>c.type):[openingType];
+ for(let i=0;i<rule.size;i++){
+  const options=collection.filter(c=>rule.duplicates||!team.some(m=>m.id===c.id));
+  const score=c=>typeMult(rules,types[i%types.length],c.type)/typeMult(rules,c.type,types[i%types.length]);
+  const best=Math.max(...options.map(score));
+  const pool=options.filter(c=>score(c)===best);
+  team.push(pool[Math.floor(random.draw()*pool.length)]);
+ }
+ return {team:structuredClone(team),aiRng:random.state};
 }

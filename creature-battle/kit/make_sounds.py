@@ -12,7 +12,7 @@ SCORES = {
  'shield': [(660, 880, .12, 'triangle'), (880, 660, .12, 'triangle')],
  'switch': [(440, 220, .08, 'square'), (220, 660, .10, 'square')],
  'faint': [(330, 80, .30, 'triangle')],
- 'win': [(330, 330, .10, 'square'), (440, 440, .10, 'square'), (660, 660, .12, 'square'), (880, 880, .25, 'triangle')],
+ 'win': [(523,523,.14,'square'), (659,659,.14,'square'), (784,784,.14,'square'), (1047,1047,.28,'triangle'), (880,880,.14,'square'), (988,988,.14,'square'), (1047,1047,.42,'triangle')],
 }
 def generate():
  OUT.mkdir(parents=True, exist_ok=True)

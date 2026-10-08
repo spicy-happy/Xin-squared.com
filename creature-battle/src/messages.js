@@ -6,7 +6,7 @@ export function eventLines(event, { name = side => `Creature ${side + 1}`, train
     case 'round': return [event.reason === 'speed' ? `${name(event.order[0])} is faster!` : `Coin toss: ${name(event.order[0])} goes first!`,
       ...(event.double !== null ? [`${name(event.double)} goes again!`] : [])];
     case 'use': return [`${n} used ${event.name}!`, ...(event.moveId === 'overload' ? [`${n} used a huge move. Next turn: nap.`] : [])];
-    case 'fallback': return [`${n} is worn out… Tired Tackle!`];
+    case 'fallback': return [`${n} has no attacks left.`];
     case 'miss': return ['So close! It missed!'];
     case 'hit': return [...(event.absorbed ? [`The shield blocked ${event.absorbed}!`] : []), `It dealt ${event.amount} damage.`,
       ...(event.eff === 'strong' ? ["It's super effective!"] : event.eff === 'weak' ? ["It's not very effective…"] : []),
@@ -14,7 +14,7 @@ export function eventLines(event, { name = side => `Creature ${side + 1}`, train
     case 'shieldBreak': return ['The shield broke!'];
     case 'hangOn': return [`${n} hung on with 1 HP!`];
     case 'recoil': return [`${n} got hurt too! (−${event.amount})`];
-    case 'heal': return [`${n} healed ${event.amount}!`];
+    case 'heal': return [event.amount ? `${n} healed ${event.amount}!` : `${n} already has full HP.`];
     case 'shieldUp': return ['A bubble shield popped up!'];
     case 'toughen': return [`${n} got tougher!`];
     case 'rest': return [`${n} is taking a nap... zZ`];

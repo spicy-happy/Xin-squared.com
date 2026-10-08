@@ -106,12 +106,16 @@
   "roundCap": 100,
   "hangOn": true,
   "fallback": {
-    "id": "tired",
-    "label": "Tired Tackle",
-    "hint": "always hits",
+    "id": "struggle",
+    "label": "Struggle",
+    "hint": "small hit with recoil",
     "power": 6,
     "accuracy": 100,
-    "crit": false
+    "crit": false,
+    "recoil": [
+      1,
+      4
+    ]
   },
   "moves": {
     "regular": {

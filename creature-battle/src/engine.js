@@ -31,25 +31,26 @@ function startRound(s, events) {
   const speeds = [current(s, 0).stats.speed, current(s, 1).stats.speed];
   const reason = speeds[0] === speeds[1] ? 'coin' : 'speed';
   if (reason === 'coin' && s.pairCoin === null) s.pairCoin = draw(s) < 0.5 ? 0 : 1;
-  const first = reason === 'coin' ? s.pairCoin : +(speeds[1] > speeds[0]);
+  let first = reason === 'coin' ? s.pairCoin : +(speeds[1] > speeds[0]);
+  // After a faint, never chain the inherited slot into another action.
+  if (s.faintTurnGuard && first === s.lastActor) first = 1 - first;
+  s.faintTurnGuard = false;
   s.order = [first, 1 - first];
   events.push({ t: 'round', n: s.round, order: [...s.order], reason, double: s.lastActor === first ? first : null });
 }
 function advance(s, events) {
   while (!s.over) {
-    if (s.slot === 2) {
-      const side = s.active.findIndex((slot, side) => s.teams[side][slot].hp === 0);
-      if (side !== -1) {
-        s.needReplacement = side;
-        events.push({ t: 'needReplace', side });
-        return;
+    const fainted = s.active.findIndex((slot, side) => s.teams[side][slot].hp === 0);
+    if (fainted !== -1) {
+      const living = s.teams[fainted].map((m,index)=>({m,index})).filter(({m})=>m.hp>0);
+      if (living.length === 1) {
+        s.active[fainted] = living[0].index; s.pairCoin = null;
+        enter(s, events, fainted); continue;
       }
-      startRound(s, events);
-      if (s.over) return;
+      s.needReplacement = fainted; events.push({t:'needReplace',side:fainted}); return;
     }
-    const side = s.order[s.slot];
-    const m = current(s, side);
-    if (m.hp === 0) { s.needReplacement=side;events.push({t:'needReplace',side});return; }
+    if (s.slot === 2) { startRound(s, events); if (s.over) return; }
+    const side = s.order[s.slot], m = current(s, side);
     if (m.resting) {
       m.resting = false;
       events.push({ t: 'rest', side });
@@ -89,12 +90,7 @@ export function getActions(state, side) {
   const make = (kind, ok, reason, index) => ({ kind, ...(index === undefined ? {} : { index }), enabled: allowed && ok,
     ...(!allowed ? { reason: "Wait for your turn!" } : !ok ? { reason } : {}) });
   const fallback = m.pp.regular === 0 && m.pp.special === 0;
-  const defense = m.moves.defense.id;
-  const fullShield = fraction(m.maxHp, state.rules.moves.defense.guard.factor);
-  let defenseReason = m.pp.defense === 0 ? 'All used up!' :
-    defense === 'heal' && m.hp === m.maxHp ? 'Already full!' :
-    defense === 'guard' && m.shield === fullShield ? "Shield's already full!" :
-    defense === 'toughen' && m.toughened ? 'Already tough!' : null;
+  const defenseReason = m.pp.defense === 0 ? 'All used up!' : null;
   return [make(fallback ? 'fallback' : 'regular', fallback || m.pp.regular > 0, 'All used up!'),
     make('special', m.pp.special > 0, 'All used up!'), make('defense', !defenseReason, defenseReason),
     ...state.teams[side].map((bench, index) => make('switch', index !== state.active[side] && bench.hp > 0 && state.switchesLeft[side] > 0,
@@ -142,16 +138,18 @@ export function applyAction(input, side, action) {
           absorbed, shieldAfter: foe.shield, hpAfter: foe.hp });
         if (absorbed > 0 && foe.shield === 0) events.push({ t: 'shieldBreak', side: target });
         if (hangOn) events.push({ t: 'hangOn', side: target });
-        if (move.recoil && amount > 0 && m.hp > 1) {
-          const recoil = Math.min(m.hp - 1, Math.max(1, fraction(amount, move.recoil))); m.hp -= recoil;
+        if (move.recoil && (fallback || amount > 0) && (fallback || m.hp > 1)) {
+          const recoil = Math.min(fallback ? m.hp : m.hp - 1, Math.max(1, fraction(amount, move.recoil))); m.hp -= recoil;
           events.push({ t: 'recoil', side, amount: recoil, hpAfter: m.hp });
         }
         if (move.rest) m.resting = true;
-        if (foe.hp === 0) {
-          foe.resting = false; leave(foe); s.pairCoin = null;
-          events.push({ t: 'faint', side: target, ...snapshot(foe) });
-          if (s.teams[target].every(x => x.hp === 0)) win(s, events, side, 'ko');
+        for (const [faintedSide, creature] of [[target,foe],[side,m]]) if (creature.hp === 0) {
+          creature.resting = false; leave(creature); s.pairCoin = null; s.faintTurnGuard = true;
+          events.push({t:'faint',side:faintedSide,...snapshot(creature)});
         }
+        // A final hit wins even if Struggle's recoil also faints its user.
+        if (s.teams[target].every(x=>x.hp===0)) win(s,events,side,'ko');
+        else if (s.teams[side].every(x=>x.hp===0)) win(s,events,target,'ko');
       }
     }
   }

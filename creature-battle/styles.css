@@ -45,3 +45,8 @@
 @media(min-height:600px){.battle-body{grid-template-rows:92px minmax(120px,1fr) 120px}.hp-details .type-chip{font-size:18px}.tray .bench-card{min-height:60px;font-size:22px}.bench-card img{width:40px;height:40px}.bench-name small{font-size:18px}.tray .type-chip{font-size:16px}.grid button{font-size:24px}}
 @media(max-height:500px) and (min-width:700px){.trainer-card{height:88px;min-height:88px;padding:6px 10px;gap:4px}.pick-card{height:128px;min-height:128px}.creature-creator{font-size:14px}}
 @media(max-width:740px) and (orientation:landscape){.battle-body{grid-template-rows:64px minmax(60px,1fr) 76px}.hp-details .type-chip{font-size:12px}.grid button{font-size:17px;gap:4px}.tray{max-height:calc(100dvh - 172px)}}
+
+/* Move names remain readable; the exhausted attack pair becomes Struggle. */
+.grid .struggle { grid-column: 1 / -1; }
+.grid .category { white-space: nowrap; font-size: clamp(14px, 2vw, 24px); }
+#battle-text { cursor: default; }
