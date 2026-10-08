@@ -1,0 +1,10 @@
+import {readFileSync} from 'node:fs';
+import {loadRules} from '../src/rules.js';
+import {loadCollection} from '../src/collection.js';
+const root=new URL('../',import.meta.url);
+try{
+ const rules=loadRules(JSON.parse(readFileSync(new URL('data/rules-v1.json',root))));
+ const source=process.argv[2]??new URL('data/creatures.json',root);
+ const collection=loadCollection(JSON.parse(readFileSync(source)),rules);
+ console.log(`Collection valid: ${collection.length} creatures; creature and trainer names checked.`);
+}catch(error){console.error(error.message);process.exitCode=1;}

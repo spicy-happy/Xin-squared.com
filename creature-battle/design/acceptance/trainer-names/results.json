@@ -1,0 +1,23 @@
+[
+  {
+    "width": 320,
+    "height": 740,
+    "creatorCredits": true,
+    "trainerNames": true,
+    "invalidNamesBlocked": true
+  },
+  {
+    "width": 844,
+    "height": 390,
+    "creatorCredits": true,
+    "trainerNames": true,
+    "invalidNamesBlocked": true
+  },
+  {
+    "width": 1024,
+    "height": 768,
+    "creatorCredits": true,
+    "trainerNames": true,
+    "invalidNamesBlocked": true
+  }
+]
