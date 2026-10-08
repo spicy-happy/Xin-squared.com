@@ -73,9 +73,15 @@ export function chooseAction(state, side, { difficulty = 'easy', aiRng, lastSwit
   if (!actions.length) throw Error('No legal action');
   let action;
   if (difficulty==='easy') {
-    const playful=random.draw()<0.85;
-    action=playful ? actions[Math.floor(random.draw()*actions.length)] :
-      actions.reduce((best,a)=>scoreAction(s,side,a,'easy')>scoreAction(s,side,best,'easy')?a:best);
+    // Usually follow a simple strategy, but deliberately pick a weaker useful
+    // move 30% of the time. Hard alone looks ahead at the opponent's reply.
+    const useful=actions.filter(a=>a.kind!=='defense'||hasDefenseGain(s.rules,cur(s,side)));
+    const scored=useful.map(a=>({action:a,score:scoreAction(s,side,a,'normal')}));
+    const best=Math.max(...scored.map(a=>a.score));
+    const strongest=scored.filter(a=>Math.abs(a.score-best)<1e-8);
+    const alternatives=scored.filter(a=>a.score<best-1e-8);
+    const pool=random.draw()<0.3&&alternatives.length?alternatives:strongest;
+    action=pool[Math.floor(random.draw()*pool.length)].action;
   } else {
     const model=tacticalState(s,side,lastSwitch);
     const useful=actions.filter(a=>a.kind!=='defense'||hasDefenseGain(s.rules,cur(s,side)));
