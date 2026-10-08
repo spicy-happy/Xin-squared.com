@@ -1,0 +1,33 @@
+Samples: random 10000; each paired 4000; Normal/Easy 4000; seed 3
+PASS | type fire (47–53%) | 50.40
+PASS | type water (47–53%) | 49.45
+PASS | type grass (47–53%) | 50.24
+PASS | type electric (47–53%) | 49.90
+PASS | type ground (47–53%) | 49.82
+PASS | type flying (47–53%) | 50.19
+PASS | move steady (46–54%) | 48.95
+PASS | move quick (46–54%) | 49.61
+PASS | move pierce (46–54%) | 50.39
+PASS | move heavy (46–54%) | 51.05
+PASS | move blast (46–54%) | 50.92
+PASS | move risky (46–54%) | 51.06
+PASS | move recoil (46–54%) | 49.08
+PASS | move overload (46–54%) | 48.95
+PASS | move guard (46–54%) | 48.43
+PASS | move heal (46–54%) | 53.78
+PASS | move toughen (46–54%) | 47.75
+PASS | health 5−0 (±3 points) | 1.73
+PASS | attack 5−0 (±3 points) | -0.29
+PASS | defense 5−0 (±3 points) | -1.70
+PASS | speed 5−0 (±3 points) | -0.06
+PASS | paired health→attack (45–55%) | 48.55
+PASS | paired health→defense (45–55%) | 47.80
+PASS | paired attack→defense (45–55%) | 46.95
+PASS | median actions (22–34) | 33.00
+PASS | p90 actions (≤55) | 52.00
+PASS | draws (0) | 0.00
+PASS | safety-cap endings (0) | 0.00
+PASS | Heavy exhausted (3–15%) | 11.05
+PASS | Full Normal beats Easy (≥70%) | 76.50
+Action/replacement-only Normal/Easy on assigned random teams (diagnostic): 68.10%
+Hang on 183/254674 hits (0.0719%); double turns/battle 2.66

@@ -1,9 +1,18 @@
 # Design-review balance simulator (throwaway)
 
+**Superseded for 3v3 balance and paired Health/Attack/Defense transfers.**
+Use `node creature-battle/tools/balance-sim.mjs` from the repository root.
+It runs the real engine and Normal AI; all §10.2 gates pass in the
+[recorded Phase 2 run](../../design/acceptance/phase-2.txt).
+Historical 1v1 experiments remain here as design context; they are not
+regression gates or the game's engine. The harness also measures the full
+Normal/Easy opponents including their independent team selectors, with
+the action/replacement-only comparison retained as a diagnostic.
+
 A small Python model of the battle rules, used to check the numbers in
 [`../PLAN.md`](../PLAN.md). It is **not** the game engine. Once
 `src/engine.js` exists, port the experiments to `tools/balance-sim.mjs` so
-they run against the real rules, and delete this folder.
+they run against the real rules, and retain these files only as historical design evidence.
 
 No dependencies beyond Python 3.10+.
 
