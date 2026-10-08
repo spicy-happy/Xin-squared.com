@@ -41,14 +41,15 @@ test('switch preserves alternating turns even when the new creature is faster',(
   let {state:s}=match(fast,slow);s=act(s).state;s.teams[1][1].stats.speed=5;active(s,0).stats.speed=1;
   const r=applyAction(s,1,{kind:'switch',index:1});assert.deepEqual(ev(r,'round').order,[0,1]);assert.equal(ev(r,'round').double,null);
 });
-test('Overload automatic next-slot rest after KO, no rest action or switch window; faint discards rest',()=>{
+test('Mega Burst recharges its special without skipping a turn, including after a knockout',()=>{
   let {state:s}=match({...fast,moves:moves('steady','overload')},slow);active(s,1).hp=1;
-  const r=act(s,'special');assert.equal(active(r.state,0).resting,true);
-  const repl=chooseReplacement(r.state,1,1);assert.ok(!ev(repl,'rest'));assert.equal(whoseTurn(repl.state).side,1);
-  const reply=act(repl.state);assert.ok(ev(reply,'rest'));repl.state=reply.state;
-  assert.equal(active(repl.state,0).resting,false);assert.ok(!getActions(repl.state,0).some(a=>a.enabled));
-  let {state:q}=match(fast,{...slow,moves:moves('steady','overload')});q=act(q).state;q=act(q,'special').state;
-  active(q,1).hp=1;const killed=act(q);assert.ok(ev(killed,'faint'));assert.equal(active(killed.state,1).resting,false);assert.ok(!ev(killed,'rest'));
+  const r=act(s,'special');assert.equal(active(r.state,0).recharging,true);
+  s=chooseReplacement(r.state,1,1).state;s=act(s,'defense').state;
+  assert.equal(whoseTurn(s).side,0);assert.equal(getActions(s,0).find(a=>a.kind==='special').enabled,false);
+  assert.ok(getActions(s,0).find(a=>a.kind==='regular').enabled);assert.ok(getActions(s,0).find(a=>a.kind==='defense').enabled);
+  const recover=act(s,'regular');assert.equal(whoseTurn(recover.state).side,1);assert.equal(active(recover.state,0).recharging,false);
+  assert.ok(!recover.events.some(e=>e.t==='rest'));s=act(recover.state,'defense').state;
+  assert.equal(getActions(s,0).find(a=>a.kind==='special').enabled,true);
 });
 test('recoil uses actual HP loss, half-up, min 1; cannot KO or emit at 1 HP; shield-all means none',()=>{
   for(const hp of [1,2,6,10]) {
@@ -76,6 +77,7 @@ test('Last Chance is not reset by healing to full or switching out and back',()=
   s=applyAction(s,1,{kind:'switch',index:1}).state;assert.equal(s.teams[1][0].lastChanceUsed,true);
   // A creature healed back to full still has used its one chance.
   s.teams[1][0].hp=s.teams[1][0].maxHp;s.teams[1][0].maxHp=30;s.teams[1][0].hp=30;
+  s=applyAction(s,0,{kind:'defense'}).state;
   s=applyAction(s,1,{kind:'switch',index:0}).state;
   // Wait for the fast attacker's slot; the saved creature's next lethal hit faints it.
   if(whoseTurn(s).side!==0)s=act(s).state;
@@ -262,6 +264,8 @@ test('1000 AI battles alternate spent turns and never save the same creature twi
    }else{
     const choice=chooseAction(s,t.side,policies[t.side]);policies[t.side]={...policies[t.side],...choice};r=applyAction(s,t.side,choice.action);
    }
+   assert.ok(!r.events.some(e=>e.t==='rest'),`no automatically skipped turn, seed ${seed}`);
+   if(t.need==='action'&&!r.state.over&&r.state.needReplacement===null)assert.equal(whoseTurn(r.state).side,1-t.side,`turn must hand off, seed ${seed}`);
    for(const e of r.events){
     if(['use','switch','rest'].includes(e.t)){assert.notEqual(e.side,previous,`consecutive spent turns, seed ${seed}`);previous=e.side;}
     if(e.t==='hangOn'){const key=`${e.side}:${slots[e.side]}`;assert.ok(!saved.has(key),`second Last Chance ${key}, seed ${seed}`);saved.add(key);}
@@ -269,4 +273,21 @@ test('1000 AI battles alternate spent turns and never save the same creature twi
    s=r.state;
   }
  }
+});
+
+
+test('switching always hands off one turn, including switching while recharging',()=>{
+ for(const starts of [0,1]){
+  let {state:s}=starts===0?match(fast,slow):match(slow,fast);
+  active(s,starts).recharging=true;
+  for(const index of [1,0,2]){
+   const r=applyAction(s,starts,{kind:'switch',index});assert.equal(whoseTurn(r.state).side,1-starts);assert.equal(r.events.filter(e=>e.t==='switch').length,1);
+   const reply=applyAction(r.state,1-starts,{kind:'defense'});assert.equal(whoseTurn(reply.state).side,starts);assert.ok(!reply.events.some(e=>e.t==='rest'));s=reply.state;
+  }
+ }
+});
+test('Struggle remains legal during recharge if all other attacks and defenses are unavailable',()=>{
+ let {state:s}=match({...fast,moves:moves('steady','overload')},slow);active(s,0).pp.regular=0;active(s,0).pp.defense=0;active(s,0).recharging=true;s.switchesLeft[0]=0;
+ assert.equal(getActions(s,0).find(a=>a.kind==='fallback').enabled,true);
+ const r=act(s,'fallback');assert.equal(whoseTurn(r.state).side,1);assert.equal(active(r.state,0).recharging,false);
 });

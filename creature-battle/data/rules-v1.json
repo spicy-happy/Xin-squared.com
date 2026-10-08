@@ -178,7 +178,7 @@
       },
       "overload": {
         "label": "Mega Burst",
-        "hint": "HUGE, then nap",
+        "hint": "HUGE, then special recharges",
         "power": 40,
         "pp": 2,
         "accuracy": 100,

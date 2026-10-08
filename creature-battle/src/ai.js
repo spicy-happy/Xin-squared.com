@@ -31,11 +31,11 @@ function attackScore(s, side, action, difficulty) {
   if (foe.shield > 0) score += Math.min(foe.shield,damage(r,me,foe,move,context));
   if (move.recoil) score *= 0.85;
   if (move.rest) {
-    // No rollout: estimate the strongest visible reply. A nap must not expose a KO.
-    const replies = ['regular','special'].filter(k => foe.pp[k] > 0).map(k => r.moves[k][foe.moves[k].id]);
+    // Estimate one reply; recharging blocks only the next special, not the turn.
+    const replies = ['regular','special'].filter(k => foe.pp[k] > 0 && !(k === 'special' && foe.recharging)).map(k => r.moves[k][foe.moves[k].id]);
     if (!replies.length) replies.push(r.fallback);
     const reply = Math.max(...replies.map(m => damage(r, foe, me, m, { first: false })));
-    if (!foe.resting && me.hp <= reply * 2) return -30;
+    if (me.hp <= reply) return -30;
     score *= 0.6;
   }
   return score;
