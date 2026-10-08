@@ -5,7 +5,7 @@ description: Build/launch/drive recipe for verifying changes in this repo (stati
 
 # Verifying changes in xin-squared.com
 
-Static site — no build step, no test suite, no typecheck. Verify by serving
+Static site — no build step or typecheck. Creature Battle has a Node test suite. Verify pages by serving
 the repo and driving pages in headless Chromium.
 
 ## Serve
@@ -77,3 +77,14 @@ are phone-first.
 - Pipeline tests: `cd doodle-dash/kit && .venv/bin/python -m unittest discover -s tests`
   (venv: `python3 -m venv .venv && .venv/bin/pip install -r requirements.txt`).
   Worker tests: `cd pentamino-worker && npm test`.
+
+## Creature Battle
+
+Pure ES modules, tested with Node 22 built-ins (no build or npm dependencies):
+
+```sh
+node --test 'creature-battle/tests/*.test.mjs'
+```
+
+The production collection starts empty. Only tests and `?debug=1` may load
+placeholder creatures; never publish test art as a child's submission.
