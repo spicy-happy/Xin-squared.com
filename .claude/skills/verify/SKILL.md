@@ -169,3 +169,8 @@ only. Run tools/fair-turns-browser.mjs to verify Last Chance plus recoil narrati
 
 Run tools/switch-turn-browser.mjs to drive three real Solo switches, verify
 exactly one bot action each time, and check recharge keeps input available.
+
+Battle narration retains paragraph and text-span nodes while effects extend the
+message. Run tools/messages-browser.mjs to check one row insertion per action,
+no duplicated effect text, switch send-out or faint prompt, and genuine later
+uses of the same move.

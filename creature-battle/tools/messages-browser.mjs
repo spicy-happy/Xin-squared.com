@@ -1,0 +1,23 @@
+const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');import assert from 'node:assert/strict';
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';
+for(const [width,height] of [[667,375],[844,390],[1024,768]]){
+ const p=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.clock.install();await p.goto(origin+'/creature-battle/?debug=1');await p.waitForFunction(()=>window.__battleReady);
+ await p.evaluate(async()=>{
+  const {battleView}=await import(`/creature-battle/src/ui/battle.js?v=${GAME_VERSION}`),{createMatch}=await import(`/creature-battle/src/engine.js?v=${GAME_VERSION}`),rules=await(await fetch('/creature-battle/data/rules-v1.json',{cache:'no-cache'})).json();
+  window.logState=createMatch({rules,teams:[__battleDebug.fixtures().slice(0,3),__battleDebug.fixtures().slice(3,6)],seed:9}).state;
+  logState.teams[0][0].name='Sparky';logState.teams[1][0].name='Bubbles';
+  window.logView=battleView({app:document.querySelector('#app'),initial:logState,trainers:[{nickname:'Xin'},{nickname:'Bot'}],humanSides:[0,1],imageSrc:()=>'/creature-battle/tests/fixtures/placeholder.svg',portraitSrc:()=>'/creature-battle/tests/fixtures/portrait.svg',getState:()=>logState,onAction:()=>{},onReplacement:()=>{},onDrain:()=>{},twoTap:()=>false});
+  window.inserted=[];window.removed=[];window.logObserver=new MutationObserver(records=>{for(const r of records){for(const n of r.addedNodes)if(n.nodeType===1&&n.matches('.message-line'))inserted.push(n);for(const n of r.removedNodes)if(n.nodeType===1&&n.matches('.message-line'))removed.push(n);}});logObserver.observe(document.querySelector('#battle-text'),{childList:true});
+ });
+ const attack=[{t:'use',side:0,moveId:'recoil',name:'Double Rush'},{t:'hit',side:0,target:1,amount:80,absorbed:5,crit:true,eff:'strong',hpAfter:1},{t:'shieldBreak',side:1},{t:'hangOn',side:1},{t:'recoil',side:0,amount:20,hpAfter:76}];
+ await p.evaluate(events=>{window.logDone=logView.animate(events);window.originalRow=document.querySelector('.message-line');},attack);await p.clock.runFor(20000);await p.evaluate(()=>logDone);
+ assert.ok(await p.evaluate(()=>originalRow===document.querySelector('.message-line')),'attack row must survive effects and the turn prompt');assert.equal(await p.evaluate(()=>inserted.filter(n=>n.dataset.text.includes('used Double Rush')).length),1,'one inserted row for one attack');assert.equal(await p.evaluate(()=>removed.includes(originalRow)),false);
+ let log=await p.locator('#battle-text').innerText();for(const sentence of ['used Double Rush!','It dealt 80 damage.','The shield broke!','hung on with 1 HP!','got hurt too!'])assert.equal(log.split(sentence).length-1,1,sentence);
+ // The same move on a later turn is a real new event, not globally suppressed.
+ await p.evaluate(events=>{inserted=[];removed=[];window.logDone=logView.animate(events);},attack);await p.clock.runFor(20000);await p.evaluate(()=>logDone);assert.equal(await p.evaluate(()=>inserted.filter(n=>n.dataset.text.includes('used Double Rush')).length),1);assert.equal((await p.locator('#battle-text').innerText()).split('used Double Rush!').length-1,1);
+ await p.evaluate(()=>{inserted=[];removed=[];window.logDone=logView.animate([{t:'switch',side:0,to:1},{t:'enter',side:0,slot:1}]);});await p.clock.runFor(20000);await p.evaluate(()=>logDone);log=await p.locator('#battle-text').innerText();assert.equal(log.split('Come back,').length-1,1);assert.equal(log.split('Go,').length-1,1);assert.equal(await p.evaluate(()=>inserted.filter(n=>n.dataset.text.includes('Come back')).length),1);
+ await p.evaluate(()=>{inserted=[];removed=[];logState.needReplacement=1;logState.teams[1][0].hp=0;window.logDone=logView.animate([{t:'use',side:0,moveId:'steady',name:'Tackle'},{t:'hit',side:0,target:1,amount:20,absorbed:0,crit:false,eff:null,hpAfter:0},{t:'faint',side:1},{t:'needReplace',side:1}]);});await p.clock.runFor(20000);await p.evaluate(()=>logDone);log=await p.locator('#battle-text').innerText();assert.equal(log.split('Bubbles fainted!').length-1,1);assert.equal(log.split('Bot, choose your next creature.').length-1,1);assert.equal(await p.evaluate(()=>inserted.filter(n=>n.dataset.text.includes('Bubbles fainted!')).length),1);
+ assert.deepEqual(errors,[]);await p.close();
+}
+await browser.close();console.log('Messages: attack, damage, effects, switch, faint and prompt appear once; existing paragraphs retain their DOM identity; identical later actions still appear, at three sizes.');

@@ -1,0 +1,7 @@
+# Version 30: stable battle messages
+
+The log previously removed and recreated all message rows and text spans when each new effect or prompt arrived. Version 28 preserved the typed prefix, but still rebuilt its DOM nodes. Version 30 gives each paragraph its own identity, retains the visible nodes, and adds only new text spans. Appending damage, shield break, Last Chance, recoil or the turn prompt no longer re-inserts the attack paragraph.
+
+Switch narration still suppresses the matching enter event so “Go” appears once. Faint prompts use the paragraph's event kind rather than searching its prose. Mega Burst's recharge note no longer repeats the move name or duplicates the next-turn instruction. A genuine later use of the same move gets a fresh message; text is not globally deduplicated.
+
+Validation: all 62 Node tests pass; message and version tests were rerun after the final wording edit. At 667×375, 844×390 and 1024×768, tools/messages-browser.mjs observes inserted/removed message nodes and verifies one attack row, stable node identity through effects and the prompt, one copy of damage/shield break/Last Chance/recoil, one switch send-out, and one faint/replacement prompt. It also verifies an identical action on a later turn still appears. These are isolated view tests using virtual time. Complete Normal, Hard and two-player matches finish through visible controls using tools/prototype-browser.mjs. Battle rules and AI policy are unchanged.

@@ -6,6 +6,7 @@ const shortMove=name=>innerWidth>740?name:name.replace('Piercing','Pierce').repl
 const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x;};
 export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,onAction,onReplacement,onDrain,twoTap,humanSides=[0,1]}){
  const view=structuredClone(initial),fallen=initial.active.map((slot,side)=>initial.teams[side][slot].hp<=0);let locked=false,guardUntil=0,skip=null,selected=null,disposed=false,animationSide=null,typingFrame=0,finishTyping=null;
+ let messageId=0;const messageRows=new Map();
  const effects=new Set();app.replaceChildren();const arena=el('section','arena');app.append(arena);
  const box=el('div','text-box');box.id='battle-text';box.setAttribute('aria-label','Battle messages.');arena.append(box);
  const announcement=el('div','sr-only');announcement.setAttribute('role','status');announcement.setAttribute('aria-live','polite');announcement.setAttribute('aria-atomic','true');arena.append(announcement);
@@ -22,34 +23,35 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   if(e.t==='round'||e.t==='needReplace'||e.t==='fallback')return [];
   let token='NAME_REF_';while(JSON.stringify([e,name(0),name(1),previous,trainers.map(t=>t.nickname)]).includes(token))token+='X';
   const refs=[name(0),name(1),...previous];return eventLines(e,{name:s=>`${token}${s}_END`,previous:s=>`${token}${s+2}_END`,trainer:s=>trainers[s].nickname}).map(text=>{
-   const parts=text.split(new RegExp(`(${token}[0-3]_END)`)).filter(Boolean).map(part=>{if(!part.startsWith(token))return {text:part};const i=Number(part.slice(token.length,-4));return {text:refs[i],side:i%2};});return {parts,text:parts.map(p=>p.text).join('')};
+   const parts=text.split(new RegExp(`(${token}[0-3]_END)`)).filter(Boolean).map(part=>{if(!part.startsWith(token))return {text:part};const i=Number(part.slice(token.length,-4));return {text:refs[i],side:i%2};});return {id:++messageId,kind:e.t,parts,text:parts.map(p=>p.text).join('')};
   });
  }
- // Announce only new text; typed letters are purely visual.
- function line(lines,seen=null){
-  finishTyping?.();box.replaceChildren();const segments=[],spoken=[];let count=0;
-  for(const message of lines.slice(-3)){
-   const row=el('div','message-line');row.dataset.text=message.text;
-   // Extending a paragraph reveals only its new suffix. Replaying the old
-   // prefix made a single Last Chance look like it happened again on recoil.
-   const revealed=seen?Math.max(0,...[...seen].filter(text=>message.text===text||message.text.startsWith(text+' ')).map(text=>text.length)):message.text.length;
-   spoken.push(seen?message.text.slice(revealed).trim():message.text);
-   let offset=0;
-   for(const part of message.parts){const span=el('span',part.side===undefined?null:`name-chip ${part.side?'right':'left'}`);row.append(span);
-    const stable=Math.max(0,Math.min(part.text.length,revealed-offset)),prefix=part.text.slice(0,stable),suffix=part.text.slice(stable);span.textContent=prefix;
-    if(suffix){segments.push({node:span,prefix,text:suffix,start:count});count+=suffix.length;}
-    offset+=part.text.length;
-   }box.append(row);
+ // Keep message nodes in place. Effects extend their existing paragraph;
+ // repainting earlier lines made one action look as though it happened again.
+ function line(lines,typeNew=false){
+  finishTyping?.();const visible=lines.slice(-3),keep=new Set(visible.map(m=>m.id)),segments=[],spoken=[];let count=0;
+  for(const [id,record]of messageRows)if(!keep.has(id)){record.row.remove();messageRows.delete(id);}
+  for(const message of visible){
+   let record=messageRows.get(message.id);
+   if(!record){record={row:el('div','message-line'),spans:[]};messageRows.set(message.id,record);box.append(record.row);}
+   record.row.dataset.text=message.text;
+   for(let i=0;i<message.parts.length;i++){
+    const part=message.parts[i];let span=record.spans[i];
+    if(!span){span=el('span',part.side===undefined?null:`name-chip ${part.side?'right':'left'}`);record.spans.push(span);record.row.append(span);}
+    const prefix=span.textContent,suffix=part.text.slice(prefix.length);
+    if(!suffix)continue;spoken.push(suffix);
+    if(typeNew){segments.push({node:span,prefix,text:suffix,start:count});count+=suffix.length;}else span.textContent=part.text;
+   }
   }
-  const newText=spoken.filter(Boolean).join(' ');if(newText)announcement.textContent=newText;box.classList.toggle('writing',count>0);
+  const newText=spoken.join('').trim();if(newText)announcement.textContent=newText;box.classList.toggle('writing',count>0);
   if(!count)return Promise.resolve();
   return new Promise(resolve=>{const started=performance.now();const draw=n=>segments.forEach(s=>{s.node.textContent=s.prefix+s.text.slice(0,Math.max(0,n-s.start));});
    finishTyping=()=>{cancelAnimationFrame(typingFrame);draw(count);box.classList.remove('writing');finishTyping=null;resolve();};
    const tick=now=>{if(disposed){finishTyping?.();return;}const n=Math.floor((now-started)/18);draw(n);if(n<count)typingFrame=requestAnimationFrame(tick);else finishTyping?.();};typingFrame=requestAnimationFrame(tick);
   });
  }
- function turnLine(){const turn=whoseTurn(getState());const text=turn.over?'Battle complete.':turn.need==='replacement'?`${trainers[turn.side].nickname}, choose your next creature.`:humanSides.includes(turn.side)?`${trainers[turn.side].nickname}'s turn. Choose a move.`:`${trainers[turn.side].nickname} is choosing a move...`;return {text,parts:[{text}]};}
- const join=(a,b)=>({text:a.text+' '+b.text,parts:[...a.parts,{text:' '},...b.parts]});
+ function turnLine(){const turn=whoseTurn(getState());const text=turn.over?'Battle complete.':turn.need==='replacement'?`${trainers[turn.side].nickname}, choose your next creature.`:humanSides.includes(turn.side)?`${trainers[turn.side].nickname}'s turn. Choose a move.`:`${trainers[turn.side].nickname} is choosing a move...`;return {id:++messageId,kind:'prompt',text,parts:[{text}]};}
+ const join=(a,b)=>({...a,text:a.text+' '+b.text,parts:[...a.parts,{text:' '},...b.parts]});
  function paint(){for(let side=0;side<2;side++){
   const m=active(side),{status,img}=panels[side];status.replaceChildren();const identity=el('div','identity'),portrait=el('img','portrait');portrait.src=portraitSrc(trainers[side]);portrait.alt=trainers[side].nickname;identity.append(portrait,el('span','creature-name',name(side)));status.append(identity);
   const meter=el('div','meter-row'),hp=el('div','hp');hp.setAttribute('role','meter');hp.setAttribute('aria-label',`${m.name} HP`);hp.setAttribute('aria-valuemin','0');hp.setAttribute('aria-valuemax',String(m.maxHp));hp.setAttribute('aria-valuenow',String(m.hp));
@@ -111,7 +113,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
  function eventSound(e){const sound=e.t==='use'?(view.rules.moves.special[e.moveId]?'special':view.rules.moves.defense[e.moveId]?null:'regular'):({hit:'hit',recoil:'hit',heal:'heal',shieldUp:'shield',toughen:'shield',switch:'switch',enter:'switch',faint:'faint',win:'win'})[e.t];if(sound)playSound(sound);}
  async function animate(events){
   animationSide=events.find(e=>['use','switch','rest'].includes(e.t))?.side??events.find(e=>e.t==='round')?.order[0]??whoseTurn(getState()).side??getState().winner??0;locked=true;controls();
-  let cancelled=false,wake,buffer=[],pendingEntry=null;const seen=new Set();
+  let cancelled=false,wake,buffer=[],pendingEntry=null;
   skip=()=>{cancelled=true;finishTyping?.();for(const animation of effects)animation.cancel();wake?.();};
   for(const e of events){
    if(disposed)return;const previous=[name(0),name(1)],repeatedEntry=e.t==='enter'&&e.side===pendingEntry;pendingEntry=e.t==='switch'?e.side:null;applyEvent(e);paint();controls();if(repeatedEntry)continue;const lines=messages(e,previous);
@@ -119,10 +121,10 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
    if(['hit','miss','heal','shieldUp','toughen','shieldBreak','hangOn','recoil'].includes(e.t)&&buffer.length)buffer[buffer.length-1]=join(buffer.at(-1),paragraph);
    else buffer=[...buffer,paragraph].slice(-2);
    if(cancelled){eventSound(e);continue;}
-   await Promise.all([line(buffer,seen),effect(e)]);for(const message of buffer)seen.add(message.text);
+   await Promise.all([line(buffer,true),effect(e)]);
    if(!cancelled&&['hit','heal','faint','switch','rest','win'].includes(e.t))await new Promise(resolve=>{const timer=setTimeout(resolve,Math.max(1100,paragraph.text.split(/\s+/).length*200));wake=()=>{clearTimeout(timer);resolve();};});
   }
-  if(disposed)return;Object.assign(view,structuredClone(getState()));skip=null;locked=false;guardUntil=Date.now()+400;paint();controls();const prompt=turnLine(),last=buffer.at(-1);if(last&&/fainted/.test(last.text))buffer[buffer.length-1]=join(last,prompt);else buffer.push(prompt);line(buffer.slice(-3));announcement.textContent=prompt.text;
+  if(disposed)return;Object.assign(view,structuredClone(getState()));skip=null;locked=false;guardUntil=Date.now()+400;paint();controls();const prompt=turnLine(),last=buffer.at(-1);if(last?.kind==='faint')buffer[buffer.length-1]=join(last,prompt);else buffer.push(prompt);line(buffer.slice(-3));announcement.textContent=prompt.text;
   setTimeout(()=>{if(!disposed){controls();onDrain();}},400);
  }
  paint();controls();line([turnLine()]);
