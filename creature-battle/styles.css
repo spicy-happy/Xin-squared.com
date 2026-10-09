@@ -93,3 +93,6 @@
 .grid.five-actions{grid-template-rows:repeat(3,1fr)}
 
 .attack-warning{display:block;color:#6c3414;font-size:14px;line-height:1.2}.roster-note{font-size:18px}
+
+.pick-card.selected .attack-warning{color:#ffe4a4}
+@media(max-height:500px) and (min-width:700px){.pick-card{height:auto;min-height:166px}}

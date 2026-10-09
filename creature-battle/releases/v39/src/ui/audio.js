@@ -10,10 +10,10 @@ export function setMusic(track){
  if(!['title','battle','victory'].includes(track))throw Error('Unknown music track');
  if(musicTrack===track)return;
  music.pause();musicTrack=track;
- music.src=new URL(`../../assets/music/${track}.mp3?v=${window.GAME_VERSION}`,import.meta.url).href;
+ music.src=new URL(`../../../../assets/music/${track}.mp3?v=${window.GAME_VERSION}`,import.meta.url).href;
  resumeMusic();
 }
-const files=Promise.all(names.map(async name=>{const r=await fetch(new URL(`../../assets/sounds/${name}.wav?v=${window.GAME_VERSION}`,import.meta.url));if(!r.ok)throw Error('Sound unavailable');return [name,await r.arrayBuffer()];})).catch(()=>[]);
+const files=Promise.all(names.map(async name=>{const r=await fetch(new URL(`../../../../assets/sounds/${name}.wav?v=${window.GAME_VERSION}`,import.meta.url));if(!r.ok)throw Error('Sound unavailable');return [name,await r.arrayBuffer()];})).catch(()=>[]);
 function unlock(){
  musicUnlocked=true;resumeMusic();
  if(!context){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return Promise.resolve();context=new Audio();volume=context.createGain();volume.gain.value=muted?0:.55;volume.connect(context.destination);ready=files.then(pairs=>Promise.all(pairs.map(async([name,data])=>buffers.set(name,await context.decodeAudioData(data))))).catch(()=>{});}

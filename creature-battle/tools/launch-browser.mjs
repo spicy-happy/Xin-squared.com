@@ -3,8 +3,16 @@ import {readFileSync} from 'node:fs';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined});
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8918';
+const unavailableAssets=[];
 const page=await browser.newPage({viewport:{width:844,height:390}});
+page.on('response',r=>{if(r.url().includes('/assets/')&&r.status()>=400)unavailableAssets.push(r.url());});
 await page.goto(origin+'/creature-battle/');await page.locator('#play-ai').waitFor();
+await page.locator('#play-ai').click();
+await page.waitForFunction(async()=>{
+ const {soundState}=await import(`/creature-battle/releases/v39/src/ui/audio.js?v=${GAME_VERSION}`);
+ const audio=soundState();return audio.decoded===9 && audio.musicReady>=2;
+});
+assert.deepEqual(unavailableAssets,[]);
 // Exercise the actual juice module with animation timelines frozen at impact.
 const motion=await page.evaluate(async()=>{
  const {battleJuice}=await import(`/creature-battle/releases/v39/src/ui/juice.js?v=${GAME_VERSION}`);
@@ -67,4 +75,4 @@ for(const cached of [[],['src/ui/main.js','src/collection.js'],['src/ui/teampick
  await legacyPage.goto(origin+'/creature-battle/');await legacyPage.waitForURL(/\?v=/);await legacyPage.locator('#play-ai').waitFor();
  await legacyPage.locator('#play-ai').click();await legacyPage.locator('#team-done').waitFor();assert.deepEqual(errors,[]);await legacyPage.close();
 }
-await browser.close();console.log(JSON.stringify({motion,cacheRecovery:true,legacyCompatible:true,mixedV37Caches:true}));
+await browser.close();console.log(JSON.stringify({motion,cacheRecovery:true,legacyCompatible:true,mixedV37Caches:true,audioLoaded:true}));

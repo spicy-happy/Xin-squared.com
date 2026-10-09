@@ -56,3 +56,8 @@ measures positive/negative horizontal movement for both arena sides and shadows,
 plus entry/exit direction and reflection at impact. A forced roster load failure
 recovers through the update check. CI repeats these checks on Linux, builds the
 GitHub Pages output and verifies internal directories are absent.
+
+Fresh review found mixed-cache module linking and a missing creature keepPaper
+argument; both were fixed and regression-tested. The runtime relocation also
+required correcting audio asset URLs. The launch browser check now requires
+nine decoded sound buffers and loaded music. Follow-up review verifies fixes.

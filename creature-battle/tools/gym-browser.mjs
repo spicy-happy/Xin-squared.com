@@ -50,5 +50,5 @@ const animated=await browser.newPage({viewport:{width:844,height:390}});await an
 for(let side=0;side<2;side++){for(const id of ['cr-amphidian','cr-broot01','cr-bassault'])await animated.locator(`.carousel-group:nth-child(2) [data-creature="${id}"]`).click();await animated.locator('#team-done').click();}
 await animated.clock.runFor(6000);assert.equal(await animated.locator('[data-side="1"] .creature-sprite').evaluate(e=>e.style.transform),'scaleX(1)');
 await animated.locator('.grid button.regular:enabled').first().click();await animated.clock.runFor(100);assert.equal(await animated.locator('[data-side="0"] .creature-sprite').evaluate(e=>e.style.transform),'scaleX(-1)');await animated.clock.runFor(6000);
-await animated.setViewportSize({width:390,height:844});assert.equal(await animated.locator('#rotate').isVisible(),true);await animated.close();
+await animated.setViewportSize({width:390,height:844});await animated.clock.runFor(100);await animated.locator('#rotate').waitFor({state:'visible'});assert.equal(await animated.locator('#rotate').isVisible(),true);await animated.close();
 await browser.close();writeFileSync(out+'/results.json',JSON.stringify(results,null,2));console.log(JSON.stringify(results));
