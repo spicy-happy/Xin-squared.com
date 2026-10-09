@@ -17,7 +17,7 @@ assert.deepEqual(await page.locator('#solo-opponent-options [role=option]').allT
 assert.equal(await page.locator('.trainer-win-check').count(),0);assert.ok(!/Gym|gym|More drawings/.test(await page.locator('#app').innerText()));
 // Seed completed results through the same production persistence API used by the result screen.
 await page.evaluate(async()=>{
- const {createTrainerProgress}=await import(`/creature-battle/releases/v42/src/progress.js?v=${GAME_VERSION}`),progress=createTrainerProgress();
+ const {createTrainerProgress}=await import(`/creature-battle/releases/v43/src/progress.js?v=${GAME_VERSION}`),progress=createTrainerProgress();
  const result={mode:'ai',over:true,winner:0,reason:'ko'};
  progress.recordResult({...result,opponentId:'tr-unclemark',difficulty:'hard'});
  progress.recordResult({...result,opponentId:'tr-newartist',difficulty:'easy'});
@@ -36,6 +36,7 @@ for(const [width,height]of [[1024,768],[320,740],[844,390]]){
 // A real visible-control battle verifies that the result screen awards the mark.
 const battle=await browser.newPage({viewport:{width:844,height:390},reducedMotion:'reduce'});battle.on('pageerror',e=>errors.push(e.message));await battle.clock.install({time:new Date('2026-10-09T06:00:00Z')});await battle.addInitScript(()=>{crypto.getRandomValues=values=>{values.fill(17);return values;};});await battle.route('**/data/creatures-v2.json',artistRoster);
 await battle.goto(origin+'/creature-battle/');await battle.locator('#play-ai').click();await battle.locator('#solo-opponent').click();await battle.getByRole('option',{name:'New Artist',exact:true}).click();
+await battle.locator('#opponent-next').click();
 for(const id of ['cr-amphidian','cr-broot01','cr-bassault'])await battle.locator(`.carousel-group:nth-child(2) [data-creature="${id}"]`).click();
 await battle.locator('#team-done').click();await battle.clock.runFor(6000);
 for(let step=0;step<300&&!await battle.locator('#rematch').count();step++){
@@ -45,7 +46,7 @@ for(let step=0;step<300&&!await battle.locator('#rematch').count();step++){
 }
 assert.equal(await battle.getByText('You defeated New Artist on Easy!',{exact:true}).count(),1,await battle.locator('#app').innerText());
 assert.ok(await battle.evaluate(()=>JSON.parse(localStorage.getItem('cb-trainer-victories-v1')||'null')?.easy?.includes('tr-newartist')),'Victory persisted by result screen');
-await battle.locator('#rematch').click();await battle.locator('#team-done').waitFor();assert.equal(await battle.locator('#solo-opponent .trainer-win-check').count(),1);
+await battle.locator('#rematch').click();await battle.locator('#opponent-next').waitFor();assert.equal(await battle.locator('#solo-opponent .trainer-win-check').count(),1);
 await battle.reload();await battle.locator('#play-ai').click();await battle.locator('#solo-opponent').click();assert.equal(await battle.locator('#solo-opponent-tr-newartist .trainer-win-check').count(),1);
 await battle.screenshot({path:out+'/earned-victory.png'});await battle.close();
 assert.deepEqual(errors,[]);await browser.close();writeFileSync(out+'/results.json',JSON.stringify({automaticArtistDiscovery:true,perDifficultyChecks:true,realVictoryRecorded:true,reloaded:true,errors},null,2));console.log('Trainer discovery, per-difficulty checks, persistence and responsive layout pass');

@@ -11,8 +11,8 @@ for(const [width,height]of [[844,340],[667,325],[568,320],[667,375],[1024,768]])
  assert.equal(await p.locator('#sound-toggle').innerText(),'Sound on');
  assert.equal(await p.locator('#sound-toggle').getAttribute('aria-pressed'),'true');
  await p.evaluate(async()=>{
-  const {battleView}=await import(`/creature-battle/releases/v42/src/ui/battle.js?v=${GAME_VERSION}`);
-  const {createMatch,applyAction,chooseReplacement}=await import(`/creature-battle/releases/v42/src/engine.js?v=${GAME_VERSION}`);
+  const {battleView}=await import(`/creature-battle/releases/v43/src/ui/battle.js?v=${GAME_VERSION}`);
+  const {createMatch,applyAction,chooseReplacement}=await import(`/creature-battle/releases/v43/src/engine.js?v=${GAME_VERSION}`);
   const rules=await (await fetch('/creature-battle/data/rules-v2.json')).json(),defs=__battleDebug.fixtures();
   const team=[defs[0],defs[1],defs[2]].map(m=>({...m,name:'ABCDEFGHIJKLMNOPQRSTUVWX'}));
   window.checkState=createMatch({rules,teams:[team,team],seed:9}).state;

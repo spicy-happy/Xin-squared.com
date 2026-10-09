@@ -29,6 +29,7 @@ jobs:
           node creature-battle/tools/trainers-browser.mjs
           node creature-battle/tools/pixels-browser.mjs
           node creature-battle/tools/progress-browser.mjs
+          node creature-battle/tools/setup-browser.mjs
           node creature-battle/tools/launch-browser.mjs
       - uses: actions/jekyll-build-pages@v1
         with:
@@ -42,5 +43,5 @@ jobs:
           test ! -e _site/creature-battle/tools
           test -f _site/creature-battle/index.html
           test -f _site/creature-battle/data/creatures-v2.json
-          test -f _site/creature-battle/releases/v42/src/ui/main.js
+          test -f _site/creature-battle/releases/v43/src/ui/main.js
           test -f _site/creature-battle/output/pdf/creature-sheet.pdf

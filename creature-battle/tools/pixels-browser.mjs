@@ -6,7 +6,7 @@ const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8918',out=process.env.
 const page=await browser.newPage({viewport:{width:1024,height:768}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.goto(origin+'/creature-battle/');await page.locator('#play-ai').click();
 const sprites=await page.evaluate(async()=>{
- const {spriteSrc}=await import(`/creature-battle/releases/v42/src/ui/pixels.js?v=${GAME_VERSION}`);
+ const {spriteSrc}=await import(`/creature-battle/releases/v43/src/ui/pixels.js?v=${GAME_VERSION}`);
  const {creatures}=await (await fetch('data/creatures-v2.json')).json(),results=[];
  for(const c of creatures)for(const src of [c.image.src,c.trainer.portrait]){
   const image=new Image();image.src=spriteSrc(src,c.type);await image.decode();

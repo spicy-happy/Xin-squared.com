@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { loadCollection, validateCreature } from '../releases/v42/src/collection.js';
-import { createMatch, getActions, applyAction, chooseReplacement, whoseTurn } from '../releases/v42/src/engine.js';
-import { chooseAction, chooseReplacement as aiReplacement } from '../releases/v42/src/ai.js';
-import { chooseOpponent, battleTrainers, sameTrainerName } from '../releases/v42/src/trainers.js';
-import { facingFlip } from '../releases/v42/src/moves.js';
+import { loadCollection, validateCreature } from '../releases/v43/src/collection.js';
+import { createMatch, getActions, applyAction, chooseReplacement, whoseTurn } from '../releases/v43/src/engine.js';
+import { chooseAction, chooseReplacement as aiReplacement } from '../releases/v43/src/ai.js';
+import { chooseOpponent, battleTrainers, sameTrainerName, trainerTeam } from '../releases/v43/src/trainers.js';
+import { facingFlip } from '../releases/v43/src/moves.js';
 import { rules } from './helpers.mjs';
 const raw=JSON.parse(readFileSync(new URL('../data/creatures-v2.json',import.meta.url)));
 const collection=loadCollection(raw,rules).filter(c=>!c.prototype);
@@ -85,4 +85,12 @@ test('every submitted artist is battleable even with only one creature; test art
  const prototype={...second,id:'cr-proto',prototype:true,trainer:{...second.trainer,id:'tr-test'}};
  const all=[...collection,second,prototype];assert.deepEqual(battleTrainers(all).map(t=>t.id),['tr-unclemark','tr-newartist']);
  const opponent=chooseOpponent(all,'tr-newartist',3);assert.equal(opponent.trainer.nickname,'New Artist');assert.equal(opponent.team.length,3);assert.ok(opponent.team.every(c=>c.id===second.id));assert.equal(opponent.trainer.gymLeader,undefined);
+});
+
+test('trainer auto-fill uses their own first three drawings and never duplicates in a full roster',()=>{
+ assert.deepEqual(trainerTeam(collection,collection[0]).map(c=>c.id),collection.map(c=>c.id));
+ const other=structuredClone(collection[0]);other.id='cr-other11';other.trainer.id='tr-other11';
+ assert.deepEqual(trainerTeam([...collection,other],other).map(c=>c.id),[other.id]);
+ const extra={...collection[0],id:'cr-fourth'};assert.equal(trainerTeam([...collection,extra],collection[0]).length,3);
+ const tiny=[collection[0],other];assert.deepEqual(trainerTeam(tiny,other).map(c=>c.id),[other.id,other.id,other.id]);
 });

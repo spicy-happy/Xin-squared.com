@@ -1,9 +1,9 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-import {rules,match,creature,moves,stats,active} from './helpers.mjs';import {deepFreeze,expectedDamage} from '../releases/v42/src/rules.js';
-import {chooseAction,chooseTeam,chooseReplacement,publicBattle,scoreAction} from '../releases/v42/src/ai.js';
-import {applyAction,getActions,chooseReplacement as replaceCreature,whoseTurn} from '../releases/v42/src/engine.js';
+import {rules,match,creature,moves,stats,active} from './helpers.mjs';import {deepFreeze,expectedDamage} from '../releases/v43/src/rules.js';
+import {chooseAction,chooseTeam,chooseReplacement,publicBattle,scoreAction} from '../releases/v43/src/ai.js';
+import {applyAction,getActions,chooseReplacement as replaceCreature,whoseTurn} from '../releases/v43/src/engine.js';
 test('AI module never calls or imports engine transition APIs',()=>{
-  const source=readFileSync(new URL('../releases/v42/src/ai.js',import.meta.url),'utf8');
+  const source=readFileSync(new URL('../releases/v43/src/ai.js',import.meta.url),'utf8');
   assert.ok(!source.includes('applyAction'));assert.ok(!source.includes('state.rng'));assert.ok(!source.includes('state.pairCoin'));
   assert.match(source,/import \{ getActions \} from '\.\/engine.js'/);
 });
@@ -55,7 +55,7 @@ test('Normal replacements use revealed matchup; team selection has no opponent a
 });
 
 test('Normal practice opener is weak to the player opening type, with a legal team',async()=>{
- const {choosePracticeTeam}=await import('../releases/v42/src/ai.js');
+ const {choosePracticeTeam}=await import('../releases/v43/src/ai.js');
  const pool=Object.keys(rules.types).map((type,i)=>creature({type,id:`cr-open0${i}`}));
  for(const openingType of Object.keys(rules.types))for(const seed of [3,17,101]){
   const choice=choosePracticeTeam(pool,{rules,openingType,aiRng:seed});assert.equal(choice.team.length,3);assert.equal(new Set(choice.team.map(c=>c.id)).size,3);assert.ok(rules.types[openingType].strong.includes(choice.team[0].type));
@@ -64,8 +64,8 @@ test('Normal practice opener is weak to the player opening type, with a legal te
 });
 
 test('practice teams favour each child pick, randomising equally favourable choices',async()=>{
- const {choosePracticeTeam}=await import('../releases/v42/src/ai.js');
- const {typeMult}=await import('../releases/v42/src/rules.js');
+ const {choosePracticeTeam}=await import('../releases/v43/src/ai.js');
+ const {typeMult}=await import('../releases/v43/src/rules.js');
  const pool=Object.keys(rules.types).map((type,i)=>creature({type,id:`cr-favor${i}`}));
  const playerTeam=pool.slice(0,3),openers=new Set();
  for(let seed=0;seed<100;seed++){
@@ -105,7 +105,7 @@ test('Normal random choices remain legal and avoid defense moves with no benefit
 });
 
 test('practice selection safely handles an empty collection',async()=>{
- const {choosePracticeTeam}=await import('../releases/v42/src/ai.js');
+ const {choosePracticeTeam}=await import('../releases/v43/src/ai.js');
  assert.deepEqual(choosePracticeTeam([],{rules,openingType:'fire',aiRng:12}),{team:[],aiRng:12});
 });
 
@@ -162,8 +162,8 @@ test('Hard also avoids consecutive voluntary switches',()=>{
 });
 
 test('random opponent preserves practice Easy and balanced Hard team selection',async()=>{
- const {chooseOpponent}=await import('../releases/v42/src/trainers.js');
- const {chooseTeam,choosePracticeTeam}=await import('../releases/v42/src/ai.js');
+ const {chooseOpponent}=await import('../releases/v43/src/trainers.js');
+ const {chooseTeam,choosePracticeTeam}=await import('../releases/v43/src/ai.js');
  const {creature,rules}=await import('./helpers.mjs');
  const collection=Object.keys(rules.types).map((type,i)=>creature({id:`cr-team0${i}`,type}));
  const playerTeam=[collection[0],collection[0],collection[0]];

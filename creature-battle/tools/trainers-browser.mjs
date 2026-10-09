@@ -9,12 +9,14 @@ for(const [mode,difficulty,width,height] of [['trainer','easy',844,390],['traine
  await page.goto(origin+'/creature-battle/');await page.locator('#play-ai').waitFor();
  await page.locator('#collection').click();assert.equal(await page.locator('.carousel-group:nth-child(2) .collection-card').count(),9);assert.deepEqual((await page.locator('.carousel-group:nth-child(2) .collection-card h2').allTextContents()).filter(n=>!n.startsWith('Test ')).sort(),['Amphidian','Bassault','Broot']);
  await page.getByRole('button',{name:'Home',exact:true}).click();await page.locator(mode==='friend'?'#play-friend':'#play-ai').click();
- assert.equal(await page.locator('.carousel-group:nth-child(2) .trainer-card').count(),7);
+
  if(mode!=='friend'){
   assert.deepEqual(await page.locator('#solo-opponent-options [role=option]').allTextContents(),['Uncle Mark','Random Battle Bot']);
   await page.locator('#solo-opponent').click();await page.getByRole('option',{name:mode==='trainer'?'Uncle Mark':'Random Battle Bot',exact:true}).click();
   await page.locator('#difficulty').click();await page.getByRole('option',{name:difficulty==='hard'?'Hard':'Easy',exact:true}).click();
  }
+ if(mode!=='friend')await page.locator('#opponent-next').click();
+ assert.equal(await page.locator('.carousel-group:nth-child(2) .trainer-card').count(),7);
  const nameInput=page.locator('#trainer-name');await nameInput.fill('Player One');await nameInput.dispatchEvent('input');
  for(const id of ['cr-amphidian','cr-bassault','cr-broot01'])await page.locator(`.carousel-group:nth-child(2) [data-creature="${id}"]`).click();
  await page.screenshot({path:`${out}/${mode}-${difficulty}-${width}-picker.png`,fullPage:true});await page.locator('#team-done').click();
@@ -40,8 +42,8 @@ for(const [mode,difficulty,width,height] of [['trainer','easy',844,390],['traine
  assert.equal(!!saved?.[difficulty]?.includes('tr-unclemark'),earned,'Only defeating the selected trainer awards a check');
  assert.ok(!/Gym|gym/.test(await page.locator('#app').innerText()));
  await page.screenshot({path:`${out}/${mode}-${difficulty}-${width}-result.png`});
- await page.locator('#rematch').click();await page.locator('#team-done').waitFor();assert.equal(await page.locator('.selection .team-chip').count(),3);assert.equal(await page.locator('#team-done').isEnabled(),true);
- if(mode!=='friend'){assert.equal(await page.locator('#solo-opponent').getAttribute('data-value'),mode==='trainer'?'tr-unclemark':'random');assert.equal(await page.locator('#difficulty').getAttribute('data-value'),difficulty);}
+ await page.locator('#rematch').click();if(mode!=='friend'){await page.locator('#opponent-next').waitFor();assert.equal(await page.locator('#solo-opponent').getAttribute('data-value'),mode==='trainer'?'tr-unclemark':'random');assert.equal(await page.locator('#difficulty').getAttribute('data-value'),difficulty);await page.locator('#opponent-next').click();}await page.locator('#team-done').waitFor();assert.equal(await page.locator('.selection .team-chip').count(),3);assert.equal(await page.locator('#team-done').isEnabled(),true);
+ if(mode!=='friend')await page.locator('#opponent-back').click();
  if(mode==='trainer'){
   assert.equal(await page.locator('#solo-opponent .trainer-win-check').count(),earned?1:0);
   await page.locator('#difficulty').click();await page.getByRole('option',{name:difficulty==='hard'?'Easy':'Hard',exact:true}).click();

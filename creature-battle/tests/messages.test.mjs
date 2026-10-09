@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {eventLines,wrapLine} from '../releases/v42/src/messages.js';
+import {eventLines,wrapLine} from '../releases/v43/src/messages.js';
 const events=['enter','round','use','fallback','miss','hit','shieldBreak','hangOn','recoil','heal','shieldUp','toughen','rest','switch','faint','skip','needReplace','win'];
 test('every event message with 24-character names fits two lines per text page',()=>{
   const long='ABCDEFGHIJKLMNOPQRSTUVWX';
