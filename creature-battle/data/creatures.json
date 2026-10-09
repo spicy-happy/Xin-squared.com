@@ -234,6 +234,135 @@
       },
       "added": "2026-10-07",
       "prototype": true
+    },
+    {
+      "schema": 1,
+      "id": "cr-broot01",
+      "rulesVersion": 1,
+      "sheet": "S1",
+      "name": "Broot",
+      "trainer": {
+        "id": "tr-unclemark",
+        "nickname": "Uncle Mark",
+        "portrait": "assets/portraits/cr-unclemark.a7b7bfe2c079.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-broot01.c3c003792b76.webp",
+        "w": 429,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "grass",
+      "stats": {
+        "health": 1,
+        "attack": 5,
+        "defense": 1,
+        "speed": 3
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "risky",
+          "name": "Wild Blast",
+          "category": "special"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-08"
+    },
+    {
+      "schema": 1,
+      "id": "cr-amphidian",
+      "rulesVersion": 1,
+      "sheet": "S1",
+      "name": "Amphidian",
+      "trainer": {
+        "id": "tr-unclemark",
+        "nickname": "Uncle Mark",
+        "portrait": "assets/portraits/cr-unclemark.a7b7bfe2c079.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-amphidian.78e9daf9d44f.webp",
+        "w": 491,
+        "h": 512,
+        "facing": "left"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 2,
+        "attack": 2,
+        "defense": 1,
+        "speed": 5
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "defense": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        }
+      },
+      "added": "2026-10-08"
+    },
+    {
+      "schema": 1,
+      "id": "cr-bassault",
+      "rulesVersion": 1,
+      "sheet": "S1",
+      "name": "Bassault",
+      "trainer": {
+        "id": "tr-unclemark",
+        "nickname": "Uncle Mark",
+        "portrait": "assets/portraits/cr-unclemark.a7b7bfe2c079.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-bassault.5b64a6cf349c.webp",
+        "w": 506,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "ground",
+      "stats": {
+        "health": 3,
+        "attack": 2,
+        "defense": 4,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "special": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        },
+        "defense": {
+          "id": "toughen",
+          "name": "Iron Hide",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-08"
     }
   ]
 }

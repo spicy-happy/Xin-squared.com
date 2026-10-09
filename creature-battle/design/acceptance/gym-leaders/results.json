@@ -1,0 +1,47 @@
+[
+  {
+    "mode": "gym",
+    "difficulty": "easy",
+    "width": 844,
+    "height": 390,
+    "actions": 24,
+    "finished": true,
+    "errors": []
+  },
+  {
+    "mode": "gym",
+    "difficulty": "hard",
+    "width": 1024,
+    "height": 768,
+    "actions": 20,
+    "finished": true,
+    "errors": []
+  },
+  {
+    "mode": "random",
+    "difficulty": "easy",
+    "width": 844,
+    "height": 390,
+    "actions": 28,
+    "finished": true,
+    "errors": []
+  },
+  {
+    "mode": "random",
+    "difficulty": "hard",
+    "width": 844,
+    "height": 390,
+    "actions": 21,
+    "finished": true,
+    "errors": []
+  },
+  {
+    "mode": "friend",
+    "difficulty": "easy",
+    "width": 844,
+    "height": 390,
+    "actions": 35,
+    "finished": true,
+    "errors": []
+  }
+]

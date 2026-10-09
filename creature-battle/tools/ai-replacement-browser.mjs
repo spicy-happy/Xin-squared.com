@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
 try{
- for(const difficulty of ['Normal','Hard']){
+ for(const difficulty of ['Easy','Hard']){
   const p=await browser.newPage({viewport:{width:844,height:390},reducedMotion:'reduce'}),errors=[];
   p.on('pageerror',e=>errors.push(e.message));
   await p.addInitScript(()=>{crypto.getRandomValues=a=>{a.fill(571);return a;};window.aiChoices=[];window.aiReplacements=[];});

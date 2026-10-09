@@ -1,4 +1,4 @@
-const slots = ['regular', 'special', 'defense'];
+import { moveSlots as slots } from './moves.js';
 export const cleanName = name => typeof name === 'string' ? name.normalize('NFKC').trim().replace(/\s+/g, ' ') : '';
 // Shared by the picker and collection intake. Check common disguises, keeping
 // short words bounded so innocent names such as Cassie and Dickens still work.
@@ -31,7 +31,13 @@ export function validateCreature(c, rules) {
   for (const [label,name] of [['Creature name',c?.name],['Trainer name',c?.trainer?.nickname]]) {
     const error = nameError(name); if (error) errors.push(`${label}: ${error}`);
   }
-  for (const slot of slots) if (!rules.moves[slot][c?.moves?.[slot]?.id] || !validName(c?.moves?.[slot]?.name)) errors.push(`Invalid ${slot} move`);
+  for (const slot of slots) {
+    const selected = c?.moves?.[slot];
+    const category = selected?.category ?? slot;
+    if (!rules.moves[category]?.[selected?.id] || !validName(selected?.name)) errors.push(`Invalid ${slot} move`);
+  }
+  if (c?.image?.facing !== undefined && !['left','right','front'].includes(c.image.facing)) errors.push('Invalid facing direction');
+  if (c?.trainer?.id !== undefined && !/^tr-[a-z0-9]{6,}$/.test(c.trainer.id)) errors.push('Invalid trainer ID');
   const asset = (p, kind) => typeof p === 'string' && new RegExp(`^assets/${kind}/cr-[a-z0-9]+\\.[a-f0-9]{8,64}\\.webp$`).test(p);
   if (!asset(c?.image?.src, 'creatures') || !asset(c?.trainer?.portrait, 'portraits') ||
       !Number.isInteger(c?.image?.w) || c.image.w <= 0 || !Number.isInteger(c?.image?.h) || c.image.h <= 0) errors.push('Invalid image metadata');

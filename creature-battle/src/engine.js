@@ -1,3 +1,4 @@
+import { moveSlots, moveCategory, moveRule, usableAttacks } from './moves.js';
 import { next } from './rng.js';
 import { loadRules, maxHp, damage, roundHalfUp, typeFactor } from './rules.js';
 import { validateCreature } from './collection.js';
@@ -62,7 +63,7 @@ export function createMatch({ rules, teams, seed }) {
     if (errors.length) throw Error(errors.join('; '));
     const m = structuredClone(def);
     return { ...m, maxHp: maxHp(rules, m.stats), hp: maxHp(rules, m.stats),
-      pp: Object.fromEntries(['regular','special','defense'].map(slot => [slot, rules.moves[slot][m.moves[slot].id].pp])),
+      pp: Object.fromEntries(['regular','special','defense'].map(slot => [slot, moveRule(rules, m, slot).pp])),
       lastChanceUsed: false, shield: 0, toughened: false, recharging: false, damageDealt: 0 };
   }));
   const state = { rules, teams: instances, active: [0,0], rng: seed >>> 0, switchesLeft: [rules.switchLimit, rules.switchLimit],
@@ -83,10 +84,13 @@ export function getActions(state, side) {
   const allowed = !turn.over && turn.need === 'action' && turn.side === side;
   const make = (kind, ok, reason, index) => ({ kind, ...(index === undefined ? {} : { index }), enabled: allowed && ok,
     ...(!allowed ? { reason: "Wait for your turn!" } : !ok ? { reason } : {}) });
-  const fallback = m.pp.regular === 0 && (m.pp.special === 0 || m.recharging);
-  const defenseReason = m.pp.defense === 0 ? 'All used up!' : null;
-  return [make(fallback ? 'fallback' : 'regular', fallback || m.pp.regular > 0, 'All used up!'),
-    make('special', m.pp.special > 0 && !m.recharging, m.pp.special === 0 ? 'All used up!' : 'Recharging! Choose another move.'), make('defense', !defenseReason, defenseReason),
+  const fallback = usableAttacks(m).length === 0;
+  const firstAttack = moveSlots.find(slot => moveCategory(m, slot) !== 'defense');
+  return [ ...moveSlots.map(slot => {
+    if (fallback && slot === firstAttack) return make('fallback', true);
+    const resting = moveCategory(m, slot) === 'special' && m.recharging;
+    return make(slot, m.pp[slot] > 0 && !resting, m.pp[slot] === 0 ? 'All used up!' : 'Recharging! Choose another move.');
+  }), ...(fallback && !firstAttack ? [make('fallback', true)] : []),
     ...state.teams[side].map((bench, index) => make('switch', index !== state.active[side] && bench.hp > 0 && state.switchesLeft[side] > 0,
       state.switchesLeft[side] === 0 ? 'No switches left!' : bench.hp === 0 ? 'Needs a rest!' : 'Already here!', index))];
 }
@@ -104,14 +108,14 @@ export function applyAction(input, side, action) {
     enter(s, events, side);
   } else {
     const slot = action.kind, fallback = slot === 'fallback';
-    const move = fallback ? s.rules.fallback : s.rules.moves[slot][m.moves[slot].id];
+    const move = fallback ? s.rules.fallback : moveRule(s.rules, m, slot);
     if (!fallback) m.pp[slot]--;
     m.recharging = !!move.rest;
     if (fallback) events.push({ t: 'fallback', side });
     events.push({ t: 'use', side, slot: s.active[side], moveId: fallback ? move.id : m.moves[slot].id,
       name: fallback ? move.label : m.moves[slot].name, ppAfter: { ...m.pp }, rechargingAfter: m.recharging });
-    if (slot === 'defense') {
-      const id = m.moves.defense.id;
+    if (!fallback && moveCategory(m, slot) === 'defense') {
+      const id = m.moves[slot].id;
       if (id === 'heal') {
         const amount = Math.min(m.maxHp - m.hp, fraction(m.maxHp, move.factor)); m.hp += amount;
         events.push({ t: 'heal', side, amount, hpAfter: m.hp, ppAfter: { ...m.pp } });

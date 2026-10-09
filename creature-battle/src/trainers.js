@@ -1,0 +1,30 @@
+import { next } from './rng.js';
+import { chooseTeam } from './ai.js';
+import { cleanName } from './collection.js';
+export const trainerKey = c => c.trainer.id ?? cleanName(c.trainer.nickname).toLocaleLowerCase('en-US');
+export function gymLeaders(collection) {
+  const leaders = new Map();
+  for (const c of collection.filter(c => !c.prototype && !/^cr-debug/.test(c.id))) {
+    const id = trainerKey(c);
+    if (!leaders.has(id)) leaders.set(id, { ...c.trainer, id, type: c.type, creatures: [] });
+    leaders.get(id).creatures.push(c);
+  }
+  return [...leaders.values()];
+}
+export function chooseOpponent(collection, opponentId, aiRng) {
+  if (opponentId === 'random') {
+    const choice = chooseTeam(collection, { difficulty: 'easy', aiRng });
+    return { ...choice, trainer: { bot: true, nickname: 'Battle Bot', portrait: 'assets/portraits/practice-bot.svg' } };
+  }
+  const leader = gymLeaders(collection).find(t => t.id === opponentId);
+  if (!leader) throw Error('Unknown gym leader');
+  const team = []; let pool = [];
+  for (let i = 0; i < 3; i++) {
+    if (!pool.length) pool = [...leader.creatures];
+    let draw; [draw, aiRng] = next(aiRng);
+    team.push(pool.splice(Math.floor(draw * pool.length), 1)[0]);
+  }
+  const choice = { team: structuredClone(team), aiRng };
+  const { creatures, ...trainer } = leader;
+  return { ...choice, trainer: { ...trainer, gymLeader: true } };
+}
