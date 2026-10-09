@@ -30,6 +30,7 @@ jobs:
           node creature-battle/tools/pixels-browser.mjs
           node creature-battle/tools/progress-browser.mjs
           node creature-battle/tools/setup-browser.mjs
+          node creature-battle/tools/cards-browser.mjs
           node creature-battle/tools/launch-browser.mjs
       - uses: actions/jekyll-build-pages@v1
         with:

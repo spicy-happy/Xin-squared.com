@@ -8,7 +8,7 @@ import { teamPick, opponentPick } from './teampick.js';
 import { initAudio, setMusic } from './audio.js';
 import { battleView } from './battle.js';
 import { spriteSrc, prepareSprites } from './pixels.js';
-import { typeChip, carousel, shuffled } from './components.js';
+import { typeChip, carousel, shuffled, moveList } from './components.js';
 initAudio();
 const trainerProgress=createTrainerProgress();
 const app=document.querySelector('#app'),debug=new URLSearchParams(location.search).get('debug')==='1';
@@ -36,7 +36,7 @@ function home(){screen='home';orient();if(applyUpdate())return;const panel=page(
   button(choices,'See Creatures',()=>showCollection(),'collection');const sheet=el('a','Print Creature Sheet');sheet.id='print-sheet';sheet.href='output/pdf/creature-sheet.pdf?v=24';sheet.target='_blank';sheet.rel='noopener';choices.append(sheet);
 }
 function showCollection(){screen='collection';const panel=page('Creatures');
-  panel.append(carousel(shuffled(collection),c=>{const card=el('article');card.className='collection-card';const img=el('img');img.src=imageSrc(c);img.alt=c.name;card.append(img,el('h2',c.name),typeChip(c.type),el('p',`Made by ${c.trainer.nickname}`));return card;},'collection creatures'));button(panel,'Home',home);
+  panel.append(carousel(shuffled(collection),c=>{const card=el('article');card.className='collection-card';card.dataset.creature=c.id;const img=el('img');img.src=imageSrc(c);img.alt=c.name;card.append(img,el('h2',c.name),typeChip(c.type),el('p',`Made by ${c.trainer.nickname}`),moveList(c));return card;},'collection creatures'));button(panel,'Home',home);
 }
 function setup(previous=null){cleanup();if(!previous){difficulty='easy';opponentId=battleTrainers(collection)[0]?.id??'random';}picks=[];firstPicks=null;if(mode==='ai')opponent(previous);else pick(0,previous);}
 function opponent(previous=null){cleanup();screen='opponent';orient();opponentPick({app,collection,portraitSrc,difficulty,onDifficulty:value=>{difficulty=value;},opponentId,onOpponent:value=>{opponentId=value;},hasVictory:(id,level)=>trainerProgress.hasVictory(id,level),onNext:()=>pick(0,previous)});}

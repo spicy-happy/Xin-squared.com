@@ -1,6 +1,6 @@
 import { trainerKey, battleTrainers, trainerTeam } from '../trainers.js';
-import { teamRule, validateTeam, cleanName, nameError, creatureWarnings } from '../collection.js';
-import { element as el, typeChip, shuffled, carousel, difficultyPicker, pixelPicker } from './components.js';
+import { teamRule, validateTeam, cleanName, nameError } from '../collection.js';
+import { element as el, typeChip, shuffled, carousel, difficultyPicker, pixelPicker, moveList } from './components.js';
 export function opponentPick({app,collection,portraitSrc,difficulty='easy',onDifficulty,opponentId='random',onOpponent,hasVictory=()=>false,onNext}){
  app.replaceChildren();const panel=el('section','panel team-picker opponent-picker');panel.setAttribute('aria-label','Solo battle opponent selection');app.append(panel);
  const top=el('div','picker-heading');top.append(el('div','eyebrow','SOLO BATTLE'));
@@ -39,7 +39,7 @@ export function teamPick({app,collection,rules,side,imageSrc,portraitSrc,onDone,
  const creatureRow=carousel(shuffled(options),entry=>{const {c,key}=entry,b=el('button','pick-card');b.dataset.creature=c.id;b.dataset.pick=key;
   const img=el('img');img.src=imageSrc(c);img.alt=c.name;const mark=el('span','picked-label','SELECTED');
   b.append(mark,img,el('strong',null,c.name),typeChip(c.type),el('small','creature-creator',`Made by ${c.trainer.nickname}`));
-  for(const warning of creatureWarnings(c,rules))b.append(el('small','attack-warning',warning));
+  b.append(moveList(c));
   b.onclick=()=>{const i=team.findIndex(m=>m.key===key);if(i>=0)team.splice(i,1);else if(team.length<3)team.push(entry);update();};creatureCards.push({b,key});return b;
  },'creatures');panel.append(creatureRow);
  function selection(){return {team:team.map(e=>e.c),trainerId:trainer.id,trainer:{...trainer.trainer,nickname:nameInput.value,type:trainer.type}};}

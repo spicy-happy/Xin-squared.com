@@ -92,9 +92,9 @@
 
 .grid.five-actions{grid-template-rows:repeat(3,1fr)}
 
-.attack-warning{display:block;color:#6c3414;font-size:14px;line-height:1.2}
 
-.pick-card.selected .attack-warning{color:#ffe4a4}
+
+
 @media(max-height:500px) and (min-width:700px){.pick-card{height:auto;min-height:166px}}
 
 /* Pixel menu shared by difficulty and gym selection. */
@@ -111,3 +111,10 @@
 .trainer-win-check::before{content:'';position:absolute;top:6px;left:0;width:4px;height:4px;background:currentColor;box-shadow:4px 4px 0 currentColor,8px 0 0 currentColor,12px -4px 0 currentColor}
 .opponent-label .difficulty-picker{min-width:min(280px,100%)}
 .opponent-label .difficulty-trigger{width:100%}
+
+/* Every creature card shows its three named moves in the available vertical space. */
+.card-moves{display:block;width:100%;margin-top:6px;padding-top:6px;border-top:2px solid currentColor;text-align:left;font-size:18px;line-height:1.15;white-space:normal;overflow-wrap:anywhere}
+.card-moves-label{display:block;font-size:14px;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase}
+.card-move-list,.card-move{display:block}
+.card-move+.card-move{margin-top:4px}
+.pick-card{height:auto}

@@ -1,3 +1,4 @@
+import { moveSlots } from '../moves.js';
 export const element=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
 export function typeChip(type){const chip=element('span',`type-chip type-${type}`,type);chip.setAttribute('aria-label',`Type: ${type}`);return chip;}
 export function shuffled(items){const result=[...items];for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}return result;}
@@ -57,4 +58,11 @@ export function carousel(items,renderItem,label){
  rail.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();step(e.key==='ArrowLeft'?-1:1);}});
  requestAnimationFrame(()=>{if(rail.isConnected)rail.scrollLeft=period();});
  return wrapper;
+}
+
+export function moveList(creature){
+ const block=element('span','card-moves'),heading=element('span','card-moves-label','Moves'),list=element('span','card-move-list');
+ heading.setAttribute('aria-hidden','true');list.setAttribute('role','list');list.setAttribute('aria-label','Moves');
+ for(const slot of moveSlots){const item=element('span','card-move',creature.moves[slot].name);item.setAttribute('role','listitem');list.append(item);}
+ block.append(heading,list);return block;
 }
