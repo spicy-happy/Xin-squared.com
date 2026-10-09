@@ -92,7 +92,7 @@
 
 .grid.five-actions{grid-template-rows:repeat(3,1fr)}
 
-.attack-warning{display:block;color:#6c3414;font-size:14px;line-height:1.2}.roster-note{font-size:18px}
+.attack-warning{display:block;color:#6c3414;font-size:14px;line-height:1.2}
 
 .pick-card.selected .attack-warning{color:#ffe4a4}
 @media(max-height:500px) and (min-width:700px){.pick-card{height:auto;min-height:166px}}
@@ -102,3 +102,6 @@
 .opponent-label .difficulty-trigger{max-width:100%;gap:12px;text-align:left;white-space:normal}
 .opponent-label .difficulty-options{min-width:100%;max-height:240px;overflow:auto}
 .difficulty-option.highlighted{background:var(--ink);color:var(--surface)}
+
+.team-picker .picker-heading .eyebrow{font-size:32px;line-height:1.1;letter-spacing:1px}
+@media(max-width:700px),(max-height:500px){.team-picker .picker-heading .eyebrow{font-size:28px}}

@@ -16,7 +16,6 @@ export function teamPick({app,collection,rules,side,imageSrc,portraitSrc,onDone,
   opponentPreview();
  }
 
- if(collection.some(c=>c.prototype))panel.append(el('p','roster-note','More drawings are coming! Labeled TEST creatures stay available until six real creatures are ready.'));
  const team=[],rule=teamRule(collection),options=rule.duplicates?Array.from({length:3},(_,i)=>({c:collection[i%collection.length],key:`copy-${i}`})):collection.map(c=>({c,key:c.id}));
  let trainer=collection.find(c=>c.id===initialChoice?.trainerId)??collection[Math.min(side,collection.length-1)];
  if(initialChoice)for(const c of initialChoice.team){const entry=options.find(e=>e.c.id===c.id&&!team.includes(e));if(entry)team.push(entry);}

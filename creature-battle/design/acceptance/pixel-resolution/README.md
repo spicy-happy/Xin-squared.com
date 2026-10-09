@@ -5,7 +5,7 @@ are preserved; test creatures and the practice bot keep the existing 48px palett
 
 The opponent selector shares the difficulty selector's pixel menu, including
 keyboard navigation, Escape, focus dismissal, and accessible listbox roles.
-Version 40 pins every runtime/CSS URL together; frozen v37 modules are unchanged.
+Version 41 pins every runtime/CSS URL together; frozen v37 modules are unchanged.
 
 Validation: 93 Node tests, 7 Python intake tests, collection validation, and
 pixels-browser.mjs at 320×740, 390×844, 844×390, and 1024×768. Pixel checks decode
@@ -15,3 +15,6 @@ selection versus keyboard focus, Escape/Tab, font, square borders, and overflow.
 launch-browser.mjs passes audio, animation, cache recovery, and mixed-v37 checks.
 gym-browser.mjs passes five complete battles (Easy/Hard gym and random opponents,
 plus friend mode), rematches, facing during animations, and smaller picker checks.
+
+The team picker omits the coming-soon roster message. Its SOLO BATTLE / PLAYER
+heading is now 32px on desktop and 28px on phones and short landscape screens.
