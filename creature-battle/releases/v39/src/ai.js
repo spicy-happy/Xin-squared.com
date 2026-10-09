@@ -1,3 +1,4 @@
+import { moveCategory, moveRule, usableAttacks } from './moves.js';
 import { getActions } from './engine.js';
 import { expectedDamage, damage, typeMult, roundHalfUp } from './rules.js';
 import { next } from './rng.js';
@@ -19,7 +20,7 @@ function randomSource(seed) {
 function attackScore(s, side, action, difficulty) {
   const me = cur(s, side), foe = cur(s, 1-side), r = s.rules;
   const fallback = action.kind === 'fallback';
-  const move = fallback ? r.fallback : r.moves[action.kind][me.moves[action.kind].id];
+  const move = fallback ? r.fallback : moveRule(r, me, action.kind);
   const context = { first: me.stats.speed > foe.stats.speed, fallback, guaranteedHit: s.nextHitGuaranteed?.[side] === true };
   const accuracy = context.guaranteedHit ? 100 : move.accuracy;
   const expected = expectedDamage(r, me, foe, move, context);
@@ -28,13 +29,13 @@ function attackScore(s, side, action, difficulty) {
   const lethal = sure >= foe.hp && !(r.hangOn && !foe.lastChanceUsed && foe.hp > 1 && sure >= Math.floor(foe.maxHp / 2));
   if (lethal) return 100 + accuracy / 10 + (accuracy === 100 ? 5 : 0);
   // A shield is public: use Regular to wear it down instead of spending specials.
-  if (foe.shield > 0 && action.kind === 'special') return -20;
+  if (foe.shield > 0 && !fallback && moveCategory(me, action.kind) === 'special') return -20;
   let score = expected;
   if (foe.shield > 0) score += Math.min(foe.shield,damage(r,me,foe,move,context));
   if (move.recoil) score *= 0.85;
   if (move.rest) {
     // Estimate one reply; recharging blocks only the next special, not the turn.
-    const replies = ['regular','special'].filter(k => foe.pp[k] > 0 && !(k === 'special' && foe.recharging)).map(k => r.moves[k][foe.moves[k].id]);
+    const replies = usableAttacks(foe).map(k => moveRule(r, foe, k));
     if (!replies.length) replies.push(r.fallback);
     const reply = Math.max(...replies.map(m => damage(r, foe, me, m, { first: foe.stats.speed > me.stats.speed })));
     if (me.hp <= reply) return -30;
@@ -43,11 +44,11 @@ function attackScore(s, side, action, difficulty) {
   return score;
 }
 export function scoreAction(s, side, action, difficulty = 'normal') {
-  if (['regular','special','fallback'].includes(action.kind)) return attackScore(s, side, action, difficulty);
+  if (action.kind === 'fallback' || (action.kind !== 'switch' && moveCategory(cur(s,side), action.kind) !== 'defense')) return attackScore(s, side, action, difficulty);
   if (difficulty === 'easy') return 0;
   const me = cur(s,side), foe = cur(s,1-side), frac = me.hp/me.maxHp;
-  if (action.kind === 'defense') {
-    const id=me.moves.defense.id;
+  if (action.kind !== 'switch' && moveCategory(me, action.kind) === 'defense') {
+    const id=me.moves[action.kind].id;
     // Value the real gain rather than a fixed small score that attacks always beat.
     const [num,den]=s.rules.moves.defense[id].factor;
     if (id==='heal') return frac < 0.45 ? Math.min(me.maxHp-me.hp, roundHalfUp(me.maxHp*num,den))*0.85 : -5;
@@ -67,7 +68,7 @@ export function chooseAction(state, side, { difficulty = 'easy', aiRng, lastSwit
   if (!['easy','normal'].includes(difficulty)) throw Error('Invalid difficulty');
   const s=publicBattle(state), random=randomSource(aiRng);
   let actions=getActions(s,side).filter(a=>a.enabled);
-  // UI Normal uses the easy policy: stay in until a forced replacement.
+  // UI Easy uses the easy policy: stay in until a forced replacement.
   // UI Hard uses the normal policy: purposeful choices, with random ties only.
   if (difficulty==='easy' || lastSwitch) actions=actions.filter(a=>a.kind!=='switch');
   if (!actions.length) throw Error('No legal action');
@@ -75,7 +76,7 @@ export function chooseAction(state, side, { difficulty = 'easy', aiRng, lastSwit
   if (difficulty==='easy') {
     // Usually follow a simple strategy, but deliberately pick a weaker useful
     // move 30% of the time. Hard alone looks ahead at the opponent's reply.
-    const useful=actions.filter(a=>a.kind!=='defense'||hasDefenseGain(s.rules,cur(s,side)));
+    const useful=actions.filter(a=>a.kind==='fallback'||a.kind==='switch'||moveCategory(cur(s,side),a.kind)!=='defense'||hasDefenseGain(s.rules,cur(s,side),a.kind));
     const scored=useful.map(a=>({action:a,score:scoreAction(s,side,a,'normal')}));
     const best=Math.max(...scored.map(a=>a.score));
     const strongest=scored.filter(a=>Math.abs(a.score-best)<1e-8);
@@ -84,7 +85,7 @@ export function chooseAction(state, side, { difficulty = 'easy', aiRng, lastSwit
     action=pool[Math.floor(random.draw()*pool.length)].action;
   } else {
     const model=tacticalState(s,side,lastSwitch);
-    const useful=actions.filter(a=>a.kind!=='defense'||hasDefenseGain(s.rules,cur(s,side)));
+    const useful=actions.filter(a=>a.kind==='fallback'||a.kind==='switch'||moveCategory(cur(s,side),a.kind)!=='defense'||hasDefenseGain(s.rules,cur(s,side),a.kind));
     const scored=useful.map(a=>({action:a,score:tacticalScore(model,side,a)}));
     const best=Math.max(...scored.map(a=>a.score)),ties=scored.filter(a=>Math.abs(a.score-best)<1e-8);
     action=ties[Math.floor(random.draw()*ties.length)].action;

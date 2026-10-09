@@ -81,4 +81,29 @@ class PublicationTests(unittest.TestCase):
         self.assertTrue((self.root / self.new['image']['src']).exists())
         self.assertEqual(json.loads(self.roster.read_text())['creatures'], [self.new])
 
+
+class ExtractionArgumentsTests(unittest.TestCase):
+    def test_creature_paper_polygons_reach_the_cropper(self):
+        import import_sheet, tempfile, json, sys, types
+        from unittest.mock import patch, MagicMock
+        # Exercise build argument plumbing without OpenCV/Pillow installations.
+        art = MagicMock(width=100, height=100)
+        art.copy.return_value = art
+        image = MagicMock()
+        image.open.return_value = image
+        image.convert.return_value = image
+        image.new.return_value = image
+        imageops = MagicMock()
+        imageops.exif_transpose.return_value = image
+        pil = types.ModuleType('PIL')
+        pil.Image, pil.ImageOps, pil.ImageDraw = image, imageops, MagicMock()
+        polygons = [[[0.1, 0.2], [0.4, 0.2], [0.4, 0.5]]]
+        manifest = {'added':'2026-10-07','trainers':[{'id':'tr-test01','nickname':'Test','assetId':'cr-test01','portraitSource':'photo.jpg','portraitCrop':[0,0,1,1]}],
+                    'creatures':[{'id':'cr-test01','name':'Test','trainerId':'tr-test01','reviewed':True,'facing':'front','source':'photo.jpg','creatureCrop':[0,0,1,1], 'keepPaper':polygons,
+                                  'stats':{'health':3,'attack':3,'defense':2,'speed':2}, 'typeMarks':[{'id':'water','status':'selected'}],
+                                  'moveMarks':[{'id':id,'status':'selected'} for id in ['steady','blast','heal']]}]}
+        with tempfile.TemporaryDirectory() as temporary, patch.dict(sys.modules, {'PIL':pil}), patch.object(import_sheet,'crop_art',return_value=art) as crop, patch.object(import_sheet,'write_asset',return_value='assets/test.webp'), patch.object(import_sheet.subprocess,'run'):
+            import_sheet.build(manifest,Path(temporary),Path(temporary))
+        self.assertEqual(crop.call_args_list[1].args[3], polygons)
+
 if __name__ == '__main__': unittest.main()

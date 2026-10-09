@@ -10,6 +10,8 @@ export function battleJuice({panels,fx,scenery,active}){
  const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
  function play(node,frames,duration=280,delay=0,easing='steps(10,end)'){
   if(disposed||reduced())return Promise.resolve();
+  // Place the artwork reflection last so arena translations keep their direction.
+  if(node.dataset.flip==='true')frames=frames.map(frame=>({...frame,transform:`${frame.transform??''} scaleX(-1)`}));
   const animation=node.animate(frames,{duration,delay,easing,fill:'none'});animations.add(animation);
   return animation.finished.catch(()=>{}).finally(()=>animations.delete(animation));
  }
@@ -55,7 +57,7 @@ export function battleJuice({panels,fx,scenery,active}){
   else frames=[{transform:'translate(0,0)'},{transform:`translate(${-dir*12}px,4px) scale(1.14,.82)`,offset:.25},{transform:`translate(${distance}px,-8px) scale(${style==='piercing-jab'?1.3:1.18},.86)`,offset:.52},{transform:`translate(${distance*.75}px,0) scale(.88,1.12)`,offset:.68},{transform:`translate(${-dir*4}px,0) scale(1.06,.94)`,offset:.9},{transform:'translate(0,0)'}];
   const jobs=[play(img,frames,duration),shadow(side,[{transform:'scale(1)'},{transform:`translateX(${distance*.75}px) scale(.75)`,opacity:.4,offset:.52},{transform:'scale(1)',opacity:1}],duration)];
   if(style==='quick-strike')for(let i=0;i<3;i++){
-   const ghost=particle('juice-afterimage',side,source,source.size);ghost.style.backgroundImage=`url("${img.src}")`;
+   const ghost=particle('juice-afterimage',side,source,source.size);ghost.dataset.flip=img.dataset.flip;ghost.style.backgroundImage=`url("${img.src}")`;
    jobs.push(ephemeral(ghost,[{transform:'translate(-50%,-65%)',opacity:.35},{transform:`translate(calc(-50% + ${distance*(.25+i*.15)}px),-65%)`,opacity:0}],280,70+i*45));
   }
   if(style==='piercing-jab'){

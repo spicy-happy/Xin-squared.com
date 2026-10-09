@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { loadCollection, validateCreature } from '../src/collection.js';
-import { createMatch, getActions, applyAction, chooseReplacement, whoseTurn } from '../src/engine.js';
-import { chooseAction, chooseReplacement as aiReplacement } from '../src/ai.js';
-import { chooseOpponent, gymLeaders, sameTrainerName } from '../src/trainers.js';
-import { facingFlip } from '../src/moves.js';
+import { loadCollection, validateCreature } from '../releases/v39/src/collection.js';
+import { createMatch, getActions, applyAction, chooseReplacement, whoseTurn } from '../releases/v39/src/engine.js';
+import { chooseAction, chooseReplacement as aiReplacement } from '../releases/v39/src/ai.js';
+import { chooseOpponent, gymLeaders, sameTrainerName } from '../releases/v39/src/trainers.js';
+import { facingFlip } from '../releases/v39/src/moves.js';
 import { rules } from './helpers.mjs';
 const raw=JSON.parse(readFileSync(new URL('../data/creatures-v2.json',import.meta.url)));
 const collection=loadCollection(raw,rules).filter(c=>!c.prototype);

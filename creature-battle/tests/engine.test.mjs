@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { rules, creature, moves, stats, match, active, runRandom } from './helpers.mjs';
-import { createMatch, whoseTurn, getActions, applyAction, chooseReplacement } from '../src/engine.js';
-import { deepFreeze, damage } from '../src/rules.js';
-import { next } from '../src/rng.js';
+import { createMatch, whoseTurn, getActions, applyAction, chooseReplacement } from '../releases/v39/src/engine.js';
+import { deepFreeze, damage } from '../releases/v39/src/rules.js';
+import { next } from '../releases/v39/src/rng.js';
 const fast = {stats:stats(2,3,0,5)},slow={stats:stats(5,3,2,0)};
 const act=(s,kind='regular',index)=>applyAction(s,whoseTurn(s).side,{kind,...(index===undefined?{}:{index})});
 const ev=(result,t)=>result.events.find(e=>e.t===t);
@@ -250,7 +250,7 @@ test('a real heal after Last Chance cannot grant that same creature a second cha
 });
 
 test('1000 AI battles alternate spent turns and never save the same creature twice',async()=>{
- const {chooseAction,chooseReplacement:botReplacement}=await import('../src/ai.js');
+ const {chooseAction,chooseReplacement:botReplacement}=await import('../releases/v39/src/ai.js');
  const {randomCreature}=await import('./helpers.mjs');
  for(let seed=0;seed<1000;seed++){
   let rng=seed;const random=()=>{let value;[value,rng]=next(rng);return value;};

@@ -4,7 +4,7 @@
     {
       "schema": 1,
       "id": "cr-debug00",
-      "rulesVersion": 1,
+      "rulesVersion": 2,
       "sheet": "S1",
       "name": "Test fire",
       "trainer": {
@@ -42,7 +42,7 @@
     {
       "schema": 1,
       "id": "cr-debug01",
-      "rulesVersion": 1,
+      "rulesVersion": 2,
       "sheet": "S1",
       "name": "Test water",
       "trainer": {
@@ -80,7 +80,7 @@
     {
       "schema": 1,
       "id": "cr-debug02",
-      "rulesVersion": 1,
+      "rulesVersion": 2,
       "sheet": "S1",
       "name": "Test grass",
       "trainer": {
@@ -118,7 +118,7 @@
     {
       "schema": 1,
       "id": "cr-debug03",
-      "rulesVersion": 1,
+      "rulesVersion": 2,
       "sheet": "S1",
       "name": "Test electric",
       "trainer": {
@@ -156,7 +156,7 @@
     {
       "schema": 1,
       "id": "cr-debug04",
-      "rulesVersion": 1,
+      "rulesVersion": 2,
       "sheet": "S1",
       "name": "Test ground",
       "trainer": {
@@ -194,7 +194,7 @@
     {
       "schema": 1,
       "id": "cr-debug05",
-      "rulesVersion": 1,
+      "rulesVersion": 2,
       "sheet": "S1",
       "name": "Test flying",
       "trainer": {

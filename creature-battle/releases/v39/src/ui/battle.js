@@ -1,3 +1,4 @@
+import { moveSlots, moveCategory, moveRule, facingFlip } from '../moves.js';
 import { getActions, whoseTurn } from '../engine.js';
 import { eventLines } from '../messages.js';
 import { typeChip } from './components.js';
@@ -62,7 +63,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   const ratio=m.hp/m.maxHp;hp.classList.toggle('hp-medium',ratio<=.5&&ratio>.2);hp.classList.toggle('hp-low',ratio<=.2&&m.hp>0);
   const fill=el('span','hp-fill');fill.style.width=`${100*ratio}%`;hp.append(fill);meter.append(hp);
   const details=el('div','hp-details');details.append(el('span','hp-number',`${m.hp}/${m.maxHp}${m.shield?` +${m.shield}`:''}${m.recharging?' · RECHARGE':''}${m.toughened?' · TOUGH':''}`),typeChip(m.type));status.append(meter,details);
-  img.src=imageSrc(m);img.alt=m.name;img.style.opacity=fallen[side]?'0':'1';panels[side].fighter.classList.toggle('fainted',fallen[side]);
+  img.src=imageSrc(m);img.alt=m.name;img.dataset.flip=String(facingFlip(m,side));img.style.transform=facingFlip(m,side)?'scaleX(-1)':'scaleX(1)';img.style.opacity=fallen[side]?'0':'1';panels[side].fighter.classList.toggle('fainted',fallen[side]);
  }}
  function confirm(side,action,text){if(!twoTap())return perform(side,action);const key=JSON.stringify(action);if(selected===key)return perform(side,action);selected=key;
   const bubble=el('div','confirm');bubble.append(el('div',null,text));const row=el('div','confirm-actions'),go=el('button',null,'GO!'),back=el('button',null,'Back');go.onclick=()=>perform(side,action);back.onclick=()=>{selected=null;controls();};row.append(go,back);bubble.append(row);grids[side].append(bubble);
@@ -79,14 +80,15 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   for(let owner=0;owner<2;owner++){
    sides[owner].classList.toggle('active',!locked&&!guarded&&!turn.over&&turn.side===owner&&humanSides.includes(owner));const g=grids[owner];g.classList.remove('choosing');g.replaceChildren();
    const m=s.teams[owner][s.active[owner]],actions=getActions(s,owner);
-   const exhausted=actions[0].kind==='fallback';
-   for(const kind of ['regular','special','defense','switch']){
-    if(exhausted&&kind==='special')continue;
-    const label=kind==='switch'?'Switch':m.moves[kind].name;
-    const a=kind==='switch'?actions.find(a=>a.kind==='switch'&&a.enabled)??actions.find(a=>a.kind==='switch'):actions.find(a=>a.kind===kind||(kind==='regular'&&a.kind==='fallback'));
-    const fallback=a.kind==='fallback',move=kind==='switch'?null:fallback?s.rules.fallback:s.rules.moves[kind][m.moves[kind].id];
+   const fallbackSlot=moveSlots.find(slot=>moveCategory(m,slot)!=='defense');
+   const exhausted=actions.some(a=>a.kind==='fallback');g.classList.toggle('five-actions',!fallbackSlot);
+   for(const kind of [...moveSlots,...(!fallbackSlot?['fallback']:[]),'switch']){
+    if(exhausted&&kind!==fallbackSlot&&moveSlots.includes(kind)&&moveCategory(m,kind)!=='defense')continue;
+    const label=kind==='switch'?'Switch':kind==='fallback'?'Struggle':m.moves[kind].name;
+    const a=kind==='switch'?actions.find(a=>a.kind==='switch'&&a.enabled)??actions.find(a=>a.kind==='switch'):actions.find(a=>a.kind===kind||(kind===fallbackSlot&&a.kind==='fallback'));
+    const fallback=a.kind==='fallback',move=kind==='switch'?null:fallback?s.rules.fallback:moveRule(s.rules,m,kind);
     const remaining=kind==='switch'?s.switchesLeft[owner]:m.pp[kind],maximum=kind==='switch'?s.rules.switchLimit:fallback?null:move.pp;
-    const b=el('button',kind);b.dataset.action=kind;b.classList.toggle('struggle',fallback);b.append(el('span','category',fallback?'Struggle':shortMove(label)),el('span','pp',fallback?'--':`${remaining}/${maximum}`));
+    const b=el('button',kind==='switch'?'switch':fallback?'regular':moveCategory(m,kind));b.dataset.action=kind;b.classList.toggle('struggle',fallback);b.append(el('span','category',fallback?'Struggle':shortMove(label)),el('span','pp',fallback?'--':`${remaining}/${maximum}`));
     b.classList.toggle('exhausted',!fallback&&remaining===0);b.disabled=locked||guarded||!humanSides.includes(owner)||!a.enabled;b.setAttribute('aria-disabled',String(b.disabled));b.title=`${fallback?'Struggle':label}${!a.enabled?`. ${a.reason}`:''}`;
     b.setAttribute('aria-label',`${fallback?'Struggle, small damage with recoil':`${label}, ${remaining} of ${maximum} uses left`}${!a.enabled?`. ${a.reason}`:''}`);
     b.onclick=()=>{if(disposed||locked||!humanSides.includes(owner)||Date.now()<guardUntil)return;if(kind==='switch')tray(owner,false);else confirm(owner,{kind:a.kind},label);};g.append(b);

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { match, moves, stats, active } from './helpers.mjs';
-import { chooseAction } from '../src/ai.js';
-import { deepFreeze } from '../src/rules.js';
+import { chooseAction } from '../releases/v39/src/ai.js';
+import { deepFreeze } from '../releases/v39/src/rules.js';
 const hard = (s, seed=9, extra={}) => chooseAction(deepFreeze(s),0,{difficulty:'normal',aiRng:seed,...extra}).action;
 const fast = {stats:stats(2,3,0,5)}, slow = {stats:stats(5,3,2,0)};
 

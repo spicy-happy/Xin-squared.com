@@ -103,7 +103,7 @@ def build(manifest, photos, output):
                 raise ValueError(f'Unknown move {move_id}')
             category = categories[0]
             moves[slot] = {'id': move_id, 'name': rules['moves'][category][move_id]['label'], 'category': category}
-        art = crop_art(photo(entry['source']), entry['creatureCrop'], entry.get('excludePrint', []))
+        art = crop_art(photo(entry['source']), entry['creatureCrop'], entry.get('excludePrint', []), entry.get('keepPaper', []))
         src = write_asset(art, 'creatures', entry['id'], output)
         creatures.append({'schema': 1, 'id': entry['id'], 'rulesVersion': rules['version'], 'sheet': rules['sheet'], 'name': entry['name'],
             'trainer': trainers[entry['trainerId']], 'image': {'src': src, 'w': art.width, 'h': art.height, 'facing': entry['facing']},

@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
-import {loadRules} from '../src/rules.js';
-import {loadCollection, creatureWarnings} from '../src/collection.js';
+import {loadRules} from '../releases/v39/src/rules.js';
+import {loadCollection, creatureWarnings} from '../releases/v39/src/collection.js';
 const root=new URL('../',import.meta.url);
 try{
  const rules=loadRules(JSON.parse(readFileSync(new URL('data/rules-v2.json',root))));

@@ -8,7 +8,7 @@ export function deepFreeze(value) {
 const positive = n => Number.isSafeInteger(n) && n > 0;
 export function loadRules(json) {
   const r = structuredClone(json);
-  if (r.schema !== 1 || r.version !== 1 || r.sheet !== 'S1') throw Error('Unsupported rules or sheet');
+  if (r.schema !== 1 || ![1, 2].includes(r.version) || r.sheet !== 'S1') throw Error('Unsupported rules or sheet');
   if (!positive(r.stats?.budget) || r.stats.min !== 0 || !positive(r.stats.max) ||
       !positive(r.hp?.base) || !positive(r.hp.perHealth) || !positive(r.statScale) ||
       !positive(r.switchLimit) || !positive(r.roundCap)) throw Error('Invalid rules numbers');

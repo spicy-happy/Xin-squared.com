@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined});
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8918';
@@ -6,7 +7,7 @@ const page=await browser.newPage({viewport:{width:844,height:390}});
 await page.goto(origin+'/creature-battle/');await page.locator('#play-ai').waitFor();
 // Exercise the actual juice module with animation timelines frozen at impact.
 const motion=await page.evaluate(async()=>{
- const {battleJuice}=await import(`/creature-battle/src/ui/juice.js?v=${GAME_VERSION}`);
+ const {battleJuice}=await import(`/creature-battle/releases/v39/src/ui/juice.js?v=${GAME_VERSION}`);
  const host=document.createElement('div');host.style.cssText='position:fixed;inset:0';document.body.append(host);
  const panels=[0,1].map(side=>{
   const stage=document.createElement('div'),fighter=document.createElement('div'),img=document.createElement('img'),shadow=document.createElement('div');
@@ -53,4 +54,17 @@ const legacy=await page.evaluate(async()=>{
  return {version:r.version,versions:c.creatures.map(c=>c.rulesVersion),valid:c.creatures.every(c=>['regular','special','defense'].every(k=>r.moves[k][c.moves[k].id]))};
 });
 assert.equal(legacy.version,1);assert.ok(legacy.versions.every(v=>v===1));assert.ok(legacy.valid);
-await browser.close();console.log(JSON.stringify({motion,cacheRecovery:true,legacyCompatible:true}));
+// Old HTML can receive any mix of cached and freshly fetched v37 modules.
+// The frozen source paths make those mixtures identical and compatible.
+for(const cached of [[],['src/ui/main.js','src/collection.js'],['src/ui/teampick.js','src/engine.js']]){
+ const legacyPage=await browser.newPage(),errors=[];legacyPage.on('pageerror',e=>errors.push(e.message));
+ let initial=true;
+ await legacyPage.route('**/creature-battle/',route=>{
+  if(initial){initial=false;return route.fulfill({contentType:'text/html',body:readFileSync(new URL('../tests/fixtures/legacy-v37-index.html',import.meta.url),'utf8')});}
+  return route.continue();
+ });
+ for(const path of cached)await legacyPage.route(`**/creature-battle/${path}?v=37`,route=>route.fulfill({contentType:'text/javascript',body:readFileSync(new URL('../'+path,import.meta.url),'utf8')}));
+ await legacyPage.goto(origin+'/creature-battle/');await legacyPage.waitForURL(/\?v=/);await legacyPage.locator('#play-ai').waitFor();
+ await legacyPage.locator('#play-ai').click();await legacyPage.locator('#team-done').waitFor();assert.deepEqual(errors,[]);await legacyPage.close();
+}
+await browser.close();console.log(JSON.stringify({motion,cacheRecovery:true,legacyCompatible:true,mixedV37Caches:true}));

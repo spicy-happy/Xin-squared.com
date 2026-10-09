@@ -1,3 +1,4 @@
+import { moveSlots, moveCategory, moveRule, usableAttacks } from './moves.js';
 import { damage, expectedDamage, roundHalfUp } from './rules.js';
 
 const current = (s, side) => s.teams[side][s.active[side]];
@@ -12,19 +13,18 @@ export function tacticalState(s, side, lastSwitch = false) {
 }
 function attacks(s, side) {
   const m = current(s, side), actions = [];
-  if (m.pp.regular > 0) actions.push({ kind: 'regular' });
-  if (m.pp.special > 0 && !m.recharging) actions.push({ kind: 'special' });
+  for (const kind of usableAttacks(m)) actions.push({ kind });
   if (!actions.length) actions.push({ kind: 'fallback' });
   return actions;
 }
-export function hasDefenseGain(r, m) {
-  const id = m.moves.defense.id;
+export function hasDefenseGain(r, m, slot = 'defense') {
+  const id = m.moves[slot].id;
   return id === 'heal' ? m.hp < m.maxHp : id === 'toughen' ? !m.toughened :
     Math.min(m.maxHp - m.hp, fraction(m.maxHp, r.moves.defense.guard.factor)) > m.shield;
 }
 function options(s, side) {
   const m = current(s, side), actions = attacks(s, side);
-  if (m.pp.defense > 0 && hasDefenseGain(s.rules, m)) actions.push({ kind: 'defense' });
+  for (const kind of moveSlots) if (moveCategory(m, kind) === 'defense' && m.pp[kind] > 0 && hasDefenseGain(s.rules, m, kind)) actions.push({ kind });
   if (!s.switchLocked[side] && s.switchesLeft[side] > 0) s.teams[side].forEach((c, index) => {
     if (index !== s.active[side] && c.hp > 0) actions.push({ kind: 'switch', index });
   });
@@ -39,10 +39,10 @@ function project(input, side, action) {
   if (action.kind === 'switch') {
     me.shield = 0; me.toughened = false; s.active[side] = action.index; s.switchesLeft[side]--; return s;
   }
-  const fallback = action.kind === 'fallback', move = fallback ? r.fallback : r.moves[action.kind][me.moves[action.kind].id];
+  const fallback = action.kind === 'fallback', move = fallback ? r.fallback : moveRule(r, me, action.kind);
   if (!fallback) me.pp[action.kind]--;
-  if (action.kind === 'defense') {
-    const id = me.moves.defense.id;
+  if (!fallback && moveCategory(me, action.kind) === 'defense') {
+    const id = me.moves[action.kind].id;
     if (id === 'heal') me.hp = Math.min(me.maxHp, me.hp + fraction(me.maxHp, move.factor));
     else if (id === 'guard') me.shield = Math.min(me.maxHp - me.hp, fraction(me.maxHp, move.factor));
     else me.toughened = true;
@@ -87,7 +87,7 @@ function project(input, side, action) {
 function value(s, side) {
   const teamValue = owner => s.teams[owner].reduce((sum, m) => sum +
     (m.aliveChance ?? 1) * (100 * m.hp / m.maxHp + (m.hp > 0 ? 75 : 0) + 12 * m.shield / m.maxHp +
-    (m.toughened ? 3 : 0) + .6 * m.pp.special + .25 * m.pp.defense), 2 * s.switchesLeft[owner]);
+    (m.toughened ? 3 : 0) + moveSlots.reduce((n, slot) => n + m.pp[slot] * (moveCategory(m, slot) === 'special' ? .6 : moveCategory(m, slot) === 'defense' ? .25 : 0), 0)), 2 * s.switchesLeft[owner]);
   return teamValue(side) - teamValue(1 - side);
 }
 function terminal(s) { return s.teams.some(team => team.every(m => m.hp <= 0)); }
@@ -101,7 +101,7 @@ function ready(s, side) {
     if (m.hp <= 0) return;
     const candidate = { ...s, active: s.active.map((slot, owner) => owner === side ? i : slot) };
     const pressure = Math.max(...attacks(candidate, side).map(a => expectedDamage(s.rules, m, foe,
-      a.kind === 'fallback' ? s.rules.fallback : s.rules.moves[a.kind][m.moves[a.kind].id],
+      a.kind === 'fallback' ? s.rules.fallback : moveRule(s.rules, m, a.kind),
       { first: m.stats.speed > foe.stats.speed, fallback: a.kind === 'fallback' })));
     const score = m.hp / m.maxHp * 40 + pressure;
     if (score > best) { best = score; index = i; }

@@ -3,6 +3,7 @@ on:
   pull_request:
     paths: ['creature-battle/**', '_config.yml', '.github/workflows/creature-battle.yml']
   push:
+    branches: ['claude/recreate-xin-squared-website-PlRbZ']
     paths: ['creature-battle/**', '_config.yml', '.github/workflows/creature-battle.yml']
 permissions:
   contents: read
@@ -39,4 +40,5 @@ jobs:
           test ! -e _site/creature-battle/tools
           test -f _site/creature-battle/index.html
           test -f _site/creature-battle/data/creatures-v2.json
+          test -f _site/creature-battle/releases/v39/src/ui/main.js
           test -f _site/creature-battle/output/pdf/creature-sheet.pdf

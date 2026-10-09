@@ -7,6 +7,7 @@ const sprites=new Map();
 const key=(src,type)=>`${src}|${type}`;
 export function spriteSrc(src,type='grass'){return sprites.get(key(src,type))??src;}
 export async function prepareSprites(collection,{debug=false}={}){
+ const originalColors=new Set(collection.filter(c=>!c.prototype&&!debug).flatMap(c=>[c.image.src,c.trainer.portrait]));
  const sources=collection.flatMap(c=>[[debug?'tests/fixtures/placeholder.svg':c.image.src,c.type],[debug?'tests/fixtures/portrait.svg':c.trainer.portrait,c.type]]);
  sources.push(['assets/portraits/practice-bot.svg','water']);
  await Promise.all([...new Map(sources.map(pair=>[key(...pair),pair])).values()].map(async([src,type])=>{
@@ -16,6 +17,7 @@ export async function prepareSprites(collection,{debug=false}={}){
   ctx.drawImage(img,Math.floor((48-w)/2),Math.floor((48-h)/2),w,h);
   const pixels=ctx.getImageData(0,0,48,48),palette=(palettes[type]??palettes.grass).map(hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)));
   for(let i=0;i<pixels.data.length;i+=4){if(pixels.data[i+3]<100){pixels.data[i+3]=0;continue;}
+   if(originalColors.has(src))continue;
    const light=.2126*pixels.data[i]+.7152*pixels.data[i+1]+.0722*pixels.data[i+2];
    const rgb=palette[light<65?0:light<150?1:light<238?2:3];pixels.data.set([...rgb,255],i);
   }

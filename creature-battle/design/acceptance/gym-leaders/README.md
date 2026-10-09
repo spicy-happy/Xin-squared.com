@@ -26,7 +26,7 @@ automatic OCR and perspective alignment are not implemented by this importer.
 
 ## Prelaunch fixes (v39)
 
-The current game fetches rules-v2.json and creatures-v2.json. The original v1
+The current game fetches rules-v2.json and creatures-v2.json from releases/v39/src/. The original src/ and v1
 rules and creatures.json remain frozen for cached v37 clients. Load failures now
 check for an update and otherwise provide a Retry button. Artwork reflection is
 composed last in animation transforms, preserving arena movement and shadows.
@@ -49,7 +49,7 @@ node creature-battle/tools/gym-browser.mjs
 node creature-battle/tools/launch-browser.mjs
 ```
 
-Local results: 92 Node tests and six Python tests passed. Five complete visible
+Local results: 93 Node tests and seven Python tests passed. Five complete visible
 control matches passed (gym Easy/Hard, random Easy/Hard, two-player), with rematches
 and responsive picker checks. The motion test samples active animations and
 measures positive/negative horizontal movement for both arena sides and shadows,
