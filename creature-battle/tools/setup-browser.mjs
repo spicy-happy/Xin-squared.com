@@ -12,7 +12,7 @@ await page.screenshot({path:out+'/opponent-1024.png'});await page.locator('#oppo
 assert.equal(await page.locator('#solo-opponent,#difficulty').count(),0);assert.equal(await page.locator('#team-done').isEnabled(),false);
 const mark=page.locator('.carousel-group:nth-child(2) .trainer-card').filter({hasText:'Uncle Mark'});
 await mark.click();assert.equal(await page.locator('.selection .team-chip').count(),3);assert.equal(await page.locator('#trainer-name').inputValue(),'Uncle Mark');assert.equal(await page.locator('#team-done').isEnabled(),true);
-assert.deepEqual((await page.locator('.selection .team-chip').allTextContents()).map(s=>s.replace(/x$/,'')).sort(),['Amphidian','Bassault','Broot']);
+assert.deepEqual((await page.locator('.selection .team-creature-name').allTextContents()).sort(),['Amphidian','Bassault','Broot']);
 await mark.click();assert.equal(await page.locator('.selection .team-chip').count(),3,'Selecting the same trainer does not toggle off their team');
 await page.getByRole('button',{name:'Remove Broot',exact:true}).click();await page.locator('#trainer-name').fill('My Trainer');
 await page.locator('#opponent-back').click();assert.equal(await page.locator('#difficulty').getAttribute('data-value'),'hard');assert.equal(await page.locator('#solo-opponent').getAttribute('data-value'),'random');

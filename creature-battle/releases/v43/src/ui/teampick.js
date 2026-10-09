@@ -26,6 +26,8 @@ export function teamPick({app,collection,rules,side,imageSrc,portraitSrc,onDone,
  let trainer=collection.find(c=>c.id===initialChoice?.trainerId)??collection[Math.min(side,collection.length-1)];
  if(initialChoice)for(const c of initialChoice.team){const entry=options.find(e=>e.c.id===c.id&&!team.includes(e));if(entry)team.push(entry);}
  const summary=el('div','selection');summary.setAttribute('aria-label','Selected creatures');panel.append(summary);
+ const orderStatus=el('span','sr-only');orderStatus.setAttribute('role','status');orderStatus.setAttribute('aria-live','polite');panel.append(orderStatus);
+ let drag=null;
  const trainerHeading=el('h2',null,'Select Trainer'),trainerCards=[],creatureCards=[];
  const trainerBar=el('div','trainer-heading'),nameLabel=el('label','trainer-name-label','Trainer name'),nameInput=el('input');nameInput.id='trainer-name';nameInput.maxLength=24;nameInput.autocomplete='off';nameInput.spellcheck=false;nameInput.value=initialChoice?.trainer.nickname??trainer.trainer.nickname;
  nameLabel.htmlFor=nameInput.id;nameLabel.append(nameInput);trainerBar.append(trainerHeading,nameLabel);panel.append(trainerBar);
@@ -44,11 +46,73 @@ export function teamPick({app,collection,rules,side,imageSrc,portraitSrc,onDone,
  },'creatures');panel.append(creatureRow);
  function selection(){return {team:team.map(e=>e.c),trainerId:trainer.id,trainer:{...trainer.trainer,nickname:nameInput.value,type:trainer.type}};}
  done.onclick=()=>{const creatures=team.map(e=>e.c);if(validateTeam(creatures,collection)&&!nameError(nameInput.value))onDone({team:creatures,trainerId:trainer.id,trainer:{...trainer.trainer,nickname:cleanName(nameInput.value),type:trainer.type}});};
+ function moveEntry(entry,index){
+  const from=team.indexOf(entry),to=Math.max(0,Math.min(team.length-1,index));
+  if(from<0||from===to)return false;
+  team.splice(from,1);team.splice(to,0,entry);return true;
+ }
+ function focusEntry(entry){summary.querySelector(`[data-team-key="${CSS.escape(entry.key)}"] .team-order-handle`)?.focus({preventScroll:true});}
+ function announce(entry){const index=team.indexOf(entry);orderStatus.textContent=`${entry.c.name} moved to position ${index+1} of ${team.length}.${index===0?' Opens the battle.':''}`;}
+ function finishDrag(cancel=false){
+  if(!drag)return;
+  const current=drag;drag=null;
+  if(cancel)team.splice(0,team.length,...current.original);
+  current.ghost?.remove();current.chip.classList.remove('dragging');
+  if(current.handle.hasPointerCapture(current.pointerId))current.handle.releasePointerCapture(current.pointerId);
+  update();focusEntry(current.entry);if(!cancel&&current.moving)announce(current.entry);
+ }
+ function syncPositions(){
+  for(const [i,entry]of team.entries()){
+   const chip=summary.querySelector(`[data-team-key="${CSS.escape(entry.key)}"]`);
+   chip.querySelector('.team-position').textContent=String(i+1);
+   chip.querySelector('.team-order-handle').setAttribute('aria-label',`Move ${entry.c.name}, position ${i+1} of ${team.length}${i===0?', opens the battle':''}`);
+   chip.querySelector('.team-order-handle').title='Drag to reorder, or use the arrow keys. First opens the battle.';
+  }
+ }
  function update(){summary.replaceChildren();summary.append(el('span','selection-count',`${team.length}/3`));
   if(!team.length)summary.append(el('span','selection-placeholder','Select three creatures'));
-  for(const entry of team){const chip=el('span','team-chip');chip.append(el('span',null,entry.c.name));
-   const remove=el('button','remove-creature','x');remove.setAttribute('aria-label',`Remove ${entry.c.name}`);remove.onclick=()=>{team.splice(team.indexOf(entry),1);update();};chip.append(remove);summary.append(chip);
+  const ordered=el('span','team-order');ordered.setAttribute('role','list');ordered.setAttribute('aria-label','Battle order');summary.append(ordered);
+  for(const entry of team){
+   const chip=el('span','team-chip');chip.dataset.teamKey=entry.key;chip.setAttribute('role','listitem');
+   const handle=el('button','team-order-handle');handle.type='button';
+   handle.append(el('span','team-position'),el('span','team-creature-name',entry.c.name));
+   handle.onkeydown=e=>{
+    if(e.key==='Escape'&&drag){e.preventDefault();finishDrag(true);return;}
+    if(e.altKey||e.ctrlKey||e.metaKey)return;
+    const index=team.indexOf(entry),to=e.key==='Home'?0:e.key==='End'?team.length-1:['ArrowLeft','ArrowUp'].includes(e.key)?index-1:['ArrowRight','ArrowDown'].includes(e.key)?index+1:null;
+    if(to===null)return;e.preventDefault();
+    if(moveEntry(entry,to)){update();focusEntry(entry);announce(entry);}
+   };
+   handle.onpointerdown=e=>{
+    if(!e.isPrimary||e.button!==0||team.length<2||drag)return;
+    e.preventDefault();handle.focus({preventScroll:true});const rect=chip.getBoundingClientRect();
+    drag={entry,chip,handle,pointerId:e.pointerId,x:e.clientX,y:e.clientY,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top,width:rect.width,original:[...team],moving:false};
+    handle.setPointerCapture(e.pointerId);
+   };
+   handle.onpointermove=e=>{
+    if(!drag||drag.pointerId!==e.pointerId)return;
+    const current=drag;
+    if(!current.moving&&Math.hypot(e.clientX-current.x,e.clientY-current.y)<6)return;
+    e.preventDefault();
+    if(!current.moving){
+     current.moving=true;current.chip.classList.add('dragging');current.ghost=chip.cloneNode(true);current.ghost.classList.remove('dragging');current.ghost.classList.add('team-drag-preview');current.ghost.setAttribute('aria-hidden','true');current.ghost.style.width=`${current.width}px`;
+     for(const button of current.ghost.querySelectorAll('button'))button.tabIndex=-1;
+     document.body.append(current.ghost);
+    }
+    current.ghost.style.left=`${e.clientX-current.offsetX}px`;current.ghost.style.top=`${e.clientY-current.offsetY}px`;
+    const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('.team-chip');
+    if(target&&ordered.contains(target)){
+     const to=team.findIndex(item=>item.key===target.dataset.teamKey);
+     if(moveEntry(entry,to)){for(const [i,item]of team.entries())ordered.querySelector(`[data-team-key="${CSS.escape(item.key)}"]`).style.order=String(i);syncPositions();}
+    }
+   };
+   handle.onpointerup=e=>{if(drag?.pointerId===e.pointerId)finishDrag();};
+   handle.onpointercancel=e=>{if(drag?.pointerId===e.pointerId)finishDrag(true);};
+   handle.onlostpointercapture=e=>{if(drag?.pointerId===e.pointerId)finishDrag(true);};
+   const remove=el('button','remove-creature','x');remove.setAttribute('aria-label',`Remove ${entry.c.name}`);remove.onclick=()=>{team.splice(team.indexOf(entry),1);update();};
+   chip.append(handle,remove);ordered.append(chip);
   }
+  syncPositions();
   for(const {b,c,label}of trainerCards){const selected=trainerKey(trainer)===trainerKey(c);b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));label.textContent=c.trainer.nickname;}
   for(const {b,key}of creatureCards){const selected=team.some(e=>e.key===key);b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));b.disabled=!selected&&team.length===3;}
   const error=nameError(nameInput.value);nameInput.setAttribute('aria-invalid',String(!!error));nameMessage.textContent=error;nameMessage.hidden=!error;

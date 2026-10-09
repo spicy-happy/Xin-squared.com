@@ -1,0 +1,14 @@
+{
+  "mouse": true,
+  "touch": true,
+  "keyboard": true,
+  "cancel": true,
+  "duplicateSlots": true,
+  "backPreserved": true,
+  "soloLead": "Bassault",
+  "friendLeads": [
+    "Amphidian",
+    "Bassault"
+  ],
+  "errors": []
+}
