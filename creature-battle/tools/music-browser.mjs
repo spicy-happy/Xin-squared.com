@@ -1,9 +1,9 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');import assert from 'node:assert/strict';
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';
-const b=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const b=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});
 const p=await b.newPage({viewport:{width:844,height:390}}),errors=[];p.on('pageerror',e=>errors.push(e.message));
 await p.goto(origin+'/creature-battle/');await p.locator('#play-ai').waitFor();
-await p.evaluate(async()=>{window.musicTest=await import(`/creature-battle/src/ui/audio.js?v=${GAME_VERSION}`);});
+await p.evaluate(async()=>{window.musicTest=await import(`/creature-battle/releases/v39/src/ui/audio.js?v=${GAME_VERSION}`);});
 assert.equal((await p.evaluate(()=>musicTest.soundState())).music,'title');assert.equal((await p.evaluate(()=>musicTest.soundState())).musicPaused,true);
 await p.locator('#collection').click();await p.waitForFunction(()=>musicTest.soundState().musicReady>=2&&!musicTest.soundState().musicPaused);
 let s=await p.evaluate(()=>musicTest.soundState());assert.equal(s.music,'title');assert.equal(s.musicLoop,true);assert.equal(s.musicVolume,.25);

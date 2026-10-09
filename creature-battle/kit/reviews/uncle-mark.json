@@ -1,0 +1,199 @@
+{
+  "added": "2026-10-08",
+  "trainers": [
+    {
+      "id": "tr-unclemark",
+      "nickname": "Uncle Mark",
+      "assetId": "cr-unclemark",
+      "portraitSource": "1000023976.jpg",
+      "portraitCrop": [
+        0.052,
+        0.738,
+        0.202,
+        0.932
+      ],
+      "keepPaper": [
+        [
+          [
+            0.068,
+            0.779
+          ],
+          [
+            0.164,
+            0.779
+          ],
+          [
+            0.17,
+            0.83
+          ],
+          [
+            0.159,
+            0.887
+          ],
+          [
+            0.148,
+            0.91
+          ],
+          [
+            0.116,
+            0.927
+          ],
+          [
+            0.086,
+            0.916
+          ],
+          [
+            0.073,
+            0.878
+          ],
+          [
+            0.068,
+            0.83
+          ]
+        ]
+      ]
+    }
+  ],
+  "creatures": [
+    {
+      "id": "cr-broot01",
+      "name": "Broot",
+      "trainerId": "tr-unclemark",
+      "source": "1000023978.jpg",
+      "creatureCrop": [
+        0.052,
+        0.112,
+        0.432,
+        0.674
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "grass",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 1,
+        "attack": 5,
+        "defense": 1,
+        "speed": 3
+      },
+      "moveMarks": [
+        {
+          "id": "heavy",
+          "status": "selected"
+        },
+        {
+          "id": "risky",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        }
+      ],
+      "excludePrint": [
+        [
+          0.145,
+          0.1,
+          0.355,
+          0.133
+        ]
+      ]
+    },
+    {
+      "id": "cr-amphidian",
+      "name": "Amphidian",
+      "trainerId": "tr-unclemark",
+      "source": "1000023977.jpg",
+      "creatureCrop": [
+        0.07,
+        0.155,
+        0.43,
+        0.63
+      ],
+      "facing": "left",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 2,
+        "attack": 2,
+        "defense": 1,
+        "speed": 5
+      },
+      "moveMarks": [
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "heavy",
+          "status": "selected"
+        },
+        {
+          "id": "blast",
+          "status": "selected"
+        }
+      ]
+    },
+    {
+      "id": "cr-bassault",
+      "name": "Bassault",
+      "trainerId": "tr-unclemark",
+      "source": "1000023976.jpg",
+      "creatureCrop": [
+        0.05,
+        0.146,
+        0.432,
+        0.65
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "water",
+          "status": "canceled"
+        },
+        {
+          "id": "ground",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 3,
+        "attack": 2,
+        "defense": 4,
+        "speed": 1
+      },
+      "moveMarks": [
+        {
+          "id": "heavy",
+          "status": "canceled"
+        },
+        {
+          "id": "blast",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "canceled"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ]
+    }
+  ]
+}

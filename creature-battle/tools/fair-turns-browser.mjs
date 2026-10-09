@@ -1,11 +1,11 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');import assert from 'node:assert/strict';
-const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});
 const p=await browser.newPage({viewport:{width:844,height:390}}),errors=[];p.on('pageerror',e=>errors.push(e.message));
 await p.goto((process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902')+'/creature-battle/?debug=1');await p.waitForFunction(()=>window.__battleReady);
 // A hit, one Last Chance, then recoil: the existing sentence must stay visible
 // when the next effect is appended, rather than being typed a second time.
 await p.evaluate(async()=>{
- const {battleView}=await import(`/creature-battle/src/ui/battle.js?v=${GAME_VERSION}`),{createMatch}=await import(`/creature-battle/src/engine.js?v=${GAME_VERSION}`),rules=await(await fetch('/creature-battle/data/rules-v1.json',{cache:'no-cache'})).json();
+ const {battleView}=await import(`/creature-battle/releases/v39/src/ui/battle.js?v=${GAME_VERSION}`),{createMatch}=await import(`/creature-battle/releases/v39/src/engine.js?v=${GAME_VERSION}`),rules=await(await fetch('/creature-battle/data/rules-v2.json',{cache:'no-cache'})).json();
  const teams=[__battleDebug.fixtures().slice(0,3),__battleDebug.fixtures().slice(3,6)];window.fairState=createMatch({rules,teams,seed:9}).state;
  fairState.teams[0][0].name='Sparky';fairState.teams[1][0].name='Bubbles';
  window.fairView=battleView({app:document.querySelector('#app'),initial:fairState,trainers:[{nickname:'Xin'},{nickname:'Bot'}],imageSrc:()=>'/creature-battle/tests/fixtures/placeholder.svg',portraitSrc:()=>'/creature-battle/tests/fixtures/portrait.svg',getState:()=>fairState,onAction:()=>{},onReplacement:()=>{},onDrain:()=>{},twoTap:()=>false});

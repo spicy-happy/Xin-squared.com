@@ -1,10 +1,10 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');import assert from 'node:assert/strict';import {mkdirSync,writeFileSync} from 'node:fs';
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902',out=process.env.ARTIFACT_DIR||'/tmp/creature-juice';mkdirSync(out,{recursive:true});
-const b=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true}),results=[];
+const b=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true}),results=[];
 for(const [width,height]of [[1024,768],[667,375],[844,390]]){
  const p=await b.newPage({viewport:{width,height}}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(origin+'/creature-battle/?debug=1');await p.waitForFunction(()=>window.__battleReady);
  await p.evaluate(async()=>{
-  const {createMatch}=await import(`/creature-battle/src/engine.js?v=${GAME_VERSION}`),{battleView}=await import(`/creature-battle/src/ui/battle.js?v=${GAME_VERSION}`),{battleJuice,moveAnimations}=await import(`/creature-battle/src/ui/juice.js?v=${GAME_VERSION}`),rules=await(await fetch('/creature-battle/data/rules-v1.json')).json();
+  const {createMatch}=await import(`/creature-battle/releases/v39/src/engine.js?v=${GAME_VERSION}`),{battleView}=await import(`/creature-battle/releases/v39/src/ui/battle.js?v=${GAME_VERSION}`),{battleJuice,moveAnimations}=await import(`/creature-battle/releases/v39/src/ui/juice.js?v=${GAME_VERSION}`),rules=await(await fetch('/creature-battle/data/rules-v2.json')).json();
   window.juiceState=createMatch({rules,teams:[0,1].map(()=>__battleDebug.fixtures().slice(0,3)),seed:9}).state;
   window.juiceView=battleView({app:document.querySelector('#app'),initial:juiceState,trainers:[{nickname:'Xin'},{nickname:'Bot'}],humanSides:[0,1],imageSrc:()=>'/creature-battle/tests/fixtures/placeholder.svg',portraitSrc:()=>'/creature-battle/tests/fixtures/portrait.svg',getState:()=>juiceState,onAction:()=>{},onReplacement:()=>{},onDrain:()=>{},twoTap:()=>false});
   const panels=[...document.querySelectorAll('.side')].map(s=>({img:s.querySelector('.creature-sprite'),fighter:s.querySelector('.fighter'),stage:s.querySelector('.stage')}));

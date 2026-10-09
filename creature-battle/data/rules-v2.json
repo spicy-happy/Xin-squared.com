@@ -1,0 +1,218 @@
+{
+  "schema": 1,
+  "version": 2,
+  "sheet": "S1",
+  "stats": {
+    "budget": 10,
+    "min": 0,
+    "max": 5
+  },
+  "hp": {
+    "base": 82,
+    "perHealth": 7
+  },
+  "statScale": 10,
+  "crit": {
+    "basePercent": 4,
+    "perSpeedPercent": 6,
+    "mult": [
+      3,
+      2
+    ]
+  },
+  "typeFactors": {
+    "strong": [
+      3,
+      2
+    ],
+    "weak": [
+      3,
+      4
+    ],
+    "neutral": [
+      1,
+      1
+    ]
+  },
+  "types": {
+    "fire": {
+      "label": "Fire",
+      "strong": [
+        "grass",
+        "flying"
+      ],
+      "weak": [
+        "water",
+        "ground"
+      ]
+    },
+    "water": {
+      "label": "Water",
+      "strong": [
+        "fire",
+        "ground"
+      ],
+      "weak": [
+        "grass",
+        "electric"
+      ]
+    },
+    "grass": {
+      "label": "Grass",
+      "strong": [
+        "water",
+        "electric"
+      ],
+      "weak": [
+        "fire",
+        "flying"
+      ]
+    },
+    "electric": {
+      "label": "Electric",
+      "strong": [
+        "water",
+        "flying"
+      ],
+      "weak": [
+        "grass",
+        "ground"
+      ]
+    },
+    "ground": {
+      "label": "Ground",
+      "strong": [
+        "fire",
+        "electric"
+      ],
+      "weak": [
+        "water",
+        "flying"
+      ]
+    },
+    "flying": {
+      "label": "Flying",
+      "strong": [
+        "grass",
+        "ground"
+      ],
+      "weak": [
+        "fire",
+        "electric"
+      ]
+    }
+  },
+  "switchLimit": 3,
+  "roundCap": 100,
+  "hangOn": true,
+  "fallback": {
+    "id": "struggle",
+    "label": "Struggle",
+    "hint": "small hit with recoil",
+    "power": 6,
+    "accuracy": 100,
+    "crit": false,
+    "recoil": [
+      1,
+      4
+    ]
+  },
+  "moves": {
+    "regular": {
+      "steady": {
+        "label": "Tackle",
+        "hint": "same every time",
+        "power": 12,
+        "pp": 12,
+        "accuracy": 100
+      },
+      "quick": {
+        "label": "Quick Strike",
+        "hint": "strong if faster",
+        "power": 14,
+        "pp": 12,
+        "accuracy": 100,
+        "secondPower": 10
+      },
+      "pierce": {
+        "label": "Piercing Jab",
+        "hint": "goes through Defense",
+        "power": 11,
+        "pp": 10,
+        "accuracy": 100,
+        "piercing": true
+      },
+      "heavy": {
+        "label": "Body Slam",
+        "hint": "big hit, 6 uses",
+        "power": 15,
+        "pp": 6,
+        "accuracy": 100
+      }
+    },
+    "special": {
+      "blast": {
+        "label": "Energy Burst",
+        "hint": "big, can miss",
+        "power": 26,
+        "pp": 3,
+        "accuracy": 90
+      },
+      "risky": {
+        "label": "Wild Blast",
+        "hint": "huge, misses a lot",
+        "power": 32,
+        "pp": 3,
+        "accuracy": 75
+      },
+      "recoil": {
+        "label": "Double Rush",
+        "hint": "hurts you a little",
+        "power": 30,
+        "pp": 3,
+        "accuracy": 100,
+        "recoil": [
+          1,
+          4
+        ]
+      },
+      "overload": {
+        "label": "Mega Burst",
+        "hint": "HUGE, then special recharges",
+        "power": 40,
+        "pp": 2,
+        "accuracy": 100,
+        "rest": true
+      }
+    },
+    "defense": {
+      "guard": {
+        "label": "Bubble Shield",
+        "hint": "bubble shield",
+        "pp": 3,
+        "factor": [
+          3,
+          10
+        ]
+      },
+      "heal": {
+        "label": "Healing Glow",
+        "hint": "get health back",
+        "pp": 3,
+        "factor": [
+          1,
+          4
+        ]
+      },
+      "toughen": {
+        "label": "Iron Hide",
+        "hint": "take less damage",
+        "pp": 3,
+        "factor": [
+          7,
+          10
+        ]
+      }
+    }
+  }
+}

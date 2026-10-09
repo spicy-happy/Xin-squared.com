@@ -1,10 +1,10 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { loadRules } from '../src/rules.js';
-import { createMatch, whoseTurn, applyAction, chooseReplacement } from '../src/engine.js';
-import { chooseAction, chooseTeam, chooseReplacement as aiReplacement } from '../src/ai.js';
-import { next } from '../src/rng.js';
-const rules=loadRules(JSON.parse(readFileSync(new URL('../data/rules-v1.json',import.meta.url))));
+import { loadRules } from '../releases/v39/src/rules.js';
+import { createMatch, whoseTurn, applyAction, chooseReplacement } from '../releases/v39/src/engine.js';
+import { chooseAction, chooseTeam, chooseReplacement as aiReplacement } from '../releases/v39/src/ai.js';
+import { next } from '../releases/v39/src/rng.js';
+const rules=loadRules(JSON.parse(readFileSync(new URL('../data/rules-v2.json',import.meta.url))));
 const statNames=['health','attack','defense','speed'];
 const builds=[];
 for(let h=0;h<=5;h++)for(let a=0;a<=5;a++)for(let d=0;d<=5;d++)for(let s=0;s<=5;s++)if(h+a+d+s===rules.stats.budget)builds.push({health:h,attack:a,defense:d,speed:s});

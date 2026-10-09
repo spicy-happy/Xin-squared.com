@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { rules, creature, stats } from './helpers.mjs';
-import { damage, maxHp, loadRules, roundHalfUp, typeFactor } from '../src/rules.js';
-import { next } from '../src/rng.js';
+import { damage, maxHp, loadRules, roundHalfUp, typeFactor } from '../releases/v39/src/rules.js';
+import { next } from '../releases/v39/src/rng.js';
 
 test('Rules loader freezes a copy and rejects malformed rules', () => {
   assert.ok(Object.isFrozen(rules.moves.regular));

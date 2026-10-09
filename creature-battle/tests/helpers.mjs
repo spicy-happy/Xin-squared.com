@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
-import { loadRules } from '../src/rules.js';
-import { createMatch, whoseTurn, applyAction, chooseReplacement, getActions } from '../src/engine.js';
-import { next } from '../src/rng.js';
-export const rules = loadRules(JSON.parse(readFileSync(new URL('../data/rules-v1.json', import.meta.url))));
+import { loadRules } from '../releases/v39/src/rules.js';
+import { createMatch, whoseTurn, applyAction, chooseReplacement, getActions } from '../releases/v39/src/engine.js';
+import { next } from '../releases/v39/src/rng.js';
+export const rules = loadRules(JSON.parse(readFileSync(new URL('../data/rules-v2.json', import.meta.url))));
 export function creature(overrides = {}) {
-  return { schema: 1, id: 'cr-test00', rulesVersion: 1, sheet: 'S1', name: 'Test creature', trainer: { nickname: 'Test Trainer', portrait: 'assets/portraits/cr-test00.12345678.webp' },
+  return { schema: 1, id: 'cr-test00', rulesVersion: rules.version, sheet: 'S1', name: 'Test creature', trainer: { nickname: 'Test Trainer', portrait: 'assets/portraits/cr-test00.12345678.webp' },
     image: { src: 'assets/creatures/cr-test00.12345678.webp', w: 512, h: 400 }, type: 'water',
     stats: { health: 3, attack: 3, defense: 2, speed: 2 },
     moves: { regular: { id: 'steady', name: 'Steady' }, special: { id: 'blast', name: 'Blast' }, defense: { id: 'heal', name: 'Heal' } },
