@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import { creature, rules } from './helpers.mjs';
-import { loadCollection, validateCreature, teamRule, validateTeam } from '../releases/v39/src/collection.js';
+import { loadCollection, validateCreature, teamRule, validateTeam } from '../releases/v43/src/collection.js';
 test('empty/one/two/three collection team rules',()=>{
   const a=creature(),b=creature({id:'cr-test01'}),c=creature({id:'cr-test02'});
   assert.equal(teamRule([]).canBattle,false);assert.equal(validateTeam([a,a,a],[]),false);
@@ -55,7 +55,7 @@ test('prototype entries retire once six real creatures are uploaded',()=>{
 });
 
 test('unusual move budgets are flagged without changing reviewed choices',async()=>{
- const {creatureWarnings}=await import('../releases/v39/src/collection.js');
+ const {creatureWarnings}=await import('../releases/v43/src/collection.js');
  const c=creature();assert.deepEqual(creatureWarnings(c,rules),[]);
  c.moves.regular={id:'blast',name:'Burst',category:'special'};
  c.moves.special={id:'guard',name:'Shield',category:'defense'};

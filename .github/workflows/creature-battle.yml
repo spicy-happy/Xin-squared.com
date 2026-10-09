@@ -26,7 +26,12 @@ jobs:
       - name: Browser battles and animation regression
         run: |
           python -m http.server 8918 >/tmp/creature-server.log 2>&1 &
-          node creature-battle/tools/gym-browser.mjs
+          node creature-battle/tools/trainers-browser.mjs
+          node creature-battle/tools/pixels-browser.mjs
+          node creature-battle/tools/progress-browser.mjs
+          node creature-battle/tools/setup-browser.mjs
+          node creature-battle/tools/cards-browser.mjs
+          node creature-battle/tools/order-browser.mjs
           node creature-battle/tools/launch-browser.mjs
       - uses: actions/jekyll-build-pages@v1
         with:
@@ -40,5 +45,5 @@ jobs:
           test ! -e _site/creature-battle/tools
           test -f _site/creature-battle/index.html
           test -f _site/creature-battle/data/creatures-v2.json
-          test -f _site/creature-battle/releases/v39/src/ui/main.js
+          test -f _site/creature-battle/releases/v43/src/ui/main.js
           test -f _site/creature-battle/output/pdf/creature-sheet.pdf

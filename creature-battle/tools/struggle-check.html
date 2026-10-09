@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Struggle recoil check</title><link rel="stylesheet" href="../styles.css?v=45"></head>
+<body><header><span>Struggle recoil check</span><button id="shielded">Shielded</button><button id="unshielded">Unshielded</button><button id="last-hp">At 1 HP</button></header><p id="evidence" role="status" style="padding:0 16px">Loading test fixtures…</p><main id="app"></main>
+<script type="module">
+import {loadRules} from '../releases/v43/src/rules.js';
+import {createMatch,applyAction} from '../releases/v43/src/engine.js';
+import {battleView} from '../releases/v43/src/ui/battle.js';
+const rules=loadRules(await(await fetch('../data/rules-v2.json',{cache:'no-cache'})).json());
+const {creatures}=await(await fetch('../data/creatures-v2.json',{cache:'no-cache'})).json();
+const source=creatures.find(c=>c.id==='cr-amphidian');let state,view;
+const evidence=document.querySelector('#evidence'),app=document.querySelector('#app');
+function reset({shield=false,hp=10}={}){
+ view?.dispose();
+ const player={...structuredClone(source),name:'Player creature',stats:{health:2,attack:3,defense:0,speed:5}};
+ const opponent={...structuredClone(source),name:'Opponent creature',stats:{health:5,attack:3,defense:2,speed:0}};
+ state=createMatch({rules,teams:[[player,player,player],[opponent,opponent,opponent]],seed:17}).state;
+ state.teams[0][0].hp=hp;state.teams[0][0].pp={regular:0,special:0,defense:0};state.teams[1][0].shield=shield?999:0;
+ if(hp===1)for(const m of state.teams[0].slice(1))m.hp=0;
+ evidence.textContent=`Before Struggle: player ${hp} HP. ${shield?'Opponent has a shield.':'No shield.'}`;
+ view=battleView({app,initial:state,trainers:[{nickname:'Player'},{nickname:'Opponent'}],imageSrc:c=>new URL('../'+c.image.src,location.href).href,portraitSrc:()=>new URL('../'+source.trainer.portrait,location.href).href,getState:()=>state,twoTap:()=>false,humanSides:[0],onReplacement:()=>{},onDrain:()=>{
+  const now=app.querySelector('[data-side="0"] .hp').getAttribute('aria-valuenow');
+  evidence.textContent+=` Displayed HP: ${now}.`;
+ },onAction:(side,action)=>{
+  const before=state.teams[0][0].hp,result=applyAction(state,side,action);state=result.state;
+  const recoil=result.events.find(e=>e.t==='recoil');evidence.textContent=`Struggle: ${before} HP → ${state.teams[0][0].hp} HP (−${recoil.amount}).${state.over?' Player fainted and lost.':''}`;
+  view.animate(result.events);
+ }});
+}
+document.querySelector('#shielded').onclick=()=>reset({shield:true});document.querySelector('#unshielded').onclick=()=>reset();document.querySelector('#last-hp').onclick=()=>reset({shield:true,hp:1});reset({shield:true});
+</script></body></html>

@@ -9,13 +9,13 @@ page.on('response',r=>{if(r.url().includes('/assets/')&&r.status()>=400)unavaila
 await page.goto(origin+'/creature-battle/');await page.locator('#play-ai').waitFor();
 await page.locator('#play-ai').click();
 await page.waitForFunction(async()=>{
- const {soundState}=await import(`/creature-battle/releases/v39/src/ui/audio.js?v=${GAME_VERSION}`);
+ const {soundState}=await import(`/creature-battle/releases/v43/src/ui/audio.js?v=${GAME_VERSION}`);
  const audio=soundState();return audio.decoded===9 && audio.musicReady>=2;
 });
 assert.deepEqual(unavailableAssets,[]);
 // Exercise the actual juice module with animation timelines frozen at impact.
 const motion=await page.evaluate(async()=>{
- const {battleJuice}=await import(`/creature-battle/releases/v39/src/ui/juice.js?v=${GAME_VERSION}`);
+ const {battleJuice}=await import(`/creature-battle/releases/v43/src/ui/juice.js?v=${GAME_VERSION}`);
  const host=document.createElement('div');host.style.cssText='position:fixed;inset:0';document.body.append(host);
  const panels=[0,1].map(side=>{
   const stage=document.createElement('div'),fighter=document.createElement('div'),img=document.createElement('img'),shadow=document.createElement('div');
@@ -52,7 +52,7 @@ const recovery=await browser.newPage();let failed=false;
 await recovery.route('**/data/creatures-v2.json',route=>{if(!failed){failed=true;return route.fulfill({status:200,contentType:'application/json',body:'{"schema":0}'});}return route.continue();});
 await recovery.route('**/creature-battle/',async route=>{
  const response=await route.fetch();let body=await response.text();
- if(failed)body=body.replace(/GAME_VERSION = \d+/, 'GAME_VERSION = 40');
+ if(failed)body=body.replace(/GAME_VERSION = \d+/, 'GAME_VERSION = 999');
  await route.fulfill({response,body});
 });
 await recovery.goto(origin+'/creature-battle/');await recovery.waitForURL(/\?v=/);await recovery.locator('#play-ai').waitFor();assert.equal(failed,true);
@@ -73,6 +73,6 @@ for(const cached of [[],['src/ui/main.js','src/collection.js'],['src/ui/teampick
  });
  for(const path of cached)await legacyPage.route(`**/creature-battle/${path}?v=37`,route=>route.fulfill({contentType:'text/javascript',body:readFileSync(new URL('../'+path,import.meta.url),'utf8')}));
  await legacyPage.goto(origin+'/creature-battle/');await legacyPage.waitForURL(/\?v=/);await legacyPage.locator('#play-ai').waitFor();
- await legacyPage.locator('#play-ai').click();await legacyPage.locator('#team-done').waitFor();assert.deepEqual(errors,[]);await legacyPage.close();
+ await legacyPage.locator('#play-ai').click();await legacyPage.locator('#opponent-next').waitFor();assert.deepEqual(errors,[]);await legacyPage.close();
 }
 await browser.close();console.log(JSON.stringify({motion,cacheRecovery:true,legacyCompatible:true,mixedV37Caches:true,audioLoaded:true}));

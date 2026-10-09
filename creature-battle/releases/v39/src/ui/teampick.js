@@ -1,6 +1,6 @@
 import { trainerKey, gymLeaders } from '../trainers.js';
 import { teamRule, validateTeam, cleanName, nameError, creatureWarnings } from '../collection.js';
-import { element as el, typeChip, shuffled, carousel, difficultyPicker } from './components.js';
+import { element as el, typeChip, shuffled, carousel, difficultyPicker, pixelPicker } from './components.js';
 export function teamPick({app,collection,rules,side,imageSrc,portraitSrc,onDone,solo=false,difficulty='easy',onDifficulty,opponentId='random',onOpponent,initialChoice=null}){
  app.replaceChildren();const panel=el('section','panel team-picker');app.append(panel);
  panel.setAttribute('aria-label',solo?'Solo battle team selection':`Player ${side+1} team selection`);
@@ -8,15 +8,14 @@ export function teamPick({app,collection,rules,side,imageSrc,portraitSrc,onDone,
  const toolbar=el('div','picker-toolbar'),done=el('button','primary','Start');done.id='team-done';done.disabled=true;
  if(solo)toolbar.append(difficultyPicker(difficulty,onDifficulty));toolbar.append(done);top.append(toolbar);panel.append(top);
  if(solo){
-  const label=el('label','opponent-label','Opponent'),select=el('select');select.id='solo-opponent';
-  const leaders=gymLeaders(collection);for(const leader of leaders){const option=el('option',null,`Gym Leader ${leader.nickname}`);option.value=leader.id;select.append(option);}
-  const random=el('option',null,'Random Battle Bot');random.value='random';select.append(random);select.value=opponentId;label.append(select);panel.append(label);
+  const leaders=gymLeaders(collection);
+  const picker=pixelPicker({id:'solo-opponent',label:'Opponent',value:opponentId,choices:[...leaders.map(t=>({value:t.id,label:`Gym Leader ${t.nickname}`})),{value:'random',label:'Random Battle Bot'}],onChange:value=>{opponentId=value;onOpponent(value);opponentPreview();}});
+  picker.classList.add('opponent-label');panel.append(picker);
   const preview=el('div','opponent-preview');panel.append(preview);
-  function opponentPreview(){preview.replaceChildren();const leader=leaders.find(t=>t.id===select.value),img=el('img');img.src=portraitSrc(leader??{bot:true});img.alt=leader?.nickname??'Battle Bot';preview.append(img,el('span',null,leader?`${leader.nickname}'s gym · ${leader.creatures.length} creatures`:'Random creatures from the whole collection'));}
-  select.onchange=()=>{onOpponent(select.value);opponentPreview();};opponentPreview();
+  function opponentPreview(){preview.replaceChildren();const leader=leaders.find(t=>t.id===opponentId),img=el('img');img.src=portraitSrc(leader??{bot:true});img.alt=leader?.nickname??'Battle Bot';preview.append(img,el('span',null,leader?`${leader.nickname}'s gym · ${leader.creatures.length} creatures`:'Random creatures from the whole collection'));}
+  opponentPreview();
  }
 
- if(collection.some(c=>c.prototype))panel.append(el('p','roster-note','More drawings are coming! Labeled TEST creatures stay available until six real creatures are ready.'));
  const team=[],rule=teamRule(collection),options=rule.duplicates?Array.from({length:3},(_,i)=>({c:collection[i%collection.length],key:`copy-${i}`})):collection.map(c=>({c,key:c.id}));
  let trainer=collection.find(c=>c.id===initialChoice?.trainerId)??collection[Math.min(side,collection.length-1)];
  if(initialChoice)for(const c of initialChoice.team){const entry=options.find(e=>e.c.id===c.id&&!team.includes(e));if(entry)team.push(entry);}

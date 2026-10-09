@@ -2,19 +2,21 @@ import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH || undefined});
-const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8918',out=process.env.BATTLE_OUTPUT||'/tmp/cb-gym-browser';mkdirSync(out,{recursive:true});
+const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8918',out=process.env.BATTLE_OUTPUT||'/tmp/cb-trainers-browser';mkdirSync(out,{recursive:true});
 const results=[];
-for(const [mode,difficulty,width,height] of [['gym','easy',844,390],['gym','hard',1024,768],['random','easy',844,390],['random','hard',844,390],['friend','easy',844,390]]){
+for(const [mode,difficulty,width,height] of [['trainer','easy',844,390],['trainer','hard',1024,768],['random','easy',844,390],['random','hard',844,390],['friend','easy',844,390]]){
  const page=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.clock.install();
  await page.goto(origin+'/creature-battle/');await page.locator('#play-ai').waitFor();
  await page.locator('#collection').click();assert.equal(await page.locator('.carousel-group:nth-child(2) .collection-card').count(),9);assert.deepEqual((await page.locator('.carousel-group:nth-child(2) .collection-card h2').allTextContents()).filter(n=>!n.startsWith('Test ')).sort(),['Amphidian','Bassault','Broot']);
  await page.getByRole('button',{name:'Home',exact:true}).click();await page.locator(mode==='friend'?'#play-friend':'#play-ai').click();
- assert.equal(await page.locator('.carousel-group:nth-child(2) .trainer-card').count(),7);
+
  if(mode!=='friend'){
-  assert.deepEqual(await page.locator('#solo-opponent option').allTextContents(),['Gym Leader Uncle Mark','Random Battle Bot']);
-  await page.locator('#solo-opponent').selectOption(mode==='gym'?'tr-unclemark':'random');
+  assert.deepEqual(await page.locator('#solo-opponent-options [role=option]').allTextContents(),['Uncle Mark','Random Battle Bot']);
+  await page.locator('#solo-opponent').click();await page.getByRole('option',{name:mode==='trainer'?'Uncle Mark':'Random Battle Bot',exact:true}).click();
   await page.locator('#difficulty').click();await page.getByRole('option',{name:difficulty==='hard'?'Hard':'Easy',exact:true}).click();
  }
+ if(mode!=='friend')await page.locator('#opponent-next').click();
+ assert.equal(await page.locator('.carousel-group:nth-child(2) .trainer-card').count(),7);
  const nameInput=page.locator('#trainer-name');await nameInput.fill('Player One');await nameInput.dispatchEvent('input');
  for(const id of ['cr-amphidian','cr-bassault','cr-broot01'])await page.locator(`.carousel-group:nth-child(2) [data-creature="${id}"]`).click();
  await page.screenshot({path:`${out}/${mode}-${difficulty}-${width}-picker.png`,fullPage:true});await page.locator('#team-done').click();
@@ -34,11 +36,23 @@ for(const [mode,difficulty,width,height] of [['gym','easy',844,390],['gym','hard
   await page.clock.runFor(6000);
  }
  assert.equal(await page.locator('#rematch').count(),1,'Match finishes through visible controls');assert.ok(actions>0);
- if(mode==='gym')assert.ok(!/Battle Bot/.test(await page.locator('#app').innerText()));
+ if(mode==='trainer')assert.ok(!/Battle Bot/.test(await page.locator('#app').innerText()));
+ const earned=mode==='trainer'&&await page.getByText(`You defeated Uncle Mark on ${difficulty==='hard'?'Hard':'Easy'}!`,{exact:true}).count()===1;
+ const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('cb-trainer-victories-v1')||'null'));
+ assert.equal(!!saved?.[difficulty]?.includes('tr-unclemark'),earned,'Only defeating the selected trainer awards a check');
+ assert.ok(!/Gym|gym/.test(await page.locator('#app').innerText()));
  await page.screenshot({path:`${out}/${mode}-${difficulty}-${width}-result.png`});
- await page.locator('#rematch').click();await page.locator('#team-done').waitFor();assert.equal(await page.locator('.selection .team-chip').count(),3);assert.equal(await page.locator('#team-done').isEnabled(),true);
- if(mode!=='friend'){assert.equal(await page.locator('#solo-opponent').inputValue(),mode==='gym'?'tr-unclemark':'random');assert.equal(await page.locator('#difficulty').getAttribute('data-value'),difficulty);}
- assert.deepEqual(errors,[]);results.push({mode,difficulty,width,height,actions,finished:true,errors});writeFileSync(out+'/results.json',JSON.stringify(results,null,2));await page.close();
+ await page.locator('#rematch').click();if(mode!=='friend'){await page.locator('#opponent-next').waitFor();assert.equal(await page.locator('#solo-opponent').getAttribute('data-value'),mode==='trainer'?'tr-unclemark':'random');assert.equal(await page.locator('#difficulty').getAttribute('data-value'),difficulty);await page.locator('#opponent-next').click();}await page.locator('#team-done').waitFor();assert.equal(await page.locator('.selection .team-chip').count(),3);assert.equal(await page.locator('#team-done').isEnabled(),true);
+ if(mode!=='friend')await page.locator('#opponent-back').click();
+ if(mode==='trainer'){
+  assert.equal(await page.locator('#solo-opponent .trainer-win-check').count(),earned?1:0);
+  await page.locator('#difficulty').click();await page.getByRole('option',{name:difficulty==='hard'?'Easy':'Hard',exact:true}).click();
+  assert.equal(await page.locator('#solo-opponent .trainer-win-check').count(),0,'Other difficulty remains undefeated');
+  await page.reload();await page.locator('#play-ai').click();
+  await page.locator('#difficulty').click();await page.getByRole('option',{name:difficulty==='hard'?'Hard':'Easy',exact:true}).click();
+  assert.equal(await page.locator('#solo-opponent .trainer-win-check').count(),earned?1:0,'Trainer victory survives a reload');
+ }
+ assert.deepEqual(errors,[]);results.push({mode,difficulty,width,height,actions,earned,finished:true,errors});writeFileSync(out+'/results.json',JSON.stringify(results,null,2));await page.close();
 }
 // Smaller picker and portrait battle overlay, plus mirroring during real animations.
 for(const [width,height]of [[320,740],[390,844],[667,375]]){
