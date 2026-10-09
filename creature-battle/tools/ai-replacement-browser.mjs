@@ -15,8 +15,9 @@ try{
    await route.fulfill({response,body:source});
   });
   await p.goto(origin+'/creature-battle/?debug=1');await p.waitForFunction(()=>window.__battleReady);
-  await p.evaluate(()=>__battleDebug.seed(9));await p.locator('#play-ai').click();
-  if(difficulty==='Hard'){await p.locator('.difficulty-trigger').click();await p.getByRole('option',{name:'Hard',exact:true}).click();}
+  await p.evaluate(()=>__battleDebug.seed(9));await p.locator('#play-ai').click();await p.locator('#solo-opponent').click();await p.getByRole('option',{name:'Random Battle Bot',exact:true}).click();
+  if(difficulty==='Hard'){await p.locator('#difficulty').click();await p.getByRole('option',{name:'Hard',exact:true}).click();}
+  await p.locator('#opponent-next').click();
   // Select the fast, accurate Tackle user first, independent of shuffled picker order.
   const cards=p.locator('.carousel-group:nth-child(2) .pick-card');
   for(const name of ['Test fire','Test water','Test grass'])await cards.filter({has:p.locator('strong',{hasText:name})}).click();

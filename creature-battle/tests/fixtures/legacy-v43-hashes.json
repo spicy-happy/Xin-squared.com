@@ -1,0 +1,19 @@
+{
+  "releases/v43/src/ai.js": "8d49a9becc196507b419d770f06929bcd965ddbf6d5596c88136a63a5aaa62bc",
+  "releases/v43/src/collection.js": "bbdecc06781b1be5bc8a63d8d54c96098436ef653e24082b571b31f351f24393",
+  "releases/v43/src/engine.js": "6fb50a849033ba289a7050b0c817b7e6cdb90b584cd6a965f0d2f8ba8100316e",
+  "releases/v43/src/messages.js": "7fc843c30821e8c5834bc62ff307e1a6170a22043629af1b6c9dcb2908b68bf6",
+  "releases/v43/src/moves.js": "a259a4c87659e27811bc06894f4fe45079555ce4a6df302e7a36a749ae950483",
+  "releases/v43/src/progress.js": "28455db2797c4fbb96d85b7cc649f8c69d434347f7748565a30e9c3d44711944",
+  "releases/v43/src/rng.js": "c686c45c1bd778f3a281abafadc1acbc242f277a7acf0b5789c30ac4a125d48b",
+  "releases/v43/src/rules.js": "c6f1400c33c4e0ecba1057a0ea9a83ea73728a627ae61a6dcd7a5d99978360fb",
+  "releases/v43/src/tactics.js": "305e2b2cb6694db98875f9b8d76b99dd2a95ddc3aa4a04f2e3f498534b73313b",
+  "releases/v43/src/trainers.js": "6e042a4e65605df9a2901c5bdc816133398e6561b75b64a073b50b69c550d210",
+  "releases/v43/src/ui/audio.js": "34b5643aaa9a0964fe202811bf4cab070eccd3d57bf05ae32dfea5e5c63fd2fd",
+  "releases/v43/src/ui/battle.js": "3fad10c98229d6aa6ce408c697b7a9e5c1bb8434116e3400d191c294b339a752",
+  "releases/v43/src/ui/components.js": "649bb777bf9e937376c51a64b357257ea6995454b51418ed2bf5963f9363d14f",
+  "releases/v43/src/ui/juice.js": "d66e5440ce613f08ba92de36767e55c671c751044ea4a387c7077e7bd69d5971",
+  "releases/v43/src/ui/main.js": "b5f5625930a68296999eeb3ac9c2a20e1be6f435ec64137999685647c735f392",
+  "releases/v43/src/ui/pixels.js": "8a4baccd4fb57f150bbe83b99cc5b3c25615907c7f85d95d293b6e5c4645a2ce",
+  "releases/v43/src/ui/teampick.js": "2989ede345d5b283990e276486821ba7442034379288640e73d95fad0da02d39"
+}

@@ -1,0 +1,105 @@
+2026-10-09 · GAME_VERSION 46 · releases/v46/src
+Synthetic roster measurements; thresholds unchanged.
+
+Samples: random 10000; each paired 4000; Hard/Easy 4000; seed 3
+PASS | type fire (47–53%) | 51.28
+PASS | type water (47–53%) | 49.95
+PASS | type grass (47–53%) | 50.31
+PASS | type electric (47–53%) | 49.83
+PASS | type ground (47–53%) | 49.16
+PASS | type flying (47–53%) | 49.48
+PASS | move steady (46–54%) | 48.90
+PASS | move quick (46–54%) | 48.92
+PASS | move pierce (46–54%) | 51.50
+PASS | move heavy (46–54%) | 50.67
+PASS | move blast (46–54%) | 47.80
+PASS | move risky (46–54%) | 49.01
+PASS | move recoil (46–54%) | 48.04
+FAIL | move overload (46–54%) | 55.13
+PASS | move guard (46–54%) | 52.90
+PASS | move heal (46–54%) | 52.70
+FAIL | move toughen (46–54%) | 44.36
+PASS | health 5−0 (±3 points) | 1.90
+PASS | attack 5−0 (±3 points) | 1.82
+PASS | defense 5−0 (±3 points) | 1.05
+FAIL | speed 5−0 (±3 points) | -5.10
+PASS | paired health→attack (45–55%) | 52.70
+PASS | paired health→defense (45–55%) | 47.75
+PASS | paired attack→defense (45–55%) | 46.15
+FAIL | median actions (22–34) | 48.00
+FAIL | p90 actions (≤55) | 66.00
+PASS | draws (0) | 0.00
+PASS | safety-cap endings (0) | 0.00
+FAIL | Heavy exhausted (3–15%) | 21.52
+FAIL | 3-creature Hard beats Easy (≥70%) | 56.77
+Action/replacement-only Hard/Easy on assigned random teams (diagnostic): 64.38%
+Hang on 6388/326436 hits (1.9569%); double turns/battle 0.00
+24-creature collection Hard/Easy (diagnostic): 72.20%
+Samples: random 10000; each paired 4000; Hard/Easy 4000; seed 17
+PASS | type fire (47–53%) | 50.27
+PASS | type water (47–53%) | 48.73
+PASS | type grass (47–53%) | 50.24
+PASS | type electric (47–53%) | 49.75
+PASS | type ground (47–53%) | 50.06
+PASS | type flying (47–53%) | 50.94
+PASS | move steady (46–54%) | 49.21
+PASS | move quick (46–54%) | 48.65
+PASS | move pierce (46–54%) | 51.43
+PASS | move heavy (46–54%) | 50.73
+PASS | move blast (46–54%) | 48.39
+PASS | move risky (46–54%) | 48.69
+PASS | move recoil (46–54%) | 47.74
+FAIL | move overload (46–54%) | 55.18
+PASS | move guard (46–54%) | 53.10
+PASS | move heal (46–54%) | 52.52
+FAIL | move toughen (46–54%) | 44.45
+PASS | health 5−0 (±3 points) | 2.09
+PASS | attack 5−0 (±3 points) | 1.92
+PASS | defense 5−0 (±3 points) | 0.09
+FAIL | speed 5−0 (±3 points) | -5.25
+PASS | paired health→attack (45–55%) | 51.30
+PASS | paired health→defense (45–55%) | 47.63
+PASS | paired attack→defense (45–55%) | 45.15
+FAIL | median actions (22–34) | 48.00
+FAIL | p90 actions (≤55) | 66.00
+PASS | draws (0) | 0.00
+PASS | safety-cap endings (0) | 0.00
+FAIL | Heavy exhausted (3–15%) | 21.05
+FAIL | 3-creature Hard beats Easy (≥70%) | 56.33
+Action/replacement-only Hard/Easy on assigned random teams (diagnostic): 66.42%
+Hang on 6151/325666 hits (1.8887%); double turns/battle 0.00
+24-creature collection Hard/Easy (diagnostic): 71.35%
+Samples: random 10000; each paired 4000; Hard/Easy 4000; seed 101
+PASS | type fire (47–53%) | 50.02
+PASS | type water (47–53%) | 50.47
+PASS | type grass (47–53%) | 49.69
+PASS | type electric (47–53%) | 48.74
+PASS | type ground (47–53%) | 50.50
+PASS | type flying (47–53%) | 50.58
+PASS | move steady (46–54%) | 49.30
+PASS | move quick (46–54%) | 48.97
+PASS | move pierce (46–54%) | 51.04
+PASS | move heavy (46–54%) | 50.71
+PASS | move blast (46–54%) | 48.27
+PASS | move risky (46–54%) | 49.25
+PASS | move recoil (46–54%) | 47.66
+FAIL | move overload (46–54%) | 54.80
+PASS | move guard (46–54%) | 53.04
+PASS | move heal (46–54%) | 52.47
+FAIL | move toughen (46–54%) | 44.43
+PASS | health 5−0 (±3 points) | 0.82
+FAIL | attack 5−0 (±3 points) | 3.50
+PASS | defense 5−0 (±3 points) | 1.02
+FAIL | speed 5−0 (±3 points) | -4.32
+PASS | paired health→attack (45–55%) | 52.40
+PASS | paired health→defense (45–55%) | 47.65
+PASS | paired attack→defense (45–55%) | 45.30
+FAIL | median actions (22–34) | 49.00
+FAIL | p90 actions (≤55) | 67.00
+PASS | draws (0) | 0.00
+PASS | safety-cap endings (0) | 0.00
+FAIL | Heavy exhausted (3–15%) | 22.15
+FAIL | 3-creature Hard beats Easy (≥70%) | 56.88
+Action/replacement-only Hard/Easy on assigned random teams (diagnostic): 65.22%
+Hang on 6285/329258 hits (1.9088%); double turns/battle 0.00
+24-creature collection Hard/Easy (diagnostic): 72.75%

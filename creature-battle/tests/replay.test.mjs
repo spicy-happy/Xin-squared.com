@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-import {match} from './helpers.mjs';import {applyAction,chooseReplacement} from '../releases/v43/src/engine.js';import {deepFreeze} from '../releases/v43/src/rules.js';
+import {match} from './helpers.mjs';import {applyAction,chooseReplacement} from '../releases/v46/src/engine.js';import {deepFreeze} from '../releases/v46/src/rules.js';
 const replays=JSON.parse(readFileSync(new URL('./fixtures/golden-replays.json',import.meta.url)));
 for(const replay of replays)test(`golden complete replay seed ${replay.seed}`,()=>{
   let {state,events}=match(...replay.defs,replay.seed);const all=[...events];

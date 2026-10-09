@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { rules, creature, moves, stats, match, active, runRandom } from './helpers.mjs';
-import { createMatch, whoseTurn, getActions, applyAction, chooseReplacement } from '../releases/v43/src/engine.js';
-import { deepFreeze, damage } from '../releases/v43/src/rules.js';
-import { next } from '../releases/v43/src/rng.js';
+import { createMatch, whoseTurn, getActions, applyAction, chooseReplacement } from '../releases/v46/src/engine.js';
+import { deepFreeze, damage } from '../releases/v46/src/rules.js';
+import { next } from '../releases/v46/src/rng.js';
 const fast = {stats:stats(2,3,0,5)},slow={stats:stats(5,3,2,0)};
 const act=(s,kind='regular',index)=>applyAction(s,whoseTurn(s).side,{kind,...(index===undefined?{}:{index})});
 const ev=(result,t)=>result.events.find(e=>e.t===t);
@@ -250,7 +250,7 @@ test('a real heal after Last Chance cannot grant that same creature a second cha
 });
 
 test('1000 AI battles alternate spent turns and never save the same creature twice',async()=>{
- const {chooseAction,chooseReplacement:botReplacement}=await import('../releases/v43/src/ai.js');
+ const {chooseAction,chooseReplacement:botReplacement}=await import('../releases/v46/src/ai.js');
  const {randomCreature}=await import('./helpers.mjs');
  for(let seed=0;seed<1000;seed++){
   let rng=seed;const random=()=>{let value;[value,rng]=next(rng);return value;};
@@ -346,4 +346,21 @@ test('defense events flag repeats that do not change protection',()=>{
   s=first.state;s=act(s,'defense').state;
   const repeated=act(s,'defense');assert.equal(ev(repeated,id==='guard'?'shieldUp':'toughen').unchanged,true);
  }
+});
+
+
+test('healing preserves shield and caps their combined total at max HP',()=>{
+ const me=creature({...fast,moves:{...moves(),regular:{id:'guard',name:'Guard',category:'defense'},defense:{id:'heal',name:'Heal'}}});
+ let {state:s}=createMatch({rules,teams:[[me,me,me],[creature(slow),creature(slow),creature(slow)]],seed:1});
+ const m=active(s,0);m.hp=5;
+ s=applyAction(s,0,{kind:'regular'}).state;
+ const shield=active(s,0).shield;
+ s=applyAction(s,1,{kind:'defense'}).state;
+ const before=active(s,0).hp,r=applyAction(s,0,{kind:'defense'}),after=active(r.state,0);
+ assert.equal(after.shield,shield);assert.ok(after.hp+after.shield<=after.maxHp);
+ assert.equal(ev(r,'heal').amount,after.hp-before);
+ after.hp=after.maxHp-after.shield;
+ // Restoring the actor's turn isolates the zero-gain edge case.
+ r.state.order=[0,1];r.state.slot=0;
+ assert.equal(ev(applyAction(r.state,0,{kind:'defense'}),'heal').amount,0);
 });

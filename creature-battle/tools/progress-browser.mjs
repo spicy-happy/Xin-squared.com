@@ -17,7 +17,7 @@ assert.deepEqual(await page.locator('#solo-opponent-options [role=option]').allT
 assert.equal(await page.locator('.trainer-win-check').count(),0);assert.ok(!/Gym|gym|More drawings/.test(await page.locator('#app').innerText()));
 // Seed completed results through the same production persistence API used by the result screen.
 await page.evaluate(async()=>{
- const {createTrainerProgress}=await import(`/creature-battle/releases/v43/src/progress.js?v=${GAME_VERSION}`),progress=createTrainerProgress();
+ const {createTrainerProgress}=await import(`/creature-battle/releases/v46/src/progress.js?v=${GAME_VERSION}`),progress=createTrainerProgress();
  const result={mode:'ai',over:true,winner:0,reason:'ko'};
  progress.recordResult({...result,opponentId:'tr-unclemark',difficulty:'hard'});
  progress.recordResult({...result,opponentId:'tr-newartist',difficulty:'easy'});

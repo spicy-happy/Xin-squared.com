@@ -128,3 +128,29 @@
 .team-creature-name{min-width:0;overflow-wrap:anywhere;text-align:left}
 .team-chip.dragging{opacity:.35;border-style:dashed}
 .team-drag-preview{position:fixed;z-index:100;pointer-events:none;margin:0;box-shadow:4px 4px 0 var(--shadow);background:var(--surface);opacity:.95}
+
+/* Room for complete narration rows and short landscape setup/results. */
+.text-box{line-height:1.2;padding:8px 12px;overflow-y:auto}
+.arena{grid-template-rows:104px minmax(0,1fr)}
+body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
+header{height:calc(48px + env(safe-area-inset-top));padding-top:calc(4px + env(safe-area-inset-top))}
+.arena{height:calc(100dvh - 48px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+@media(orientation:landscape) and (max-height:500px){
+ .result-panel,.opponent-picker{margin:8px auto;padding:8px 16px}
+ .result-panel h1{font-size:32px;margin:4px 0 8px}
+ .result-panel p{margin:6px 0}
+ .result-team img{width:64px;height:64px}
+ .result-panel .choices,.opponent-picker .choices{margin:10px 0 4px}
+ .opponent-picker .picker-heading{margin-bottom:4px}
+ .opponent-picker h2{margin:8px 0 4px}
+ .result-team article{min-width:0;max-width:30%;font-size:20px;overflow-wrap:anywhere}
+}
+@media(orientation:landscape) and (max-height:360px){
+ .in-battle header{height:calc(32px + env(safe-area-inset-top));padding-top:calc(2px + env(safe-area-inset-top))}
+ .arena{height:calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));grid-template-rows:88px minmax(0,1fr)}
+ .text-box{line-height:1.2;padding:8px}
+}
+@media(orientation:landscape) and (max-height:500px){
+ .opponent-picker .picker-heading{flex-direction:row;align-items:center}
+ .opponent-picker .picker-toolbar{width:auto}
+}

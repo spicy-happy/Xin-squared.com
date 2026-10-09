@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createTrainerProgress} from '../releases/v43/src/progress.js';
+import {createTrainerProgress} from '../releases/v46/src/progress.js';
 const win={mode:'ai',opponentId:'tr-unclemark',difficulty:'easy',over:true,winner:0,reason:'ko'};
 function storage(){let value=null;return {getItem:()=>value,setItem:(_,v)=>{value=v;}};}
 test('trainer victories survive reloads and belong to stable IDs and the chosen difficulty',()=>{

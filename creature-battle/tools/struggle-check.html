@@ -2,9 +2,9 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Struggle recoil check</title><link rel="stylesheet" href="../styles.css?v=45"></head>
 <body><header><span>Struggle recoil check</span><button id="shielded">Shielded</button><button id="unshielded">Unshielded</button><button id="last-hp">At 1 HP</button></header><p id="evidence" role="status" style="padding:0 16px">Loading test fixtures…</p><main id="app"></main>
 <script type="module">
-import {loadRules} from '../releases/v43/src/rules.js';
-import {createMatch,applyAction} from '../releases/v43/src/engine.js';
-import {battleView} from '../releases/v43/src/ui/battle.js';
+import {loadRules} from '../releases/v46/src/rules.js';
+import {createMatch,applyAction} from '../releases/v46/src/engine.js';
+import {battleView} from '../releases/v46/src/ui/battle.js';
 const rules=loadRules(await(await fetch('../data/rules-v2.json',{cache:'no-cache'})).json());
 const {creatures}=await(await fetch('../data/creatures-v2.json',{cache:'no-cache'})).json();
 const source=creatures.find(c=>c.id==='cr-amphidian');let state,view;

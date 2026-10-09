@@ -83,7 +83,7 @@ are phone-first.
 Pure ES modules, tested with Node 22 built-ins (no build or npm dependencies):
 
 ```sh
-node --test 'creature-battle/tests/*.test.mjs'
+node --test creature-battle/tests/*.test.mjs
 ```
 
 The owner has authorised six labelled prototype creatures at the direct production
@@ -93,7 +93,7 @@ TEST and is never represented as a child's submission. `?debug=1` adds debug hoo
 ### Creature Battle browser drive
 
 Serve the repo, then open `/creature-battle/?debug=1` at 844×390 and
-1024×768. Production has no debug hooks and loads six labelled TEST creatures.
+1024×768. Production has no debug hooks. The roster includes three submitted creatures and six labelled TEST creatures; TEST entries retire only after six real creatures are available.
 `window.__battleReady` is debug-only. `__battleDebug` exposes `state()`,
 `seed(n)`, `force(side, action)`, `setHp(side, hp)`, `fixtures()`.
 Prototype images are converted to 48×48, four-colour sprites at runtime. Originals stay unchanged.
@@ -102,19 +102,24 @@ Two-player recipe: click `#play-friend`; choose three
 `.carousel-group:nth-child(2) .pick-card` buttons and `#team-done` (Start). The second
 team picker opens directly. Choose player 2's portrait/team and click `#team-done`
 to start immediately. Player 1 is left.
-For AI, use `#play-ai`; Normal is the default and Hard is the other option.
-Difficulty and team selection share one screen. Click `#difficulty`, then a
-Normal/Hard `[role=option]` in its custom pixel menu. Start is beside difficulty;
-there is no visible title or Home button. `#game-home` returns to the home screen. Normal uses the random AI
-policy; Hard uses the tactical policy. Start is disabled until three creatures
-are picked. Clicking a selected card or its summary × clears that pick.
+For AI, use `#play-ai`; Easy is the default and Hard is the other option.
+Choose difficulty and a submitted trainer or Random Battle Bot, then click
+`#opponent-next`. On the team screen, selecting a trainer fills their available
+creatures (up to three); selecting cards edits that team. `#opponent-back` retains
+picks, order and the custom name. The first 350 ms of card input are guarded
+against a second tap from the previous screen. Start requires three creatures.
+Easy stays in until a forced replacement and usually chooses its best simple
+move, choosing a weaker useful move 30% of the time. Random Battle Bot on Easy
+also chooses a practice team weak to the player's opener when possible. Hard
+uses the tactical policy. Internal `normal` means the UI's Hard policy.
+`#game-home` returns home, or opens a quit confirmation during battle.
 Trainer and creature carousels have three synchronized copies; drive the
 middle copy for keyboard-accessible tests. Arrow buttons animate over 240 ms (respecting reduced motion); native horizontal
 scrolling loops by recentering one complete cycle. Focus uses inverted colours.
 
 Browser scripts: `tools/retro-browser.mjs` checks picker interactions, looping,
 pixel images and responsive layouts; `tools/prototype-browser.mjs` drives full
-Normal, Hard and two-player matches. Set `PLAYWRIGHT_MODULE`, `CHROME_PATH`,
+Easy, Hard and two-player matches. Set `PLAYWRIGHT_MODULE`, `CHROME_PATH`,
 and `BATTLE_ORIGIN` for the local environment.
 
 During battle, wait until enabled `[data-action]` buttons are interactive
@@ -147,14 +152,14 @@ Engine revisions: voluntary switching spends an action. A creature fainting
 before its action is replaced immediately, and its replacement inherits that
 unspent slot. Last Chance can save a heavy lethal hit (post-shield damage at least
 floor(maxHp / 2)) once per creature if its HP was above 1. Healing and switching
-do not reset it. Normal favours matchups for each child pick and uses 85% random legal choices.
+do not reset it. Easy practice bots favour a weak opening matchup and choose a weaker useful move 30% of the time; Hard uses tactical scoring.
 Speed decides the opening turn. Subsequent spent turns alternate through switches
 and replacements; the removed speed reordering cannot grant bonus actions. Mega Burst
 recharges its special for one turn, but Regular, Defense and Switch remain
 usable. No turn is automatically skipped; Struggle is available if recharge
 leaves no usable attacks.
 The sole surviving creature enters automatically; defense remains usable while PP
-remains, even at full HP or when already protected. Three approved non-prototype entries automatically
+remains, even at full HP or when already protected. Six approved non-prototype entries automatically
 retire TEST entries from the loaded collection. Run tools/playtest-browser.mjs
 for the UI checks, including replacement tray size and disabled fainted cards.
 
@@ -189,3 +194,12 @@ recovery, battlefield-only shake/flash, switch-out hops, entrances and fainting.
 Hit HP and sound updates wait for contact. Reduced motion skips visuals.
 Run tools/juice-browser.mjs for all 11 moves plus Struggle, lifecycle cleanup,
 small-screen layouts and reduced motion. arena-browser checks real HP timing.
+
+Current runtime: `creature-battle/releases/v46/src/` (GAME_VERSION 46). Previous
+release paths remain immutable. `tools/polish-browser.mjs` covers fresh seeds,
+quit during a winning animation, rapid Next taps, landscape setup/results,
+complete log rows, screen/carousel focus, image fallback and storage-blocked
+update checks. Screenshots default to `/tmp`, preserving checked-in evidence.
+A focused winner heading announces results; screen changes focus their heading.
+Use `tools/balance-sim.mjs` for current measurements. Historical acceptance
+reports describe older rules and do not establish current balance acceptance.
