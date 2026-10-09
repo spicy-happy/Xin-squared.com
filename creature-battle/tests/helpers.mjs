@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
-import { loadRules } from '../releases/v39/src/rules.js';
-import { createMatch, whoseTurn, applyAction, chooseReplacement, getActions } from '../releases/v39/src/engine.js';
-import { next } from '../releases/v39/src/rng.js';
+import { loadRules } from '../releases/v42/src/rules.js';
+import { createMatch, whoseTurn, applyAction, chooseReplacement, getActions } from '../releases/v42/src/engine.js';
+import { next } from '../releases/v42/src/rng.js';
 export const rules = loadRules(JSON.parse(readFileSync(new URL('../data/rules-v2.json', import.meta.url))));
 export function creature(overrides = {}) {
   return { schema: 1, id: 'cr-test00', rulesVersion: rules.version, sheet: 'S1', name: 'Test creature', trainer: { nickname: 'Test Trainer', portrait: 'assets/portraits/cr-test00.12345678.webp' },

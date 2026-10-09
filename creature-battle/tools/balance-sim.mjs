@@ -1,9 +1,9 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { loadRules } from '../releases/v39/src/rules.js';
-import { createMatch, whoseTurn, applyAction, chooseReplacement } from '../releases/v39/src/engine.js';
-import { chooseAction, chooseTeam, chooseReplacement as aiReplacement } from '../releases/v39/src/ai.js';
-import { next } from '../releases/v39/src/rng.js';
+import { loadRules } from '../releases/v42/src/rules.js';
+import { createMatch, whoseTurn, applyAction, chooseReplacement } from '../releases/v42/src/engine.js';
+import { chooseAction, chooseTeam, chooseReplacement as aiReplacement } from '../releases/v42/src/ai.js';
+import { next } from '../releases/v42/src/rng.js';
 const rules=loadRules(JSON.parse(readFileSync(new URL('../data/rules-v2.json',import.meta.url))));
 const statNames=['health','attack','defense','speed'];
 const builds=[];

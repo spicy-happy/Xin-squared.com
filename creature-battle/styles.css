@@ -105,3 +105,9 @@
 
 .team-picker .picker-heading .eyebrow{font-size:32px;line-height:1.1;letter-spacing:1px}
 @media(max-width:700px),(max-height:500px){.team-picker .picker-heading .eyebrow{font-size:28px}}
+.difficulty-option{display:flex;align-items:center;gap:10px}
+.difficulty-trigger>span:first-child{display:inline-flex;align-items:center;gap:10px;min-width:0}
+.trainer-win-check{display:inline-block;position:relative;width:16px;height:16px;flex:none}
+.trainer-win-check::before{content:'';position:absolute;top:6px;left:0;width:4px;height:4px;background:currentColor;box-shadow:4px 4px 0 currentColor,8px 0 0 currentColor,12px -4px 0 currentColor}
+.opponent-label .difficulty-picker{min-width:min(280px,100%)}
+.opponent-label .difficulty-trigger{width:100%}

@@ -9,13 +9,13 @@ page.on('response',r=>{if(r.url().includes('/assets/')&&r.status()>=400)unavaila
 await page.goto(origin+'/creature-battle/');await page.locator('#play-ai').waitFor();
 await page.locator('#play-ai').click();
 await page.waitForFunction(async()=>{
- const {soundState}=await import(`/creature-battle/releases/v39/src/ui/audio.js?v=${GAME_VERSION}`);
+ const {soundState}=await import(`/creature-battle/releases/v42/src/ui/audio.js?v=${GAME_VERSION}`);
  const audio=soundState();return audio.decoded===9 && audio.musicReady>=2;
 });
 assert.deepEqual(unavailableAssets,[]);
 // Exercise the actual juice module with animation timelines frozen at impact.
 const motion=await page.evaluate(async()=>{
- const {battleJuice}=await import(`/creature-battle/releases/v39/src/ui/juice.js?v=${GAME_VERSION}`);
+ const {battleJuice}=await import(`/creature-battle/releases/v42/src/ui/juice.js?v=${GAME_VERSION}`);
  const host=document.createElement('div');host.style.cssText='position:fixed;inset:0';document.body.append(host);
  const panels=[0,1].map(side=>{
   const stage=document.createElement('div'),fighter=document.createElement('div'),img=document.createElement('img'),shadow=document.createElement('div');

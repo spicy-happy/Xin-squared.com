@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { loadCollection, validateCreature } from '../releases/v39/src/collection.js';
-import { createMatch, getActions, applyAction, chooseReplacement, whoseTurn } from '../releases/v39/src/engine.js';
-import { chooseAction, chooseReplacement as aiReplacement } from '../releases/v39/src/ai.js';
-import { chooseOpponent, gymLeaders, sameTrainerName } from '../releases/v39/src/trainers.js';
-import { facingFlip } from '../releases/v39/src/moves.js';
+import { loadCollection, validateCreature } from '../releases/v42/src/collection.js';
+import { createMatch, getActions, applyAction, chooseReplacement, whoseTurn } from '../releases/v42/src/engine.js';
+import { chooseAction, chooseReplacement as aiReplacement } from '../releases/v42/src/ai.js';
+import { chooseOpponent, battleTrainers, sameTrainerName } from '../releases/v42/src/trainers.js';
+import { facingFlip } from '../releases/v42/src/moves.js';
 import { rules } from './helpers.mjs';
 const raw=JSON.parse(readFileSync(new URL('../data/creatures-v2.json',import.meta.url)));
 const collection=loadCollection(raw,rules).filter(c=>!c.prototype);
@@ -20,13 +20,13 @@ test('Uncle Mark roster honors the active sheet choices and one shared portrait'
  assert.equal(find('Bassault').type,'ground');
  for(const c of collection)assert.deepEqual(validateCreature(c,rules),[]);
 });
-test('gym leaders use only their own creatures, sample every creature before repeating, and random bots draw from the roster',()=>{
- assert.equal(gymLeaders(collection).length,1);
+test('submitted trainers use only their own creatures, sample every creature before repeating, and random bots draw from the roster',()=>{
+ assert.equal(battleTrainers(collection).length,1);
  const outsider=structuredClone(find('Broot'));outsider.id='cr-other01';outsider.trainer={...outsider.trainer,id:'tr-other01',nickname:'Other'};
  const all=[...collection,outsider];
  for(let seed=1;seed<30;seed++){
   const gym=chooseOpponent(all,'tr-unclemark',seed);
-  assert.equal(gym.trainer.nickname,'Uncle Mark');assert.equal(gym.trainer.gymLeader,true);
+  assert.equal(gym.trainer.nickname,'Uncle Mark');assert.equal(gym.trainer.id,'tr-unclemark');
   assert.equal(new Set(gym.team.map(c=>c.id)).size,3);assert.ok(gym.team.every(c=>c.trainer.id==='tr-unclemark'));
   const sparse=chooseOpponent(collection.slice(0,2),'tr-unclemark',seed);
   assert.equal(sparse.team.length,3);assert.equal(new Set(sparse.team.map(c=>c.id)).size,2);
@@ -54,7 +54,7 @@ test('two defense moves apply their distinct effects without consuming attack PP
   const r=applyAction(s,side,{kind});assert.ok(r.events.some(e=>e.t===effect));assert.equal(r.state.teams[side][0].pp.regular,3);assert.equal(r.state.teams[side][0].pp[kind],2);
  }
 });
-for(const difficulty of ['easy','normal'])test(`real mixed-category teams finish with ${difficulty} AI, including duplicate gym teams`,()=>{
+for(const difficulty of ['easy','normal'])test(`real mixed-category teams finish with ${difficulty} AI, including duplicate trainer teams`,()=>{
  for(let seed=1;seed<=8;seed++){
   let s=createMatch({rules,teams:[collection,[find('Bassault'),find('Bassault'),find('Bassault')]],seed}).state,aiRng=seed,lastSwitch=[false,false];
   for(let step=0;!s.over&&step<650;step++){
@@ -78,4 +78,11 @@ test('trainer collisions normalize case, spacing and Unicode',()=>{
  assert.ok(sameTrainerName(' uncle  mark ','Uncle Mark'));
  assert.ok(sameTrainerName('Ｕncle Mark','Uncle Mark'));
  assert.ok(!sameTrainerName('Mark','Uncle Mark'));
+});
+
+test('every submitted artist is battleable even with only one creature; test artists stay excluded',()=>{
+ const second=structuredClone(collection[0]);second.id='cr-newartist';second.trainer={...second.trainer,id:'tr-newartist',nickname:'New Artist'};
+ const prototype={...second,id:'cr-proto',prototype:true,trainer:{...second.trainer,id:'tr-test'}};
+ const all=[...collection,second,prototype];assert.deepEqual(battleTrainers(all).map(t=>t.id),['tr-unclemark','tr-newartist']);
+ const opponent=chooseOpponent(all,'tr-newartist',3);assert.equal(opponent.trainer.nickname,'New Artist');assert.equal(opponent.team.length,3);assert.ok(opponent.team.every(c=>c.id===second.id));assert.equal(opponent.trainer.gymLeader,undefined);
 });
