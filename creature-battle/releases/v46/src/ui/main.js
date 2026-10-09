@@ -35,10 +35,10 @@ function applyUpdate(){
 }
 function focusScreen(){const target=app.querySelector('h1,h2')??app.querySelector('[aria-label]');if(target){target.tabIndex=-1;target.focus({preventScroll:true});}}
 function cleanup(){if(view)view.dispose();view=null;clearTimeout(aiTimer);aiTimer=null;}
-function page(title){cleanup();app.replaceChildren();const panel=el('section');panel.className='panel';panel.append(el('h1',title));app.append(panel);focusScreen();return panel;}
+function page(title,focus=true){cleanup();app.replaceChildren();const panel=el('section');panel.className='panel';panel.append(el('h1',title));app.append(panel);if(focus)focusScreen();return panel;}
 function button(parent,text,fn,id){const b=el('button',text);if(id)b.id=id;b.onclick=fn;parent.append(b);return b;}
 document.querySelector('#game-home').onclick=e=>{e.preventDefault();if(ready)askQuit();};
-function home(){quitDialog.close();screen='home';orient();if(applyUpdate())return;const panel=page('Creature Battle');checkForUpdate().then(()=>{if(screen==='home')applyUpdate();});panel.append(el('p','Your drawings. Teams of three. One move at a time.'));
+function home({focus=true}={}){quitDialog.close();screen='home';orient();if(applyUpdate())return;const panel=page('Creature Battle',focus);checkForUpdate().then(()=>{if(screen==='home')applyUpdate();});panel.append(el('p','Your drawings. Teams of three. One move at a time.'));
   const choices=el('div');choices.className='choices';panel.append(choices);
   for(const [kind,text]of [['ai','Solo Battle'],['friend','2 Player Battle']]){const b=button(choices,text,()=>{mode=kind;setup();},`play-${kind}`);b.disabled=!collection.length;}
   button(choices,'See Creatures',()=>showCollection(),'collection');const sheet=el('a','Print Creature Sheet');sheet.id='print-sheet';sheet.href='output/pdf/creature-sheet.pdf?v=24';sheet.target='_blank';sheet.rel='noopener';choices.append(sheet);
@@ -74,5 +74,5 @@ try{
   rules=loadRules(await fetchJSON('data/rules-v2.json'));collection=loadCollection(await fetchJSON('data/creatures-v2.json'),rules);
   if(debug){collection=loadCollection(await fetchJSON('tests/fixtures/creatures-v2.json'),rules);window.__battleDebug={state:()=>structuredClone(state),seed:n=>{seed=n>>>0;},force:(side,a)=>{if(view?.isLocked())throw Error('Animation or input guard active');action(side,a);},setHp:(side,hp)=>{if(!state||view.isLocked())throw Error('Not ready');const m=state.teams[side][state.active[side]];m.hp=Math.max(1,Math.min(m.maxHp,Math.floor(hp)));/* Debug view is deliberately rebuilt for a forced value. */ view.dispose();view=battleView({app,humanSides:mode==='ai'?[0]:[0,1],initial:state,trainers:picks.map(p=>p.trainer),imageSrc,portraitSrc,getState:()=>state,twoTap:()=>false,onAction:action,onReplacement:replace,onDrain:drain});},fixtures:()=>structuredClone(collection)};}
   await prepareSprites(collection,{debug});
-  ready=true;home();if(debug)window.__battleReady=true;setTimeout(()=>checkForUpdate().then(()=>{if(screen==='home')applyUpdate();}),4000);
+  ready=true;home({focus:false});if(debug)window.__battleReady=true;setTimeout(()=>checkForUpdate().then(()=>{if(screen==='home')applyUpdate();}),4000);
 }catch(error){await checkForUpdate();if(!applyUpdate()){app.textContent=`We couldn't load the collection. ${error.message}`;console.error(error);button(app,'Retry',()=>location.reload());}}
