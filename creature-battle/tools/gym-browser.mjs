@@ -11,8 +11,8 @@ for(const [mode,difficulty,width,height] of [['gym','easy',844,390],['gym','hard
  await page.getByRole('button',{name:'Home',exact:true}).click();await page.locator(mode==='friend'?'#play-friend':'#play-ai').click();
  assert.equal(await page.locator('.carousel-group:nth-child(2) .trainer-card').count(),7);
  if(mode!=='friend'){
-  assert.deepEqual(await page.locator('#solo-opponent option').allTextContents(),['Gym Leader Uncle Mark','Random Battle Bot']);
-  await page.locator('#solo-opponent').selectOption(mode==='gym'?'tr-unclemark':'random');
+  assert.deepEqual(await page.locator('#solo-opponent-options [role=option]').allTextContents(),['Gym Leader Uncle Mark','Random Battle Bot']);
+  await page.locator('#solo-opponent').click();await page.getByRole('option',{name:mode==='gym'?'Gym Leader Uncle Mark':'Random Battle Bot',exact:true}).click();
   await page.locator('#difficulty').click();await page.getByRole('option',{name:difficulty==='hard'?'Hard':'Easy',exact:true}).click();
  }
  const nameInput=page.locator('#trainer-name');await nameInput.fill('Player One');await nameInput.dispatchEvent('input');
@@ -37,7 +37,7 @@ for(const [mode,difficulty,width,height] of [['gym','easy',844,390],['gym','hard
  if(mode==='gym')assert.ok(!/Battle Bot/.test(await page.locator('#app').innerText()));
  await page.screenshot({path:`${out}/${mode}-${difficulty}-${width}-result.png`});
  await page.locator('#rematch').click();await page.locator('#team-done').waitFor();assert.equal(await page.locator('.selection .team-chip').count(),3);assert.equal(await page.locator('#team-done').isEnabled(),true);
- if(mode!=='friend'){assert.equal(await page.locator('#solo-opponent').inputValue(),mode==='gym'?'tr-unclemark':'random');assert.equal(await page.locator('#difficulty').getAttribute('data-value'),difficulty);}
+ if(mode!=='friend'){assert.equal(await page.locator('#solo-opponent').getAttribute('data-value'),mode==='gym'?'tr-unclemark':'random');assert.equal(await page.locator('#difficulty').getAttribute('data-value'),difficulty);}
  assert.deepEqual(errors,[]);results.push({mode,difficulty,width,height,actions,finished:true,errors});writeFileSync(out+'/results.json',JSON.stringify(results,null,2));await page.close();
 }
 // Smaller picker and portrait battle overlay, plus mirroring during real animations.

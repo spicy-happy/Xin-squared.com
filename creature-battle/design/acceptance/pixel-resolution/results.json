@@ -1,0 +1,167 @@
+{
+  "sprites": [
+    {
+      "id": "cr-debug00",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug00",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug01",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug01",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug02",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug02",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug03",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug03",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug04",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug04",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug05",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-debug05",
+      "prototype": true,
+      "width": 48,
+      "height": 48,
+      "soft": 0,
+      "colors": 3,
+      "converted": true
+    },
+    {
+      "id": "cr-broot01",
+      "prototype": false,
+      "width": 96,
+      "height": 96,
+      "soft": 0,
+      "colors": 3047,
+      "converted": true
+    },
+    {
+      "id": "cr-broot01",
+      "prototype": false,
+      "width": 96,
+      "height": 96,
+      "soft": 0,
+      "colors": 3824,
+      "converted": true
+    },
+    {
+      "id": "cr-amphidian",
+      "prototype": false,
+      "width": 96,
+      "height": 96,
+      "soft": 0,
+      "colors": 4031,
+      "converted": true
+    },
+    {
+      "id": "cr-amphidian",
+      "prototype": false,
+      "width": 96,
+      "height": 96,
+      "soft": 0,
+      "colors": 3824,
+      "converted": true
+    },
+    {
+      "id": "cr-bassault",
+      "prototype": false,
+      "width": 96,
+      "height": 96,
+      "soft": 0,
+      "colors": 3013,
+      "converted": true
+    },
+    {
+      "id": "cr-bassault",
+      "prototype": false,
+      "width": 96,
+      "height": 96,
+      "soft": 0,
+      "colors": 3824,
+      "converted": true
+    }
+  ],
+  "errors": []
+}

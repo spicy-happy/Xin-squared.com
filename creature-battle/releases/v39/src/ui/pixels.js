@@ -11,13 +11,16 @@ export async function prepareSprites(collection,{debug=false}={}){
  const sources=collection.flatMap(c=>[[debug?'tests/fixtures/placeholder.svg':c.image.src,c.type],[debug?'tests/fixtures/portrait.svg':c.trainer.portrait,c.type]]);
  sources.push(['assets/portraits/practice-bot.svg','water']);
  await Promise.all([...new Map(sources.map(pair=>[key(...pair),pair])).values()].map(async([src,type])=>{
-  const img=new Image();img.src=src;await img.decode();const canvas=document.createElement('canvas');canvas.width=48;canvas.height=48;
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;
-  const scale=Math.min(48/img.naturalWidth,48/img.naturalHeight),w=Math.round(img.naturalWidth*scale),h=Math.round(img.naturalHeight*scale);
-  ctx.drawImage(img,Math.floor((48-w)/2),Math.floor((48-h)/2),w,h);
-  const pixels=ctx.getImageData(0,0,48,48),palette=(palettes[type]??palettes.grass).map(hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)));
+  // Scanned drawings need a finer grid to retain pencil lines and facial details.
+  const original=originalColors.has(src),size=original?96:48;
+  const img=new Image();img.src=src;await img.decode();const canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});// Average source detail when shrinking; the finished grid is enlarged with CSS pixelated.
+  ctx.imageSmoothingEnabled=original;ctx.imageSmoothingQuality='high';
+  const scale=Math.min(size/img.naturalWidth,size/img.naturalHeight),w=Math.round(img.naturalWidth*scale),h=Math.round(img.naturalHeight*scale);
+  ctx.drawImage(img,Math.floor((size-w)/2),Math.floor((size-h)/2),w,h);
+  const pixels=ctx.getImageData(0,0,size,size),palette=(palettes[type]??palettes.grass).map(hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)));
   for(let i=0;i<pixels.data.length;i+=4){if(pixels.data[i+3]<100){pixels.data[i+3]=0;continue;}
-   if(originalColors.has(src))continue;
+   if(original){pixels.data[i+3]=255;continue;}
    const light=.2126*pixels.data[i]+.7152*pixels.data[i+1]+.0722*pixels.data[i+2];
    const rgb=palette[light<65?0:light<150?1:light<238?2:3];pixels.data.set([...rgb,255],i);
   }

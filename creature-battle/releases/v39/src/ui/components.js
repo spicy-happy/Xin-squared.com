@@ -2,21 +2,25 @@ export const element=(tag,cls,text)=>{const e=document.createElement(tag);if(cls
 export function typeChip(type){const chip=element('span',`type-chip type-${type}`,type);chip.setAttribute('aria-label',`Type: ${type}`);return chip;}
 export function shuffled(items){const result=[...items];for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}return result;}
 export function difficultyPicker(value,onChange){
- const label=element('div','difficulty-label'),caption=element('span',null,'Difficulty'),wrapper=element('div','difficulty-picker');caption.id='difficulty-label';label.append(caption,wrapper);
- const trigger=element('button','difficulty-trigger');trigger.id='difficulty';trigger.setAttribute('role','combobox');trigger.setAttribute('aria-labelledby',caption.id);trigger.setAttribute('aria-haspopup','listbox');trigger.setAttribute('aria-controls','difficulty-options');
+ return pixelPicker({id:'difficulty',label:'Difficulty',value,onChange,choices:[{value:'easy',label:'Easy'},{value:'hard',label:'Hard'}]});
+}
+// Keep menus inside the game's pixel font, borders and keyboard controls.
+export function pixelPicker({id,label,value,onChange,choices}){
+ const row=element('div','difficulty-label'),caption=element('span',null,label),wrapper=element('div','difficulty-picker');caption.id=`${id}-label`;row.append(caption,wrapper);
+ const trigger=element('button','difficulty-trigger');trigger.id=id;trigger.type='button';trigger.setAttribute('role','combobox');trigger.setAttribute('aria-labelledby',caption.id);trigger.setAttribute('aria-haspopup','listbox');trigger.setAttribute('aria-controls',`${id}-options`);
  const text=element('span'),arrow=element('span','pixel-chevron');arrow.setAttribute('aria-hidden','true');trigger.append(text,arrow);
- const options=element('div','difficulty-options');options.id='difficulty-options';options.setAttribute('role','listbox');options.setAttribute('aria-label','Difficulty');options.hidden=true;
- const values=['easy','hard'],buttons=[];let active=values.indexOf(value);
+ const options=element('div','difficulty-options');options.id=`${id}-options`;options.setAttribute('role','listbox');options.setAttribute('aria-label',label);options.hidden=true;
+ const buttons=[];let selected=Math.max(0,choices.findIndex(c=>c.value===value)),active=selected;
  const show=open=>{options.hidden=!open;trigger.setAttribute('aria-expanded',String(open));if(open)trigger.setAttribute('aria-activedescendant',buttons[active].id);else trigger.removeAttribute('aria-activedescendant');};
- const paint=()=>{text.textContent=value==='hard'?'Hard':'Easy';trigger.dataset.value=value;buttons.forEach((b,i)=>b.setAttribute('aria-selected',String(i===active)));if(!options.hidden)trigger.setAttribute('aria-activedescendant',buttons[active].id);};
- const choose=i=>{active=i;value=values[i];paint();show(false);onChange(value);trigger.focus();};
- values.forEach((v,i)=>{const b=element('button','difficulty-option',v==='hard'?'Hard':'Easy');b.id=`difficulty-${v}`;b.setAttribute('role','option');b.tabIndex=-1;b.onmousedown=e=>e.preventDefault();b.onclick=()=>choose(i);buttons.push(b);options.append(b);});
- trigger.onclick=()=>{active=values.indexOf(value);paint();show(options.hidden);};
- trigger.onkeydown=e=>{if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();if(options.hidden)show(true);else active=e.key==='Home'?0:e.key==='End'?1:(active+(e.key==='ArrowDown'?1:-1)+2)%2;paint();}
-  else if(['Enter',' '].includes(e.key)&&!options.hidden){e.preventDefault();choose(active);}else if(e.key==='Escape'){e.preventDefault();show(false);}
+ const paint=()=>{text.textContent=choices[selected].label;trigger.dataset.value=choices[selected].value;buttons.forEach((b,i)=>{b.setAttribute('aria-selected',String(i===selected));b.classList.toggle('highlighted',i===active);});if(!options.hidden)trigger.setAttribute('aria-activedescendant',buttons[active].id);};
+ const choose=i=>{selected=active=i;paint();show(false);onChange(choices[i].value);trigger.focus();};
+ choices.forEach((choice,i)=>{const b=element('button','difficulty-option',choice.label);b.id=`${id}-${choice.value}`;b.type='button';b.setAttribute('role','option');b.tabIndex=-1;b.onmousedown=e=>e.preventDefault();b.onclick=()=>choose(i);buttons.push(b);options.append(b);});
+ trigger.onclick=()=>{active=selected;paint();show(options.hidden);};
+ trigger.onkeydown=e=>{if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();if(options.hidden){active=selected;show(true);}active=e.key==='Home'?0:e.key==='End'?choices.length-1:(active+(e.key==='ArrowDown'?1:-1)+choices.length)%choices.length;paint();}
+  else if(['Enter',' '].includes(e.key)&&!options.hidden){e.preventDefault();choose(active);}else if(e.key==='Escape'){e.preventDefault();show(false);}else if(e.key==='Tab')show(false);
  };
  wrapper.addEventListener('focusout',e=>{if(!wrapper.contains(e.relatedTarget))show(false);});
- wrapper.append(trigger,options);paint();show(false);return label;
+ wrapper.append(trigger,options);paint();show(false);return row;
 }
 // Native swipes and animated arrow steps share three synchronized copies.
 // Moving by a complete cycle at the edge keeps the loop visually continuous.

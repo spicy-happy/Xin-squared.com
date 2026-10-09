@@ -52,7 +52,7 @@ const recovery=await browser.newPage();let failed=false;
 await recovery.route('**/data/creatures-v2.json',route=>{if(!failed){failed=true;return route.fulfill({status:200,contentType:'application/json',body:'{"schema":0}'});}return route.continue();});
 await recovery.route('**/creature-battle/',async route=>{
  const response=await route.fetch();let body=await response.text();
- if(failed)body=body.replace(/GAME_VERSION = \d+/, 'GAME_VERSION = 40');
+ if(failed)body=body.replace(/GAME_VERSION = \d+/, 'GAME_VERSION = 999');
  await route.fulfill({response,body});
 });
 await recovery.goto(origin+'/creature-battle/');await recovery.waitForURL(/\?v=/);await recovery.locator('#play-ai').waitFor();assert.equal(failed,true);

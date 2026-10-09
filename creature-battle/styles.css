@@ -96,3 +96,9 @@
 
 .pick-card.selected .attack-warning{color:#ffe4a4}
 @media(max-height:500px) and (min-width:700px){.pick-card{height:auto;min-height:166px}}
+
+/* Pixel menu shared by difficulty and gym selection. */
+.opponent-label .difficulty-picker{min-width:0;max-width:100%}
+.opponent-label .difficulty-trigger{max-width:100%;gap:12px;text-align:left;white-space:normal}
+.opponent-label .difficulty-options{min-width:100%;max-height:240px;overflow:auto}
+.difficulty-option.highlighted{background:var(--ink);color:var(--surface)}
