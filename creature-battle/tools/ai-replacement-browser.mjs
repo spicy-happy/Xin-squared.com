@@ -1,7 +1,7 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 import assert from 'node:assert/strict';
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';
-const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});
 try{
  for(const difficulty of ['Easy','Hard']){
   const p=await browser.newPage({viewport:{width:844,height:390},reducedMotion:'reduce'}),errors=[];

@@ -1,5 +1,5 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE || 'playwright');import assert from 'node:assert/strict';
-const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';const b=await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';const b=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});
 for(const mode of ['normal','hard','friend']){
  const p=await b.newPage({viewport:{width:844,height:390},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.clock.install();await p.goto(origin+'/creature-battle/');await p.getByRole('button',{name:'Solo Battle',exact:true}).waitFor();
  for(const text of ['Solo Battle','2 Player Battle','See Creatures','Print Creature Sheet'])assert.ok(await p.getByRole(text==='Print Creature Sheet'?'link':'button',{name:text,exact:true}).isVisible());

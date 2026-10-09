@@ -1,10 +1,10 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');import assert from 'node:assert/strict';
-const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';
 for(const [width,height] of [[667,375],[844,390],[1024,768]]){
  const p=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.clock.install();await p.goto(origin+'/creature-battle/?debug=1');await p.waitForFunction(()=>window.__battleReady);
  await p.evaluate(async()=>{
-  const {battleView}=await import(`/creature-battle/src/ui/battle.js?v=${GAME_VERSION}`),{createMatch}=await import(`/creature-battle/src/engine.js?v=${GAME_VERSION}`),rules=await(await fetch('/creature-battle/data/rules-v1.json',{cache:'no-cache'})).json();
+  const {battleView}=await import(`/creature-battle/src/ui/battle.js?v=${GAME_VERSION}`),{createMatch}=await import(`/creature-battle/src/engine.js?v=${GAME_VERSION}`),rules=await(await fetch('/creature-battle/data/rules-v2.json',{cache:'no-cache'})).json();
   window.logState=createMatch({rules,teams:[__battleDebug.fixtures().slice(0,3),__battleDebug.fixtures().slice(3,6)],seed:9}).state;
   logState.teams[0][0].name='Sparky';logState.teams[1][0].name='Bubbles';
   window.logView=battleView({app:document.querySelector('#app'),initial:logState,trainers:[{nickname:'Xin'},{nickname:'Bot'}],humanSides:[0,1],imageSrc:()=>'/creature-battle/tests/fixtures/placeholder.svg',portraitSrc:()=>'/creature-battle/tests/fixtures/portrait.svg',getState:()=>logState,onAction:()=>{},onReplacement:()=>{},onDrain:()=>{},twoTap:()=>false});

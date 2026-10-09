@@ -1,6 +1,6 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE || 'playwright');import assert from 'node:assert/strict';import {mkdirSync,writeFileSync} from 'node:fs';
 const out=new URL('../design/acceptance/playtest-polish/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
-const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});const results=[];
+const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});const results=[];
 for(const [width,height]of [[320,740],[390,844],[844,390],[1024,768]]){
  const p=await browser.newPage({viewport:{width,height},hasTouch:true}),errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.goto(origin+'/creature-battle/');await p.locator('#play-ai').waitFor();await p.locator('#play-ai').click();

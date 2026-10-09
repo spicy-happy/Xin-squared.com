@@ -49,8 +49,13 @@ node creature-battle/tools/validate-collection.mjs
 This validates the combined roster before replacing it and copies only its hashed
 WebP assets. Original photos stay in their source folder; private paths are not
 stored in game metadata. Review JSON documents canceled selections for later
-checks. Once three real creatures exist, prototype entries retire automatically.
+checks. Once six real creatures exist, prototype entries retire automatically.
 
 The three legacy move keys are storage/action slots. An explicit `category` on
 any move gives its real rule category, allowing e.g. two regular attacks or two
 defenses without changing legacy replay actions.
+
+Runtime data uses `rules-v2.json` and `creatures-v2.json`. Keep the v1 rules and
+`creatures.json` frozen for cached v37 clients. Mark-review tests need only Python:
+`python3 -m unittest discover -s creature-battle/kit -p "test_*.py"`.
+Full photo extraction requires `kit/requirements.txt`.

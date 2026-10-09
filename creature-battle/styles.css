@@ -91,3 +91,5 @@
 .opponent-label{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0}.opponent-label select{font:inherit;color:var(--ink);background:var(--paper,#f5efd3);border:3px solid var(--ink);padding:4px;max-width:100%}.opponent-preview{display:flex;align-items:center;gap:10px;font-size:22px}.opponent-preview img{width:48px;height:48px;object-fit:contain;image-rendering:pixelated}
 
 .grid.five-actions{grid-template-rows:repeat(3,1fr)}
+
+.attack-warning{display:block;color:#6c3414;font-size:14px;line-height:1.2}.roster-note{font-size:18px}

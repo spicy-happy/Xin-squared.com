@@ -9,9 +9,6 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
-import cv2
-import numpy as np
-from PIL import Image, ImageOps, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 SLOTS = ('regular', 'special', 'defense')
@@ -27,6 +24,9 @@ def active_choices(marks, label, count):
 
 
 def crop_art(photo, region, exclude_print=(), keep_paper=()):
+    import cv2
+    import numpy as np
+    from PIL import Image, ImageDraw
     # Bounds are fractions of the EXIF-corrected photo; supplied after visual review.
     if len(region) != 4 or not (0 <= region[0] < region[2] <= 1 and 0 <= region[1] < region[3] <= 1):
         raise ValueError('Invalid reviewed crop bounds')
@@ -80,7 +80,8 @@ def write_asset(image, kind, stable_id, output):
 
 
 def build(manifest, photos, output):
-    rules = json.loads((ROOT / 'data/rules-v1.json').read_text())
+    from PIL import Image, ImageOps, ImageDraw
+    rules = json.loads((ROOT / 'data/rules-v2.json').read_text())
     trainers, creatures, previews = {}, [], []
     def photo(name):
         return ImageOps.exif_transpose(Image.open(photos / name)).convert('RGB')
@@ -124,6 +125,52 @@ def build(manifest, photos, output):
     return creatures
 
 
+def publish(creatures, output):
+    """Validate before writes; roll back new assets if publication fails."""
+    import shutil
+    import tempfile
+    collection_path = ROOT / 'data/creatures-v2.json'
+    old = json.loads(collection_path.read_text())
+    by_id = {c['id']: c for c in old['creatures']}
+    by_id.update({c['id']: c for c in creatures})
+    collection = {**old, 'creatures': list(by_id.values())}
+    paths = {p for c in creatures for p in (c['image']['src'], c['trainer']['portrait'])}
+    # Check every staged file before any public asset write.
+    for relative in paths:
+        asset = output / relative
+        if not asset.is_file():
+            raise ValueError(f'Missing staged asset: {relative}')
+        target = ROOT / relative
+        if target.exists() and target.read_bytes() != asset.read_bytes():
+            raise ValueError(f'Hashed asset collision: {relative}')
+    created = []
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', dir=collection_path.parent, delete=False) as f:
+        json.dump(collection, f, indent=2)
+        temporary = Path(f.name)
+    try:
+        subprocess.run(['node', str(ROOT / 'tools/validate-collection.mjs'), str(temporary)], check=True)
+        for relative in paths:
+            target = ROOT / relative
+            if not target.exists():
+                target.parent.mkdir(parents=True, exist_ok=True)
+                created.append(target)
+                shutil.copyfile(output / relative, target)
+        temporary.replace(collection_path)
+    except BaseException:
+        for target in created:
+            target.unlink(missing_ok=True)
+        raise
+    finally:
+        temporary.unlink(missing_ok=True)
+    # Retain assets referenced by any roster, including cached v37's frozen data.
+    referenced = {p for roster in (ROOT / 'data').glob('creatures*.json')
+                  for c in json.loads(roster.read_text())['creatures']
+                  for p in (c['image']['src'], c['trainer']['portrait'])}
+    previous = {p for c in old['creatures'] for p in (c['image']['src'], c['trainer']['portrait'])}
+    for relative in previous - referenced:
+        (ROOT / relative).unlink(missing_ok=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('manifest', type=Path)
@@ -138,26 +185,7 @@ def main():
     manifest = json.loads(args.manifest.read_text())
     creatures = build(manifest, args.photos, args.output)
     if args.publish:
-        import shutil
-        collection_path = ROOT / 'data/creatures.json'
-        collection = json.loads(collection_path.read_text())
-        by_id = {c['id']: c for c in collection['creatures']}
-        by_id.update({c['id']: c for c in creatures})
-        collection['creatures'] = list(by_id.values())
-        paths = {p for c in creatures for p in (c['image']['src'], c['trainer']['portrait'])}
-        for relative in paths:
-            asset = args.output / relative
-            target = ROOT / relative
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(asset, target)
-        # Validate the combined roster before atomically replacing it.
-        temporary = collection_path.with_suffix('.pending.json')
-        try:
-            temporary.write_text(json.dumps(collection, indent=2) + '\n')
-            subprocess.run(['node', str(ROOT / 'tools/validate-collection.mjs'), str(temporary)], check=True)
-            temporary.replace(collection_path)
-        finally:
-            temporary.unlink(missing_ok=True)
+        publish(creatures, args.output)
     print(f'{len(creatures)} creatures staged. Inspect {args.output / "review.png"}.')
 
 

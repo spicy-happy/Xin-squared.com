@@ -1,0 +1,42 @@
+name: Creature Battle checks
+on:
+  pull_request:
+    paths: ['creature-battle/**', '_config.yml', '.github/workflows/creature-battle.yml']
+  push:
+    paths: ['creature-battle/**', '_config.yml', '.github/workflows/creature-battle.yml']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: node --test creature-battle/tests/*.test.mjs
+      - run: python -m unittest discover -s creature-battle/kit -p 'test_*.py'
+      - run: node creature-battle/tools/validate-collection.mjs
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - name: Browser battles and animation regression
+        run: |
+          python -m http.server 8918 >/tmp/creature-server.log 2>&1 &
+          node creature-battle/tools/gym-browser.mjs
+          node creature-battle/tools/launch-browser.mjs
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Verify public build exclusions
+        run: |
+          test ! -e _site/creature-battle/AGENTS.md
+          test ! -e _site/creature-battle/kit
+          test ! -e _site/creature-battle/design
+          test ! -e _site/creature-battle/tools
+          test -f _site/creature-battle/index.html
+          test -f _site/creature-battle/data/creatures-v2.json
+          test -f _site/creature-battle/output/pdf/creature-sheet.pdf

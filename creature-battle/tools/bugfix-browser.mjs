@@ -1,7 +1,7 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 import assert from 'node:assert/strict';
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';
-const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});
 try{
 for(const [width,height]of [[844,340],[667,325],[568,320],[667,375],[1024,768]]){
  const p=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'}),errors=[];
@@ -13,7 +13,7 @@ for(const [width,height]of [[844,340],[667,325],[568,320],[667,375],[1024,768]])
  await p.evaluate(async()=>{
   const {battleView}=await import(`/creature-battle/src/ui/battle.js?v=${GAME_VERSION}`);
   const {createMatch,applyAction,chooseReplacement}=await import(`/creature-battle/src/engine.js?v=${GAME_VERSION}`);
-  const rules=await (await fetch('/creature-battle/data/rules-v1.json')).json(),defs=__battleDebug.fixtures();
+  const rules=await (await fetch('/creature-battle/data/rules-v2.json')).json(),defs=__battleDebug.fixtures();
   const team=[defs[0],defs[1],defs[2]].map(m=>({...m,name:'ABCDEFGHIJKLMNOPQRSTUVWX'}));
   window.checkState=createMatch({rules,teams:[team,team],seed:9}).state;
   document.body.classList.add('in-battle');document.querySelector('#quit-game').hidden=false;

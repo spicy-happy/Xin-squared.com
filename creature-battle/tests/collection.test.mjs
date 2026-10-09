@@ -48,8 +48,19 @@ test('friendly multilingual names, apostrophes and innocent word fragments remai
   const [loaded]=loadCollection({schema:1,creatures:[c]},rules);assert.equal(loaded.name,'Moss Buddy');assert.equal(loaded.trainer.nickname,'Zoë Green');assert.equal(c.trainer.nickname,'  Zoë  Green ');
 });
 
-test('prototype entries retire once three real creatures are uploaded',()=>{
- const prototype=creature({id:'cr-debug99',prototype:true,name:'Test sprite'}),real=[0,1,2].map(i=>creature({id:`cr-real0${i}`}));
- for(const count of [0,1,2])assert.equal(loadCollection({schema:1,creatures:[prototype,...real.slice(0,count)]},rules).length,count+1);
+test('prototype entries retire once six real creatures are uploaded',()=>{
+ const prototype=creature({id:'cr-debug99',prototype:true,name:'Test sprite'}),real=[0,1,2,3,4,5].map(i=>creature({id:`cr-real0${i}`}));
+ for(const count of [0,1,2,3,4,5])assert.equal(loadCollection({schema:1,creatures:[prototype,...real.slice(0,count)]},rules).length,count+1);
  assert.deepEqual(loadCollection({schema:1,creatures:[prototype,...real]},rules).map(c=>c.id),real.map(c=>c.id));
+});
+
+test('unusual move budgets are flagged without changing reviewed choices',async()=>{
+ const {creatureWarnings}=await import('../src/collection.js');
+ const c=creature();assert.deepEqual(creatureWarnings(c,rules),[]);
+ c.moves.regular={id:'blast',name:'Burst',category:'special'};
+ c.moves.special={id:'guard',name:'Shield',category:'defense'};
+ assert.match(creatureWarnings(c,rules)[0],/Only 3 attack uses/);
+ c.moves.regular={id:'toughen',name:'Hide',category:'defense'};
+ assert.match(creatureWarnings(c,rules)[0],/No selected attacks/);
+ assert.deepEqual(validateCreature(c,rules),[]);
 });

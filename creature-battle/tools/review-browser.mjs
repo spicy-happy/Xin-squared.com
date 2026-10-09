@@ -1,7 +1,7 @@
 // Run with PLAYWRIGHT_MODULE pointing to an installed Playwright ES module.
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE || 'playwright');import assert from 'node:assert/strict';
 const BASE=process.env.BATTLE_ORIGIN || 'http://127.0.0.1:8902';
-const b=await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const b=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});
 const p=await b.newPage({viewport:{width:844,height:390}}),errors=[];p.on('pageerror',e=>errors.push(e.message));
 await p.goto(`${BASE}/creature-battle/?debug=1`);await p.waitForFunction(()=>window.__battleReady);
 await p.locator('#play-ai').click();for(let i=0;i<3;i++)await p.locator('.carousel-group:nth-child(2) .pick-card').nth(i).click();await p.locator('#team-done').click();await p.locator('#battle-text').click();await p.waitForTimeout(450);

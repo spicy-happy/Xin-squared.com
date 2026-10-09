@@ -1,7 +1,7 @@
 import { trainerKey, gymLeaders } from '../trainers.js';
-import { teamRule, validateTeam, cleanName, nameError } from '../collection.js';
+import { teamRule, validateTeam, cleanName, nameError, creatureWarnings } from '../collection.js';
 import { element as el, typeChip, shuffled, carousel, difficultyPicker } from './components.js';
-export function teamPick({app,collection,side,imageSrc,portraitSrc,onDone,solo=false,difficulty='easy',onDifficulty,opponentId='random',onOpponent,initialChoice=null}){
+export function teamPick({app,collection,rules,side,imageSrc,portraitSrc,onDone,solo=false,difficulty='easy',onDifficulty,opponentId='random',onOpponent,initialChoice=null}){
  app.replaceChildren();const panel=el('section','panel team-picker');app.append(panel);
  panel.setAttribute('aria-label',solo?'Solo battle team selection':`Player ${side+1} team selection`);
  const top=el('div','picker-heading');top.append(el('div','eyebrow',solo?'SOLO BATTLE':`PLAYER ${side+1}`));
@@ -16,6 +16,7 @@ export function teamPick({app,collection,side,imageSrc,portraitSrc,onDone,solo=f
   select.onchange=()=>{onOpponent(select.value);opponentPreview();};opponentPreview();
  }
 
+ if(collection.some(c=>c.prototype))panel.append(el('p','roster-note','More drawings are coming! Labeled TEST creatures stay available until six real creatures are ready.'));
  const team=[],rule=teamRule(collection),options=rule.duplicates?Array.from({length:3},(_,i)=>({c:collection[i%collection.length],key:`copy-${i}`})):collection.map(c=>({c,key:c.id}));
  let trainer=collection.find(c=>c.id===initialChoice?.trainerId)??collection[Math.min(side,collection.length-1)];
  if(initialChoice)for(const c of initialChoice.team){const entry=options.find(e=>e.c.id===c.id&&!team.includes(e));if(entry)team.push(entry);}
@@ -33,6 +34,7 @@ export function teamPick({app,collection,side,imageSrc,portraitSrc,onDone,solo=f
  const creatureRow=carousel(shuffled(options),entry=>{const {c,key}=entry,b=el('button','pick-card');b.dataset.creature=c.id;b.dataset.pick=key;
   const img=el('img');img.src=imageSrc(c);img.alt=c.name;const mark=el('span','picked-label','SELECTED');
   b.append(mark,img,el('strong',null,c.name),typeChip(c.type),el('small','creature-creator',`Made by ${c.trainer.nickname}`));
+  for(const warning of creatureWarnings(c,rules))b.append(el('small','attack-warning',warning));
   b.onclick=()=>{const i=team.findIndex(m=>m.key===key);if(i>=0)team.splice(i,1);else if(team.length<3)team.push(entry);update();};creatureCards.push({b,key});return b;
  },'creatures');panel.append(creatureRow);
  done.onclick=()=>{const creatures=team.map(e=>e.c);if(validateTeam(creatures,collection)&&!nameError(nameInput.value))onDone({team:creatures,trainerId:trainer.id,trainer:{...trainer.trainer,nickname:cleanName(nameInput.value),type:trainer.type}});};

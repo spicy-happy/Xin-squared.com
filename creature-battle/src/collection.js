@@ -70,9 +70,9 @@ export function loadCollection(json, rules) {
     }
     used.add(canonical(c.name));
   }
-  // TEST entries retire automatically once three real submissions are available.
+  // TEST entries retire automatically once six real submissions are available.
   const submitted=creatures.filter(c=>!c.prototype && !/^cr-debug/.test(c.id));
-  return submitted.length>=3?submitted:creatures;
+  return submitted.length>=6?submitted:creatures;
 }
 export function teamRule(collection) {
   return { canBattle: collection.length > 0, duplicates: collection.length < 3, size: 3 };
@@ -81,4 +81,12 @@ export function validateTeam(team, collection) {
   const rule = teamRule(collection);
   return rule.canBattle && team.length === rule.size && team.every(c => collection.some(x => x.id === c.id)) &&
     (rule.duplicates || new Set(team.map(c => c.id)).size === rule.size);
+}
+
+// Keep reviewed sheet choices intact, but surface unusual attack budgets.
+export function creatureWarnings(c, rules) {
+  const attacks = slots.filter(slot => (c.moves[slot].category ?? slot) !== 'defense');
+  if (!attacks.length) return ['No selected attacks. Uses Struggle, which causes recoil.'];
+  const uses = attacks.reduce((n, slot) => n + rules.moves[c.moves[slot].category ?? slot][c.moves[slot].id].pp, 0);
+  return uses <= 3 ? [`Only ${uses} attack uses, then Struggle with recoil.`] : [];
 }

@@ -1,6 +1,6 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');import assert from 'node:assert/strict';import {mkdirSync,writeFileSync} from 'node:fs';
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902',out=process.env.ARTIFACT_DIR||new URL('../design/acceptance/playtest-polish/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
-const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true}),results=[];
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true}),results=[];
 for(const [width,height]of [[667,375],[844,390],[1024,768]]){
  const p=await browser.newPage({viewport:{width,height}}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(origin+'/creature-battle/');await p.locator('#play-friend').click();for(let i=0;i<3;i++)await p.locator('.carousel-group:nth-child(2) .pick-card').nth(i).click();await p.locator('#team-done').click();for(let i=0;i<3;i++)await p.locator('.carousel-group:nth-child(2) .pick-card').nth(i).click();await p.locator('#team-done').click();await p.locator('[data-action]:enabled').first().waitFor();await p.evaluate(()=>document.fonts.ready);
  assert.equal(await p.locator('.round,.turn-tab,#battle-history,.move-name,.hint').count(),0);assert.equal(await p.locator('.pixel-shadow').count(),2);assert.equal(await p.locator('.hp-pixel').count(),0);assert.equal(await p.locator('.hp-fill').count(),2);

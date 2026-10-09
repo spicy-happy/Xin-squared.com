@@ -1,7 +1,7 @@
 import { loadRules } from '../rules.js';
 import { loadCollection } from '../collection.js';
 import { createMatch, applyAction, chooseReplacement, whoseTurn } from '../engine.js';
-import { chooseOpponent, gymLeaders } from '../trainers.js';
+import { chooseOpponent, gymLeaders, sameTrainerName } from '../trainers.js';
 import { chooseAction, chooseReplacement as aiReplacement } from '../ai.js';
 import { teamPick } from './teampick.js';
 import { initAudio, setMusic } from './audio.js';
@@ -37,12 +37,12 @@ function showCollection(){screen='collection';const panel=page('Creatures');
   panel.append(carousel(shuffled(collection),c=>{const card=el('article');card.className='collection-card';const img=el('img');img.src=imageSrc(c);img.alt=c.name;card.append(img,el('h2',c.name),typeChip(c.type),el('p',`Made by ${c.trainer.nickname}`));return card;},'collection creatures'));button(panel,'Home',home);
 }
 function setup(previous=null){cleanup();if(!previous){difficulty='easy';opponentId=gymLeaders(collection)[0]?.id??'random';}picks=[];firstPicks=null;pick(0,previous);}
-function pick(side,previous=null){cleanup();screen='teampick';orient();teamPick({app,collection,side,initialChoice:previous?.[side],imageSrc,portraitSrc,solo:mode==='ai',difficulty,onDifficulty:value=>{difficulty=value;},opponentId,onOpponent:value=>{opponentId=value;},onDone:choice=>{
+function pick(side,previous=null){cleanup();screen='teampick';orient();teamPick({app,collection,rules,side,initialChoice:previous?.[side],imageSrc,portraitSrc,solo:mode==='ai',difficulty,onDifficulty:value=>{difficulty=value;},opponentId,onOpponent:value=>{opponentId=value;},onDone:choice=>{
   picks[side]=choice;if(side===0&&mode==='friend')pick(1,previous);else if(mode==='ai'){
-    const ai=chooseOpponent(collection,opponentId,aiRng);aiRng=ai.aiRng;picks[1]={team:ai.team,trainer:ai.trainer};start();
+    const ai=chooseOpponent(collection,opponentId,aiRng,{difficulty,rules,playerTeam:picks[0].team});aiRng=ai.aiRng;picks[1]={team:ai.team,trainer:ai.trainer};start();
   }else start();
 }});}
-function start(){if(!firstPicks)firstPicks=structuredClone(picks);if(picks[0].trainer.nickname===picks[1].trainer.nickname&&picks[1].trainer.gymLeader)picks[0]={...picks[0],trainer:{...picks[0].trainer,nickname:`${picks[0].trainer.nickname.slice(0,22).trimEnd()} 1`}};if(picks[0].trainer.nickname===picks[1].trainer.nickname)picks=picks.map((p,side)=>({...p,trainer:{...p.trainer,nickname:`${p.trainer.nickname.slice(0,22).trimEnd()} ${side+1}`}}));cleanup();screen='battle';orient();lastSwitch=false;const initial=createMatch({rules,teams:picks.map(p=>p.team),seed});state=initial.state;
+function start(){if(!firstPicks)firstPicks=structuredClone(picks);if(sameTrainerName(picks[0].trainer.nickname,picks[1].trainer.nickname)&&picks[1].trainer.gymLeader)picks[0]={...picks[0],trainer:{...picks[0].trainer,nickname:`${picks[0].trainer.nickname.slice(0,22).trimEnd()} 1`}};if(sameTrainerName(picks[0].trainer.nickname,picks[1].trainer.nickname))picks=picks.map((p,side)=>({...p,trainer:{...p.trainer,nickname:`${p.trainer.nickname.slice(0,22).trimEnd()} ${side+1}`}}));cleanup();screen='battle';orient();lastSwitch=false;const initial=createMatch({rules,teams:picks.map(p=>p.team),seed});state=initial.state;
   view=battleView({app,humanSides:mode==='ai'?[0]:[0,1],initial:state,trainers:picks.map(p=>p.trainer),imageSrc,portraitSrc,getState:()=>state,
     twoTap:()=>false,onAction:action,onReplacement:replace,onDrain:drain});view.animate(initial.events);
 }
@@ -60,8 +60,8 @@ function result(){screen='result';orient();const panel=page(`${picks[state.winne
 }
 try{
   const fetchJSON=async url=>{const r=await fetch(url,{cache:'no-cache'});if(!r.ok)throw Error(`Cannot load ${url}`);return r.json();};
-  rules=loadRules(await fetchJSON('data/rules-v1.json'));collection=loadCollection(await fetchJSON('data/creatures.json'),rules);
+  rules=loadRules(await fetchJSON('data/rules-v2.json'));collection=loadCollection(await fetchJSON('data/creatures-v2.json'),rules);
   if(debug){collection=loadCollection(await fetchJSON('tests/fixtures/creatures.json'),rules);window.__battleDebug={state:()=>structuredClone(state),seed:n=>{seed=n>>>0;},force:(side,a)=>{if(view?.isLocked())throw Error('Animation or input guard active');action(side,a);},setHp:(side,hp)=>{if(!state||view.isLocked())throw Error('Not ready');const m=state.teams[side][state.active[side]];m.hp=Math.max(1,Math.min(m.maxHp,Math.floor(hp)));/* Debug view is deliberately rebuilt for a forced value. */ view.dispose();view=battleView({app,humanSides:mode==='ai'?[0]:[0,1],initial:state,trainers:picks.map(p=>p.trainer),imageSrc,portraitSrc,getState:()=>state,twoTap:()=>false,onAction:action,onReplacement:replace,onDrain:drain});},fixtures:()=>structuredClone(collection)};}
   await prepareSprites(collection,{debug});
   ready=true;home();if(debug)window.__battleReady=true;setTimeout(()=>checkForUpdate().then(()=>{if(screen==='home')applyUpdate();}),4000);
-}catch(error){app.textContent=`We couldn't load the collection. ${error.message}`;console.error(error);}
+}catch(error){await checkForUpdate();if(!applyUpdate()){app.textContent=`We couldn't load the collection. ${error.message}`;console.error(error);button(app,'Retry',()=>location.reload());}}

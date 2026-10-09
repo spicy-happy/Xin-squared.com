@@ -63,7 +63,7 @@ export function battleView({app,initial,trainers,imageSrc,portraitSrc,getState,o
   const ratio=m.hp/m.maxHp;hp.classList.toggle('hp-medium',ratio<=.5&&ratio>.2);hp.classList.toggle('hp-low',ratio<=.2&&m.hp>0);
   const fill=el('span','hp-fill');fill.style.width=`${100*ratio}%`;hp.append(fill);meter.append(hp);
   const details=el('div','hp-details');details.append(el('span','hp-number',`${m.hp}/${m.maxHp}${m.shield?` +${m.shield}`:''}${m.recharging?' · RECHARGE':''}${m.toughened?' · TOUGH':''}`),typeChip(m.type));status.append(meter,details);
-  img.src=imageSrc(m);img.alt=m.name;img.style.scale=facingFlip(m,side)?'-1 1':'1 1';img.style.opacity=fallen[side]?'0':'1';panels[side].fighter.classList.toggle('fainted',fallen[side]);
+  img.src=imageSrc(m);img.alt=m.name;img.dataset.flip=String(facingFlip(m,side));img.style.transform=facingFlip(m,side)?'scaleX(-1)':'scaleX(1)';img.style.opacity=fallen[side]?'0':'1';panels[side].fighter.classList.toggle('fainted',fallen[side]);
  }}
  function confirm(side,action,text){if(!twoTap())return perform(side,action);const key=JSON.stringify(action);if(selected===key)return perform(side,action);selected=key;
   const bubble=el('div','confirm');bubble.append(el('div',null,text));const row=el('div','confirm-actions'),go=el('button',null,'GO!'),back=el('button',null,'Back');go.onclick=()=>perform(side,action);back.onclick=()=>{selected=null;controls();};row.append(go,back);bubble.append(row);grids[side].append(bubble);

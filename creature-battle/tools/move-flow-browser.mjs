@@ -1,7 +1,7 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 import assert from 'node:assert/strict';import {mkdirSync} from 'node:fs';
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902',out=process.env.ARTIFACT_DIR||new URL('../design/acceptance/move-flow/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
-const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});
 for(const [width,height] of [[667,375],[844,390],[1024,768]]){
  const p=await browser.newPage({viewport:{width,height}}),errors=[];p.on('pageerror',e=>errors.push(e.message));
  await p.goto(origin+'/creature-battle/?debug=1');await p.waitForFunction(()=>window.__battleReady);await p.locator('#play-friend').click();

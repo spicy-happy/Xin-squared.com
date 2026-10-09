@@ -1,6 +1,6 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');import assert from 'node:assert/strict';import {mkdirSync,writeFileSync} from 'node:fs';
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902',out=process.env.ARTIFACT_DIR||new URL('../design/acceptance/playtest-polish/',import.meta.url).pathname;mkdirSync(out,{recursive:true});
-const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true}),results=[];
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true}),results=[];
 for(const [width,height]of [[320,740],[844,390],[1024,768]]){
  const p=await browser.newPage({viewport:{width,height}}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(origin+'/creature-battle/?v=24');await p.locator('#play-ai').click();
  const input=p.getByLabel('Trainer name',{exact:true});assert.match(await input.inputValue(),/^Test Trainer/);

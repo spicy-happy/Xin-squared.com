@@ -4,11 +4,11 @@ import { readFileSync } from 'node:fs';
 import { loadCollection, validateCreature } from '../src/collection.js';
 import { createMatch, getActions, applyAction, chooseReplacement, whoseTurn } from '../src/engine.js';
 import { chooseAction, chooseReplacement as aiReplacement } from '../src/ai.js';
-import { chooseOpponent, gymLeaders } from '../src/trainers.js';
+import { chooseOpponent, gymLeaders, sameTrainerName } from '../src/trainers.js';
 import { facingFlip } from '../src/moves.js';
 import { rules } from './helpers.mjs';
-const raw=JSON.parse(readFileSync(new URL('../data/creatures.json',import.meta.url)));
-const collection=loadCollection(raw,rules);
+const raw=JSON.parse(readFileSync(new URL('../data/creatures-v2.json',import.meta.url)));
+const collection=loadCollection(raw,rules).filter(c=>!c.prototype);
 const find=name=>collection.find(c=>c.name===name);
 test('Uncle Mark roster honors the active sheet choices and one shared portrait',()=>{
  assert.deepEqual(collection.map(c=>c.name),['Broot','Amphidian','Bassault']);
@@ -72,4 +72,10 @@ test('three defensive selections retain all three controls and a separate fallba
  assert.deepEqual(actions.map(a=>a.kind),['regular','special','defense','fallback']);
  assert.ok(applyAction(s,side,{kind:'regular'}).events.some(e=>e.t==='heal'));
  assert.ok(applyAction(s,side,{kind:'fallback'}).events.some(e=>e.t==='hit'));
+});
+
+test('trainer collisions normalize case, spacing and Unicode',()=>{
+ assert.ok(sameTrainerName(' uncle  mark ','Uncle Mark'));
+ assert.ok(sameTrainerName('Ｕncle Mark','Uncle Mark'));
+ assert.ok(!sameTrainerName('Mark','Uncle Mark'));
 });

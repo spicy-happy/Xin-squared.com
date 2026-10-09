@@ -1,6 +1,6 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');import assert from 'node:assert/strict';
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902';
-const b=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const b=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});
 const p=await b.newPage({viewport:{width:844,height:390}}),errors=[];p.on('pageerror',e=>errors.push(e.message));
 await p.goto(origin+'/creature-battle/');await p.locator('#play-ai').waitFor();
 await p.evaluate(async()=>{window.musicTest=await import(`/creature-battle/src/ui/audio.js?v=${GAME_VERSION}`);});

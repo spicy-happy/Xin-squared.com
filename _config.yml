@@ -1,0 +1,11 @@
+# GitHub Pages uses Jekyll for the production branch. Keep intake and review
+# material in the repository without copying it into the published site.
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - creature-battle/AGENTS.md
+  - creature-battle/kit
+  - creature-battle/design
+  - creature-battle/tools

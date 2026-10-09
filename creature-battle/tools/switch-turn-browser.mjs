@@ -1,5 +1,5 @@
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');import assert from 'node:assert/strict';
-const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH || undefined,headless:true});
 const p=await browser.newPage({viewport:{width:844,height:390},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));
 await p.clock.install();await p.goto((process.env.BATTLE_ORIGIN||'http://127.0.0.1:8902')+'/creature-battle/?debug=1');await p.waitForFunction(()=>window.__battleReady);await p.locator('#play-ai').click();
 for(const id of ['cr-debug00','cr-debug03','cr-debug02'])await p.locator(`.carousel-group:nth-child(2) [data-creature="${id}"]`).click();await p.locator('#team-done').click();await p.clock.runFor(15000);

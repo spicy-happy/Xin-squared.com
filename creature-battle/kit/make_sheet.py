@@ -10,7 +10,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.lib.utils import simpleSplit
 ROOT=Path(__file__).resolve().parents[1]
-RULES=json.loads((ROOT/'data/rules-v1.json').read_text())
+RULES=json.loads((ROOT/'data/rules-v2.json').read_text())
 INK='#2b2b33'
 PAGE_WIDTH,PAGE_HEIGHT=(v/72 for v in landscape(letter))
 class Sheet:

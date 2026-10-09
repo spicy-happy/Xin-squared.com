@@ -1,4 +1,7 @@
 import unittest
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from import_sheet import active_choices
 
 class MarkReviewTests(unittest.TestCase):
@@ -14,5 +17,68 @@ class MarkReviewTests(unittest.TestCase):
     def test_missing_duplicate_or_extra_active_choices_are_rejected(self):
         for marks in [[], [{'id':'water','status':'selected'}, {'id':'ground','status':'selected'}], [{'id':'water','status':'selected'}, {'id':'water','status':'selected'}]]:
             with self.assertRaises(ValueError): active_choices(marks, 'Type', 1)
+
+
+class PublicationTests(unittest.TestCase):
+    def setUp(self):
+        import tempfile, json
+        from unittest.mock import patch
+        import import_sheet
+        self.module = import_sheet
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name) / 'game'
+        self.output = Path(self.temp.name) / 'stage'
+        (self.root / 'data').mkdir(parents=True)
+        self.patcher = patch.object(import_sheet, 'ROOT', self.root)
+        self.patcher.start()
+        self.addCleanup(self.patcher.stop)
+        self.old = {'schema': 1, 'creatures': [{'id': 'cr-first01', 'image': {'src': 'assets/creatures/cr-first01.11111111.webp'}, 'trainer': {'portrait': 'assets/portraits/cr-first01.11111111.webp'}}]}
+        self.new = {'id': 'cr-first01', 'image': {'src': 'assets/creatures/cr-first01.22222222.webp'}, 'trainer': {'portrait': 'assets/portraits/cr-first01.22222222.webp'}}
+        self.roster = self.root / 'data/creatures-v2.json'
+        self.roster.write_text(json.dumps(self.old))
+        for relative in [self.old['creatures'][0]['image']['src'], self.old['creatures'][0]['trainer']['portrait']]:
+            p = self.root / relative
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(b'old')
+        for relative in [self.new['image']['src'], self.new['trainer']['portrait']]:
+            p = self.output / relative
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(b'new')
+
+    def test_invalid_combined_roster_does_not_copy_assets(self):
+        import subprocess
+        from unittest.mock import patch
+        before = self.roster.read_bytes()
+        with patch.object(self.module.subprocess, 'run', side_effect=subprocess.CalledProcessError(1, 'node')):
+            with self.assertRaises(subprocess.CalledProcessError): self.module.publish([self.new], self.output)
+        self.assertEqual(before, self.roster.read_bytes())
+        self.assertFalse((self.root / self.new['image']['src']).exists())
+        self.assertFalse((self.root / self.new['trainer']['portrait']).exists())
+
+    def test_copy_failure_rolls_back_assets_and_roster(self):
+        from unittest.mock import patch
+        import shutil
+        original = shutil.copyfile
+        before = self.roster.read_bytes()
+        calls = []
+        def copy(src, dst):
+            calls.append(dst)
+            if len(calls) == 2: raise OSError('disk full')
+            return original(src, dst)
+        with patch.object(self.module.subprocess, 'run'), patch('shutil.copyfile', side_effect=copy):
+            with self.assertRaises(OSError): self.module.publish([self.new], self.output)
+        self.assertEqual(before, self.roster.read_bytes())
+        self.assertTrue(all(not p.exists() for p in calls))
+
+    def test_reimport_removes_stale_assets_but_keeps_legacy_references(self):
+        from unittest.mock import patch
+        import json
+        (self.root / 'data/creatures.json').write_text(json.dumps({'schema':1,'creatures':[{'image':self.old['creatures'][0]['image'],'trainer':{'portrait':self.new['trainer']['portrait']}}]}))
+        with patch.object(self.module.subprocess, 'run'): self.module.publish([self.new], self.output)
+        self.assertTrue((self.root / self.old['creatures'][0]['image']['src']).exists())
+        self.assertFalse((self.root / self.old['creatures'][0]['trainer']['portrait']).exists())
+        self.assertTrue((self.root / self.new['image']['src']).exists())
+        self.assertEqual(json.loads(self.roster.read_text())['creatures'], [self.new])
 
 if __name__ == '__main__': unittest.main()

@@ -160,3 +160,18 @@ test('Hard also avoids consecutive voluntary switches',()=>{
  for(let seed=0;seed<100;seed++)choices.add(chooseAction(state,1,{difficulty:'normal',aiRng:seed,lastSwitch:false}).action.kind);
  assert.ok(choices.has('switch'),'switching remains available after a move');
 });
+
+test('random opponent preserves practice Easy and balanced Hard team selection',async()=>{
+ const {chooseOpponent}=await import('../src/trainers.js');
+ const {chooseTeam,choosePracticeTeam}=await import('../src/ai.js');
+ const {creature,rules}=await import('./helpers.mjs');
+ const collection=Object.keys(rules.types).map((type,i)=>creature({id:`cr-team0${i}`,type}));
+ const playerTeam=[collection[0],collection[0],collection[0]];
+ for(let aiRng=1;aiRng<20;aiRng++){
+  for(const difficulty of ['easy','hard']){
+   const actual=chooseOpponent(collection,'random',aiRng,{difficulty,rules,playerTeam});
+   const expected=difficulty==='easy'?choosePracticeTeam(collection,{rules,playerTeam,aiRng}):chooseTeam(collection,{difficulty:'normal',aiRng});
+   assert.deepEqual(actual.team,expected.team);assert.equal(actual.aiRng,expected.aiRng);
+  }
+ }
+});

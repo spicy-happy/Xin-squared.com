@@ -1,5 +1,5 @@
 import { next } from './rng.js';
-import { chooseTeam } from './ai.js';
+import { chooseTeam, choosePracticeTeam } from './ai.js';
 import { cleanName } from './collection.js';
 export const trainerKey = c => c.trainer.id ?? cleanName(c.trainer.nickname).toLocaleLowerCase('en-US');
 export function gymLeaders(collection) {
@@ -11,9 +11,11 @@ export function gymLeaders(collection) {
   }
   return [...leaders.values()];
 }
-export function chooseOpponent(collection, opponentId, aiRng) {
+export function chooseOpponent(collection, opponentId, aiRng, { difficulty='easy', rules, playerTeam=[] } = {}) {
   if (opponentId === 'random') {
-    const choice = chooseTeam(collection, { difficulty: 'easy', aiRng });
+    const choice = difficulty==='easy' && rules
+      ? choosePracticeTeam(collection, { rules, playerTeam, aiRng })
+      : chooseTeam(collection, { difficulty: difficulty==='hard'?'normal':'easy', aiRng });
     return { ...choice, trainer: { bot: true, nickname: 'Battle Bot', portrait: 'assets/portraits/practice-bot.svg' } };
   }
   const leader = gymLeaders(collection).find(t => t.id === opponentId);
@@ -28,3 +30,5 @@ export function chooseOpponent(collection, opponentId, aiRng) {
   const { creatures, ...trainer } = leader;
   return { ...choice, trainer: { ...trainer, gymLeader: true } };
 }
+
+export const sameTrainerName = (a, b) => cleanName(a).toLocaleLowerCase('en-US') === cleanName(b).toLocaleLowerCase('en-US');
