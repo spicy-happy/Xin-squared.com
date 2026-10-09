@@ -34,3 +34,21 @@ Polish checks cover fresh production seeds, winning-animation quit dialog, rapid
 Node regressions cover heal plus shield cap, inherited property rejection, and immutable v37/v43 module paths. Full Easy, Hard, random-bot, trainer and two-player games complete through controls.
 Safe-area CSS is implemented; physical notched iPhone and actual screen-reader speech were not tested. Browser checks verify focus lands on the winner heading.
 Balance: separate full report in polish-balance.{txt,json}; seven gates fail for seeds 3/17, eight for 101. Targets and gameplay tuning unchanged.
+
+2026-10-09 · PR #56 review follow-up
+
+Node suite rerun: 101 passed, 0 failed. Collection validation and diff whitespace checks pass.
+Expanded polish-browser.mjs passes: clicked collection articles and trainer buttons loop
+under repeated mouse-wheel scrolling in both directions at 1024x768; Tab-focused
+trainer cards stay visible. Replaying the original scroll handler through a browser
+route override fails the new collection click/scroll assertion, confirming coverage.
+Production fallback images load with tests/fixtures SVG requests blocked. Update
+recovery keeps cb-update=47 as the anti-loop marker and uses a timestamp for v;
+blocked storage and stale HTML still cause exactly one reload. Existing polish
+checks for seeds, setup, quit/win, landscape controls and narration pass.
+Fallback artwork now lives in assets/fallbacks without test labels. AI healing
+projection matches the engine's nonnegative cap. The global narration row/padding
+overrides remain intentional and are documented in CSS.
+Trainer browser script rerun passes all five full battles (Easy/Hard trainer,
+Easy/Hard random bot, two-player), small picker layouts, mirroring and rotation.
+This follow-up reran polish-browser.mjs and trainers-browser.mjs, not all 24 scripts.

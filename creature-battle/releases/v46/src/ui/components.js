@@ -39,7 +39,9 @@ export function carousel(items,renderItem,label){
  let frame=0,animating=false,pressing=false,destination=0;
  const period=()=>groups[0].getBoundingClientRect().width+12;
  const recenter=()=>{const p=period(),before=rail.scrollLeft;if(!p||!rail.isConnected)return 0;let position=before;while(position<p*.5)position+=p;while(position>p*1.5)position-=p;if(position!==before)rail.scrollLeft=position;return rail.scrollLeft-before;};
- rail.addEventListener('scroll',()=>{if(!animating&&!pressing&&!rail.contains(document.activeElement))recenter();},{passive:true});
+ // Preserve keyboard-focused cards; mouse/touch focus must still allow looping.
+ const keyboardFocus=()=>{const f=document.activeElement;return f!==rail&&rail.contains(f)&&f.matches(':focus-visible');};
+ rail.addEventListener('scroll',()=>{if(!animating&&!pressing&&!keyboardFocus())recenter();},{passive:true});
  const release=()=>{pressing=false;document.removeEventListener('pointerup',release);document.removeEventListener('pointercancel',release);requestAnimationFrame(()=>{if(!animating)recenter();});};
  rail.addEventListener('pointerdown',()=>{cancelAnimationFrame(frame);animating=false;pressing=true;document.addEventListener('pointerup',release,{once:true});document.addEventListener('pointercancel',release,{once:true});});
  const step=direction=>{

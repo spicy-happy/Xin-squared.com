@@ -43,7 +43,7 @@ function project(input, side, action) {
   if (!fallback) me.pp[action.kind]--;
   if (!fallback && moveCategory(me, action.kind) === 'defense') {
     const id = me.moves[action.kind].id;
-    if (id === 'heal') me.hp = Math.min(me.maxHp - me.shield, me.hp + fraction(me.maxHp, move.factor));
+    if (id === 'heal') me.hp = Math.min(Math.max(0, me.maxHp - me.shield), me.hp + fraction(me.maxHp, move.factor));
     else if (id === 'guard') me.shield = Math.min(me.maxHp - me.hp, fraction(me.maxHp, move.factor));
     else me.toughened = true;
     return s;

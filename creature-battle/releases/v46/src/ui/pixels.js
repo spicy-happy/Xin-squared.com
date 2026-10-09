@@ -15,7 +15,7 @@ export async function prepareSprites(collection,{debug=false}={}){
   const original=originalColors.has(src),size=original?96:48;
   const img=new Image();img.src=src;
   try{await img.decode();}catch{
-   const fallback=src.includes('/portraits/')?'tests/fixtures/portrait.svg':'tests/fixtures/placeholder.svg';
+   const fallback=src.includes('/portraits/')?'assets/fallbacks/portrait.svg':'assets/fallbacks/placeholder.svg';
    sprites.set(key(src,type),fallback);return;
   }const canvas=document.createElement('canvas');canvas.width=size;canvas.height=size;
   const ctx=canvas.getContext('2d',{willReadFrequently:true});// Average source detail when shrinking; the finished grid is enlarged with CSS pixelated.

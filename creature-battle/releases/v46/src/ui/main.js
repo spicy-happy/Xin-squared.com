@@ -31,7 +31,7 @@ function applyUpdate(){
  // A URL marker survives blocked storage and stale HTML after a reload.
  if(Number(url.searchParams.get('cb-update'))>=updateAvailable)return false;
  try{if(Number(sessionStorage.getItem('cb-reloadedFor'))>=updateAvailable)return false;sessionStorage.setItem('cb-reloadedFor',target);}catch{}
- url.searchParams.set('cb-update',target);url.searchParams.set('v',target);location.replace(url.href);return true;
+ url.searchParams.set('cb-update',target);url.searchParams.set('v',String(Date.now()));location.replace(url.href);return true;
 }
 function focusScreen(){const target=app.querySelector('h1,h2')??app.querySelector('[aria-label]');if(target){target.tabIndex=-1;target.focus({preventScroll:true});}}
 function cleanup(){if(view)view.dispose();view=null;clearTimeout(aiTimer);aiTimer=null;}

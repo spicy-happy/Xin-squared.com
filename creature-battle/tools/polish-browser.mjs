@@ -13,6 +13,29 @@ const setup=async(p,mode='friend')=>{
  }
 };
 try{
+ // Pointer focus on either the strip or a card must not disable infinite scrolling.
+ const carouselPage=await make({viewport:{width:1024,height:768}});
+ for(const kind of ['collection','trainer']){
+  await carouselPage.goto(origin+'/creature-battle/');
+  await carouselPage.locator(kind==='collection'?'#collection':'#play-ai').click();
+  if(kind==='trainer')await carouselPage.locator('#opponent-next').click();
+  const rail=carouselPage.locator('.carousel-rail').first();
+  await rail.locator('.carousel-group:nth-child(2)').locator(kind==='collection'?'.collection-card':'.trainer-card').first().click();
+  assert.equal(await rail.evaluate(e=>e.contains(document.activeElement)),true);
+  assert.equal(await rail.evaluate(e=>document.activeElement!==e&&document.activeElement.matches(':focus-visible')),false);
+  const rect=await rail.boundingBox();await carouselPage.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);
+  for(const direction of [1,-1]){
+   for(let i=0;i<14;i++){
+    await carouselPage.mouse.wheel(direction*500,0);await carouselPage.waitForTimeout(80);
+   }
+   await carouselPage.waitForTimeout(250);
+   assert.ok(await rail.evaluate(e=>{
+    const period=e.querySelector('.carousel-group').getBoundingClientRect().width+12;
+    return e.scrollLeft>=period*.5-2&&e.scrollLeft<=period*1.5+2;
+   }),`${kind} loops after a click, direction ${direction}`);
+  }
+ }
+ await carouselPage.close();console.log('Clicked collection and trainer carousels loop in both directions');
  // Capture the seeds passed to the real engine on the production code path.
  const p=await make({viewport:{width:844,height:390}});
  await p.route('**/releases/v46/src/engine.js*',async route=>{const r=await route.fetch();let body=await r.text();body=body.replace(/(export function createMatch\([^\n]+\) \{)/,'$1\n (window.__seeds??=[]).push(seed);');await route.fulfill({response:r,body});});
@@ -71,6 +94,7 @@ try{
  await game.close();console.log('Quit/win, result layout and narration pass');
  // A broken drawing or portrait degrades to a placeholder without blocking play.
  const image=await make();await image.route('**/assets/creatures/*.webp',route=>route.abort());await image.route('**/assets/portraits/*.webp',route=>route.abort());
+ await image.route('**/tests/fixtures/*.svg',route=>route.abort());
  await image.goto(origin+'/creature-battle/');await image.locator('#play-ai').click();await image.locator('#opponent-next').click();
  await image.waitForFunction(()=>[...document.querySelectorAll('.trainer-card img,.pick-card img')].every(i=>i.complete&&i.naturalWidth>0));await image.close();
  // Updates use increasing server versions only; URL protection survives blocked storage.
@@ -82,7 +106,7 @@ try{
    const req=route.request();if(req.resourceType()==='fetch'&&new URL(req.url()).pathname==='/creature-battle/')await route.fulfill({contentType:'text/html',body:`<script>const GAME_VERSION = ${serverVersion};</script>`});else await route.continue();
   });
   await update.goto(origin+'/creature-battle/?debug=1');await update.locator('#play-ai').waitFor();await update.waitForTimeout(1000);
-  if(serverVersion===47)await update.waitForURL('**cb-update=47*');
+  if(serverVersion===47){await update.waitForURL('**cb-update=47*');const url=new URL(update.url());assert.equal(url.searchParams.get('cb-update'),'47');assert.ok(Number(url.searchParams.get('v'))>1e12);}
   await update.waitForTimeout(4500);assert.equal(navigations,serverVersion===47?2:1);await update.close();
  }
  assert.deepEqual(errors,[]);console.log('Fresh match seeds, quit/win race, rapid setup taps, landscape layout, full narration, focus, image fallbacks and storage-blocked updates pass');

@@ -129,7 +129,9 @@
 .team-chip.dragging{opacity:.35;border-style:dashed}
 .team-drag-preview{position:fixed;z-index:100;pointer-events:none;margin:0;box-shadow:4px 4px 0 var(--shadow);background:var(--surface);opacity:.95}
 
-/* Room for complete narration rows and short landscape setup/results. */
+/* Complete narration needs this padding and 104px row even on narrow landscape
+   screens, overriding the older compact rules above. The <=360px rule below
+   intentionally reduces the row to 88px. */
 .text-box{line-height:1.2;padding:8px 12px;overflow-y:auto}
 .arena{grid-template-rows:104px minmax(0,1fr)}
 body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
