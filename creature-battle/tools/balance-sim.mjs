@@ -1,9 +1,9 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { loadRules } from '../releases/v43/src/rules.js';
-import { createMatch, whoseTurn, applyAction, chooseReplacement } from '../releases/v43/src/engine.js';
-import { chooseAction, chooseTeam, chooseReplacement as aiReplacement } from '../releases/v43/src/ai.js';
-import { next } from '../releases/v43/src/rng.js';
+import { loadRules } from '../releases/v46/src/rules.js';
+import { createMatch, whoseTurn, applyAction, chooseReplacement } from '../releases/v46/src/engine.js';
+import { chooseAction, chooseTeam, chooseReplacement as aiReplacement } from '../releases/v46/src/ai.js';
+import { next } from '../releases/v46/src/rng.js';
 const rules=loadRules(JSON.parse(readFileSync(new URL('../data/rules-v2.json',import.meta.url))));
 const statNames=['health','attack','defense','speed'];
 const builds=[];
@@ -91,7 +91,7 @@ export function simulate({n=10000,paired=4000,easy=4000,seed=3}={}) {
   gate('median actions (22–34)',median,median>=22&&median<=34);gate('p90 actions (≤55)',p90,p90<=55);
   gate('draws (0)',draws,draws===0);gate('safety-cap endings (0)',caps,caps===0);
   gate('Heavy exhausted (3–15%)',100*heavyOut/heavy,heavyOut/heavy>=0.03&&heavyOut/heavy<=0.15);
-  gate('3-creature Normal beats Easy (≥70%)',100*launchNormalWins/easy,launchNormalWins/easy>=0.7);
+  gate('3-creature Hard beats Easy (≥70%)',100*launchNormalWins/easy,launchNormalWins/easy>=0.7);
   return {samples:{n,paired,easy,seed},rates,transfers,median,p90,draws,caps,hangOn:{count:hangOn,hits,percent:100*hangOn/hits},doublePerBattle:double/n,heavyExhaustion:100*heavyOut/heavy,normalVsEasy:100*launchNormalWins/easy,largeCollectionNormalVsEasy:100*fullNormalWins/easy,actionOnlyNormalVsEasy:100*normalWins/easy,gates,pass:gates.every(g=>g.pass)};
 }
 function main(){
@@ -99,11 +99,11 @@ function main(){
   const seeds=args.includes('--seed')?[numeric('--seed',3)]:[3,17,101];
   const results=seeds.map(seed=>simulate({n:numeric('--battles',10000),paired:numeric('--paired',4000),easy:numeric('--easy',4000),seed}));
   for(const result of results){
-  console.log(`Samples: random ${result.samples.n}; each paired ${result.samples.paired}; Normal/Easy ${result.samples.easy}; seed ${result.samples.seed}`);
+  console.log(`Samples: random ${result.samples.n}; each paired ${result.samples.paired}; Hard/Easy ${result.samples.easy}; seed ${result.samples.seed}`);
   for(const g of result.gates)console.log(`${g.pass?'PASS':'FAIL'} | ${g.metric} | ${g.value.toFixed(2)}`);
-  console.log(`Action/replacement-only Normal/Easy on assigned random teams (diagnostic): ${result.actionOnlyNormalVsEasy.toFixed(2)}%`);
+  console.log(`Action/replacement-only Hard/Easy on assigned random teams (diagnostic): ${result.actionOnlyNormalVsEasy.toFixed(2)}%`);
   console.log(`Hang on ${result.hangOn.count}/${result.hangOn.hits} hits (${result.hangOn.percent.toFixed(4)}%); double turns/battle ${result.doublePerBattle.toFixed(2)}`);
-  console.log(`24-creature collection Normal/Easy (diagnostic): ${result.largeCollectionNormalVsEasy.toFixed(2)}%`);
+  console.log(`24-creature collection Hard/Easy (diagnostic): ${result.largeCollectionNormalVsEasy.toFixed(2)}%`);
   }
   const report={results,pass:results.every(r=>r.pass)};
   const out=args.indexOf('--json');if(out>=0)writeFileSync(args[out+1],JSON.stringify(report,null,2)+'\n');

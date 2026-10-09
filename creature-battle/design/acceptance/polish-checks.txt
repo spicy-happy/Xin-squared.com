@@ -1,0 +1,54 @@
+2026-10-09 · Creature Battle v46 local verification
+
+Node: node --test creature-battle/tests/*.test.mjs — 101 passed, 0 failed.
+Collection: node creature-battle/tools/validate-collection.mjs — valid, 9 creatures.
+Browser: Chromium headless, http://127.0.0.1:8918, Playwright visible-control scripts.
+All 24 scripts passed; screenshots/logs stayed under /tmp.
+
+PASS ai-replacement-browser.mjs
+PASS arena-browser.mjs
+PASS bubble-browser.mjs
+PASS bugfix-browser.mjs
+PASS cards-browser.mjs
+PASS fair-turns-browser.mjs
+PASS juice-browser.mjs
+PASS launch-browser.mjs
+PASS messages-browser.mjs
+PASS miss-browser.mjs
+PASS move-flow-browser.mjs
+PASS music-browser.mjs
+PASS names-browser.mjs
+PASS order-browser.mjs
+PASS pixels-browser.mjs
+PASS playtest-browser.mjs
+PASS polish-browser.mjs
+PASS progress-browser.mjs
+PASS prototype-browser.mjs
+PASS retro-browser.mjs
+PASS review-browser.mjs
+PASS setup-browser.mjs
+PASS switch-turn-browser.mjs
+PASS trainers-browser.mjs
+
+Polish checks cover fresh production seeds, winning-animation quit dialog, rapid Next taps and Back preservation, landscape results/opponent controls, narration line alignment, heading/carousel focus, failed drawing/portrait fallback and storage-blocked/stale-page update recovery.
+Node regressions cover heal plus shield cap, inherited property rejection, and immutable v37/v43 module paths. Full Easy, Hard, random-bot, trainer and two-player games complete through controls.
+Safe-area CSS is implemented; physical notched iPhone and actual screen-reader speech were not tested. Browser checks verify focus lands on the winner heading.
+Balance: separate full report in polish-balance.{txt,json}; seven gates fail for seeds 3/17, eight for 101. Targets and gameplay tuning unchanged.
+
+2026-10-09 · PR #56 review follow-up
+
+Node suite rerun: 101 passed, 0 failed. Collection validation and diff whitespace checks pass.
+Expanded polish-browser.mjs passes: clicked collection articles and trainer buttons loop
+under repeated mouse-wheel scrolling in both directions at 1024x768; Tab-focused
+trainer cards stay visible. Replaying the original scroll handler through a browser
+route override fails the new collection click/scroll assertion, confirming coverage.
+Production fallback images load with tests/fixtures SVG requests blocked. Update
+recovery keeps cb-update=47 as the anti-loop marker and uses a timestamp for v;
+blocked storage and stale HTML still cause exactly one reload. Existing polish
+checks for seeds, setup, quit/win, landscape controls and narration pass.
+Fallback artwork now lives in assets/fallbacks without test labels. AI healing
+projection matches the engine's nonnegative cap. The global narration row/padding
+overrides remain intentional and are documented in CSS.
+Trainer browser script rerun passes all five full battles (Easy/Hard trainer,
+Easy/Hard random bot, two-player), small picker layouts, mirroring and rotation.
+This follow-up reran polish-browser.mjs and trainers-browser.mjs, not all 24 scripts.

@@ -17,6 +17,6 @@ Bump `GAME_VERSION` and every module/CSS URL together. Verify changes with the
 Node tests and appropriate visible-control browser checks; `tools/trainers-browser.mjs`
 checks submitted trainers, random bots, mixed move categories, facing, and real battles.
 
-The current runtime is `releases/v43/src/`. Keep `src/`, `rules-v1.json` and
+The current runtime is `releases/v46/src/`. Keep `src/`, `rules-v1.json` and
 `creatures.json` frozen for cached v37 clients. Publish incompatible future
 runtimes under a new release path and keep earlier release paths intact.

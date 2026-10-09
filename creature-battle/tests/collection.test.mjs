@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import { creature, rules } from './helpers.mjs';
-import { loadCollection, validateCreature, teamRule, validateTeam } from '../releases/v43/src/collection.js';
+import { loadCollection, validateCreature, teamRule, validateTeam } from '../releases/v46/src/collection.js';
 test('empty/one/two/three collection team rules',()=>{
   const a=creature(),b=creature({id:'cr-test01'}),c=creature({id:'cr-test02'});
   assert.equal(teamRule([]).canBattle,false);assert.equal(validateTeam([a,a,a],[]),false);
@@ -55,7 +55,7 @@ test('prototype entries retire once six real creatures are uploaded',()=>{
 });
 
 test('unusual move budgets are flagged without changing reviewed choices',async()=>{
- const {creatureWarnings}=await import('../releases/v43/src/collection.js');
+ const {creatureWarnings}=await import('../releases/v46/src/collection.js');
  const c=creature();assert.deepEqual(creatureWarnings(c,rules),[]);
  c.moves.regular={id:'blast',name:'Burst',category:'special'};
  c.moves.special={id:'guard',name:'Shield',category:'defense'};
@@ -63,4 +63,13 @@ test('unusual move budgets are flagged without changing reviewed choices',async(
  c.moves.regular={id:'toughen',name:'Hide',category:'defense'};
  assert.match(creatureWarnings(c,rules)[0],/No selected attacks/);
  assert.deepEqual(validateCreature(c,rules),[]);
+});
+
+
+test('prototype properties are not valid types, categories or moves',()=>{
+ for(const name of ['constructor','toString','__proto__'])for(const field of ['type','category','move']){
+  const c=creature();if(field==='type')c.type=name;else if(field==='category')c.moves.regular.category=name;else c.moves.regular.id=name;
+  assert.ok(validateCreature(c,rules).length,`${field} ${name}`);
+  assert.throws(()=>loadCollection({schema:1,creatures:[c]},rules));
+ }
 });

@@ -2,12 +2,24 @@
 
 **Superseded for 3v3 balance and paired Health/Attack/Defense transfers.**
 Use `node creature-battle/tools/balance-sim.mjs` from the repository root.
-It runs the real engine and Normal AI; all §10.2 gates pass in the
-[recorded Phase 2 run](../../design/acceptance/phase-2.txt).
+It runs the current release engine and Hard AI (internally `normal`). Historical
+Phase 2 measurements predate later rule changes; current balance must be rerun.
 Historical 1v1 experiments remain here as design context; they are not
 regression gates or the game's engine. The harness also measures the full
-Normal/Easy opponents including their independent team selectors, with
+Hard/Easy policies on synthetic rosters including their independent team selectors, with
 the action/replacement-only comparison retained as a diagnostic.
+
+The [2026-10-09 v46 report](../acceptance/polish-balance.txt)
+([JSON](../acceptance/polish-balance.json)) uses seeds 3, 17 and 101,
+10,000 random battles, 4,000 battles per paired transfer and 4,000 per
+Hard/Easy comparison for each seed. Seven gates fail on seeds 3 and 17;
+eight fail on seed 101. Mega Burst wins 54.80–55.18% (target ≤54%);
+Hard wins 56.33–56.88% on synthetic three-creature rosters (target ≥70%).
+Iron Hide, speed impact, duration and Heavy exhaustion also miss targets;
+seed 101 additionally misses the attack impact target. Draws and safety-cap
+endings remain zero. These are synthetic policy measurements, not human
+playtests or direct measurements of the curated production roster. Tuning is
+separate from the v46 polish fixes; targets and gameplay policy are unchanged.
 
 A small Python model of the battle rules, used to check the numbers in
 [`../PLAN.md`](../PLAN.md). It is **not** the game engine. Once
