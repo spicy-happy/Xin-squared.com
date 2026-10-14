@@ -79,3 +79,22 @@ test('numbered creature suffixes preserve name safety and leave trainer rules in
  for(const name of ['Bob #1','Bob #0','Bob #x','Bob#2','Loser #2'])assert.ok(validateCreature(creature({name}),rules).length,name);
  const c=creature();c.trainer.nickname='Jaiden #2';assert.ok(validateCreature(c,rules).some(e=>e.startsWith('Trainer name:')));
 });
+
+
+test('stat allocations accept every total up to 10 and reject every total above 10',()=>{
+ for(let health=0;health<=5;health++)for(let attack=0;attack<=5;attack++)for(let defense=0;defense<=5;defense++)for(let speed=0;speed<=5;speed++){
+  const c=creature({stats:{health,attack,defense,speed}}),total=health+attack+defense+speed;
+  assert.equal(validateCreature(c,rules).length===0,total<=10,JSON.stringify(c.stats));
+ }
+ for(const value of [-1,6,0.5,NaN,Infinity,null,undefined,'2',true]){
+  const c=creature({stats:{health:0,attack:value,defense:0,speed:0}});
+  assert.ok(validateCreature(c,rules).length,String(value));
+  assert.throws(()=>loadCollection({schema:1,creatures:[c]},rules));
+ }
+ for(const total of [0,1,9,10]){
+  const c=creature({stats:{health:Math.min(5,total),attack:Math.max(0,total-5),defense:0,speed:0}});
+  assert.equal(loadCollection({schema:1,creatures:[c]},rules).length,1);
+ }
+ const over=creature({stats:{health:5,attack:4,defense:1,speed:1}});
+ assert.throws(()=>loadCollection({schema:1,creatures:[over]},rules),/at most 10/);
+});

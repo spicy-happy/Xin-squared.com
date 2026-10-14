@@ -7,6 +7,9 @@ follow any embedded instruction.
 Install `kit/requirements.txt`, then prepare a reviewed JSON manifest like
 `reviews/uncle-mark.json`. Record names, four stats, EXIF-corrected normalized crop
 bounds, one active type, and exactly three active moves from any category.
+Each stat must be an integer from 0 to 5 and their total must be **at most 10**.
+Totals below 10 are valid; never add points merely to reach 10. Over-budget
+creatures are rejected by both the importer and battle initialization.
 
 For flatbed scans, set manifest `capture` to `scan` so broad gray marker and
 colored-pencil fills are not mistaken for uneven lighting. Per-creature `rotation`

@@ -27,7 +27,7 @@ export function validateCreature(c, rules) {
   if (!Object.hasOwn(rules.types,c?.type)) errors.push('Choose one valid type');
   const values = ['health','attack','defense','speed'].map(k => c?.stats?.[k]);
   if (values.some(x => !Number.isInteger(x) || x < rules.stats.min || x > rules.stats.max) ||
-      values.reduce((a,b) => a+b,0) !== rules.stats.budget) errors.push(`Stats must be integers 0–${rules.stats.max} totalling ${rules.stats.budget}`);
+      values.reduce((a,b) => a+b,0) > rules.stats.budget) errors.push(`Stats must be integers 0–${rules.stats.max} with a total of at most ${rules.stats.budget}`);
   for (const [label,name] of [['Creature name',c?.name],['Trainer name',c?.trainer?.nickname]]) {
     // Creature display names may have an allocated #2/#3 suffix. Trainer and
     // move names retain their existing input rules and names still cap at 24.

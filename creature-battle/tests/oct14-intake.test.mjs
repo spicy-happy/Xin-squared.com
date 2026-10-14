@@ -22,6 +22,7 @@ test('20 distinct class drawings belong to eight children, with one portrait per
  assert.equal(new Set(all.map(c=>c.name)).size,23);
  for(const c of kids){
   assert.deepEqual(validateCreature(c,rules),[]);
+  assert.ok(Object.values(c.stats).reduce((a,b)=>a+b,0)<=10,c.name+' exceeds 10 points');
   for(const path of [c.image.src,c.trainer.portrait])assert.ok(existsSync(new URL(path,root)),path);
   const source=manifest.creatures.find(e=>e.id===c.id);
   assert.ok(source.reviewNotes);assert.equal(c.image.facing,source.facing);

@@ -1,0 +1,144 @@
+{
+  "maximum": 10,
+  "lowerTotalsAllowed": true,
+  "creatures": [
+    {
+      "id": "cr-broot01",
+      "name": "Broot",
+      "trainer": "Uncle Mark",
+      "total": 10
+    },
+    {
+      "id": "cr-amphidian",
+      "name": "Amphidian",
+      "trainer": "Uncle Mark",
+      "total": 10
+    },
+    {
+      "id": "cr-bassault",
+      "name": "Bassault",
+      "trainer": "Uncle Mark",
+      "total": 10
+    },
+    {
+      "id": "cr-bobblue",
+      "name": "Bob",
+      "trainer": "Jaiden",
+      "total": 10
+    },
+    {
+      "id": "cr-silverwing",
+      "name": "Silverwing",
+      "trainer": "Ada",
+      "total": 10
+    },
+    {
+      "id": "cr-shar001",
+      "name": "Shar",
+      "trainer": "Evan",
+      "total": 10
+    },
+    {
+      "id": "cr-goldrod",
+      "name": "Goldrod",
+      "trainer": "Leopold",
+      "total": 10
+    },
+    {
+      "id": "cr-ipponch",
+      "name": "Ipponch",
+      "trainer": "Jo Zulu",
+      "total": 10
+    },
+    {
+      "id": "cr-starsot",
+      "name": "Starsot",
+      "trainer": "Leopold",
+      "total": 10
+    },
+    {
+      "id": "cr-hired01",
+      "name": "Hi",
+      "trainer": "Jaiden",
+      "total": 10
+    },
+    {
+      "id": "cr-snake01",
+      "name": "Snake",
+      "trainer": "Leopold",
+      "total": 10
+    },
+    {
+      "id": "cr-rockey01",
+      "name": "Rockey",
+      "trainer": "Ada",
+      "total": 10
+    },
+    {
+      "id": "cr-solothy",
+      "name": "Solothy",
+      "trainer": "Gwendolyn",
+      "total": 10
+    },
+    {
+      "id": "cr-emberwing",
+      "name": "Emberwing",
+      "trainer": "Gwendolyn",
+      "total": 10
+    },
+    {
+      "id": "cr-bunlily",
+      "name": "Bunlily",
+      "trainer": "Gwendolyn",
+      "total": 10
+    },
+    {
+      "id": "cr-sumbun01",
+      "name": "Sumbun",
+      "trainer": "QQ",
+      "total": 10
+    },
+    {
+      "id": "cr-flamehai",
+      "name": "Flame",
+      "trainer": "Hailey",
+      "total": 10
+    },
+    {
+      "id": "cr-attacat",
+      "name": "Attacat",
+      "trainer": "QQ",
+      "total": 10
+    },
+    {
+      "id": "cr-bobabo01",
+      "name": "Bobabo",
+      "trainer": "QQ",
+      "total": 10
+    },
+    {
+      "id": "cr-higold01",
+      "name": "Hi",
+      "trainer": "Jaiden",
+      "total": 10
+    },
+    {
+      "id": "cr-bobgold",
+      "name": "Bob",
+      "trainer": "Jaiden",
+      "total": 10
+    },
+    {
+      "id": "cr-flameada",
+      "name": "Flame",
+      "trainer": "Ada",
+      "total": 10
+    },
+    {
+      "id": "cr-sname01",
+      "name": "S Name",
+      "trainer": "Evan",
+      "total": 10
+    }
+  ]
+}

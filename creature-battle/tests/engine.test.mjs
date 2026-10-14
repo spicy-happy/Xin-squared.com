@@ -364,3 +364,14 @@ test('healing preserves shield and caps their combined total at max HP',()=>{
  r.state.order=[0,1];r.state.slot=0;
  assert.equal(ev(applyAction(r.state,0,{kind:'defense'}),'heal').amount,0);
 });
+
+
+test('battle initialization rejects over-budget teams and accepts unspent stat points',()=>{
+ for(const allocation of [stats(0,0,0,0),stats(1,0,0,0),stats(3,3,2,1),stats(3,3,2,2)]){
+  const {state}=match({stats:allocation});
+  assert.deepEqual(active(state,0).stats,allocation);
+  assert.ok(active(state,0).hp>0);
+ }
+ assert.throws(()=>match({stats:stats(5,4,1,1)}),/at most 10/);
+ assert.throws(()=>match({}, {stats:stats(5,5,5,5)}),/at most 10/);
+});
