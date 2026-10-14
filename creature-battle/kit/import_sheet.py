@@ -23,7 +23,7 @@ def active_choices(marks, label, count):
     return chosen
 
 
-def crop_art(photo, region, exclude_print=(), keep_paper=(), *, scan=False, exclude_dark_print=()):
+def crop_art(photo, region, exclude_print=(), keep_paper=(), *, scan=False, exclude_dark_print=(), exclude_black_print=()):
     import cv2
     import numpy as np
     from PIL import Image, ImageDraw
@@ -43,6 +43,17 @@ def crop_art(photo, region, exclude_print=(), keep_paper=(), *, scan=False, excl
             x0, y0, x1, y1 = [round(v * (w if i % 2 == 0 else h)) for i, v in enumerate(box)]
             patch = pixels[y0:y1, x0:x1]
             patch[(hsv_photo[y0:y1, x0:x1, 1] < 90) | (hsv_photo[y0:y1, x0:x1, 2] < 150)] = 255
+        photo = Image.fromarray(pixels)
+    # Reviewed black template ink can cross gray artwork. Remove only near-black
+    # pixels here; the broader colored-marker mask would erase gray strokes.
+    if exclude_black_print:
+        pixels = np.asarray(photo).copy()
+        for box in exclude_black_print:
+            x0, y0, x1, y1 = [round(v * (w if i % 2 == 0 else h)) for i, v in enumerate(box)]
+            patch = pixels[y0:y1, x0:x1]
+            ink = (patch.max(axis=2) < 140).astype(np.uint8)
+            ink = cv2.dilate(ink, np.ones((3, 3), np.uint8))
+            patch[ink > 0] = 255
         photo = Image.fromarray(pixels)
     crop = photo.crop(tuple(round(v * (w if i % 2 == 0 else h)) for i, v in enumerate(region)))
     rgb = np.asarray(crop).copy()
@@ -105,7 +116,8 @@ def build(manifest, photos, output):
     for t in manifest['trainers']:
         art = crop_art(photo(t['portraitSource'], t.get('portraitRotation', 0)), t['portraitCrop'],
                        t.get('excludePrint', []), keep_paper=t.get('keepPaper', []),
-                       **({'exclude_dark_print': t['excludeDarkPrint']} if t.get('excludeDarkPrint') else {}), **crop_options)
+                       **({'exclude_dark_print': t['excludeDarkPrint']} if t.get('excludeDarkPrint') else {}),
+                       **({'exclude_black_print': t['excludeBlackPrint']} if t.get('excludeBlackPrint') else {}), **crop_options)
         trainers[t['id']] = {'id': t['id'], 'nickname': t['nickname'], 'portrait': write_asset(art, 'portraits', t['assetId'], output)}
         previews.append((t['nickname'], art))
     for entry in manifest['creatures']:
@@ -124,7 +136,8 @@ def build(manifest, photos, output):
             moves[slot] = {'id': move_id, 'name': rules['moves'][category][move_id]['label'], 'category': category}
         art = crop_art(photo(entry['source'], entry.get('rotation', 0)), entry['creatureCrop'],
                        entry.get('excludePrint', []), entry.get('keepPaper', []),
-                       **({'exclude_dark_print': entry['excludeDarkPrint']} if entry.get('excludeDarkPrint') else {}), **crop_options)
+                       **({'exclude_dark_print': entry['excludeDarkPrint']} if entry.get('excludeDarkPrint') else {}),
+                       **({'exclude_black_print': entry['excludeBlackPrint']} if entry.get('excludeBlackPrint') else {}), **crop_options)
         src = write_asset(art, 'creatures', entry['id'], output)
         creatures.append({'schema': 1, 'id': entry['id'], 'rulesVersion': rules['version'], 'sheet': rules['sheet'], 'name': entry['name'],
             'trainer': trainers[entry['trainerId']], 'image': {'src': src, 'w': art.width, 'h': art.height, 'facing': entry['facing']},

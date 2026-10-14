@@ -19,8 +19,8 @@ test('20 distinct class drawings belong to eight children, with one portrait per
   Jaiden:4,Ada:3,Evan:2,Leopold:3,'Jo Zulu':1,Gwendolyn:3,QQ:3,Hailey:1
  });
  for(const t of battleTrainers(kids))assert.equal(new Set(t.creatures.map(c=>c.trainer.portrait)).size,1);
- assert.equal(all.length,46);assert.ok(all.every(c=>!c.prototype));
- assert.equal(new Set(all.map(c=>c.name)).size,46);
+ assert.equal(all.length,49);assert.ok(all.every(c=>!c.prototype));
+ assert.equal(new Set(all.map(c=>c.name)).size,49);
  for(const c of kids){
   assert.deepEqual(validateCreature(c,rules),[]);
   assert.ok(Object.values(c.stats).reduce((a,b)=>a+b,0)<=10,c.name+' exceeds 10 points');

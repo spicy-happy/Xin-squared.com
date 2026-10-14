@@ -136,4 +136,17 @@ class ScanExtractionTests(unittest.TestCase):
         self.assertLess(cutout.width, 400)
         self.assertEqual(cutout.getpixel((cutout.width // 2, cutout.height // 2)), (0, 170, 230, 255))
 
+    def test_black_template_mask_preserves_gray_and_pale_art(self):
+        from PIL import Image, ImageDraw
+        from import_sheet import crop_art
+        photo = Image.new('RGB', (1000, 1000), 'white')
+        draw = ImageDraw.Draw(photo)
+        draw.rectangle((10, 200, 90, 800), fill='black')
+        draw.rectangle((300, 200, 700, 800), fill=(180, 180, 180))
+        draw.rectangle((450, 350, 550, 650), fill=(240, 210, 220))
+        cutout = crop_art(photo, [0, 0, 1, 1], scan=True, exclude_black_print=[[0, 0, 1, 1]])
+        self.assertLess(cutout.width, 430)
+        self.assertEqual(cutout.getpixel((cutout.width // 2, cutout.height // 2)), (240, 210, 220, 255))
+        self.assertEqual(cutout.getpixel((cutout.width // 4, cutout.height // 2)), (180, 180, 180, 255))
+
 if __name__ == '__main__': unittest.main()

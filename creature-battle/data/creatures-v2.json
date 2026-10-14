@@ -2212,6 +2212,135 @@
         }
       },
       "added": "2026-10-14"
+    },
+    {
+      "schema": 1,
+      "id": "cr-wtvluca",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "WTV",
+      "trainer": {
+        "id": "tr-luca001",
+        "nickname": "Luca",
+        "portrait": "assets/portraits/cr-luca001.4b1958d8ddb9.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-wtvluca.d325523f481a.webp",
+        "w": 396,
+        "h": 512,
+        "facing": "left"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 2,
+        "speed": 0
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Mega Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-14"
+    },
+    {
+      "schema": 1,
+      "id": "cr-ezemily",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "EZ",
+      "trainer": {
+        "id": "tr-emily01",
+        "nickname": "Emily",
+        "portrait": "assets/portraits/cr-emily01.f1cc23fd5abc.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-ezemily.7c0ac978f300.webp",
+        "w": 427,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 2,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-14"
+    },
+    {
+      "schema": 1,
+      "id": "cr-vampirearjan",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "The Vampire Creature",
+      "trainer": {
+        "id": "tr-arjan01",
+        "nickname": "Arjan",
+        "portrait": "assets/portraits/cr-arjan01.f4c71ec01313.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-vampirearjan.4be6adf36d45.webp",
+        "w": 368,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 3,
+        "attack": 4,
+        "defense": 0,
+        "speed": 3
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        },
+        "defense": {
+          "id": "toughen",
+          "name": "Iron Hide",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-14"
     }
   ]
 }

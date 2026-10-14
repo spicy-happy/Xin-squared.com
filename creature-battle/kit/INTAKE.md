@@ -19,6 +19,8 @@ Trainer crops support the same `excludePrint` and `keepPaper` annotations.
 `excludeDarkPrint` removes neutral/dark template ink in reviewed boxes while
 retaining saturated marker that crosses a heading or border. Inspect overlaps
 carefully: ink hidden by the printed sheet cannot be recovered.
+For gray artwork crossing the template, `excludeBlackPrint` removes near-black
+printed ink inside reviewed boxes while preserving gray marker and pale color.
 
 For every marked option, record `selected`, `canceled`, or `unselected`. A clear
 cross-out overrides an earlier circle or box: it is canceled, even when it has more

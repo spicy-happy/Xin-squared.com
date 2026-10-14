@@ -1,0 +1,423 @@
+{
+  "added": "2026-10-14",
+  "capture": "scan",
+  "batch": "Scan3: three distinct drawings; Luca new, Emily and Arjan existing",
+  "decisionAuthority": "User\u2019s standing authorization: use judgment to resolve unclear choices, cap only over-budget stats at 10, and complete missing moves with basic choices. All three sheets already total 10 and mark three moves; no stats or moves added.",
+  "sourceOrientation": "Rotation counterclockwise after EXIF; normalized coordinates refer to upright landscape scans. Original JPGs remain outside the repository.",
+  "trainers": [
+    {
+      "id": "tr-emily01",
+      "nickname": "Emily",
+      "assetId": "cr-emily01",
+      "portraitSource": "Scan2_4.jpg",
+      "portraitCrop": [
+        0.06179775,
+        0.75581395,
+        0.16460674,
+        0.91424419
+      ],
+      "portraitRotation": 90,
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ]
+      ]
+    },
+    {
+      "id": "tr-arjan01",
+      "nickname": "Arjan",
+      "assetId": "cr-arjan01",
+      "portraitSource": "Scan2_9.jpg",
+      "portraitCrop": [
+        0.07359551,
+        0.7565407,
+        0.19662921,
+        0.93531977
+      ],
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ]
+      ],
+      "keepPaper": [
+        [
+          [
+            0.11011236,
+            0.77543605
+          ],
+          [
+            0.13595506,
+            0.77979651
+          ],
+          [
+            0.13988764,
+            0.80668605
+          ],
+          [
+            0.12022472,
+            0.8125
+          ],
+          [
+            0.10730337,
+            0.7994186
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "tr-luca001",
+      "nickname": "Luca",
+      "assetId": "cr-luca001",
+      "portraitSource": "03.jpg",
+      "portraitCrop": [
+        0.04719101,
+        0.69985465,
+        0.22134831,
+        0.9505814
+      ],
+      "excludeBlackPrint": [
+        [
+          0.03595506,
+          0.71075581,
+          0.22134831,
+          0.75145349
+        ],
+        [
+          0.03651685,
+          0.92805233,
+          0.22134831,
+          0.94476744
+        ],
+        [
+          0.03651685,
+          0.70857558,
+          0.04775281,
+          0.94840116
+        ],
+        [
+          0.20617978,
+          0.70857558,
+          0.21629213,
+          0.94840116
+        ]
+      ],
+      "excludeDarkPrint": [
+        [
+          0.03932584,
+          0.69912791,
+          0.22359551,
+          0.75363372
+        ]
+      ]
+    }
+  ],
+  "creatures": [
+    {
+      "id": "cr-wtvluca",
+      "name": "WTV",
+      "trainerId": "tr-luca001",
+      "source": "03.jpg",
+      "creatureCrop": [
+        0.03595506,
+        0.11700581,
+        0.40617978,
+        0.72383721
+      ],
+      "reviewed": true,
+      "facing": "left",
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 2,
+        "speed": 0
+      },
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        },
+        {
+          "id": "water",
+          "status": "unselected",
+          "reason": "Gray scribbles without black selection circle."
+        },
+        {
+          "id": "grass",
+          "status": "unselected",
+          "reason": "Gray scribbles without black selection circle."
+        },
+        {
+          "id": "electric",
+          "status": "unselected",
+          "reason": "Gray scribbles without black selection circle."
+        },
+        {
+          "id": "ground",
+          "status": "unselected",
+          "reason": "Gray scribbles without black selection circle."
+        },
+        {
+          "id": "flying",
+          "status": "unselected",
+          "reason": "Gray scribbles without black selection circle."
+        }
+      ],
+      "moveMarks": [
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "overload",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Black circles resolve the gray scribbles: Fire, Health 5, Attack 3, Defense 2. Speed has no active circle and remains 0. Keep Quick Strike, Mega Burst and Healing Glow. Trainer LUCA. normalized to Luca; corrected creature name read as WTV. Printed ink overlapping the gray drawing cannot be recovered; only the template line and letters are removed.",
+      "excludeBlackPrint": [
+        [
+          0.14269663,
+          0.10973837,
+          0.35449438,
+          0.14462209
+        ],
+        [
+          0.03651685,
+          0.1068314,
+          0.04831461,
+          0.70203488
+        ],
+        [
+          0.03651685,
+          0.68531977,
+          0.43988764,
+          0.69912791
+        ]
+      ],
+      "keepPaper": [
+        [
+          [
+            0.18033708,
+            0.46511628
+          ],
+          [
+            0.24044944,
+            0.35537791
+          ],
+          [
+            0.30786517,
+            0.24127907
+          ],
+          [
+            0.33764045,
+            0.22674419
+          ],
+          [
+            0.36123596,
+            0.24854651
+          ],
+          [
+            0.36460674,
+            0.28270349
+          ],
+          [
+            0.30617978,
+            0.38226744
+          ],
+          [
+            0.25561798,
+            0.46366279
+          ],
+          [
+            0.19775281,
+            0.47819767
+          ]
+        ]
+      ],
+      "excludePrint": [
+        [
+          0.03651685,
+          0.68968023,
+          0.43988764,
+          0.69694767
+        ],
+        [
+          0.1,
+          0.7122093023255814,
+          0.14213483146067415,
+          0.7267441860465116
+        ]
+      ]
+    },
+    {
+      "id": "cr-ezemily",
+      "name": "EZ",
+      "trainerId": "tr-emily01",
+      "source": "03_1.jpg",
+      "creatureCrop": [
+        0.15730337,
+        0.27616279,
+        0.31797753,
+        0.5247093
+      ],
+      "reviewed": true,
+      "facing": "front",
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 2,
+        "speed": 2
+      },
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        }
+      ],
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "All choices clear. Fire; 3/3/2/2; Tackle, Quick Strike and Bubble Shield. Reuse Emily\u2019s existing portrait."
+    },
+    {
+      "id": "cr-vampirearjan",
+      "name": "The Vampire Creature",
+      "trainerId": "tr-arjan01",
+      "source": "03_2.jpg",
+      "creatureCrop": [
+        0.1241573,
+        0.14607558,
+        0.41966292,
+        0.6693314
+      ],
+      "reviewed": true,
+      "facing": "front",
+      "stats": {
+        "health": 3,
+        "attack": 4,
+        "defense": 0,
+        "speed": 3
+      },
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        }
+      ],
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "The-vampire creature normalized to The Vampire Creature. Fire; Health 3, Attack 4, Speed 3; unmarked Defense stays 0. Tackle, Healing Glow and Iron Hide. Reuse Arjan\u2019s existing portrait and retain faint pink pencil.",
+      "rotation": 90,
+      "keepPaper": [
+        [
+          [
+            0.2494382,
+            0.20421512
+          ],
+          [
+            0.29662921,
+            0.22238372
+          ],
+          [
+            0.30955056,
+            0.27180233
+          ],
+          [
+            0.29606742,
+            0.32630814
+          ],
+          [
+            0.24325843,
+            0.35973837
+          ],
+          [
+            0.21573034,
+            0.30668605
+          ],
+          [
+            0.21629213,
+            0.25
+          ]
+        ],
+        [
+          [
+            0.24101124,
+            0.35319767
+          ],
+          [
+            0.36179775,
+            0.38590116
+          ],
+          [
+            0.18932584,
+            0.45930233
+          ]
+        ],
+        [
+          [
+            0.26797753,
+            0.58284884
+          ],
+          [
+            0.23314607,
+            0.65406977
+          ],
+          [
+            0.29550562,
+            0.65697674
+          ]
+        ],
+        [
+          [
+            0.36797753,
+            0.60537791
+          ],
+          [
+            0.38314607,
+            0.59883721
+          ],
+          [
+            0.3988764,
+            0.64171512
+          ],
+          [
+            0.36516854,
+            0.6497093
+          ]
+        ]
+      ]
+    }
+  ]
+}

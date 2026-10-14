@@ -16,8 +16,8 @@ const get=id=>batch.find(c=>c.id==='cr-'+id);
 test('Scan2 keeps all 23 different drawings, eight new artists, and Ada’s existing identity',()=>{
  assert.equal(batch.length,23);assert.equal(batchIds.size,23);
  assert.equal(new Set(batch.map(c=>c.image.src)).size,23);
- assert.equal(new Set(all.map(c=>c.name)).size,46);
- assert.equal(battleTrainers(all).length,17);
+ assert.equal(new Set(all.map(c=>c.name)).size,49);
+ assert.equal(battleTrainers(all).length,18);
  assert.deepEqual(Object.fromEntries(battleTrainers(batch).map(t=>[t.nickname,t.creatures.length])),{
   Keira:3,Nicole:3,Adrian:3,Emily:1,Duncan:3,Arjan:3,Kaiden:3,Max:3,Ada:1
  });
