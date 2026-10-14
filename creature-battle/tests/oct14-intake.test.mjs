@@ -10,7 +10,8 @@ const root=new URL('../',import.meta.url);
 const raw=JSON.parse(readFileSync(new URL('data/creatures-v2.json',root)));
 const all=loadCollection(raw,rules);
 const manifest=JSON.parse(readFileSync(new URL('kit/reviews/wed-art-2026-10-14.json',root)));
-const kids=all.filter(c=>c.added==='2026-10-14');
+const batchIds=new Set(manifest.creatures.map(c=>c.id));
+const kids=all.filter(c=>batchIds.has(c.id));
 
 test('20 distinct class drawings belong to eight children, with one portrait per child',()=>{
  assert.equal(kids.length,20);assert.equal(new Set(kids.map(c=>c.id)).size,20);
@@ -18,8 +19,8 @@ test('20 distinct class drawings belong to eight children, with one portrait per
   Jaiden:4,Ada:3,Evan:2,Leopold:3,'Jo Zulu':1,Gwendolyn:3,QQ:3,Hailey:1
  });
  for(const t of battleTrainers(kids))assert.equal(new Set(t.creatures.map(c=>c.trainer.portrait)).size,1);
- assert.equal(all.length,23);assert.ok(all.every(c=>!c.prototype));
- assert.equal(new Set(all.map(c=>c.name)).size,23);
+ assert.equal(all.length,46);assert.ok(all.every(c=>!c.prototype));
+ assert.equal(new Set(all.map(c=>c.name)).size,46);
  for(const c of kids){
   assert.deepEqual(validateCreature(c,rules),[]);
   assert.ok(Object.values(c.stats).reduce((a,b)=>a+b,0)<=10,c.name+' exceeds 10 points');
