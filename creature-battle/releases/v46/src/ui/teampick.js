@@ -36,15 +36,24 @@ export function teamPick({app,collection,rules,side,imageSrc,portraitSrc,onDone,
  nameInput.oninput=update;
  const portraitRow=carousel(shuffled(collection.filter((c,i)=>collection.findIndex(m=>trainerKey(m)===trainerKey(c))===i)),c=>{const b=el('button','trainer-card');b.dataset.trainer=c.id;
   const img=el('img');img.src=portraitSrc(c.trainer,c.type);img.alt=c.trainer.nickname;const label=el('span',null,c.trainer.nickname);b.append(img,label);
-  b.onclick=()=>{trainer=c;nameInput.value=c.trainer.nickname;team.splice(0);for(const owned of trainerTeam(collection,c)){const entry=options.find(e=>e.c.id===owned.id&&!team.includes(e));if(entry)team.push(entry);}update();};trainerCards.push({b,c,label});return b;
+  b.onclick=()=>{trainer=c;nameInput.value=c.trainer.nickname;team.splice(0);for(const owned of trainerTeam(collection,c)){const entry=options.find(e=>e.c.id===owned.id&&!team.includes(e));if(entry)team.push(entry);}groupTrainerCreatures();update();};trainerCards.push({b,c,label});return b;
  },'trainer portraits');panel.append(portraitRow);
  panel.append(el('h2',null,'Creatures'));
- const creatureRow=carousel(shuffled(options),entry=>{const {c,key}=entry,b=el('button','pick-card');b.dataset.creature=c.id;b.dataset.pick=key;
+ const creatureOrder=shuffled(options);
+ const creatureRow=carousel(creatureOrder,entry=>{const {c,key}=entry,b=el('button','pick-card');b.dataset.creature=c.id;b.dataset.pick=key;
   const img=el('img');img.src=imageSrc(c);img.alt=c.name;const mark=el('span','picked-label','SELECTED');
   b.append(mark,img,el('strong',null,c.name),typeChip(c.type),el('small','creature-creator',`Made by ${c.trainer.nickname}`));
   b.append(moveList(c));
   b.onclick=()=>{const i=team.findIndex(m=>m.key===key);if(i>=0)team.splice(i,1);else if(team.length<3)team.push(entry);update();};creatureCards.push({b,key});return b;
  },'creatures');panel.append(creatureRow);
+ function groupTrainerCreatures(){
+  const owns=entry=>trainerKey(entry.c)===trainerKey(trainer);
+  const ordered=[...options.filter(owns),...creatureOrder.filter(entry=>!owns(entry))];
+  for(const group of creatureRow.querySelectorAll('.carousel-group')){
+   for(const entry of ordered)group.append(group.querySelector(`[data-pick="${CSS.escape(entry.key)}"]`));
+  }
+  creatureRow.resetPosition();
+ }
  function selection(){return {team:team.map(e=>e.c),trainerId:trainer.id,trainer:{...trainer.trainer,nickname:nameInput.value,type:trainer.type}};}
  done.onclick=()=>{const creatures=team.map(e=>e.c);if(validateTeam(creatures,collection)&&!nameError(nameInput.value))onDone({team:creatures,trainerId:trainer.id,trainer:{...trainer.trainer,nickname:cleanName(nameInput.value),type:trainer.type}});};
  function moveEntry(entry,index){
@@ -118,5 +127,5 @@ export function teamPick({app,collection,rules,side,imageSrc,portraitSrc,onDone,
   for(const {b,key}of creatureCards){const selected=team.some(e=>e.key===key);b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));b.disabled=entering()||(!selected&&team.length===3);}
   const error=nameError(nameInput.value);nameInput.setAttribute('aria-invalid',String(!!error));nameMessage.textContent=error;nameMessage.hidden=!error;
   done.disabled=!!error||!validateTeam(team.map(e=>e.c),collection);
- }update();setTimeout(()=>{if(!panel.isConnected)return;for(const {b}of trainerCards)b.disabled=false;for(const {b,key}of creatureCards)b.disabled=!team.some(e=>e.key===key)&&team.length===3;},360);
+ }groupTrainerCreatures();update();setTimeout(()=>{if(!panel.isConnected)return;for(const {b}of trainerCards)b.disabled=false;for(const {b,key}of creatureCards)b.disabled=!team.some(e=>e.key===key)&&team.length===3;},360);
 }

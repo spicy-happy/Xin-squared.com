@@ -59,7 +59,8 @@ export function carousel(items,renderItem,label){
  rail.addEventListener('focusin',e=>{if(e.target===rail)return;cancelAnimationFrame(frame);animating=false;e.target.scrollIntoView({block:'nearest',inline:'nearest'});});
  previous.onclick=()=>step(-1);next.onclick=()=>step(1);
  rail.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();step(e.key==='ArrowLeft'?-1:1);}});
- requestAnimationFrame(()=>{if(rail.isConnected)rail.scrollLeft=period();});
+ wrapper.resetPosition=()=>{cancelAnimationFrame(frame);animating=false;destination=period();rail.scrollLeft=destination;};
+ requestAnimationFrame(()=>{if(rail.isConnected)wrapper.resetPosition();});
  return wrapper;
 }
 
