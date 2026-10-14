@@ -34,7 +34,7 @@ try{
   await page.screenshot({path:`${out}/${artist.id}-arena.png`});
   // Full visible-control battles exercise both intake batches, zero stats and mixed moves.
   let actions=0;
-  if(['tr-jaiden','tr-qq0001','tr-nicole1','tr-max0001'].includes(artist.id)){
+  if(['tr-jaiden','tr-qq0001','tr-nicole1','tr-max0001','tr-luca001'].includes(artist.id)){
    for(let step=0;step<800&&!await page.locator('#rematch').count();step++){
     const replacement=page.locator('[data-bench]:enabled');
     const attacks=page.locator('.grid button.regular:enabled,.grid button.special:enabled');
