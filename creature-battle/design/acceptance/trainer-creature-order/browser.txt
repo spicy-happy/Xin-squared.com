@@ -1,0 +1,4 @@
+1024x768: trainer-owned drawings grouped first, scrolled left, selections and Back preserved
+844x390: trainer-owned drawings grouped first, scrolled left, selections and Back preserved
+390x844: trainer-owned drawings grouped first, scrolled left, selections and Back preserved
+320x740: trainer-owned drawings grouped first, scrolled left, selections and Back preserved
