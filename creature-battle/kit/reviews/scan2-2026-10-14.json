@@ -1,0 +1,1895 @@
+{
+  "added": "2026-10-14",
+  "capture": "scan",
+  "batch": "Scan2: 23 distinct drawings",
+  "trainers": [
+    {
+      "id": "tr-keira01",
+      "nickname": "Keira",
+      "assetId": "cr-keira01",
+      "portraitSource": "Scan2.jpg",
+      "portraitCrop": [
+        0.04382022,
+        0.75145349,
+        0.22022472,
+        0.9375
+      ],
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ],
+        [
+          0.20505618,
+          0.72674419,
+          0.2241573,
+          0.95203488
+        ]
+      ],
+      "keepPaper": [
+        [
+          [
+            0.06910112,
+            0.79723837
+          ],
+          [
+            0.20224719,
+            0.78851744
+          ],
+          [
+            0.18932584,
+            0.82776163
+          ],
+          [
+            0.13539326,
+            0.85465116
+          ],
+          [
+            0.09157303,
+            0.83430233
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "tr-nicole1",
+      "nickname": "Nicole",
+      "assetId": "cr-nicole1",
+      "portraitSource": "Scan2_19.jpg",
+      "portraitCrop": [
+        0.08426966,
+        0.74854651,
+        0.16853933,
+        0.91424419
+      ],
+      "portraitRotation": 90,
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ]
+      ]
+    },
+    {
+      "id": "tr-adrian1",
+      "nickname": "Adrian",
+      "assetId": "cr-adrian1",
+      "portraitSource": "Scan2_3.jpg",
+      "portraitCrop": [
+        0.05898876,
+        0.76453488,
+        0.16011236,
+        0.93459302
+      ],
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ],
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ]
+      ]
+    },
+    {
+      "id": "tr-emily01",
+      "nickname": "Emily",
+      "assetId": "cr-emily01",
+      "portraitSource": "Scan2_4.jpg",
+      "portraitCrop": [
+        0.06179775,
+        0.75581395,
+        0.16460674,
+        0.91424419
+      ],
+      "portraitRotation": 90,
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ]
+      ]
+    },
+    {
+      "id": "tr-duncan1",
+      "nickname": "Duncan",
+      "assetId": "cr-duncan1",
+      "portraitSource": "Scan2_5.jpg",
+      "portraitCrop": [
+        0.08483146,
+        0.74781977,
+        0.16123596,
+        0.8997093
+      ],
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ]
+      ]
+    },
+    {
+      "id": "tr-arjan01",
+      "nickname": "Arjan",
+      "assetId": "cr-arjan01",
+      "portraitSource": "Scan2_9.jpg",
+      "portraitCrop": [
+        0.07359551,
+        0.7565407,
+        0.19662921,
+        0.93531977
+      ],
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ]
+      ],
+      "keepPaper": [
+        [
+          [
+            0.11011236,
+            0.77543605
+          ],
+          [
+            0.13595506,
+            0.77979651
+          ],
+          [
+            0.13988764,
+            0.80668605
+          ],
+          [
+            0.12022472,
+            0.8125
+          ],
+          [
+            0.10730337,
+            0.7994186
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "tr-kaiden1",
+      "nickname": "Kaiden",
+      "assetId": "cr-kaiden1",
+      "portraitSource": "Scan2_21.jpg",
+      "portraitCrop": [
+        0.07865169,
+        0.76526163,
+        0.14719101,
+        0.95494186
+      ],
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ]
+      ]
+    },
+    {
+      "id": "tr-max0001",
+      "nickname": "Max",
+      "assetId": "cr-max0001",
+      "portraitSource": "Scan2_14.jpg",
+      "portraitCrop": [
+        0.06573034,
+        0.73037791,
+        0.20280899,
+        0.93023256
+      ],
+      "portraitRotation": 90,
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.92659884,
+          0.23033708,
+          0.95930233
+        ],
+        [
+          0.04494382,
+          0.7122093,
+          0.21629213,
+          0.75145349
+        ]
+      ]
+    },
+    {
+      "id": "tr-ada001",
+      "nickname": "Ada",
+      "assetId": "cr-ada001",
+      "portraitSource": "Document_2026-10-14_142046_8.jpg",
+      "portraitCrop": [
+        0.072,
+        0.745,
+        0.181,
+        0.928
+      ],
+      "keepPaper": [
+        [
+          [
+            0.10280898876404494,
+            0.7863372093023255
+          ],
+          [
+            0.1252808988764045,
+            0.7747093023255814
+          ],
+          [
+            0.1455056179775281,
+            0.784156976744186
+          ],
+          [
+            0.15955056179775282,
+            0.8030523255813954
+          ],
+          [
+            0.1646067415730337,
+            0.8204941860465116
+          ],
+          [
+            0.15730337078651685,
+            0.8357558139534884
+          ],
+          [
+            0.14269662921348314,
+            0.84375
+          ],
+          [
+            0.12022471910112359,
+            0.8444767441860465
+          ],
+          [
+            0.10561797752808989,
+            0.8321220930232558
+          ],
+          [
+            0.09831460674157304,
+            0.809593023255814
+          ]
+        ]
+      ]
+    }
+  ],
+  "creatures": [
+    {
+      "id": "cr-five002",
+      "name": "Five",
+      "trainerId": "tr-keira01",
+      "source": "Scan2.jpg",
+      "creatureCrop": [
+        0.03932584,
+        0.13444767,
+        0.44382022,
+        0.58502907
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "electric",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 4,
+        "attack": 1,
+        "defense": 2,
+        "speed": 3
+      },
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Source 5/1/2/3 totals 11. Reduced Health only, to 4/1/2/3=10. Tackle and Healing Glow marked; added basic Bubble Shield for third move. Canceled Attack 4, Defense 4/5 and Speed 2 remain excluded.",
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.67587209,
+          0.46067416,
+          0.7122093
+        ],
+        [
+          0.42977528,
+          0.10174419,
+          0.44382022,
+          0.71947674
+        ],
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ],
+        [
+          0.42977528,
+          0.10174419,
+          0.45786517,
+          0.59593023
+        ]
+      ],
+      "originalStats": {
+        "health": 5,
+        "attack": 1,
+        "defense": 2,
+        "speed": 3
+      },
+      "addedMoves": [
+        "guard"
+      ],
+      "canceledStatMarks": {
+        "attack": [
+          4
+        ],
+        "defense": [
+          4,
+          5
+        ],
+        "speed": [
+          2
+        ]
+      }
+    },
+    {
+      "id": "cr-firemajik",
+      "name": "Fire Majik",
+      "trainerId": "tr-nicole1",
+      "source": "Scan2_1.jpg",
+      "creatureCrop": [
+        0.16853933,
+        0.20348837,
+        0.43820225,
+        0.58502907
+      ],
+      "facing": "left",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 1,
+        "attack": 4,
+        "defense": 2,
+        "speed": 3
+      },
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Source 1/5/3/4 totals 13. Proportional reduction with largest remainders yields 1/4/2/3=10, preserving relative strengths. All three original moves retained.",
+      "rotation": 90,
+      "originalStats": {
+        "health": 1,
+        "attack": 5,
+        "defense": 3,
+        "speed": 4
+      },
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-flykeira",
+      "name": "Fly",
+      "trainerId": "tr-keira01",
+      "source": "Scan2_2.jpg",
+      "creatureCrop": [
+        0.03089888,
+        0.10901163,
+        0.44101124,
+        0.54869186
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "ground",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 2,
+        "speed": 0
+      },
+      "moveMarks": [
+        {
+          "id": "heavy",
+          "status": "selected"
+        },
+        {
+          "id": "risky",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Single strokes select Ground and three moves; blank Speed remains 0.",
+      "excludeDarkPrint": [
+        [
+          0.13202247,
+          0.10174419,
+          0.35393258,
+          0.13517442
+        ],
+        [
+          0.03370787,
+          0.67587209,
+          0.46067416,
+          0.7122093
+        ],
+        [
+          0.42977528,
+          0.10174419,
+          0.44382022,
+          0.71947674
+        ],
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ]
+      ],
+      "canceledStatMarks": {},
+      "keepPaper": [
+        [
+          [
+            0.16179775,
+            0.17877907
+          ],
+          [
+            0.3241573,
+            0.1875
+          ],
+          [
+            0.32808989,
+            0.2630814
+          ],
+          [
+            0.16123596,
+            0.28706395
+          ]
+        ],
+        [
+          [
+            0.17078652,
+            0.29869186
+          ],
+          [
+            0.32808989,
+            0.2747093
+          ],
+          [
+            0.3258427,
+            0.44113372
+          ],
+          [
+            0.1988764,
+            0.45494186
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "cr-rextron",
+      "name": "Rextron",
+      "trainerId": "tr-adrian1",
+      "source": "Scan2_3.jpg",
+      "creatureCrop": [
+        0.04382022,
+        0.13662791,
+        0.32303371,
+        0.63590116
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "ground",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 3,
+        "speed": 1
+      },
+      "moveMarks": [
+        {
+          "id": "heavy",
+          "status": "selected"
+        },
+        {
+          "id": "blast",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Three rock fragments and detached limbs preserved.",
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ]
+      ],
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-doobie01",
+      "name": "Doobie",
+      "trainerId": "tr-emily01",
+      "source": "Scan2_4.jpg",
+      "creatureCrop": [
+        0.15168539,
+        0.27616279,
+        0.2752809,
+        0.58866279
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "electric",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 1,
+        "attack": 3,
+        "defense": 4,
+        "speed": 2
+      },
+      "moveMarks": [
+        {
+          "id": "blast",
+          "status": "selected"
+        },
+        {
+          "id": "overload",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Handwritten annotations confirm Health 1 and Speed 2; 1/3/4/2=10. Brown Energy Burst and cyan Mega Burst/Bubble Shield are three selections; no clear cancel mark.",
+      "rotation": 90,
+      "keepPaper": [
+        [
+          [
+            0.19438202,
+            0.35392442
+          ],
+          [
+            0.25,
+            0.3502907
+          ],
+          [
+            0.24325843,
+            0.41497093
+          ],
+          [
+            0.19157303,
+            0.41569767
+          ]
+        ]
+      ],
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-firebeast",
+      "name": "Fire Beast",
+      "trainerId": "tr-duncan1",
+      "source": "Scan2_5.jpg",
+      "creatureCrop": [
+        0.08707865,
+        0.24709302,
+        0.23595506,
+        0.44694767
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 1,
+        "attack": 1,
+        "defense": 1,
+        "speed": 1
+      },
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Keep all four 1-point choices; do not top up the 4-point total.",
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-groundspike",
+      "name": "Ground Spike",
+      "trainerId": "tr-duncan1",
+      "source": "Scan2_6.jpg",
+      "creatureCrop": [
+        0.10393258,
+        0.14171512,
+        0.37359551,
+        0.68677326
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "ground",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 0,
+        "attack": 3,
+        "defense": 5,
+        "speed": 2
+      },
+      "moveMarks": [
+        {
+          "id": "blast",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Defense 4 and Speed 4 crossed out; Health blank.",
+      "rotation": 90,
+      "canceledStatMarks": {
+        "defense": [
+          4
+        ],
+        "speed": [
+          4
+        ]
+      }
+    },
+    {
+      "id": "cr-threeheadbeast",
+      "name": "Three Head Beast",
+      "trainerId": "tr-duncan1",
+      "source": "Scan2_7.jpg",
+      "creatureCrop": [
+        0.12640449,
+        0.13081395,
+        0.31741573,
+        0.70712209
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 4,
+        "attack": 1,
+        "defense": 5,
+        "speed": 0
+      },
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "blast",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Health 2 crossed out; black circles select Health 4, Attack 1, Defense 5.",
+      "rotation": 90,
+      "excludeDarkPrint": [
+        [
+          0.03651685,
+          0.68313953,
+          0.45505618,
+          0.71366279
+        ],
+        [
+          0.03370787,
+          0.67587209,
+          0.46067416,
+          0.7122093
+        ],
+        [
+          0.42977528,
+          0.10174419,
+          0.44382022,
+          0.71947674
+        ],
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ],
+        [
+          0.12359551,
+          0.10901163,
+          0.35393258,
+          0.14171512
+        ]
+      ],
+      "canceledStatMarks": {
+        "health": [
+          2
+        ]
+      }
+    },
+    {
+      "id": "cr-waterarjan",
+      "name": "Water",
+      "trainerId": "tr-arjan01",
+      "source": "Scan2_8.jpg",
+      "creatureCrop": [
+        0.21067416,
+        0.19622093,
+        0.43539326,
+        0.69186047
+      ],
+      "facing": "left",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "water",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 1,
+        "speed": 2
+      },
+      "moveMarks": [
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Health 5 is circled; total is 10 with Speed 2. Blank areas of open purple outline preserved.",
+      "rotation": 90,
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.67587209,
+          0.46067416,
+          0.7122093
+        ],
+        [
+          0.42977528,
+          0.10174419,
+          0.44382022,
+          0.71947674
+        ],
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ]
+      ],
+      "keepPaper": [
+        [
+          [
+            0.30337079,
+            0.21511628
+          ],
+          [
+            0.34775281,
+            0.25872093
+          ],
+          [
+            0.35786517,
+            0.27398256
+          ],
+          [
+            0.39662921,
+            0.34665698
+          ],
+          [
+            0.3994382,
+            0.49200581
+          ],
+          [
+            0.32696629,
+            0.49273256
+          ],
+          [
+            0.32696629,
+            0.3931686
+          ],
+          [
+            0.26966292,
+            0.37863372
+          ],
+          [
+            0.28089888,
+            0.32776163
+          ],
+          [
+            0.2247191,
+            0.32776163
+          ]
+        ]
+      ],
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-littlebird",
+      "name": "Little Bird",
+      "trainerId": "tr-arjan01",
+      "source": "Scan2_9.jpg",
+      "creatureCrop": [
+        0.07022472,
+        0.15988372,
+        0.36404494,
+        0.47601744
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "flying",
+          "status": "selected"
+        },
+        {
+          "id": "grass",
+          "status": "canceled"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 4,
+        "defense": 1,
+        "speed": 0
+      },
+      "moveMarks": [
+        {
+          "id": "heavy",
+          "status": "selected"
+        },
+        {
+          "id": "overload",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Flying circle replaces scribbled Grass; Speed blank.",
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-firekeira",
+      "name": "Fire",
+      "trainerId": "tr-keira01",
+      "source": "Scan2_10.jpg",
+      "creatureCrop": [
+        0.0,
+        0.13081395,
+        0.41910112,
+        0.69113372
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 4,
+        "defense": 0,
+        "speed": 1
+      },
+      "moveMarks": [
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Single diagonal strokes are selections; Defense blank.",
+      "excludeDarkPrint": [
+        [
+          0.13202247,
+          0.10174419,
+          0.35393258,
+          0.13517442
+        ],
+        [
+          0.03370787,
+          0.67587209,
+          0.46067416,
+          0.7122093
+        ],
+        [
+          0.42977528,
+          0.10174419,
+          0.44382022,
+          0.71947674
+        ],
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ]
+      ],
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-idontlike",
+      "name": "I Don't Like You",
+      "trainerId": "tr-arjan01",
+      "source": "Scan2_11.jpg",
+      "creatureCrop": [
+        0.03651685,
+        0.18895349,
+        0.27752809,
+        0.59956395
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "water",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 4,
+        "attack": 2,
+        "defense": 2,
+        "speed": 2
+      },
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Literal source name; trainer name corrected from me to Arjan.",
+      "rotation": 90,
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ]
+      ],
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-watertail",
+      "name": "Water Tail",
+      "trainerId": "tr-kaiden1",
+      "source": "Scan2_12.jpg",
+      "creatureCrop": [
+        0.05898876,
+        0.1380814,
+        0.40449438,
+        0.59956395
+      ],
+      "facing": "right",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "water",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 0,
+        "speed": 2
+      },
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "canceled"
+        }
+      ],
+      "reviewNotes": "Source Water tial; trainer Karden matched to Kaiden handwriting and portraits. Healing Glow crossed out.",
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-wutmax01",
+      "name": "Wut",
+      "trainerId": "tr-max0001",
+      "source": "Scan2_13.jpg",
+      "creatureCrop": [
+        0.06460674,
+        0.15625,
+        0.43651685,
+        0.67732558
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "flying",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 0,
+        "defense": 0,
+        "speed": 0
+      },
+      "moveMarks": [
+        {
+          "id": "heavy",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Orange name read as Wut; black 12 is an unclear later annotation. Multiple Health boxes 1/4/5 marked: used highest marked value 5. Unmarked Attack, Defense and Speed stay 0; total 5. Body Slam/Bubble Shield/Healing Glow retained.",
+      "rotation": 90,
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-otomax01",
+      "name": "Oto",
+      "trainerId": "tr-max0001",
+      "source": "Scan2_14.jpg",
+      "creatureCrop": [
+        0.15730337,
+        0.1119186,
+        0.36797753,
+        0.70712209
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 4,
+        "attack": 1,
+        "defense": 1,
+        "speed": 1
+      },
+      "moveMarks": [
+        {
+          "id": "heavy",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Use corrected source name Oto. Health 1/2/4 marked: used highest marked value 4. Retain Attack 1, Defense 1, Speed 1; total 7. No unused points added.",
+      "rotation": 90,
+      "excludeDarkPrint": [
+        [
+          0.13202247,
+          0.10174419,
+          0.35393258,
+          0.13517442
+        ],
+        [
+          0.03651685,
+          0.68313953,
+          0.45505618,
+          0.71366279
+        ],
+        [
+          0.03370787,
+          0.67587209,
+          0.46067416,
+          0.7122093
+        ],
+        [
+          0.42977528,
+          0.10174419,
+          0.44382022,
+          0.71947674
+        ],
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ]
+      ],
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-number66",
+      "name": "66",
+      "trainerId": "tr-max0001",
+      "source": "Scan2_15.jpg",
+      "creatureCrop": [
+        0.16853933,
+        0.25799419,
+        0.33146067,
+        0.65406977
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "water",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 5,
+        "defense": 0,
+        "speed": 0
+      },
+      "moveMarks": [
+        {
+          "id": "heavy",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Prior name obscured; use the clear replacement 66 next to handwritten use. Trainer corrected to Max. Marked Health 5/Attack 5 retained; other stats stay 0.",
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-aadrian",
+      "name": "A",
+      "trainerId": "tr-adrian1",
+      "source": "Scan2_16.jpg",
+      "creatureCrop": [
+        0.0494382,
+        0.13008721,
+        0.41011236,
+        0.65334302
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "electric",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 2,
+        "speed": 1
+      },
+      "moveMarks": [
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "risky",
+          "status": "selected"
+        },
+        {
+          "id": "steady",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "A. normalized to A because names do not accept periods. Keep Quick Strike and Wild Blast; added basic Tackle for missing third move.",
+      "keepPaper": [
+        [
+          [
+            0.13707865,
+            0.21075581
+          ],
+          [
+            0.22696629,
+            0.15625
+          ],
+          [
+            0.3,
+            0.19331395
+          ],
+          [
+            0.33426966,
+            0.24781977
+          ],
+          [
+            0.31292135,
+            0.29723837
+          ],
+          [
+            0.2247191,
+            0.33357558
+          ],
+          [
+            0.14213483,
+            0.30668605
+          ],
+          [
+            0.1247191,
+            0.25508721
+          ]
+        ]
+      ],
+      "addedMoves": [
+        "steady"
+      ],
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-wiger001",
+      "name": "Wiger",
+      "trainerId": "tr-adrian1",
+      "source": "Scan2_17.jpg",
+      "creatureCrop": [
+        0.04213483,
+        0.15988372,
+        0.4494382,
+        0.62136628
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "water",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 1,
+        "defense": 1,
+        "speed": 3
+      },
+      "moveMarks": [
+        {
+          "id": "heavy",
+          "status": "selected"
+        },
+        {
+          "id": "overload",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Preserve pencil arms and face inside open colored outline.",
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.67587209,
+          0.46067416,
+          0.7122093
+        ],
+        [
+          0.42977528,
+          0.10174419,
+          0.44382022,
+          0.71947674
+        ],
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ]
+      ],
+      "keepPaper": [
+        [
+          [
+            0.16011236,
+            0.26526163
+          ],
+          [
+            0.2252809,
+            0.20784884
+          ],
+          [
+            0.2988764,
+            0.21438953
+          ],
+          [
+            0.32022472,
+            0.30886628
+          ],
+          [
+            0.3741573,
+            0.32848837
+          ],
+          [
+            0.41573034,
+            0.34520349
+          ],
+          [
+            0.40393258,
+            0.47456395
+          ],
+          [
+            0.31573034,
+            0.50726744
+          ],
+          [
+            0.2752809,
+            0.58502907
+          ],
+          [
+            0.18820225,
+            0.59375
+          ],
+          [
+            0.12191011,
+            0.50145349
+          ],
+          [
+            0.10505618,
+            0.3997093
+          ],
+          [
+            0.15224719,
+            0.32776163
+          ]
+        ]
+      ],
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-waterdot",
+      "name": "Water Dot",
+      "trainerId": "tr-nicole1",
+      "source": "Scan2_18.jpg",
+      "creatureCrop": [
+        0.18988764,
+        0.17659884,
+        0.44101124,
+        0.5690407
+      ],
+      "facing": "left",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "water",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 0,
+        "defense": 5,
+        "speed": 0
+      },
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Attack 4 and Speed 3 crossed out; retain Health 5/Defense 5 and zero canceled stats. Tackle and Bubble Shield marked; added basic Iron Hide for missing third move.",
+      "excludeDarkPrint": [
+        [
+          0.42977528,
+          0.10174419,
+          0.45224719,
+          0.71947674
+        ]
+      ],
+      "addedMoves": [
+        "toughen"
+      ],
+      "canceledStatMarks": {
+        "attack": [
+          4
+        ],
+        "speed": [
+          3
+        ]
+      }
+    },
+    {
+      "id": "cr-electricnicole",
+      "name": "Electric",
+      "trainerId": "tr-nicole1",
+      "source": "Scan2_19.jpg",
+      "creatureCrop": [
+        0.09269663,
+        0.32703488,
+        0.30898876,
+        0.52688953
+      ],
+      "facing": "right",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "electric",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 4,
+        "attack": 3,
+        "defense": 2,
+        "speed": 1
+      },
+      "moveMarks": [
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "risky",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        },
+        {
+          "id": "steady",
+          "status": "unselected",
+          "reason": "Omitted by authorized review from four marked moves."
+        }
+      ],
+      "reviewNotes": "Four original move marks. Keep Quick Strike, Wild Blast and Iron Hide for variety; omit redundant Tackle under user-authorized judgment. No stat changes.",
+      "rotation": 90,
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ]
+      ],
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-splashada",
+      "name": "Splash",
+      "trainerId": "tr-ada001",
+      "source": "Scan2_20.jpg",
+      "creatureCrop": [
+        0.05449438,
+        0.22165698,
+        0.33146067,
+        0.5377907
+      ],
+      "facing": "right",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "water",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 2,
+        "speed": 2
+      },
+      "moveMarks": [
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "blast",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Reuse existing Ada identity and portrait. Original gray seal preserved.",
+      "canceledStatMarks": {}
+    },
+    {
+      "id": "cr-bigtail01",
+      "name": "Big Tail",
+      "trainerId": "tr-kaiden1",
+      "source": "Scan2_21.jpg",
+      "creatureCrop": [
+        0.04494382,
+        0.10174419,
+        0.45224719,
+        0.72165698
+      ],
+      "facing": "right",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        }
+      ],
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 0,
+        "speed": 2
+      },
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "canceled"
+        }
+      ],
+      "reviewNotes": "Source big tial; Attack 5 and Healing Glow crossed out. Pale blue and pink pencil preserved.",
+      "excludeDarkPrint": [
+        [
+          0.13202247,
+          0.10174419,
+          0.35393258,
+          0.13517442
+        ],
+        [
+          0.03370787,
+          0.67587209,
+          0.46067416,
+          0.7122093
+        ],
+        [
+          0.42977528,
+          0.10174419,
+          0.44382022,
+          0.71947674
+        ],
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ],
+        [
+          0.13202247,
+          0.10174419,
+          0.3511236,
+          0.13517442
+        ],
+        [
+          0.03370787,
+          0.09447674,
+          0.46067416,
+          0.1380814
+        ]
+      ],
+      "keepPaper": [
+        [
+          [
+            0.15168539,
+            0.15988372
+          ],
+          [
+            0.29775281,
+            0.15261628
+          ],
+          [
+            0.36292135,
+            0.22238372
+          ],
+          [
+            0.3741573,
+            0.35319767
+          ],
+          [
+            0.38988764,
+            0.42078488
+          ],
+          [
+            0.41573034,
+            0.50218023
+          ],
+          [
+            0.43089888,
+            0.59229651
+          ],
+          [
+            0.39719101,
+            0.66860465
+          ],
+          [
+            0.32752809,
+            0.68313953
+          ],
+          [
+            0.24662921,
+            0.65915698
+          ],
+          [
+            0.17134831,
+            0.56686047
+          ],
+          [
+            0.17752809,
+            0.4505814
+          ],
+          [
+            0.10898876,
+            0.36918605
+          ],
+          [
+            0.07921348,
+            0.26526163
+          ]
+        ]
+      ],
+      "canceledStatMarks": {
+        "attack": [
+          5
+        ]
+      }
+    },
+    {
+      "id": "cr-pokeball",
+      "name": "Pokeball",
+      "trainerId": "tr-kaiden1",
+      "source": "Scan2_22.jpg",
+      "creatureCrop": [
+        0.03932584,
+        0.59956395,
+        0.43820225,
+        0.69258721
+      ],
+      "facing": "front",
+      "reviewed": true,
+      "typeMarks": [
+        {
+          "id": "electric",
+          "status": "selected"
+        },
+        {
+          "id": "fire",
+          "status": "canceled"
+        },
+        {
+          "id": "water",
+          "status": "canceled"
+        },
+        {
+          "id": "grass",
+          "status": "canceled"
+        },
+        {
+          "id": "ground",
+          "status": "canceled"
+        },
+        {
+          "id": "flying",
+          "status": "canceled"
+        }
+      ],
+      "stats": {
+        "health": 0,
+        "attack": 0,
+        "defense": 5,
+        "speed": 5
+      },
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Six drawn balls are one submission. Health 5 and Attack 5 crossed out; Defense 5 and Speed 5 active.",
+      "excludeDarkPrint": [
+        [
+          0.03370787,
+          0.67587209,
+          0.46067416,
+          0.7122093
+        ],
+        [
+          0.42977528,
+          0.10174419,
+          0.44382022,
+          0.71947674
+        ],
+        [
+          0.03370787,
+          0.09447674,
+          0.05449438,
+          0.72674419
+        ]
+      ],
+      "canceledStatMarks": {
+        "health": [
+          5
+        ],
+        "attack": [
+          5
+        ]
+      }
+    }
+  ],
+  "decisionAuthority": "User explicitly authorized resolving unclear choices, reducing only over-budget stats to 10, and completing missing moves with basic choices. Keep valid lower totals unchanged.",
+  "sourceOrientation": "Per-entry rotation is counterclockwise after EXIF; coordinates refer to upright landscape scans. Originals remain outside the repository."
+}

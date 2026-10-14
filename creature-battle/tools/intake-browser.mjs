@@ -16,7 +16,7 @@ try{
  gallery.on('response',r=>{if(r.url().includes('/assets/')&&r.status()>=400)missing.push(r.url());});
  await gallery.goto(origin+'/creature-battle/');await gallery.locator('#collection').click();
  const cards=gallery.locator('.carousel-group:nth-child(2) .collection-card');
- assert.equal(await cards.count(),23);
+ assert.equal(await cards.count(),collection.length);
  assert.deepEqual((await cards.locator('h2').allTextContents()).sort(),collection.map(c=>c.name).sort());
  await gallery.waitForFunction(()=>[...document.querySelectorAll('.collection-card img')].every(img=>img.complete&&img.naturalWidth>0));
  await gallery.screenshot({path:out+'/collection.png',fullPage:true});await gallery.close();
@@ -32,9 +32,9 @@ try{
   await page.locator('#team-done').click();await page.clock.runFor(6000);
   assert.ok(await page.locator('[data-side="1"] .creature-sprite').count());
   await page.screenshot({path:`${out}/${artist.id}-arena.png`});
-  // Two full visible-control battles exercise new art, names, zero stats and mixed moves.
+  // Full visible-control battles exercise both intake batches, zero stats and mixed moves.
   let actions=0;
-  if(['tr-jaiden','tr-qq0001'].includes(artist.id)){
+  if(['tr-jaiden','tr-qq0001','tr-nicole1','tr-max0001'].includes(artist.id)){
    for(let step=0;step<800&&!await page.locator('#rematch').count();step++){
     const replacement=page.locator('[data-bench]:enabled');
     const attacks=page.locator('.grid button.regular:enabled,.grid button.special:enabled');
