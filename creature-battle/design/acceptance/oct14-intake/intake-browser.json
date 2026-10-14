@@ -1,0 +1,81 @@
+{
+  "results": [
+    {
+      "artist": "Jaiden",
+      "drawings": 4,
+      "autofill": [
+        "Bob",
+        "Hi",
+        "Hi #2"
+      ],
+      "actions": 26
+    },
+    {
+      "artist": "Ada",
+      "drawings": 3,
+      "autofill": [
+        "Silverwing",
+        "Rockey",
+        "Flame #2"
+      ],
+      "actions": 0
+    },
+    {
+      "artist": "Evan",
+      "drawings": 2,
+      "autofill": [
+        "Shar",
+        "S Name"
+      ],
+      "actions": 0
+    },
+    {
+      "artist": "Leopold",
+      "drawings": 3,
+      "autofill": [
+        "Goldrod",
+        "Starsot",
+        "Snake"
+      ],
+      "actions": 0
+    },
+    {
+      "artist": "Jo Zulu",
+      "drawings": 1,
+      "autofill": [
+        "Ipponch"
+      ],
+      "actions": 0
+    },
+    {
+      "artist": "Gwendolyn",
+      "drawings": 3,
+      "autofill": [
+        "Solothy",
+        "Emberwing",
+        "Bunlily"
+      ],
+      "actions": 0
+    },
+    {
+      "artist": "QQ",
+      "drawings": 3,
+      "autofill": [
+        "Sumbun",
+        "Attacat",
+        "Bobabo"
+      ],
+      "actions": 28
+    },
+    {
+      "artist": "Hailey",
+      "drawings": 1,
+      "autofill": [
+        "Flame"
+      ],
+      "actions": 0
+    }
+  ],
+  "errors": [],
+  "missing": []
+}

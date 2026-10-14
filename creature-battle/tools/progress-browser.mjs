@@ -7,6 +7,7 @@ const page=await browser.newPage({viewport:{width:1024,height:768}}),errors=[];p
 // A second submitted artist exercises automatic discovery before their art is published.
 const artistRoster=async route=>{
  const response=await route.fetch(),data=await response.json(),artist=structuredClone(data.creatures.find(c=>!c.prototype));
+ data.creatures=data.creatures.filter(c=>c.prototype||c.trainer.id==='tr-unclemark');
  artist.id='cr-newartist';artist.name='New Creature';artist.stats={health:0,attack:0,defense:5,speed:5};artist.trainer={...artist.trainer,id:'tr-newartist',nickname:'New Artist'};data.creatures.push(artist);
  for(const c of data.creatures.filter(c=>!c.prototype&&c.id!=='cr-newartist')){c.stats={health:5,attack:5,defense:0,speed:0};c.type='fire';c.moves={regular:{id:'steady',name:'Steady'},special:{id:'blast',name:'Blast'},defense:{id:'heal',name:'Heal'}};}
  await route.fulfill({response,json:data});

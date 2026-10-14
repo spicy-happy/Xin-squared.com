@@ -1,22 +1,29 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import {loadCollection} from '../releases/v46/src/collection.js';
+import {loadRules} from '../releases/v46/src/rules.js';
+import {battleTrainers,trainerKey} from '../releases/v46/src/trainers.js';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH || undefined});
 const origin=process.env.BATTLE_ORIGIN||'http://127.0.0.1:8918',out=process.env.BATTLE_OUTPUT||'/tmp/cb-trainers-browser';mkdirSync(out,{recursive:true});
+const rules=loadRules(JSON.parse(readFileSync(new URL('../data/rules-v2.json',import.meta.url))));
+const roster=loadCollection(JSON.parse(readFileSync(new URL('../data/creatures-v2.json',import.meta.url))),rules);
+const artistNames=battleTrainers(roster).map(t=>t.nickname);
+const portraitCount=new Set(roster.map(trainerKey)).size;
 const results=[];
 for(const [mode,difficulty,width,height] of [['trainer','easy',844,390],['trainer','hard',1024,768],['random','easy',844,390],['random','hard',844,390],['friend','easy',844,390]]){
  const page=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.clock.install();
  await page.goto(origin+'/creature-battle/');await page.locator('#play-ai').waitFor();
- await page.locator('#collection').click();assert.equal(await page.locator('.carousel-group:nth-child(2) .collection-card').count(),9);assert.deepEqual((await page.locator('.carousel-group:nth-child(2) .collection-card h2').allTextContents()).filter(n=>!n.startsWith('Test ')).sort(),['Amphidian','Bassault','Broot']);
+ await page.locator('#collection').click();assert.equal(await page.locator('.carousel-group:nth-child(2) .collection-card').count(),roster.length);assert.deepEqual((await page.locator('.carousel-group:nth-child(2) .collection-card h2').allTextContents()).sort(),roster.map(c=>c.name).sort());
  await page.getByRole('button',{name:'Home',exact:true}).click();await page.locator(mode==='friend'?'#play-friend':'#play-ai').click();
 
  if(mode!=='friend'){
-  assert.deepEqual(await page.locator('#solo-opponent-options [role=option]').allTextContents(),['Uncle Mark','Random Battle Bot']);
+  assert.deepEqual(await page.locator('#solo-opponent-options [role=option]').allTextContents(),[...artistNames,'Random Battle Bot']);
   await page.locator('#solo-opponent').click();await page.getByRole('option',{name:mode==='trainer'?'Uncle Mark':'Random Battle Bot',exact:true}).click();
   await page.locator('#difficulty').click();await page.getByRole('option',{name:difficulty==='hard'?'Hard':'Easy',exact:true}).click();
  }
  if(mode!=='friend')await page.locator('#opponent-next').click();
- assert.equal(await page.locator('.carousel-group:nth-child(2) .trainer-card').count(),7);
+ assert.equal(await page.locator('.carousel-group:nth-child(2) .trainer-card').count(),portraitCount);
  const nameInput=page.locator('#trainer-name');await nameInput.fill('Player One');await nameInput.dispatchEvent('input');
  for(const id of ['cr-amphidian','cr-bassault','cr-broot01'])await page.locator(`.carousel-group:nth-child(2) [data-creature="${id}"]`).click();
  await page.screenshot({path:`${out}/${mode}-${difficulty}-${width}-picker.png`,fullPage:true});await page.locator('#team-done').click();

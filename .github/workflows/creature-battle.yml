@@ -27,6 +27,8 @@ jobs:
         run: |
           python -m http.server 8918 >/tmp/creature-server.log 2>&1 &
           node creature-battle/tools/trainers-browser.mjs
+          node creature-battle/tools/intake-browser.mjs
+          node creature-battle/tools/budget-browser.mjs
           node creature-battle/tools/pixels-browser.mjs
           node creature-battle/tools/progress-browser.mjs
           node creature-battle/tools/setup-browser.mjs

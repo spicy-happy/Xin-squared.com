@@ -27,9 +27,13 @@ export function validateCreature(c, rules) {
   if (!Object.hasOwn(rules.types,c?.type)) errors.push('Choose one valid type');
   const values = ['health','attack','defense','speed'].map(k => c?.stats?.[k]);
   if (values.some(x => !Number.isInteger(x) || x < rules.stats.min || x > rules.stats.max) ||
-      values.reduce((a,b) => a+b,0) !== rules.stats.budget) errors.push(`Stats must be integers 0–${rules.stats.max} totalling ${rules.stats.budget}`);
+      values.reduce((a,b) => a+b,0) > rules.stats.budget) errors.push(`Stats must be integers 0–${rules.stats.max} with a total of at most ${rules.stats.budget}`);
   for (const [label,name] of [['Creature name',c?.name],['Trainer name',c?.trainer?.nickname]]) {
-    const error = nameError(name); if (error) errors.push(`${label}: ${error}`);
+    // Creature display names may have an allocated #2/#3 suffix. Trainer and
+    // move names retain their existing input rules and names still cap at 24.
+    const checked = label === 'Creature name' && typeof name === 'string' && cleanName(name).length <= 24
+      ? name.replace(/ #(?:[2-9]|[1-9]\d+)$/, '') : name;
+    const error = nameError(checked); if (error) errors.push(`${label}: ${error}`);
   }
   for (const slot of slots) {
     const selected = c?.moves?.[slot];
@@ -62,9 +66,9 @@ export function loadCollection(json, rules) {
     const base = cleanName(c.name);
     c.name = base;
     if (used.has(canonical(base))) {
-      let number = 1;
+      let number = 2;
       do {
-        const suffix = ` ${number++}`;
+        const suffix = ` #${number++}`;
         c.name = base.slice(0, 24 - suffix.length).trimEnd() + suffix;
       } while (reserved.has(canonical(c.name)) || used.has(canonical(c.name)));
     }
