@@ -8,6 +8,15 @@ Install `kit/requirements.txt`, then prepare a reviewed JSON manifest like
 `reviews/uncle-mark.json`. Record names, four stats, EXIF-corrected normalized crop
 bounds, one active type, and exactly three active moves from any category.
 
+For flatbed scans, set manifest `capture` to `scan` so broad gray marker and
+colored-pencil fills are not mistaken for uneven lighting. Per-creature `rotation`
+and trainer `portraitRotation` accept 0, 90, 180 or 270 degrees counterclockwise
+after EXIF correction; crop/polygon coordinates refer to that upright result.
+Trainer crops support the same `excludePrint` and `keepPaper` annotations.
+`excludeDarkPrint` removes neutral/dark template ink in reviewed boxes while
+retaining saturated marker that crosses a heading or border. Inspect overlaps
+carefully: ink hidden by the printed sheet cannot be recovered.
+
 For every marked option, record `selected`, `canceled`, or `unselected`. A clear
 cross-out overrides an earlier circle or box: it is canceled, even when it has more
 ink than the replacement. For uncertain scribbles, multiple remaining types, or

@@ -17,7 +17,7 @@ await mark.click();assert.equal(await page.locator('.selection .team-chip').coun
 await page.getByRole('button',{name:'Remove Broot',exact:true}).click();await page.locator('#trainer-name').fill('My Trainer');
 await page.locator('#opponent-back').click();assert.equal(await page.locator('#difficulty').getAttribute('data-value'),'hard');assert.equal(await page.locator('#solo-opponent').getAttribute('data-value'),'random');
 await page.locator('#opponent-next').click();assert.equal(await page.locator('.selection .team-chip').count(),2);assert.equal(await page.locator('#trainer-name').inputValue(),'My Trainer');
-await page.locator('.carousel-group:nth-child(2) .trainer-card').filter({hasText:'Test Trainer 1'}).click();assert.equal(await page.locator('.selection .team-chip').count(),1,'A trainer with one drawing selects that drawing');assert.equal(await page.locator('#team-done').isEnabled(),false);
+await page.locator('.carousel-group:nth-child(2) .trainer-card').filter({hasText:'Hailey'}).click();assert.equal(await page.locator('.selection .team-chip').count(),1,'A trainer with one drawing selects that drawing');assert.equal(await page.locator('#team-done').isEnabled(),false);
 await page.locator('.carousel-group:nth-child(2) .trainer-card').filter({hasText:'Uncle Mark'}).click();
 for(const [width,height]of [[1024,768],[320,740],[844,390]]){
  await page.setViewportSize({width,height});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:`${out}/team-${width}.png`,fullPage:true});

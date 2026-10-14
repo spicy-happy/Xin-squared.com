@@ -23,7 +23,7 @@ def active_choices(marks, label, count):
     return chosen
 
 
-def crop_art(photo, region, exclude_print=(), keep_paper=()):
+def crop_art(photo, region, exclude_print=(), keep_paper=(), *, scan=False, exclude_dark_print=()):
     import cv2
     import numpy as np
     from PIL import Image, ImageDraw
@@ -34,12 +34,25 @@ def crop_art(photo, region, exclude_print=(), keep_paper=()):
     photo = photo.copy()
     for box in exclude_print:
         ImageDraw.Draw(photo).rectangle(tuple(round(v * (w if i % 2 == 0 else h)) for i, v in enumerate(box)), fill='white')
+    # Colored art may run across a printed heading or frame. Remove only
+    # neutral dark ink inside explicitly reviewed boxes, retaining colored art.
+    if exclude_dark_print:
+        pixels = np.asarray(photo).copy()
+        hsv_photo = cv2.cvtColor(pixels, cv2.COLOR_RGB2HSV)
+        for box in exclude_dark_print:
+            x0, y0, x1, y1 = [round(v * (w if i % 2 == 0 else h)) for i, v in enumerate(box)]
+            patch = pixels[y0:y1, x0:x1]
+            patch[(hsv_photo[y0:y1, x0:x1, 1] < 90) | (hsv_photo[y0:y1, x0:x1, 2] < 150)] = 255
+        photo = Image.fromarray(pixels)
     crop = photo.crop(tuple(round(v * (w if i % 2 == 0 else h)) for i, v in enumerate(region)))
     rgb = np.asarray(crop).copy()
     paper = cv2.GaussianBlur(rgb, (0, 0), 25).astype(float)
     normalized = np.minimum(255, rgb.astype(float) * 255 / np.maximum(paper, 180)).astype(np.uint8)
-    hsv = cv2.cvtColor(normalized, cv2.COLOR_RGB2HSV)
-    mask = ((normalized.min(axis=2) < 205) | (hsv[:, :, 1] > 18)).astype(np.uint8) * 255
+    # Flatbed scans already have even white paper. Local photo normalization
+    # mistakes broad gray marker/pencil fills for shadows and erases them.
+    matte_rgb = rgb if scan else normalized
+    hsv = cv2.cvtColor(matte_rgb, cv2.COLOR_RGB2HSV)
+    mask = ((matte_rgb.min(axis=2) < 205) | (hsv[:, :, 1] > 18)).astype(np.uint8) * 255
     # Close pencil gaps, retain detached features and fill enclosed white regions.
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
     count, labels, stats, _ = cv2.connectedComponentsWithStats(mask)
@@ -83,10 +96,16 @@ def build(manifest, photos, output):
     from PIL import Image, ImageOps, ImageDraw
     rules = json.loads((ROOT / 'data/rules-v2.json').read_text())
     trainers, creatures, previews = {}, [], []
-    def photo(name):
-        return ImageOps.exif_transpose(Image.open(photos / name)).convert('RGB')
+    def photo(name, rotation=0):
+        if rotation not in (0, 90, 180, 270):
+            raise ValueError('Reviewed rotation must be 0, 90, 180 or 270 degrees counterclockwise')
+        result = ImageOps.exif_transpose(Image.open(photos / name)).convert('RGB')
+        return result.rotate(rotation, expand=True) if rotation else result
+    crop_options = {'scan': True} if manifest.get('capture') == 'scan' else {}
     for t in manifest['trainers']:
-        art = crop_art(photo(t['portraitSource']), t['portraitCrop'], keep_paper=t.get('keepPaper', []))
+        art = crop_art(photo(t['portraitSource'], t.get('portraitRotation', 0)), t['portraitCrop'],
+                       t.get('excludePrint', []), keep_paper=t.get('keepPaper', []),
+                       **({'exclude_dark_print': t['excludeDarkPrint']} if t.get('excludeDarkPrint') else {}), **crop_options)
         trainers[t['id']] = {'id': t['id'], 'nickname': t['nickname'], 'portrait': write_asset(art, 'portraits', t['assetId'], output)}
         previews.append((t['nickname'], art))
     for entry in manifest['creatures']:
@@ -103,7 +122,9 @@ def build(manifest, photos, output):
                 raise ValueError(f'Unknown move {move_id}')
             category = categories[0]
             moves[slot] = {'id': move_id, 'name': rules['moves'][category][move_id]['label'], 'category': category}
-        art = crop_art(photo(entry['source']), entry['creatureCrop'], entry.get('excludePrint', []), entry.get('keepPaper', []))
+        art = crop_art(photo(entry['source'], entry.get('rotation', 0)), entry['creatureCrop'],
+                       entry.get('excludePrint', []), entry.get('keepPaper', []),
+                       **({'exclude_dark_print': entry['excludeDarkPrint']} if entry.get('excludeDarkPrint') else {}), **crop_options)
         src = write_asset(art, 'creatures', entry['id'], output)
         creatures.append({'schema': 1, 'id': entry['id'], 'rulesVersion': rules['version'], 'sheet': rules['sheet'], 'name': entry['name'],
             'trainer': trainers[entry['trainerId']], 'image': {'src': src, 'w': art.width, 'h': art.height, 'facing': entry['facing']},

@@ -17,17 +17,17 @@ test('collection schema, stats, names, move slots, paths and stable IDs',()=>{
 });
 
 test('collection numbers repeated names without colliding with existing numbered names',()=>{
-  const names=['Moss','moss','Moss 1','Moss','MOSS 2'];
+  const names=['Moss','moss','Moss #2','Moss','MOSS #3'];
   const source={schema:1,creatures:names.map((name,i)=>creature({id:`cr-name0${i}`,name}))};
   const loaded=loadCollection(source,rules);
-  assert.deepEqual(loaded.map(c=>c.name),['Moss','moss 3','Moss 1','Moss 4','MOSS 2']);
+  assert.deepEqual(loaded.map(c=>c.name),['Moss','moss #4','Moss #2','Moss #5','MOSS #3']);
   assert.deepEqual(source.creatures.map(c=>c.name),names);
   assert.deepEqual(loadCollection(source,rules),loaded);
 });
 test('repeated 24-character names keep suffixes within the name limit',()=>{
   const base='A'.repeat(24),source={schema:1,creatures:[0,1,2].map(i=>creature({id:`cr-long0${i}`,name:base}))};
   const loaded=loadCollection(source,rules);
-  assert.deepEqual(loaded.map(c=>c.name),[base,'A'.repeat(22)+' 1','A'.repeat(22)+' 2']);
+  assert.deepEqual(loaded.map(c=>c.name),[base,'A'.repeat(21)+' #2','A'.repeat(21)+' #3']);
   assert.ok(loaded.every(c=>!validateCreature(c,rules).length));
 });
 
@@ -72,4 +72,10 @@ test('prototype properties are not valid types, categories or moves',()=>{
   assert.ok(validateCreature(c,rules).length,`${field} ${name}`);
   assert.throws(()=>loadCollection({schema:1,creatures:[c]},rules));
  }
+});
+
+test('numbered creature suffixes preserve name safety and leave trainer rules intact',()=>{
+ for(const name of ['Bob #2','Hi #3','Flame #12'])assert.deepEqual(validateCreature(creature({name}),rules),[]);
+ for(const name of ['Bob #1','Bob #0','Bob #x','Bob#2','Loser #2'])assert.ok(validateCreature(creature({name}),rules).length,name);
+ const c=creature();c.trainer.nickname='Jaiden #2';assert.ok(validateCreature(c,rules).some(e=>e.startsWith('Trainer name:')));
 });

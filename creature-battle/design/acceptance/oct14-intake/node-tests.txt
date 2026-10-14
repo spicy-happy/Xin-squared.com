@@ -1,0 +1,682 @@
+TAP version 13
+# Subtest: AI module never calls or imports engine transition APIs
+ok 1 - AI module never calls or imports engine transition APIs
+  ---
+  duration_ms: 2.124167
+  type: 'test'
+  ...
+# Subtest: AI cannot read battle RNG or coin memo, and deep-frozen state is unchanged
+ok 2 - AI cannot read battle RNG or coin memo, and deep-frozen state is unchanged
+  ---
+  duration_ms: 67.193542
+  type: 'test'
+  ...
+# Subtest: replaying same actions after arbitrary AI draws leaves battle replay unchanged
+ok 3 - replaying same actions after arbitrary AI draws leaves battle replay unchanged
+  ---
+  duration_ms: 44.996834
+  type: 'test'
+  ...
+# Subtest: Easy never switches twice in a row and choices depend on separate aiRng
+ok 4 - Easy never switches twice in a row and choices depend on separate aiRng
+  ---
+  duration_ms: 2.8555
+  type: 'test'
+  ...
+# Subtest: Normal secure KO, early defenses, Heal threshold, shield use and Overload punish scoring
+ok 5 - Normal secure KO, early defenses, Heal threshold, shield use and Overload punish scoring
+  ---
+  duration_ms: 0.665959
+  type: 'test'
+  ...
+# Subtest: Normal replacements use revealed matchup; team selection has no opponent and legal 0/1/2/3+ picks
+ok 6 - Normal replacements use revealed matchup; team selection has no opponent and legal 0/1/2/3+ picks
+  ---
+  duration_ms: 0.805
+  type: 'test'
+  ...
+# Subtest: Normal practice opener is weak to the player opening type, with a legal team
+ok 7 - Normal practice opener is weak to the player opening type, with a legal team
+  ---
+  duration_ms: 0.997834
+  type: 'test'
+  ...
+# Subtest: practice teams favour each child pick, randomising equally favourable choices
+ok 8 - practice teams favour each child pick, randomising equally favourable choices
+  ---
+  duration_ms: 4.996209
+  type: 'test'
+  ...
+# Subtest: Normal usually follows a simple strategy but sometimes picks a weaker move
+ok 9 - Normal usually follows a simple strategy but sometimes picks a weaker move
+  ---
+  duration_ms: 28.022916
+  type: 'test'
+  ...
+# Subtest: Normal random choices remain legal and avoid defense moves with no benefit
+ok 10 - Normal random choices remain legal and avoid defense moves with no benefit
+  ---
+  duration_ms: 6.78325
+  type: 'test'
+  ...
+# Subtest: practice selection safely handles an empty collection
+ok 11 - practice selection safely handles an empty collection
+  ---
+  duration_ms: 0.173375
+  type: 'test'
+  ...
+# Subtest: AI uses the revealed next-hit guarantee without reading random rolls
+ok 12 - AI uses the revealed next-hit guarantee without reading random rolls
+  ---
+  duration_ms: 0.278458
+  type: 'test'
+  ...
+# Subtest: Hard scoring avoids repeated Iron Hide and values Quick by current speed
+ok 13 - Hard scoring avoids repeated Iron Hide and values Quick by current speed
+  ---
+  duration_ms: 3.259667
+  type: 'test'
+  ...
+# Subtest: AI uses a move after a faint replacement in both difficulty modes
+ok 14 - AI uses a move after a faint replacement in both difficulty modes
+  ---
+  duration_ms: 321.023209
+  type: 'test'
+  ...
+# Subtest: Hard also avoids consecutive voluntary switches
+ok 15 - Hard also avoids consecutive voluntary switches
+  ---
+  duration_ms: 57.664709
+  type: 'test'
+  ...
+# Subtest: random opponent preserves practice Easy and balanced Hard team selection
+ok 16 - random opponent preserves practice Easy and balanced Hard team selection
+  ---
+  duration_ms: 3.044166
+  type: 'test'
+  ...
+# Subtest: balance CLI runs real engine from another cwd and fails non-zero on failed gates
+ok 17 - balance CLI runs real engine from another cwd and fails non-zero on failed gates
+  ---
+  duration_ms: 2101.794917
+  type: 'test'
+  ...
+# Subtest: difficulty gate uses launch collection result rather than larger-collection diagnostic
+ok 18 - difficulty gate uses launch collection result rather than larger-collection diagnostic
+  ---
+  duration_ms: 654.615125
+  type: 'test'
+  ...
+# Subtest: empty/one/two/three collection team rules
+ok 19 - empty/one/two/three collection team rules
+  ---
+  duration_ms: 1.270459
+  type: 'test'
+  ...
+# Subtest: collection schema, stats, names, move slots, paths and stable IDs
+ok 20 - collection schema, stats, names, move slots, paths and stable IDs
+  ---
+  duration_ms: 4.74775
+  type: 'test'
+  ...
+# Subtest: collection numbers repeated names without colliding with existing numbered names
+ok 21 - collection numbers repeated names without colliding with existing numbered names
+  ---
+  duration_ms: 0.762667
+  type: 'test'
+  ...
+# Subtest: repeated 24-character names keep suffixes within the name limit
+ok 22 - repeated 24-character names keep suffixes within the name limit
+  ---
+  duration_ms: 0.848417
+  type: 'test'
+  ...
+# Subtest: both submitted names reject profanity, insults, threats and common disguises
+ok 23 - both submitted names reject profanity, insults, threats and common disguises
+  ---
+  duration_ms: 5.419458
+  type: 'test'
+  ...
+# Subtest: friendly multilingual names, apostrophes and innocent word fragments remain usable
+ok 24 - friendly multilingual names, apostrophes and innocent word fragments remain usable
+  ---
+  duration_ms: 0.522583
+  type: 'test'
+  ...
+# Subtest: prototype entries retire once six real creatures are uploaded
+ok 25 - prototype entries retire once six real creatures are uploaded
+  ---
+  duration_ms: 2.643125
+  type: 'test'
+  ...
+# Subtest: unusual move budgets are flagged without changing reviewed choices
+ok 26 - unusual move budgets are flagged without changing reviewed choices
+  ---
+  duration_ms: 0.436375
+  type: 'test'
+  ...
+# Subtest: prototype properties are not valid types, categories or moves
+ok 27 - prototype properties are not valid types, categories or moves
+  ---
+  duration_ms: 0.568458
+  type: 'test'
+  ...
+# Subtest: numbered creature suffixes preserve name safety and leave trainer rules intact
+ok 28 - numbered creature suffixes preserve name safety and leave trainer rules intact
+  ---
+  duration_ms: 0.729917
+  type: 'test'
+  ...
+# Subtest: faster first; tie memoised only until either active changes, including re-meeting
+ok 29 - faster first; tie memoised only until either active changes, including re-meeting
+  ---
+  duration_ms: 6.423875
+  type: 'test'
+  ...
+# Subtest: faint before action gives the replacement the unspent turn
+ok 30 - faint before action gives the replacement the unspent turn
+  ---
+  duration_ms: 2.26075
+  type: 'test'
+  ...
+# Subtest: faint after action prevents a consecutive turn after second-slot KO
+ok 31 - faint after action prevents a consecutive turn after second-slot KO
+  ---
+  duration_ms: 0.766125
+  type: 'test'
+  ...
+# Subtest: switch preserves alternating turns even when the new creature is faster
+ok 32 - switch preserves alternating turns even when the new creature is faster
+  ---
+  duration_ms: 0.513417
+  type: 'test'
+  ...
+# Subtest: Mega Burst recharges its special without skipping a turn, including after a knockout
+ok 33 - Mega Burst recharges its special without skipping a turn, including after a knockout
+  ---
+  duration_ms: 0.775584
+  type: 'test'
+  ...
+# Subtest: recoil uses actual HP loss, half-up, min 1; cannot KO or emit at 1 HP; shield-all means none
+ok 34 - recoil uses actual HP loss, half-up, min 1; cannot KO or emit at 1 HP; shield-all means none
+  ---
+  duration_ms: 5.166
+  type: 'test'
+  ...
+# Subtest: Last Chance saves a heavy lethal hit once above 1 HP, even below full health
+ok 35 - Last Chance saves a heavy lethal hit once above 1 HP, even below full health
+  ---
+  duration_ms: 0.990542
+  type: 'test'
+  ...
+# Subtest: Last Chance is not reset by healing to full or switching out and back
+ok 36 - Last Chance is not reset by healing to full or switching out and back
+  ---
+  duration_ms: 0.421292
+  type: 'test'
+  ...
+# Subtest: Guard persists, absorbs final crit/type damage, partial absorption and break; refill never stacks
+ok 37 - Guard persists, absorbs final crit/type damage, partial absorption and break; refill never stacks
+  ---
+  duration_ms: 2.083667
+  type: 'test'
+  ...
+# Subtest: Toughen cannot stack, switch clears; Heal usable at full and capped
+ok 38 - Toughen cannot stack, switch clears; Heal usable at full and capped
+  ---
+  duration_ms: 1.632
+  type: 'test'
+  ...
+# Subtest: Piercing ignores Defense, respects Toughen and shield
+ok 39 - Piercing ignores Defense, respects Toughen and shield
+  ---
+  duration_ms: 0.386166
+  type: 'test'
+  ...
+# Subtest: Quick uses 14 when faster and 10 when slower, including a mid-round switch
+ok 40 - Quick uses 14 when faster and 10 when slower, including a mid-round switch
+  ---
+  duration_ms: 0.525
+  type: 'test'
+  ...
+# Subtest: miss spends PP, RNG draws accuracy then crit only on hit; guaranteed attacks draw only crit
+ok 41 - miss spends PP, RNG draws accuracy then crit only on hit; guaranteed attacks draw only crit
+  ---
+  duration_ms: 0.571125
+  type: 'test'
+  ...
+# Subtest: fallback only when both attacks exhausted; no type/crit or RNG draw; Toughen and shield still apply
+ok 42 - fallback only when both attacks exhausted; no type/crit or RNG draw; Toughen and shield still apply
+  ---
+  duration_ms: 0.234583
+  type: 'test'
+  ...
+# Subtest: three voluntary switches only; illegal actions and replacements reject without mutation
+ok 43 - three voluntary switches only; illegal actions and replacements reject without mutation
+  ---
+  duration_ms: 0.512417
+  type: 'test'
+  ...
+# Subtest: deep-frozen input and definitions unchanged; duplicates independent; state JSON round-trip
+ok 44 - deep-frozen input and definitions unchanged; duplicates independent; state JSON round-trip
+  ---
+  duration_ms: 0.612833
+  type: 'test'
+  ...
+# Subtest: KO victory after action; no draws; cap fraction, damage, and final coin tiebreak
+ok 45 - KO victory after action; no draws; cap fraction, damage, and final coin tiebreak
+  ---
+  duration_ms: 0.915834
+  type: 'test'
+  ...
+# Subtest: 10,000 seeded random-policy battles terminate without safety cap
+ok 46 - 10,000 seeded random-policy battles terminate without safety cap
+  ---
+  duration_ms: 20838.643875
+  type: 'test'
+  ...
+# Subtest: rules stay deeply frozen after actions and replacements
+ok 47 - rules stay deeply frozen after actions and replacements
+  ---
+  duration_ms: 8.123125
+  type: 'test'
+  ...
+# Subtest: ordinary finishing hits do not trigger Last Chance; shields reduce the heavy-hit threshold
+ok 48 - ordinary finishing hits do not trigger Last Chance; shields reduce the heavy-hit threshold
+  ---
+  duration_ms: 2.52725
+  type: 'test'
+  ...
+# Subtest: a replacement inherits one turn but cannot chain another after a faint
+ok 49 - a replacement inherits one turn but cannot chain another after a faint
+  ---
+  duration_ms: 1.031917
+  type: 'test'
+  ...
+# Subtest: the sole surviving creature enters automatically without spending its turn or switch
+ok 50 - the sole surviving creature enters automatically without spending its turn or switch
+  ---
+  duration_ms: 1.193416
+  type: 'test'
+  ...
+# Subtest: defenses can be repeated or used at full HP while PP remains, without stacking
+ok 51 - defenses can be repeated or used at full HP while PP remains, without stacking
+  ---
+  duration_ms: 6.01275
+  type: 'test'
+  ...
+# Subtest: Struggle causes small recoil even against a shield and can faint its user
+ok 52 - Struggle causes small recoil even against a shield and can faint its user
+  ---
+  duration_ms: 1.917833
+  type: 'test'
+  ...
+# Subtest: Struggle double faint resolves both replacements and final-hit victory deterministically
+ok 53 - Struggle double faint resolves both replacements and final-hit victory deterministically
+  ---
+  duration_ms: 2.026125
+  type: 'test'
+  ...
+# Subtest: Bubble Shield caps combined HP and shield at max HP at every health level
+ok 54 - Bubble Shield caps combined HP and shield at max HP at every health level
+  ---
+  duration_ms: 82.307584
+  type: 'test'
+  ...
+# Subtest: turns keep alternating for multiple rounds after a faster replacement
+ok 55 - turns keep alternating for multiple rounds after a faster replacement
+  ---
+  duration_ms: 0.602334
+  type: 'test'
+  ...
+# Subtest: a real heal after Last Chance cannot grant that same creature a second chance
+ok 56 - a real heal after Last Chance cannot grant that same creature a second chance
+  ---
+  duration_ms: 0.3915
+  type: 'test'
+  ...
+# Subtest: 1000 AI battles alternate spent turns and never save the same creature twice
+ok 57 - 1000 AI battles alternate spent turns and never save the same creature twice
+  ---
+  duration_ms: 3099.291291
+  type: 'test'
+  ...
+# Subtest: switching always hands off one turn, including switching while recharging
+ok 58 - switching always hands off one turn, including switching while recharging
+  ---
+  duration_ms: 1.077625
+  type: 'test'
+  ...
+# Subtest: Struggle remains legal during recharge if all other attacks and defenses are unavailable
+ok 59 - Struggle remains legal during recharge if all other attacks and defenses are unavailable
+  ---
+  duration_ms: 0.220375
+  type: 'test'
+  ...
+# Subtest: a miss guarantees the next attack, spends PP and restores normal accuracy after hitting
+ok 60 - a miss guarantees the next attack, spends PP and restores normal accuracy after hitting
+  ---
+  duration_ms: 0.4485
+  type: 'test'
+  ...
+# Subtest: miss protection survives defense, switches and replacement, independently for each player
+ok 61 - miss protection survives defense, switches and replacement, independently for each player
+  ---
+  duration_ms: 0.4155
+  type: 'test'
+  ...
+# Subtest: guaranteed-accuracy attacks and Struggle consume banked miss protection
+ok 62 - guaranteed-accuracy attacks and Struggle consume banked miss protection
+  ---
+  duration_ms: 0.30775
+  type: 'test'
+  ...
+# Subtest: Quick bonus follows matchup speed even in the second slot, and excludes ties
+ok 63 - Quick bonus follows matchup speed even in the second slot, and excludes ties
+  ---
+  duration_ms: 0.952833
+  type: 'test'
+  ...
+# Subtest: defense events flag repeats that do not change protection
+ok 64 - defense events flag repeats that do not change protection
+  ---
+  duration_ms: 0.493458
+  type: 'test'
+  ...
+# Subtest: healing preserves shield and caps their combined total at max HP
+ok 65 - healing preserves shield and caps their combined total at max HP
+  ---
+  duration_ms: 0.445917
+  type: 'test'
+  ...
+# Subtest: every event message with 24-character names fits two lines per text page
+ok 66 - every event message with 24-character names fits two lines per text page
+  ---
+  duration_ms: 1.135958
+  type: 'test'
+  ...
+# Subtest: HP damage and shield blocked are separate lines; table wording
+ok 67 - HP damage and shield blocked are separate lines; table wording
+  ---
+  duration_ms: 0.656042
+  type: 'test'
+  ...
+# Subtest: round messages never ask for an undefined side name
+ok 68 - round messages never ask for an undefined side name
+  ---
+  duration_ms: 0.070875
+  type: 'test'
+  ...
+# Subtest: fully blocked hits omit damage, effectiveness and critical narration
+ok 69 - fully blocked hits omit damage, effectiveness and critical narration
+  ---
+  duration_ms: 0.066917
+  type: 'test'
+  ...
+# Subtest: 20 distinct class drawings belong to eight children, with one portrait per child
+ok 70 - 20 distinct class drawings belong to eight children, with one portrait per child
+  ---
+  duration_ms: 2.187167
+  type: 'test'
+  ...
+# Subtest: same-name drawings stay separate, zero allocations stay zero, and canceled moves stay canceled
+ok 71 - same-name drawings stay separate, zero allocations stay zero, and canceled moves stay canceled
+  ---
+  duration_ms: 0.188625
+  type: 'test'
+  ...
+# Subtest: Jaiden's submitted team completes battles with both difficulties
+ok 72 - Jaiden's submitted team completes battles with both difficulties
+  ---
+  duration_ms: 52.265708
+  type: 'test'
+  ...
+# Subtest: Ada's submitted team completes battles with both difficulties
+ok 73 - Ada's submitted team completes battles with both difficulties
+  ---
+  duration_ms: 20.41
+  type: 'test'
+  ...
+# Subtest: Evan's submitted team completes battles with both difficulties
+ok 74 - Evan's submitted team completes battles with both difficulties
+  ---
+  duration_ms: 12.875541
+  type: 'test'
+  ...
+# Subtest: Leopold's submitted team completes battles with both difficulties
+ok 75 - Leopold's submitted team completes battles with both difficulties
+  ---
+  duration_ms: 22.144
+  type: 'test'
+  ...
+# Subtest: Jo Zulu's submitted team completes battles with both difficulties
+ok 76 - Jo Zulu's submitted team completes battles with both difficulties
+  ---
+  duration_ms: 19.934208
+  type: 'test'
+  ...
+# Subtest: Gwendolyn's submitted team completes battles with both difficulties
+ok 77 - Gwendolyn's submitted team completes battles with both difficulties
+  ---
+  duration_ms: 38.145958
+  type: 'test'
+  ...
+# Subtest: QQ's submitted team completes battles with both difficulties
+ok 78 - QQ's submitted team completes battles with both difficulties
+  ---
+  duration_ms: 33.003
+  type: 'test'
+  ...
+# Subtest: Hailey's submitted team completes battles with both difficulties
+ok 79 - Hailey's submitted team completes battles with both difficulties
+  ---
+  duration_ms: 20.048916
+  type: 'test'
+  ...
+# Subtest: trainer victories survive reloads and belong to stable IDs and the chosen difficulty
+ok 80 - trainer victories survive reloads and belong to stable IDs and the chosen difficulty
+  ---
+  duration_ms: 1.863875
+  type: 'test'
+  ...
+# Subtest: losses, two-player games, unfinished battles, random bots and safety caps cannot award a trainer victory
+ok 81 - losses, two-player games, unfinished battles, random bots and safety caps cannot award a trainer victory
+  ---
+  duration_ms: 0.143833
+  type: 'test'
+  ...
+# Subtest: corrupt and blocked storage never prevent a battle or an in-session check mark
+ok 82 - corrupt and blocked storage never prevent a battle or an in-session check mark
+  ---
+  duration_ms: 0.224542
+  type: 'test'
+  ...
+# Subtest: golden complete replay seed 0
+ok 83 - golden complete replay seed 0
+  ---
+  duration_ms: 14.960833
+  type: 'test'
+  ...
+# Subtest: golden complete replay seed 9
+ok 84 - golden complete replay seed 9
+  ---
+  duration_ms: 3.555709
+  type: 'test'
+  ...
+# Subtest: golden complete replay seed 123456
+ok 85 - golden complete replay seed 123456
+  ---
+  duration_ms: 5.439541
+  type: 'test'
+  ...
+# Subtest: Rules loader freezes a copy and rejects malformed rules
+ok 86 - Rules loader freezes a copy and rejects malformed rules
+  ---
+  duration_ms: 2.637583
+  type: 'test'
+  ...
+# Subtest: 20 hand-computed integer damage cases
+ok 87 - 20 hand-computed integer damage cases
+  ---
+  duration_ms: 0.412459
+  type: 'test'
+  ...
+# Subtest: all powers, A/D, types, crit, Toughen and Piercing match BigInt half-up reference
+ok 88 - all powers, A/D, types, crit, Toughen and Piercing match BigInt half-up reference
+  ---
+  duration_ms: 33.8855
+  type: 'test'
+  ...
+# Subtest: mulberry32 known values; uint32 accumulator wraps
+ok 89 - mulberry32 known values; uint32 accumulator wraps
+  ---
+  duration_ms: 0.231583
+  type: 'test'
+  ...
+# Subtest: Uncle Mark roster honors the active sheet choices and one shared portrait
+ok 90 - Uncle Mark roster honors the active sheet choices and one shared portrait
+  ---
+  duration_ms: 4.883958
+  type: 'test'
+  ...
+# Subtest: submitted trainers use only their own creatures, sample every creature before repeating, and random bots draw from the roster
+ok 91 - submitted trainers use only their own creatures, sample every creature before repeating, and random bots draw from the roster
+  ---
+  duration_ms: 2.176042
+  type: 'test'
+  ...
+# Subtest: side-facing art mirrors toward the opponent without flipping front-facing creatures
+ok 92 - side-facing art mirrors toward the opponent without flipping front-facing creatures
+  ---
+  duration_ms: 0.080542
+  type: 'test'
+  ...
+# Subtest: two regular attacks keep independent PP and the third special remains usable
+ok 93 - two regular attacks keep independent PP and the third special remains usable
+  ---
+  duration_ms: 1.149584
+  type: 'test'
+  ...
+# Subtest: two defense moves apply their distinct effects without consuming attack PP
+ok 94 - two defense moves apply their distinct effects without consuming attack PP
+  ---
+  duration_ms: 0.640417
+  type: 'test'
+  ...
+# Subtest: real mixed-category teams finish with easy AI, including duplicate trainer teams
+ok 95 - real mixed-category teams finish with easy AI, including duplicate trainer teams
+  ---
+  duration_ms: 47.345458
+  type: 'test'
+  ...
+# Subtest: real mixed-category teams finish with normal AI, including duplicate trainer teams
+ok 96 - real mixed-category teams finish with normal AI, including duplicate trainer teams
+  ---
+  duration_ms: 185.718625
+  type: 'test'
+  ...
+# Subtest: three defensive selections retain all three controls and a separate fallback attack
+ok 97 - three defensive selections retain all three controls and a separate fallback attack
+  ---
+  duration_ms: 0.535792
+  type: 'test'
+  ...
+# Subtest: trainer collisions normalize case, spacing and Unicode
+ok 98 - trainer collisions normalize case, spacing and Unicode
+  ---
+  duration_ms: 0.29475
+  type: 'test'
+  ...
+# Subtest: every submitted artist is battleable even with only one creature; test artists stay excluded
+ok 99 - every submitted artist is battleable even with only one creature; test artists stay excluded
+  ---
+  duration_ms: 0.765792
+  type: 'test'
+  ...
+# Subtest: trainer auto-fill uses their own first three drawings and never duplicates in a full roster
+ok 100 - trainer auto-fill uses their own first three drawings and never duplicates in a full roster
+  ---
+  duration_ms: 0.237042
+  type: 'test'
+  ...
+# Subtest: UI Normal stays in, including while exhausted or recharging
+ok 101 - UI Normal stays in, including while exhausted or recharging
+  ---
+  duration_ms: 37.717792
+  type: 'test'
+  ...
+# Subtest: Hard consistently uses a reliable finisher and saves its special
+ok 102 - Hard consistently uses a reliable finisher and saves its special
+  ---
+  duration_ms: 31.338667
+  type: 'test'
+  ...
+# Subtest: Hard heals to survive a reply instead of gambling on a knockout
+ok 103 - Hard heals to survive a reply instead of gambling on a knockout
+  ---
+  duration_ms: 0.586917
+  type: 'test'
+  ...
+# Subtest: Hard rescues a wounded creature with a healthy counter and pays for the switch turn
+ok 104 - Hard rescues a wounded creature with a healthy counter and pays for the switch turn
+  ---
+  duration_ms: 5.044459
+  type: 'test'
+  ...
+# Subtest: Hard uses a special through a small shield when it is better than wasting a turn
+ok 105 - Hard uses a special through a small shield when it is better than wasting a turn
+  ---
+  duration_ms: 1.663375
+  type: 'test'
+  ...
+# Subtest: Hard never chooses full-HP healing, a full shield or repeated Iron Hide
+ok 106 - Hard never chooses full-HP healing, a full shield or repeated Iron Hide
+  ---
+  duration_ms: 36.300625
+  type: 'test'
+  ...
+# Subtest: Hard cannot use recharging specials and plans with a guaranteed hit after a miss
+ok 107 - Hard cannot use recharging specials and plans with a guaranteed hit after a miss
+  ---
+  duration_ms: 1.375458
+  type: 'test'
+  ...
+# Subtest: every src module maps to the exact GAME_VERSION; CSS and entry point pinned
+ok 108 - every src module maps to the exact GAME_VERSION; CSS and entry point pinned
+  ---
+  duration_ms: 4.871583
+  type: 'test'
+  ...
+# Subtest: all module imports resolve to versioned keys, JSON no-cache, debug-only hooks, unlisted prototype page
+ok 109 - all module imports resolve to versioned keys, JSON no-cache, debug-only hooks, unlisted prototype page
+  ---
+  duration_ms: 10.235125
+  type: 'test'
+  ...
+# Subtest: legacy roster stays compatible while the new format has a separate version
+ok 110 - legacy roster stays compatible while the new format has a separate version
+  ---
+  duration_ms: 6.631416
+  type: 'test'
+  ...
+# Subtest: v37 module paths remain byte-for-byte immutable for partial caches
+ok 111 - v37 module paths remain byte-for-byte immutable for partial caches
+  ---
+  duration_ms: 9.648375
+  type: 'test'
+  ...
+# Subtest: v43 release stays immutable for cached v45 clients
+ok 112 - v43 release stays immutable for cached v45 clients
+  ---
+  duration_ms: 3.061917
+  type: 'test'
+  ...
+1..112
+# tests 112
+# suites 0
+# pass 112
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24261.018792

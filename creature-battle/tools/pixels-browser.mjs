@@ -7,7 +7,10 @@ const page=await browser.newPage({viewport:{width:1024,height:768}}),errors=[];p
 await page.goto(origin+'/creature-battle/');await page.locator('#play-ai').click();
 const sprites=await page.evaluate(async()=>{
  const {spriteSrc}=await import(`/creature-battle/releases/v46/src/ui/pixels.js?v=${GAME_VERSION}`);
- const {creatures}=await (await fetch('data/creatures-v2.json')).json(),results=[];
+ const {loadCollection}=await import(`/creature-battle/releases/v46/src/collection.js?v=${GAME_VERSION}`);
+ const {loadRules}=await import(`/creature-battle/releases/v46/src/rules.js?v=${GAME_VERSION}`);
+ const rules=loadRules(await(await fetch('data/rules-v2.json')).json());
+ const creatures=loadCollection(await(await fetch('data/creatures-v2.json')).json(),rules),results=[];
  for(const c of creatures)for(const src of [c.image.src,c.trainer.portrait]){
   const image=new Image();image.src=spriteSrc(src,c.type);await image.decode();
   const canvas=document.createElement('canvas');canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;

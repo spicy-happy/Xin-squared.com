@@ -8,7 +8,8 @@ import { chooseOpponent, battleTrainers, sameTrainerName, trainerTeam } from '..
 import { facingFlip } from '../releases/v46/src/moves.js';
 import { rules } from './helpers.mjs';
 const raw=JSON.parse(readFileSync(new URL('../data/creatures-v2.json',import.meta.url)));
-const collection=loadCollection(raw,rules).filter(c=>!c.prototype);
+const submitted=loadCollection(raw,rules);
+const collection=submitted.filter(c=>c.trainer.id==='tr-unclemark');
 const find=name=>collection.find(c=>c.name===name);
 test('Uncle Mark roster honors the active sheet choices and one shared portrait',()=>{
  assert.deepEqual(collection.map(c=>c.name),['Broot','Amphidian','Bassault']);

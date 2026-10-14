@@ -92,18 +92,48 @@ class ExtractionArgumentsTests(unittest.TestCase):
         image = MagicMock()
         image.open.return_value = image
         image.convert.return_value = image
+        image.rotate.return_value = image
         image.new.return_value = image
         imageops = MagicMock()
         imageops.exif_transpose.return_value = image
         pil = types.ModuleType('PIL')
         pil.Image, pil.ImageOps, pil.ImageDraw = image, imageops, MagicMock()
         polygons = [[[0.1, 0.2], [0.4, 0.2], [0.4, 0.5]]]
-        manifest = {'added':'2026-10-07','trainers':[{'id':'tr-test01','nickname':'Test','assetId':'cr-test01','portraitSource':'photo.jpg','portraitCrop':[0,0,1,1]}],
-                    'creatures':[{'id':'cr-test01','name':'Test','trainerId':'tr-test01','reviewed':True,'facing':'front','source':'photo.jpg','creatureCrop':[0,0,1,1], 'keepPaper':polygons,
+        manifest = {'capture':'scan', 'added':'2026-10-07','trainers':[{'id':'tr-test01','nickname':'Test','assetId':'cr-test01','portraitRotation':270,'portraitSource':'photo.jpg','portraitCrop':[0,0,1,1]}],
+                    'creatures':[{'id':'cr-test01','name':'Test','trainerId':'tr-test01','reviewed':True,'facing':'front','rotation':90,'source':'photo.jpg','creatureCrop':[0,0,1,1], 'keepPaper':polygons,
                                   'stats':{'health':3,'attack':3,'defense':2,'speed':2}, 'typeMarks':[{'id':'water','status':'selected'}],
                                   'moveMarks':[{'id':id,'status':'selected'} for id in ['steady','blast','heal']]}]}
         with tempfile.TemporaryDirectory() as temporary, patch.dict(sys.modules, {'PIL':pil}), patch.object(import_sheet,'crop_art',return_value=art) as crop, patch.object(import_sheet,'write_asset',return_value='assets/test.webp'), patch.object(import_sheet.subprocess,'run'):
             import_sheet.build(manifest,Path(temporary),Path(temporary))
         self.assertEqual(crop.call_args_list[1].args[3], polygons)
+        self.assertTrue(all(c.kwargs['scan'] for c in crop.call_args_list))
+        from unittest.mock import call
+        self.assertEqual(image.rotate.call_args_list, [call(270, expand=True), call(90, expand=True)])
+
+class ScanExtractionTests(unittest.TestCase):
+    def setUp(self):
+        import importlib.util
+        if not all(importlib.util.find_spec(name) for name in ('cv2', 'PIL', 'numpy')):
+            self.skipTest('Optional photo dependencies are not installed')
+
+    def test_even_gray_scan_fill_stays_opaque_and_original_color(self):
+        from PIL import Image, ImageDraw
+        from import_sheet import crop_art
+        photo = Image.new('RGB', (1000, 1000), 'white')
+        ImageDraw.Draw(photo).rectangle((200, 200, 800, 800), fill=(180, 180, 180))
+        cutout = crop_art(photo, [0, 0, 1, 1], scan=True)
+        center = cutout.getpixel((cutout.width // 2, cutout.height // 2))
+        self.assertEqual(center, (180, 180, 180, 255))
+
+    def test_reviewed_template_mask_preserves_overlapping_marker(self):
+        from PIL import Image, ImageDraw
+        from import_sheet import crop_art
+        photo = Image.new('RGB', (1000, 1000), 'white')
+        draw = ImageDraw.Draw(photo)
+        draw.rectangle((10, 200, 90, 800), fill='black')
+        draw.rectangle((300, 200, 700, 800), fill=(0, 170, 230))
+        cutout = crop_art(photo, [0, 0, 1, 1], scan=True, exclude_dark_print=[[0, 0, 1, 1]])
+        self.assertLess(cutout.width, 400)
+        self.assertEqual(cutout.getpixel((cutout.width // 2, cutout.height // 2)), (0, 170, 230, 255))
 
 if __name__ == '__main__': unittest.main()
