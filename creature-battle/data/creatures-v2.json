@@ -2341,6 +2341,1253 @@
         }
       },
       "added": "2026-10-14"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan400",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "ET",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan400.486f53939584.webp",
+        "w": 424,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "ground",
+      "stats": {
+        "health": 3,
+        "attack": 5,
+        "defense": 2,
+        "speed": 0
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan401",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Bob",
+      "trainer": {
+        "id": "tr-jaida01",
+        "nickname": "Jaida",
+        "portrait": "assets/portraits/cr-jaidascan4.9d1a0823e1cb.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan401.a90e80cd96bb.webp",
+        "w": 490,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "flying",
+      "stats": {
+        "health": 5,
+        "attack": 0,
+        "defense": 0,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "risky",
+          "name": "Wild Blast",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan402",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Hoove",
+      "trainer": {
+        "id": "tr-emily01",
+        "nickname": "Emily",
+        "portrait": "assets/portraits/cr-emily01.f1cc23fd5abc.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan402.41dd2bbdc550.webp",
+        "w": 235,
+        "h": 196,
+        "facing": "front"
+      },
+      "type": "grass",
+      "stats": {
+        "health": 4,
+        "attack": 3,
+        "defense": 2,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "defense": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan403",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "How\u2019s You",
+      "trainer": {
+        "id": "tr-adrian1",
+        "nickname": "Adrian",
+        "portrait": "assets/portraits/cr-adrian1.40f175b43b8c.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan403.fe15e46f2f95.webp",
+        "w": 396,
+        "h": 512,
+        "facing": "left"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 2,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan404",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Clance",
+      "trainer": {
+        "id": "tr-adrian1",
+        "nickname": "Adrian",
+        "portrait": "assets/portraits/cr-adrian1.40f175b43b8c.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan404.7018f75e2225.webp",
+        "w": 385,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "water",
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 2,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "toughen",
+          "name": "Iron Hide",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan405",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "You",
+      "trainer": {
+        "id": "tr-adrian1",
+        "nickname": "Adrian",
+        "portrait": "assets/portraits/cr-adrian1.40f175b43b8c.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan405.e3712d15af0d.webp",
+        "w": 411,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "ground",
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 2,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "risky",
+          "name": "Wild Blast",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan406",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Pizza Is the Best",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan406.50a16642d154.webp",
+        "w": 360,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 2,
+        "attack": 3,
+        "defense": 2,
+        "speed": 3
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Mega Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan407",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Flash",
+      "trainer": {
+        "id": "tr-ada001",
+        "nickname": "Ada",
+        "portrait": "assets/portraits/cr-ada001.ada61df60df4.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan407.a2a3d8aa3213.webp",
+        "w": 512,
+        "h": 303,
+        "facing": "right"
+      },
+      "type": "electric",
+      "stats": {
+        "health": 3,
+        "attack": 2,
+        "defense": 2,
+        "speed": 3
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan408",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Shine and Stabby",
+      "trainer": {
+        "id": "tr-axs0001",
+        "nickname": "AXS",
+        "portrait": "assets/portraits/cr-axsscan4.f02357c58e29.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan408.f71e15408571.webp",
+        "w": 512,
+        "h": 499,
+        "facing": "front"
+      },
+      "type": "flying",
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 2,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "risky",
+          "name": "Wild Blast",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan409",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Blossom",
+      "trainer": {
+        "id": "tr-ada001",
+        "nickname": "Ada",
+        "portrait": "assets/portraits/cr-ada001.ada61df60df4.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan409.cb263ae970cb.webp",
+        "w": 512,
+        "h": 207,
+        "facing": "left"
+      },
+      "type": "grass",
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 2,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Mega Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan410",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Bubble",
+      "trainer": {
+        "id": "tr-axs0001",
+        "nickname": "AXS",
+        "portrait": "assets/portraits/cr-axsscan4.f02357c58e29.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan410.6d0749af2b90.webp",
+        "w": 512,
+        "h": 427,
+        "facing": "right"
+      },
+      "type": "water",
+      "stats": {
+        "health": 3,
+        "attack": 2,
+        "defense": 2,
+        "speed": 3
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "risky",
+          "name": "Wild Blast",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan411",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Shaw and Boom",
+      "trainer": {
+        "id": "tr-axs0001",
+        "nickname": "AXS",
+        "portrait": "assets/portraits/cr-axsscan4.f02357c58e29.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan411.3b81f092a1bb.webp",
+        "w": 497,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 2,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan412",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Rock",
+      "trainer": {
+        "id": "tr-axs0001",
+        "nickname": "AXS",
+        "portrait": "assets/portraits/cr-axsscan4.f02357c58e29.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan412.27492baf6f88.webp",
+        "w": 512,
+        "h": 389,
+        "facing": "front"
+      },
+      "type": "ground",
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 2,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "risky",
+          "name": "Wild Blast",
+          "category": "special"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan413",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Boo",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan413.038c1e0e7e58.webp",
+        "w": 365,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "electric",
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 1,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan414",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Smie Smie",
+      "trainer": {
+        "id": "tr-emily01",
+        "nickname": "Emily",
+        "portrait": "assets/portraits/cr-emily01.f1cc23fd5abc.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan414.6800808141b4.webp",
+        "w": 429,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "electric",
+      "stats": {
+        "health": 4,
+        "attack": 3,
+        "defense": 2,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "defense": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan415",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Flaper",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan415.2affabc66d99.webp",
+        "w": 512,
+        "h": 455,
+        "facing": "front"
+      },
+      "type": "flying",
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 2,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan416",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Charmander",
+      "trainer": {
+        "id": "tr-luca001",
+        "nickname": "Luca",
+        "portrait": "assets/portraits/cr-luca001.4b1958d8ddb9.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan416.13897f09818a.webp",
+        "w": 409,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 2,
+        "attack": 4,
+        "defense": 3,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan417",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Bubble",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan417.5f5d67d7476d.webp",
+        "w": 512,
+        "h": 273,
+        "facing": "right"
+      },
+      "type": "water",
+      "stats": {
+        "health": 4,
+        "attack": 2,
+        "defense": 2,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan418",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Lavv",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan418.65550d42868e.webp",
+        "w": 435,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 2,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan419",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Grassie",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan419.7722e5dad473.webp",
+        "w": 313,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "grass",
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 2,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Mega Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "toughen",
+          "name": "Iron Hide",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan420",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Greeny and Hoppy",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan420.6189b490ee7d.webp",
+        "w": 366,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "ground",
+      "stats": {
+        "health": 3,
+        "attack": 2,
+        "defense": 2,
+        "speed": 3
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Mega Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan421",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Evan and Ada",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan421.ecaa737d3842.webp",
+        "w": 509,
+        "h": 512,
+        "facing": "right"
+      },
+      "type": "water",
+      "stats": {
+        "health": 3,
+        "attack": 3,
+        "defense": 2,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "risky",
+          "name": "Wild Blast",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan422",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Bob and Bob",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan422.91d47437b98b.webp",
+        "w": 450,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "water",
+      "stats": {
+        "health": 3,
+        "attack": 2,
+        "defense": 2,
+        "speed": 3
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan423",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Menere",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan423.9ac0d9b01c6b.webp",
+        "w": 376,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "water",
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 3,
+        "speed": 0
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan424",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Chomp",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan424.db3c99609ae6.webp",
+        "w": 512,
+        "h": 498,
+        "facing": "right"
+      },
+      "type": "grass",
+      "stats": {
+        "health": 4,
+        "attack": 3,
+        "defense": 2,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Mega Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan425",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Boom",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan425.91688e14f6f5.webp",
+        "w": 512,
+        "h": 391,
+        "facing": "front"
+      },
+      "type": "ground",
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 1,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan426",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Bob",
+      "trainer": {
+        "id": "tr-jaida01",
+        "nickname": "Jaida",
+        "portrait": "assets/portraits/cr-jaidascan4.9d1a0823e1cb.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan426.c09401cbfeaa.webp",
+        "w": 454,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "electric",
+      "stats": {
+        "health": 5,
+        "attack": 4,
+        "defense": 0,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "risky",
+          "name": "Wild Blast",
+          "category": "special"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Mega Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan427",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Ada and Mom",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan427.9c5fbbe5885f.webp",
+        "w": 512,
+        "h": 394,
+        "facing": "front"
+      },
+      "type": "flying",
+      "stats": {
+        "health": 3,
+        "attack": 2,
+        "defense": 2,
+        "speed": 3
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Mega Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan428",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Wow and Mom",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan428.9b68ad897f31.webp",
+        "w": 512,
+        "h": 509,
+        "facing": "front"
+      },
+      "type": "grass",
+      "stats": {
+        "health": 1,
+        "attack": 3,
+        "defense": 4,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        },
+        "defense": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        }
+      },
+      "added": "2026-10-21"
     }
   ]
 }

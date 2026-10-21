@@ -149,4 +149,69 @@ class ScanExtractionTests(unittest.TestCase):
         self.assertEqual(cutout.getpixel((cutout.width // 2, cutout.height // 2)), (240, 210, 220, 255))
         self.assertEqual(cutout.getpixel((cutout.width // 4, cutout.height // 2)), (180, 180, 180, 255))
 
+class LaterBatchArtworkTests(unittest.TestCase):
+    def setUp(self):
+        import importlib.util
+        if importlib.util.find_spec('PIL') is None:
+            self.skipTest('Optional photo dependencies are not installed')
+        import json, tempfile
+        from unittest.mock import patch
+        from PIL import Image, ImageDraw
+        import import_sheet
+        self.module = import_sheet
+        rules = (import_sheet.ROOT / 'data/rules-v2.json').read_bytes()
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        (self.root / 'data').mkdir()
+        (self.root / 'data/rules-v2.json').write_bytes(rules)
+        self.portrait = 'assets/portraits/cr-existing.12345678.webp'
+        target = self.root / self.portrait
+        target.parent.mkdir(parents=True)
+        Image.new('RGBA', (12, 12), 'red').save(target, 'WEBP', lossless=True)
+        trainer = {'id': 'tr-existing', 'nickname': 'Existing', 'portrait': self.portrait}
+        (self.root / 'data/creatures-v2.json').write_text(json.dumps({'creatures': [{'trainer': trainer}]}))
+        art = Image.new('RGBA', (24, 24))
+        ImageDraw.Draw(art).ellipse((3, 3, 20, 20), fill='blue')
+        art.save(self.root / 'completed.png')
+        self.manifest = {'added': '2026-10-21', 'trainers': [dict(trainer, reusePortrait=True)], 'creatures': [{
+            'id': 'cr-completed', 'name': 'Completed', 'trainerId': 'tr-existing', 'reviewed': True,
+            'facing': 'front', 'completedArtwork': 'completed.png',
+            'typeMarks': [{'id': 'water', 'status': 'selected'}],
+            'moveMarks': [{'id': move, 'status': 'selected'} for move in ['steady', 'blast', 'guard']],
+            'stats': {'health': 3, 'attack': 3, 'defense': 2, 'speed': 2}}]}
+        self.patcher = patch.object(import_sheet, 'ROOT', self.root)
+        self.patcher.start()
+        self.addCleanup(self.patcher.stop)
+        self.validation = patch.object(import_sheet.subprocess, 'run')
+        self.validation.start()
+        self.addCleanup(self.validation.stop)
+        self.output = self.root / 'stage'
+        self.output.mkdir()
+
+    def test_later_batch_preserves_identical_portrait_and_completed_alpha(self):
+        from PIL import Image
+        result = self.module.build(self.manifest, self.root, self.output)[0]
+        self.assertEqual((self.output / self.portrait).read_bytes(), (self.root / self.portrait).read_bytes())
+        self.assertEqual(result['trainer']['id'], 'tr-existing')
+        art = Image.open(self.output / result['image']['src'])
+        self.assertEqual(art.getpixel((art.width // 2, art.height // 2)), (0, 0, 255, 255))
+        self.assertEqual(art.getextrema()[3], (0, 255))
+
+    def test_unknown_or_conflicting_identity_cannot_reuse_portrait(self):
+        for key, value in [('id', 'tr-unknown'), ('nickname', 'Somebody else')]:
+            import copy
+            manifest = copy.deepcopy(self.manifest)
+            manifest['trainers'][0][key] = value
+            with self.assertRaisesRegex(ValueError, 'no consistent reviewed trainer portrait'):
+                self.module.build(manifest, self.root, self.output)
+
+    def test_opaque_or_empty_completed_artwork_is_rejected(self):
+        from PIL import Image
+        for fill in [(255, 255, 255, 255), (0, 0, 0, 0)]:
+            Image.new('RGBA', (24, 24), fill).save(self.root / 'completed.png')
+            with self.assertRaisesRegex(ValueError, 'transparent background'):
+                self.module.build(self.manifest, self.root, self.output)
+
+
 if __name__ == '__main__': unittest.main()
