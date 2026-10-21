@@ -8,7 +8,8 @@ import {chooseAction,chooseReplacement as aiReplacement} from '../releases/v46/s
 import {rules} from './helpers.mjs';
 const root=new URL('../',import.meta.url);
 const manifest=JSON.parse(readFileSync(new URL('kit/reviews/scan3-2026-10-14.json',root)));
-const all=loadCollection(JSON.parse(readFileSync(new URL('data/creatures-v2.json',root))),rules);
+// Historical intake assertions use the roster at that batch’s date.
+const all=loadCollection(JSON.parse(readFileSync(new URL('data/creatures-v2.json',root))),rules).filter(c=>c.added<='2026-10-14');
 const batch=all.filter(c=>manifest.creatures.some(e=>e.id===c.id));
 
 test('Scan3 adds three original drawings, shares existing portraits, and preserves all selected stats and moves',()=>{

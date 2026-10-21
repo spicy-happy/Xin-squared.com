@@ -8,7 +8,8 @@ import {chooseAction,chooseReplacement as aiReplacement} from '../releases/v46/s
 import {rules} from './helpers.mjs';
 const root=new URL('../',import.meta.url);
 const raw=JSON.parse(readFileSync(new URL('data/creatures-v2.json',root)));
-const all=loadCollection(raw,rules);
+// Historical intake assertions use the roster at that batch’s date.
+const all=loadCollection(raw,rules).filter(c=>c.added<='2026-10-14');
 const manifest=JSON.parse(readFileSync(new URL('kit/reviews/wed-art-2026-10-14.json',root)));
 const batchIds=new Set(manifest.creatures.map(c=>c.id));
 const kids=all.filter(c=>batchIds.has(c.id));

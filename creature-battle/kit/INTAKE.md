@@ -39,6 +39,18 @@ be reused when other sheets have an empty trainer box. Stable IDs allow future
 imports to update an existing creature instead of duplicating it. Do not merge
 people just because they share a name: give them different IDs.
 
+For a returning trainer, use `id`, the exact existing `nickname`, and
+`reusePortrait: true` instead of portrait crop fields. The importer verifies the
+existing identity and copies its portrait byte for byte into the staging output.
+For a new trainer, select one complete portrait from the batch and reuse it.
+
+When the user requests completion of cropped artwork, preserve the original
+scan and review the completed transparent image against it. Record its filename
+relative to `--photos` as `completedArtwork` and describe the changes in
+`artworkCompletion`. The importer preserves that image's alpha and converts it
+to a hashed WebP without applying another cutout matte. Keep the original
+`source` and crop annotations in the manifest for comparison and provenance.
+
 ```sh
 python creature-battle/kit/import_sheet.py review.json \
   --photos /path/to/photos --output /tmp/creature-review

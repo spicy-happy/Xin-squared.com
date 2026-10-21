@@ -114,6 +114,21 @@ def build(manifest, photos, output):
         return result.rotate(rotation, expand=True) if rotation else result
     crop_options = {'scan': True} if manifest.get('capture') == 'scan' else {}
     for t in manifest['trainers']:
+        if t.get('reusePortrait'):
+            # Reuse a reviewed identity verbatim when a later sheet leaves its
+            # trainer box empty. Never re-matte or replace the existing asset.
+            import shutil
+            roster = json.loads((ROOT / 'data/creatures-v2.json').read_text())
+            existing = [c['trainer'] for c in roster['creatures'] if c['trainer'].get('id') == t['id']]
+            if not existing or any(p != existing[0] for p in existing) or existing[0]['nickname'] != t['nickname']:
+                raise ValueError(f"{t['id']}: no consistent reviewed trainer portrait to reuse")
+            trainer = existing[0]
+            destination = output / trainer['portrait']
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / trainer['portrait'], destination)
+            trainers[t['id']] = dict(trainer)
+            previews.append((t['nickname'], Image.open(destination).convert('RGBA')))
+            continue
         art = crop_art(photo(t['portraitSource'], t.get('portraitRotation', 0)), t['portraitCrop'],
                        t.get('excludePrint', []), keep_paper=t.get('keepPaper', []),
                        **({'exclude_dark_print': t['excludeDarkPrint']} if t.get('excludeDarkPrint') else {}),
@@ -134,10 +149,20 @@ def build(manifest, photos, output):
                 raise ValueError(f'Unknown move {move_id}')
             category = categories[0]
             moves[slot] = {'id': move_id, 'name': rules['moves'][category][move_id]['label'], 'category': category}
-        art = crop_art(photo(entry['source'], entry.get('rotation', 0)), entry['creatureCrop'],
-                       entry.get('excludePrint', []), entry.get('keepPaper', []),
-                       **({'exclude_dark_print': entry['excludeDarkPrint']} if entry.get('excludeDarkPrint') else {}),
-                       **({'exclude_black_print': entry['excludeBlackPrint']} if entry.get('excludeBlackPrint') else {}), **crop_options)
+        if entry.get('completedArtwork'):
+            # A separately reviewed completion can restore artwork cut off by
+            # the sheet. Keep its alpha instead of matting it a second time.
+            art = Image.open(photos / entry['completedArtwork']).convert('RGBA')
+            bounds = art.getbbox()
+            if not bounds or art.getextrema()[3][0] != 0:
+                raise ValueError(f"{entry['name']}: completed artwork needs a transparent background")
+            art = art.crop(bounds)
+            art.thumbnail((512, 512), Image.Resampling.LANCZOS)
+        else:
+            art = crop_art(photo(entry['source'], entry.get('rotation', 0)), entry['creatureCrop'],
+                           entry.get('excludePrint', []), entry.get('keepPaper', []),
+                           **({'exclude_dark_print': entry['excludeDarkPrint']} if entry.get('excludeDarkPrint') else {}),
+                           **({'exclude_black_print': entry['excludeBlackPrint']} if entry.get('excludeBlackPrint') else {}), **crop_options)
         src = write_asset(art, 'creatures', entry['id'], output)
         creatures.append({'schema': 1, 'id': entry['id'], 'rulesVersion': rules['version'], 'sheet': rules['sheet'], 'name': entry['name'],
             'trainer': trainers[entry['trainerId']], 'image': {'src': src, 'w': art.width, 'h': art.height, 'facing': entry['facing']},
