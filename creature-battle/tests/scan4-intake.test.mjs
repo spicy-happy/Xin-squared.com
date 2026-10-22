@@ -13,8 +13,8 @@ const batch=all.filter(c=>manifest.creatures.some(e=>e.id===c.id));
 const get=n=>batch.find(c=>c.id===`cr-scan4${String(n).padStart(2,'0')}`);
 
 test('Scan4 adds all 29 original submissions, preserving stable identities and independent same-name drawings',()=>{
- assert.equal(batch.length,29);assert.equal(all.length,78);assert.equal(battleTrainers(all).length,21);
- assert.equal(new Set(all.map(c=>c.name)).size,78);assert.equal(new Set(batch.map(c=>c.image.src)).size,29);
+ assert.equal(batch.length,29);assert.ok(all.length>=78);assert.ok(battleTrainers(all).length>=21);
+ assert.equal(new Set(all.map(c=>c.name)).size,all.length);assert.equal(new Set(batch.map(c=>c.image.src)).size,29);
  assert.equal(all.some(c=>c.prototype),false);
  assert.equal(get(1).name,'Bob #3');assert.equal(get(26).name,'Bob #4');
  assert.equal(get(10).name,'Bubble');assert.equal(get(17).name,'Bubble #2');

@@ -1,0 +1,623 @@
+{
+  "added": "2026-10-21",
+  "capture": "scan",
+  "batch": "Scan5: six new drawings",
+  "sourceOrientation": "EXIF correction makes all six sheets upright; no extra rotation.",
+  "trainers": [
+    {
+      "id": "tr-melody1",
+      "nickname": "Melody",
+      "assetId": "cr-melodyscan5",
+      "portraitSource": "Scan5.jpg",
+      "portraitCrop": [
+        0.067,
+        0.758,
+        0.135,
+        0.941
+      ],
+      "excludePrint": [
+        [
+          0.065,
+          0.928,
+          0.137,
+          0.935
+        ]
+      ]
+    },
+    {
+      "id": "tr-ashton1",
+      "nickname": "Ashton",
+      "assetId": "cr-ashtonscan5",
+      "portraitSource": "Scan5_1.jpg",
+      "portraitCrop": [
+        0.048,
+        0.741,
+        0.204,
+        0.948
+      ],
+      "excludeDarkPrint": [
+        [
+          0.04,
+          0.727,
+          0.215,
+          0.745
+        ],
+        [
+          0.04,
+          0.927,
+          0.215,
+          0.935
+        ]
+      ]
+    },
+    {
+      "id": "tr-evda001",
+      "nickname": "Evda",
+      "reusePortrait": true
+    },
+    {
+      "id": "tr-adrian1",
+      "nickname": "Adrian",
+      "reusePortrait": true
+    }
+  ],
+  "creatures": [
+    {
+      "id": "cr-scan500",
+      "name": "Mrina",
+      "trainerId": "tr-melody1",
+      "source": "Scan5.jpg",
+      "creatureCrop": [
+        0.115,
+        0.156,
+        0.26,
+        0.306
+      ],
+      "reviewed": true,
+      "facing": "left",
+      "stats": {
+        "health": 1,
+        "attack": 2,
+        "defense": 3,
+        "speed": 4
+      },
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "unselected"
+        },
+        {
+          "id": "water",
+          "status": "unselected"
+        },
+        {
+          "id": "grass",
+          "status": "unselected"
+        },
+        {
+          "id": "electric",
+          "status": "unselected"
+        },
+        {
+          "id": "ground",
+          "status": "unselected"
+        },
+        {
+          "id": "flying",
+          "status": "selected"
+        }
+      ],
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "unselected"
+        },
+        {
+          "id": "quick",
+          "status": "unselected"
+        },
+        {
+          "id": "heavy",
+          "status": "unselected"
+        },
+        {
+          "id": "blast",
+          "status": "selected"
+        },
+        {
+          "id": "risky",
+          "status": "unselected"
+        },
+        {
+          "id": "overload",
+          "status": "unselected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "unselected"
+        }
+      ],
+      "reviewNotes": "Faint check marks select Energy Burst, Bubble Shield and Healing Glow. Health 1, Attack 2, Defense 3, Speed 4. Exclude the separate stray line below the complete creature."
+    },
+    {
+      "id": "cr-scan501",
+      "name": "Ashton\u2019s Battler",
+      "trainerId": "tr-ashton1",
+      "source": "Scan5_1.jpg",
+      "creatureCrop": [
+        0.137,
+        0.18,
+        0.441,
+        0.575
+      ],
+      "reviewed": true,
+      "facing": "front",
+      "stats": {
+        "health": 4,
+        "attack": 3,
+        "defense": 1,
+        "speed": 2
+      },
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        },
+        {
+          "id": "water",
+          "status": "unselected"
+        },
+        {
+          "id": "grass",
+          "status": "unselected"
+        },
+        {
+          "id": "electric",
+          "status": "unselected"
+        },
+        {
+          "id": "ground",
+          "status": "unselected"
+        },
+        {
+          "id": "flying",
+          "status": "unselected"
+        }
+      ],
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "unselected"
+        },
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "heavy",
+          "status": "unselected"
+        },
+        {
+          "id": "blast",
+          "status": "selected"
+        },
+        {
+          "id": "risky",
+          "status": "unselected"
+        },
+        {
+          "id": "overload",
+          "status": "unselected"
+        },
+        {
+          "id": "guard",
+          "status": "unselected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "unselected"
+        }
+      ],
+      "statMarks": {
+        "speed": [
+          {
+            "value": 2,
+            "status": "selected"
+          },
+          {
+            "value": 5,
+            "status": "canceled"
+          }
+        ],
+        "defense": [
+          {
+            "value": 1,
+            "status": "selected"
+          },
+          {
+            "value": 2,
+            "status": "canceled"
+          }
+        ]
+      },
+      "excludeDarkPrint": [
+        [
+          0.435,
+          0.18,
+          0.441,
+          0.575
+        ]
+      ],
+      "reviewNotes": "Defense 2 and speed 5 crossed out; active Defense 1 and Speed 2. User explicitly confirmed Speed 2."
+    },
+    {
+      "id": "cr-scan502",
+      "name": "Old and little",
+      "trainerId": "tr-evda001",
+      "source": "Scan5_2.jpg",
+      "creatureCrop": [
+        0.046,
+        0.125,
+        0.436,
+        0.711
+      ],
+      "reviewed": true,
+      "facing": "front",
+      "stats": {
+        "health": 4,
+        "attack": 2,
+        "defense": 2,
+        "speed": 2
+      },
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "selected"
+        },
+        {
+          "id": "water",
+          "status": "unselected"
+        },
+        {
+          "id": "grass",
+          "status": "unselected"
+        },
+        {
+          "id": "electric",
+          "status": "unselected"
+        },
+        {
+          "id": "ground",
+          "status": "unselected"
+        },
+        {
+          "id": "flying",
+          "status": "unselected"
+        }
+      ],
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "unselected"
+        },
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "heavy",
+          "status": "unselected"
+        },
+        {
+          "id": "blast",
+          "status": "unselected"
+        },
+        {
+          "id": "risky",
+          "status": "unselected"
+        },
+        {
+          "id": "overload",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "unselected"
+        },
+        {
+          "id": "heal",
+          "status": "unselected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "excludePrint": [
+        [
+          0.045,
+          0.674,
+          0.438,
+          0.68
+        ]
+      ],
+      "reviewNotes": "Returning Evda; preserve all four characters as one submitted creature. Frame crosses bottom artwork; remove only the narrow printed frame."
+    },
+    {
+      "id": "cr-scan503",
+      "name": "Boc",
+      "trainerId": "tr-adrian1",
+      "source": "Scan5_3.jpg",
+      "creatureCrop": [
+        0.151,
+        0.365,
+        0.281,
+        0.648
+      ],
+      "reviewed": true,
+      "facing": "front",
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 1,
+        "speed": 1
+      },
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "unselected"
+        },
+        {
+          "id": "water",
+          "status": "unselected"
+        },
+        {
+          "id": "grass",
+          "status": "selected"
+        },
+        {
+          "id": "electric",
+          "status": "unselected"
+        },
+        {
+          "id": "ground",
+          "status": "unselected"
+        },
+        {
+          "id": "flying",
+          "status": "unselected"
+        }
+      ],
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "unselected"
+        },
+        {
+          "id": "quick",
+          "status": "unselected"
+        },
+        {
+          "id": "heavy",
+          "status": "selected"
+        },
+        {
+          "id": "blast",
+          "status": "unselected"
+        },
+        {
+          "id": "risky",
+          "status": "unselected"
+        },
+        {
+          "id": "overload",
+          "status": "selected"
+        },
+        {
+          "id": "guard",
+          "status": "unselected"
+        },
+        {
+          "id": "heal",
+          "status": "unselected"
+        },
+        {
+          "id": "toughen",
+          "status": "selected"
+        }
+      ],
+      "reviewNotes": "Grass circle extends below its option; centered on Grass. Flying is unselected."
+    },
+    {
+      "id": "cr-scan504",
+      "name": "boxy",
+      "trainerId": "tr-adrian1",
+      "source": "Scan5_4.jpg",
+      "creatureCrop": [
+        0.102,
+        0.199,
+        0.401,
+        0.678
+      ],
+      "reviewed": true,
+      "facing": "front",
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 1,
+        "speed": 2
+      },
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "unselected"
+        },
+        {
+          "id": "water",
+          "status": "unselected"
+        },
+        {
+          "id": "grass",
+          "status": "unselected"
+        },
+        {
+          "id": "electric",
+          "status": "selected"
+        },
+        {
+          "id": "ground",
+          "status": "unselected"
+        },
+        {
+          "id": "flying",
+          "status": "unselected"
+        }
+      ],
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "unselected"
+        },
+        {
+          "id": "quick",
+          "status": "selected"
+        },
+        {
+          "id": "heavy",
+          "status": "unselected"
+        },
+        {
+          "id": "blast",
+          "status": "unselected"
+        },
+        {
+          "id": "risky",
+          "status": "selected"
+        },
+        {
+          "id": "overload",
+          "status": "unselected"
+        },
+        {
+          "id": "guard",
+          "status": "unselected"
+        },
+        {
+          "id": "heal",
+          "status": "selected"
+        },
+        {
+          "id": "toughen",
+          "status": "unselected"
+        }
+      ],
+      "excludeDarkPrint": [
+        [
+          0.1,
+          0.673,
+          0.4,
+          0.68
+        ]
+      ],
+      "reviewNotes": "Original lower outline ends at the frame, retained without redrawing. Returning Adrian portrait reused."
+    },
+    {
+      "id": "cr-scan505",
+      "name": "blow",
+      "trainerId": "tr-adrian1",
+      "source": "Scan5_5.jpg",
+      "creatureCrop": [
+        0.047,
+        0.19,
+        0.385,
+        0.679
+      ],
+      "reviewed": true,
+      "facing": "front",
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 1,
+        "speed": 1
+      },
+      "typeMarks": [
+        {
+          "id": "fire",
+          "status": "unselected"
+        },
+        {
+          "id": "water",
+          "status": "selected"
+        },
+        {
+          "id": "grass",
+          "status": "unselected"
+        },
+        {
+          "id": "electric",
+          "status": "unselected"
+        },
+        {
+          "id": "ground",
+          "status": "unselected"
+        },
+        {
+          "id": "flying",
+          "status": "unselected"
+        }
+      ],
+      "moveMarks": [
+        {
+          "id": "steady",
+          "status": "selected"
+        },
+        {
+          "id": "quick",
+          "status": "unselected"
+        },
+        {
+          "id": "heavy",
+          "status": "unselected"
+        },
+        {
+          "id": "blast",
+          "status": "selected"
+        },
+        {
+          "id": "risky",
+          "status": "unselected"
+        },
+        {
+          "id": "overload",
+          "status": "unselected"
+        },
+        {
+          "id": "guard",
+          "status": "selected"
+        },
+        {
+          "id": "heal",
+          "status": "unselected"
+        },
+        {
+          "id": "toughen",
+          "status": "unselected"
+        }
+      ],
+      "reviewNotes": "Faint circles select Tackle, Energy Burst and Bubble Shield. Returning Adrian portrait reused."
+    }
+  ],
+  "decisionAuthority": "User confirmed Evda as the trainer spelling and speed 2 for Ashton\u2019s Battler; other names retained as presented for confirmation."
+}

@@ -3588,6 +3588,264 @@
         }
       },
       "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan500",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Mrina",
+      "trainer": {
+        "id": "tr-melody1",
+        "nickname": "Melody",
+        "portrait": "assets/portraits/cr-melodyscan5.9803b63c8006.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan500.543914f53504.webp",
+        "w": 444,
+        "h": 342,
+        "facing": "left"
+      },
+      "type": "flying",
+      "stats": {
+        "health": 1,
+        "attack": 2,
+        "defense": 3,
+        "speed": 4
+      },
+      "moves": {
+        "regular": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "special": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan501",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Ashton\u2019s Battler",
+      "trainer": {
+        "id": "tr-ashton1",
+        "nickname": "Ashton",
+        "portrait": "assets/portraits/cr-ashtonscan5.d6a5313004dd.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan501.f147899c9b8a.webp",
+        "w": 509,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 4,
+        "attack": 3,
+        "defense": 1,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan502",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Old and little",
+      "trainer": {
+        "id": "tr-evda001",
+        "nickname": "Evda",
+        "portrait": "assets/portraits/cr-evdascan4.5dbd32bb3c5e.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan502.c5f8f66d0dac.webp",
+        "w": 441,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "fire",
+      "stats": {
+        "health": 4,
+        "attack": 2,
+        "defense": 2,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Mega Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "toughen",
+          "name": "Iron Hide",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan503",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "Boc",
+      "trainer": {
+        "id": "tr-adrian1",
+        "nickname": "Adrian",
+        "portrait": "assets/portraits/cr-adrian1.40f175b43b8c.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan503.90359d6bc143.webp",
+        "w": 295,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "grass",
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 1,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "heavy",
+          "name": "Body Slam",
+          "category": "regular"
+        },
+        "special": {
+          "id": "overload",
+          "name": "Mega Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "toughen",
+          "name": "Iron Hide",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan504",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "boxy",
+      "trainer": {
+        "id": "tr-adrian1",
+        "nickname": "Adrian",
+        "portrait": "assets/portraits/cr-adrian1.40f175b43b8c.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan504.c3ddf39110a8.webp",
+        "w": 413,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "electric",
+      "stats": {
+        "health": 5,
+        "attack": 2,
+        "defense": 1,
+        "speed": 2
+      },
+      "moves": {
+        "regular": {
+          "id": "quick",
+          "name": "Quick Strike",
+          "category": "regular"
+        },
+        "special": {
+          "id": "risky",
+          "name": "Wild Blast",
+          "category": "special"
+        },
+        "defense": {
+          "id": "heal",
+          "name": "Healing Glow",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
+    },
+    {
+      "schema": 1,
+      "id": "cr-scan505",
+      "rulesVersion": 2,
+      "sheet": "S1",
+      "name": "blow",
+      "trainer": {
+        "id": "tr-adrian1",
+        "nickname": "Adrian",
+        "portrait": "assets/portraits/cr-adrian1.40f175b43b8c.webp"
+      },
+      "image": {
+        "src": "assets/creatures/cr-scan505.74e312b2203e.webp",
+        "w": 458,
+        "h": 512,
+        "facing": "front"
+      },
+      "type": "water",
+      "stats": {
+        "health": 5,
+        "attack": 3,
+        "defense": 1,
+        "speed": 1
+      },
+      "moves": {
+        "regular": {
+          "id": "steady",
+          "name": "Tackle",
+          "category": "regular"
+        },
+        "special": {
+          "id": "blast",
+          "name": "Energy Burst",
+          "category": "special"
+        },
+        "defense": {
+          "id": "guard",
+          "name": "Bubble Shield",
+          "category": "defense"
+        }
+      },
+      "added": "2026-10-21"
     }
   ]
 }
