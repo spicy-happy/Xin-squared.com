@@ -487,6 +487,27 @@ function HealthTracker() {
     return Math.round(bmr * 1.2);
   };
 
+  // Food estimation rules shared by new log entries and edits.
+  const FOOD_ACCURACY_RULE = `Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. A number before a food item means that exact count of individual pieces, NOT servings. Use standard home-cooked portions unless "large", "restaurant", or similar is specified. Fractions and cup amounts scale linearly: 0.5 cup is exactly half of 1 cup. Typical per-piece values: 1 French fry ~10-15 cal (3 fries ~40 cal), 1 chicken nugget ~45-60 cal, 1 walnut (two halves) ~26 cal, 1 large egg ~72 cal. For mixed and home-cooked dishes, add up every component (e.g. count the eggs in an egg dish, the meat and broth AND the noodles/rice in a soup or stew) plus cooking oil (~40 cal per teaspoon used; stir fries usually use 1-2 tablespoons per dish at ~120 cal each). For packaged or branded items (e.g. Kirkland, Premier, Gold Standard, GU), use the brand's actual nutrition label. Make sure calories roughly equal 4 x protein + 9 x fat + 4 x carbs. CRITICAL: Consider the cuisine context when estimating per-piece size and weight. Asian/Chinese/Japanese/Korean dishes typically use smaller cuts — e.g. a Chinese chicken drumstick is a small bone-in piece (~70-90g raw, ~100-130 cal stir-fried), NOT a large American-style drumstick (~150-200g, ~200 cal). When the user specifies a cuisine or cooking style (e.g. "Chinese", "stir fried", "karaage", "teriyaki"), use portion sizes typical of that cuisine.`;
+
+  // Recently logged foods, so repeat items get consistent numbers
+  // (e.g. "0.5 cup passion fruit drink" is half of an earlier "1 cup").
+  const knownFoodsRule = (excludeId = null) => {
+    const seen = new Set();
+    const lines = [];
+    const recent = [foods, ...getAllHistory().slice(0, 14).map(d => d.foods || [])].flat();
+    for (const f of recent) {
+      if (!f || !f.name || f.id === excludeId) continue;
+      const key = f.name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      lines.push(`${f.name}: ${f.calories} cal, ${f.protein}g protein, ${f.fat}g fat, ${f.carbs}g carbs`);
+      if (lines.length >= 40) break;
+    }
+    if (!lines.length) return '';
+    return `CONSISTENCY: This person has recently logged these foods: ${lines.join('; ')}. If a new item is the same food as one of these (even with a different amount), scale that entry's values to the new amount instead of re-estimating from scratch, so the same food always gets the same per-unit numbers. Only deviate if the new description clearly says it is different (brand, recipe, size).`;
+  };
+
   const switchUnitSystem = (system) => {
     setUnitSystem(system);
     localStorage.setItem('unit-system', system);
@@ -888,7 +909,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const rawWeight = weight || userProfile.startingWeight || '150';
       const fmtRule = `Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation.`;
       const totalRule = `IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity.`;
-      const accuracyRule = `Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. Use standard home-cooked portions unless "large", "restaurant", or similar is specified. CRITICAL: Consider the cuisine context when estimating per-piece size and weight. Asian/Chinese/Japanese/Korean dishes typically use smaller cuts — e.g. a Chinese chicken drumstick is a small bone-in piece (~70-90g raw, ~100-130 cal stir-fried), NOT a large American-style drumstick (~150-200g, ~200 cal). When the user specifies a cuisine or cooking style (e.g. "Chinese", "stir fried", "karaage", "teriyaki"), use portion sizes typical of that cuisine. A number before a food item means that exact count of individual pieces, NOT servings.`;
+      const accuracyRule = `${FOOD_ACCURACY_RULE} ${knownFoodsRule()}`;
       const exerciseRule = exerciseRuleFor(rawWeight);
       const weightPeriodRule = `Also detect if the user mentions their weight (e.g. "weigh 150", "150 lbs", "weight 68 kg", "72.5 kg") or their period (e.g. "period started", "on my period", "period", "menstruation"). If weight is mentioned, extract the numeric value in lbs (convert from kg if needed by dividing by 0.453592). If period is mentioned, set isPeriod to true.`;
       const universalFormat = `Return ONLY JSON with this exact structure: {"foods":[{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}],"exercises":[{"name":"30 min running","minutes":30,"met":8.3,"calories":250}],"weight":null,"isPeriod":false}. If there are no food items, return an empty foods array. If there are no exercises, return an empty exercises array. ALWAYS start food names with a number (quantity). For food, if no quantity is specified, assume 1. Set "weight" to the numeric value in lbs if mentioned, otherwise null. Set "isPeriod" to true only if period/menstruation is mentioned.`;
@@ -1024,7 +1045,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     const dateToSave = currentDate;
     setIsAnalyzingLog(true);
     try {
-      const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity. Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. For example, 4 pieces of karaage (fried chicken) at ~35g each is about 300cal total, not 800cal. CRITICAL: Consider the cuisine context when estimating per-piece size and weight. Asian/Chinese/Japanese/Korean dishes typically use smaller cuts — e.g. a Chinese chicken drumstick is a small bone-in piece (~70-90g raw, ~100-130 cal stir-fried), NOT a large American-style drumstick (~150-200g, ~200 cal). When the user specifies a cuisine or cooking style (e.g. "Chinese", "stir fried", "karaage", "teriyaki"), use portion sizes typical of that cuisine. A number before a food item means that exact count of individual pieces, NOT servings. Use standard home-cooked portions unless "large", "restaurant", or similar is specified. Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Apple", "1 Bowl of oatmeal with berries". Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`);
+      const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity. ${FOOD_ACCURACY_RULE} ${knownFoodsRule(editingFoodId)} Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Apple", "1 Bowl of oatmeal with berries". Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`);
       const match = text.match(/\[[\s\S]*\]/);
       if (match) {
         const parsed = JSON.parse(match[0]);
