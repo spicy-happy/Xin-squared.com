@@ -461,6 +461,32 @@ function HealthTracker() {
   };
   const heightLabel = isMetric ? 'cm' : 'ft / in';
 
+  // Exercise burn: the AI picks the activity's MET and duration, we do the math.
+  // Net calories = (MET - 1) x kg x hours — the "- 1" removes resting burn, which
+  // the base calorie target already covers.
+  const exerciseRuleFor = (weightLbs) => {
+    const kg = (parseFloat(weightLbs) || 150) * 0.453592;
+    return `For exercises: The person weighs ${kg.toFixed(1)} kg. Return the duration in minutes (if no duration is mentioned, assume 30) and the MET value from the Compendium of Physical Activities that matches the activity and intensity (e.g. walking 3 mph = 3.5, yoga = 2.5, cleaning = 3.0, cycling moderate = 8.0, running 5 mph = 8.3, running 6 mph = 9.8, running 7.5 mph = 11.5; if running pace is unknown use 8.3). Also return "calories" = round((MET - 1) x ${kg.toFixed(1)} x minutes / 60). Do not shrink or round down the estimate — a 2-hour run should be roughly 1000 calories for a ~70 kg person. If the input states a burned-calorie number (e.g. "burned 600 cal" or a fitness tracker screenshot showing active calories), use that number as "calories" and set "met" to null.`;
+  };
+  const calcExerciseCalories = (e, weightLbs) => {
+    const kg = (parseFloat(weightLbs) || 150) * 0.453592;
+    const met = parseFloat(e.met);
+    const minutes = parseFloat(e.minutes);
+    if (met > 1 && minutes > 0) return Math.round((met - 1) * kg * minutes / 60);
+    return parseInt(e.calories) || 250;
+  };
+
+  // Daily maintenance calories with no exercise: Mifflin-St Jeor BMR x 1.2 (sedentary).
+  const estimateMaintenance = (weightLbs) => {
+    const kg = parseFloat(weightLbs) * 0.453592;
+    if (!kg) return null;
+    const totalIn = (parseFloat(userProfile.heightFt) || 0) * 12 + (parseFloat(userProfile.heightIn) || 0);
+    const age = userProfile.birthYear ? new Date().getFullYear() - parseInt(userProfile.birthYear) : NaN;
+    if (!totalIn || !age) return Math.round(kg * 2.20462 * 14);
+    const bmr = 10 * kg + 6.25 * totalIn * 2.54 - 5 * age + (userProfile.gender === 'male' ? 5 : -161);
+    return Math.round(bmr * 1.2);
+  };
+
   const switchUnitSystem = (system) => {
     setUnitSystem(system);
     localStorage.setItem('unit-system', system);
@@ -860,13 +886,12 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     setIsAnalyzingLog(true);
     try {
       const rawWeight = weight || userProfile.startingWeight || '150';
-      const weightDisplay = `${displayWeight(rawWeight)} ${weightLabel}`;
       const fmtRule = `Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation.`;
       const totalRule = `IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity.`;
       const accuracyRule = `Be precise with portion sizes. When a specific count is given (e.g. "4 pieces"), estimate for that exact count using realistic per-piece sizes, NOT for a full plate or restaurant serving. Use standard home-cooked portions unless "large", "restaurant", or similar is specified. CRITICAL: Consider the cuisine context when estimating per-piece size and weight. Asian/Chinese/Japanese/Korean dishes typically use smaller cuts — e.g. a Chinese chicken drumstick is a small bone-in piece (~70-90g raw, ~100-130 cal stir-fried), NOT a large American-style drumstick (~150-200g, ~200 cal). When the user specifies a cuisine or cooking style (e.g. "Chinese", "stir fried", "karaage", "teriyaki"), use portion sizes typical of that cuisine. A number before a food item means that exact count of individual pieces, NOT servings.`;
-      const exerciseRule = `For exercises: The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be very conservative — these are ADDITIONAL calories burned above resting metabolic rate only. Household chores (cleaning, tidying, dishes) burn only 50-80 extra calories per 30 minutes. Walking burns 80-120 per 30 min. Light yoga/stretching is 50-80 per 30 min. Only intense exercise (running, HIIT, cycling hard) burns 250+ per 30 min. Err on the lower end.`;
+      const exerciseRule = exerciseRuleFor(rawWeight);
       const weightPeriodRule = `Also detect if the user mentions their weight (e.g. "weigh 150", "150 lbs", "weight 68 kg", "72.5 kg") or their period (e.g. "period started", "on my period", "period", "menstruation"). If weight is mentioned, extract the numeric value in lbs (convert from kg if needed by dividing by 0.453592). If period is mentioned, set isPeriod to true.`;
-      const universalFormat = `Return ONLY JSON with this exact structure: {"foods":[{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}],"exercises":[{"name":"30 min running","calories":280}],"weight":null,"isPeriod":false}. If there are no food items, return an empty foods array. If there are no exercises, return an empty exercises array. ALWAYS start food names with a number (quantity). For food, if no quantity is specified, assume 1. Set "weight" to the numeric value in lbs if mentioned, otherwise null. Set "isPeriod" to true only if period/menstruation is mentioned.`;
+      const universalFormat = `Return ONLY JSON with this exact structure: {"foods":[{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}],"exercises":[{"name":"30 min running","minutes":30,"met":8.3,"calories":250}],"weight":null,"isPeriod":false}. If there are no food items, return an empty foods array. If there are no exercises, return an empty exercises array. ALWAYS start food names with a number (quantity). For food, if no quantity is specified, assume 1. Set "weight" to the numeric value in lbs if mentioned, otherwise null. Set "isPeriod" to true only if period/menstruation is mentioned.`;
 
       let prompt;
       if (logImages.length > 0 && logDescription) {
@@ -905,7 +930,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
           const newExercises = parsed.exercises.map((e, i) => ({
             id: Date.now() + 100 + i,
             type: e.name,
-            calories: parseInt(e.calories) || 250
+            calories: calcExerciseCalories(e, rawWeight)
           }));
           updatedExercises = [...exercises, ...newExercises];
           setExercises(updatedExercises);
@@ -1034,13 +1059,12 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
   const estimateExerciseCaloriesAI = async (exerciseName) => {
     if (!apiKey) return 250; // fallback
     const rawWeight = weight || userProfile.startingWeight || '150';
-    const weightDisplay = `${displayWeight(rawWeight)} ${weightLabel}`;
     try {
-      const text = await callOpenAI(apiKey, `Estimate total calories burned for this exercise: "${exerciseName}". The person weighs ${weightDisplay}. If no duration is mentioned, assume 30 minutes. Be very conservative — these are ADDITIONAL calories burned above resting metabolic rate only. Household chores (cleaning, tidying, dishes) burn only 50-80 extra calories per 30 minutes. Walking burns 80-120 per 30 min. Light yoga/stretching is 50-80 per 30 min. Only intense exercise (running, HIIT, cycling hard) burns 250+ per 30 min. Err on the lower end. Also return a cleanly formatted name: capitalize the first letter, use proper grammar, include duration if mentioned, no trailing punctuation. Return ONLY JSON, no other text: {"name": "30 min cleaning", "calories": 75}`);
+      const text = await callOpenAI(apiKey, `Estimate calories burned for this exercise: "${exerciseName}". ${exerciseRuleFor(rawWeight)} Also return a cleanly formatted name: capitalize the first letter, use proper grammar, include duration if mentioned, no trailing punctuation. Return ONLY JSON, no other text: {"name": "30 min running", "minutes": 30, "met": 8.3, "calories": 250}`);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
         const parsed = JSON.parse(match[0]);
-        return { calories: parseInt(parsed.calories) || 250, name: parsed.name || exerciseName };
+        return { calories: calcExerciseCalories(parsed, rawWeight), name: parsed.name || exerciseName };
       }
     } catch (error) {
       console.error('Exercise estimation error:', error);
@@ -1060,6 +1084,15 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const totalCarbs = foods.reduce((s, f) => s + (f.carbs || 0), 0);
       const totalExCal = exercises.reduce((s, e) => s + (e.calories || 0), 0);
       const netCal = totalCal - totalExCal;
+      // Exercise raises today's target (same rule as the Today tab's calorie goal).
+      const targetMin = nutritionGoals.calorieMin + totalExCal;
+      const targetMax = nutritionGoals.calorieMax + totalExCal;
+      const targetStr = targetMin === targetMax ? `${targetMin}` : `${targetMin}-${targetMax}`;
+      const targetStatus = totalCal > targetMax
+        ? `OVER today's target by ${Math.round(totalCal - targetMax)} cal`
+        : totalCal < targetMin
+          ? `UNDER today's target by ${Math.round(targetMin - totalCal)} cal`
+          : `WITHIN today's target`;
       const currentW = weight || userProfile.startingWeight || 'unknown';
       const wDisplay = currentW !== 'unknown' ? `${displayWeight(currentW)} ${weightLabel}` : 'unknown';
       const age = userProfile.birthYear ? new Date().getFullYear() - parseInt(userProfile.birthYear) : 'unknown';
@@ -1069,13 +1102,26 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
           : `${userProfile.heightFt}'${userProfile.heightIn || 0}"`)
         : 'unknown';
 
+      // Weight prediction is plain energy balance, not an AI guess:
+      // (eaten - (maintenance + exercise)) x 30 days / 3500 cal per lb.
+      const maintenance = currentW !== 'unknown' ? estimateMaintenance(currentW) : null;
+      const dailyBalance = maintenance ? Math.round(totalCal - maintenance - totalExCal) : null;
+      const predictedLbs = maintenance ? parseFloat(currentW) + dailyBalance * 30 / 3500 : null;
+      const prediction = predictedLbs ? `${displayWeight(predictedLbs)} ${weightLabel}` : 'Add your weight in Profile to see this';
+      const balanceStr = dailyBalance === null ? 'unknown'
+        : dailyBalance < 0 ? `${-dailyBalance} cal deficit (weight trending down)`
+        : dailyBalance > 0 ? `${dailyBalance} cal surplus (weight trending up)`
+        : 'even (weight steady)';
+
       const foodList = foods.map(f => `${f.name} (${f.calories} cal)`).join(', ');
       const exList = exercises.map(e => `${e.type} (-${e.calories} cal)`).join(', ');
 
-      const prompt = `You are a warm, supportive health coach and friend. Review this person's day. Be genuinely encouraging — highlight what they did well first, then gently suggest improvements. Sound human and conversational, not clinical. Never grade or score. If they went over their goals, be understanding and motivating — remind them that one day doesn't define their journey and encourage them to get back on track tomorrow. Also predict their weight in 1 month if every day was like this one.
+      const prompt = `You are a warm, supportive health coach and friend. Review this person's day. Be genuinely encouraging — highlight what they did well first, then gently suggest improvements. Sound human and conversational, not clinical. Never grade or score. If they went over their goals, be understanding and motivating — remind them that one day doesn't define their journey and encourage them to get back on track tomorrow.
+
+IMPORTANT: The target status, energy balance, and 1-month prediction below are already calculated. State them consistently — never say they went over the target if the status says UNDER or WITHIN, and never imply weight gain when the balance is a deficit. Exercise calories are already added to today's target, so eating more on a heavy exercise day is expected and good — never suggest eating less because they exercised, and if they're well under target after a hard workout, encourage refueling.
 
 Profile: Age ${age}, ${userProfile.gender || 'unknown'}, Height: ${heightStr}, Current weight: ${wDisplay}, Goal: ${goal || 'general health'}
-Calorie target: ${nutritionGoals.calorieMin} cal/day, Protein target: ${nutritionGoals.protein}g/day
+Base calorie target: ${nutritionGoals.calorieMin} cal/day (before exercise), Protein target: ${nutritionGoals.protein}g/day
 
 Today's log:
 - Foods: ${foodList || 'none'}
@@ -1083,15 +1129,18 @@ Today's log:
 - Total calories eaten: ${totalCal}
 - Total exercise burned: ${totalExCal}
 - Net calories: ${netCal}
+- Today's calorie target including exercise: ${targetStr} cal → ${targetStatus}
+- Energy balance vs estimated maintenance (${maintenance || 'unknown'} cal + exercise): ${balanceStr}
+- Predicted weight in 1 month if every day was like today: ${prediction}
 - Protein: ${totalProtein}g, Fat: ${totalFat}g, Carbs: ${totalCarbs}g
 ${weight ? `- Weighed in at: ${displayWeight(weight)} ${weightLabel}` : ''}
 
-Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day — what went well, what could be better, always supportive", "prediction": "predicted weight in 1 month with units if every day was exactly like this, e.g. 142.5 lbs or 64.8 kg", "tip": "one friendly, specific suggestion for tomorrow"}`;
+Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day — what went well, what could be better, always supportive", "tip": "one friendly, specific suggestion for tomorrow"}`;
 
       const text = await callOpenAI(apiKey, prompt);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
-        setDayReview(JSON.parse(match[0]));
+        setDayReview({ ...JSON.parse(match[0]), prediction });
       }
     } catch (error) {
       console.error('Day review error:', error);
