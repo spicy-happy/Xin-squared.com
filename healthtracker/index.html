@@ -379,6 +379,26 @@ async function callOpenAI(apiKey, prompt, imageBase64Array = []) {
   return data.choices[0]?.message?.content || "";
 }
 
+// Parse JSON from a model reply. The model sometimes writes math or units
+// instead of plain numbers (e.g. "calories": 4 * 26, "protein": 2.4g), adds
+// comments, or leaves trailing commas — repair those before giving up.
+function parseAIJson(str) {
+  try { return JSON.parse(str); } catch (e) {
+    const repaired = str
+      .replace(/\/\/[^\n]*/g, '')
+      .replace(/:\s*(-?[\d.]+(?:\s*[-+*\/]\s*\(?\s*[\d.]+\s*\)?)+)(?:\s*=\s*-?[\d.]+)?/g, (m, expr) => {
+        try {
+          const v = Function('"use strict";return (' + expr + ')')();
+          return Number.isFinite(v) ? ':' + Math.round(v * 10) / 10 : m;
+        } catch (_) { return m; }
+      })
+      .replace(/:\s*(-?[\d.]+)\s*(?:g|kcal|cal|grams|mg)\b/gi, ':$1')
+      .replace(/:\s*~\s*(-?[\d.]+)/g, ':$1')
+      .replace(/,\s*([}\]])/g, '$1');
+    try { return JSON.parse(repaired); } catch (_) { throw e; }
+  }
+}
+
 // Convert File to base64 data URL
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -755,7 +775,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const text = await callOpenAI(apiKey, prompt);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
-        const parsed = JSON.parse(match[0]);
+        const parsed = parseAIJson(match[0]);
         const cal = parseInt(parsed.calories) || parseInt(parsed.calorieMin) || 1800;
         const goals = {
           calorieMin: cal,
@@ -912,7 +932,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const accuracyRule = `${FOOD_ACCURACY_RULE} ${knownFoodsRule()}`;
       const exerciseRule = exerciseRuleFor(rawWeight);
       const weightPeriodRule = `Also detect if the user mentions their weight (e.g. "weigh 150", "150 lbs", "weight 68 kg", "72.5 kg") or their period (e.g. "period started", "on my period", "period", "menstruation"). If weight is mentioned, extract the numeric value in lbs (convert from kg if needed by dividing by 0.453592). If period is mentioned, set isPeriod to true.`;
-      const universalFormat = `Return ONLY JSON with this exact structure: {"foods":[{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}],"exercises":[{"name":"30 min running","minutes":30,"met":8.3,"calories":250}],"weight":null,"isPeriod":false}. If there are no food items, return an empty foods array. If there are no exercises, return an empty exercises array. ALWAYS start food names with a number (quantity). For food, if no quantity is specified, assume 1. Set "weight" to the numeric value in lbs if mentioned, otherwise null. Set "isPeriod" to true only if period/menstruation is mentioned.`;
+      const universalFormat = `All values must be plain numbers (no math, units, or comments). Return ONLY JSON with this exact structure: {"foods":[{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}],"exercises":[{"name":"30 min running","minutes":30,"met":8.3,"calories":250}],"weight":null,"isPeriod":false}. If there are no food items, return an empty foods array. If there are no exercises, return an empty exercises array. ALWAYS start food names with a number (quantity). For food, if no quantity is specified, assume 1. Set "weight" to the numeric value in lbs if mentioned, otherwise null. Set "isPeriod" to true only if period/menstruation is mentioned.`;
 
       let prompt;
       if (logImages.length > 0 && logDescription) {
@@ -927,7 +947,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const text = await callOpenAI(apiKey, prompt, imageBase64s);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
-        const parsed = JSON.parse(match[0]);
+        const parsed = parseAIJson(match[0]);
 
         let updatedFoods = foods;
         let updatedExercises = exercises;
@@ -1045,10 +1065,10 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
     const dateToSave = currentDate;
     setIsAnalyzingLog(true);
     try {
-      const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity. ${FOOD_ACCURACY_RULE} ${knownFoodsRule(editingFoodId)} Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Apple", "1 Bowl of oatmeal with berries". Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`);
+      const text = await callOpenAI(apiKey, `Analyze this food: "${editingFoodText}". CRITICAL: If no quantity is specified, assume quantity is 1. ALWAYS start the name with a number. IMPORTANT: All nutritional values (calories, protein, fat, carbs) MUST be the TOTAL for the entire quantity, NOT per-item. For example, if "2 Protein bars" and each bar has 200cal/20g protein/8g fat/25g carbs, return 400cal/40g protein/16g fat/50g carbs. Always multiply per-item values by the quantity. ${FOOD_ACCURACY_RULE} ${knownFoodsRule(editingFoodId)} Format each name cleanly: capitalize the first letter, use proper grammar, no trailing punctuation. Examples: "2 Scrambled eggs with toast", "1 Apple", "1 Bowl of oatmeal with berries". All values must be plain numbers (no math, units, or comments). Return ONLY JSON: [{"name":"2 Scrambled eggs with toast","calories":440,"protein":32,"fat":24,"carbs":36}]`);
       const match = text.match(/\[[\s\S]*\]/);
       if (match) {
-        const parsed = JSON.parse(match[0]);
+        const parsed = parseAIJson(match[0]);
         const updatedFood = {
           id: editingFoodId,
           name: parsed[0].name,
@@ -1084,7 +1104,7 @@ Return ONLY JSON, no other text: {"calories": 1800, "protein": 150}`;
       const text = await callOpenAI(apiKey, `Estimate calories burned for this exercise: "${exerciseName}". ${exerciseRuleFor(rawWeight)} Also return a cleanly formatted name: capitalize the first letter, use proper grammar, include duration if mentioned, no trailing punctuation. Return ONLY JSON, no other text: {"name": "30 min running", "minutes": 30, "met": 8.3, "calories": 250}`);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
-        const parsed = JSON.parse(match[0]);
+        const parsed = parseAIJson(match[0]);
         return { calories: calcExerciseCalories(parsed, rawWeight), name: parsed.name || exerciseName };
       }
     } catch (error) {
@@ -1161,7 +1181,7 @@ Return ONLY JSON: {"summary": "2-3 sentence warm, encouraging review of the day 
       const text = await callOpenAI(apiKey, prompt);
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {
-        setDayReview({ ...JSON.parse(match[0]), prediction });
+        setDayReview({ ...parseAIJson(match[0]), prediction });
       }
     } catch (error) {
       console.error('Day review error:', error);
